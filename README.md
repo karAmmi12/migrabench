@@ -10,4 +10,31 @@ chiffré : fidélité aux usages, sécurité, accessibilité, performance, coût
 - Plan de construction : [docs/PLAN.md](docs/PLAN.md)
 - Règles de travail avec l'agent : [CLAUDE.md](CLAUDE.md)
 
-État : en construction (étape 0).
+État : en construction (étape 1).
+
+## Lancer le legacy
+
+Prérequis : Docker (avec Compose v2).
+
+```sh
+docker compose up -d --build --wait
+```
+
+Le legacy (Java 8, Struts 1.3.10, Tomcat 9) répond sur
+<http://localhost:8080>, derrière une authentification `BASIC` de Tomcat.
+Les deux utilisateurs fixes, un agent et un instructeur, sont décrits dans
+[`fixtures/users.json`](fixtures/users.json). Ce fichier génère
+`tomcat-users.xml` pendant le build de l'image (ADR 0003) : après une
+modification, relancer avec `--build`.
+
+## Tests du banc
+
+Prérequis : Node 22 (voir `.nvmrc`), puis `npm install`.
+
+```sh
+npm test            # Vitest ; les tests du seam A exigent la pile Docker lancée
+npm run typecheck   # tsc --noEmit
+```
+
+Les tests du seam A appellent le legacy par HTTP sur `LEGACY_URL`
+(par défaut `http://localhost:8080`).
