@@ -25,6 +25,8 @@ Lire `PROTOCOL.md` (le pourquoi) et `docs/PLAN.md` (le comment) avant toute tâc
 
 - **Les chiffres viennent de mesures.** Ne jamais écrire un score, un
   pourcentage ou une durée qui ne sort pas d'un run enregistré.
+- **Une preuve cite l'état exact où elle a été obtenue** : un commit, ou la
+  session avec la description de l'état (fichiers présents, tests écrits).
 - **L'oracle est écrit contre le legacy**, jamais à partir du code d'un candidat.
 - **Les pièges du legacy sont volontaires.** Ne pas les corriger dans
   `fixtures/legacy-app`. Chacun est documenté dans `TRAPS.md`.
