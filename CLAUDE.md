@@ -19,6 +19,7 @@ Lire `PROTOCOL.md` (le pourquoi) et `docs/PLAN.md` (le comment) avant toute tâc
 - Commits petits, au format Conventional Commits, en anglais.
 - Code et identifiants en anglais. Documentation en français.
 - Ne jamais pousser sur `main` directement.
+- Avant d'ouvrir une PR de ticket, lancer `/fiche-ticket`.
 
 ## Règles propres à ce projet
 
