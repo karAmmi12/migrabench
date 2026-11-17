@@ -5,8 +5,8 @@
 FROM node:22.23.5-alpine AS users
 WORKDIR /work
 COPY fixtures/users.json users.json
-COPY scripts/generate-tomcat-users.ts generate-tomcat-users.mts
-RUN node --experimental-strip-types generate-tomcat-users.mts users.json tomcat-users.xml
+COPY scripts/generate-tomcat-users.ts generate-tomcat-users.ts
+RUN node --experimental-strip-types generate-tomcat-users.ts users.json tomcat-users.xml
 
 # 2. Build Maven du war.
 FROM maven:3.9.16-eclipse-temurin-8 AS build
