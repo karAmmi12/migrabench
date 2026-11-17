@@ -2,7 +2,7 @@
 // Prérequis : `docker compose up -d --build --wait` (voir README).
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { parseUsers, ROLES, type Role, type User } from "../../scripts/generate-tomcat-users.ts";
+import { parseUsers, ROLES, type Role, type User } from "../../scripts/users.ts";
 
 const LEGACY_URL = process.env.LEGACY_URL ?? "http://localhost:8080";
 
