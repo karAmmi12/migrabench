@@ -173,9 +173,31 @@ seam A, qui appelle le legacy par HTTP (seam A et seam B sont définis dans
   - Cause : la contrainte de sécurité existait déjà, puisqu'elle avait été
     écrite avec le premier test.
   - Résolution : pour prouver qu'ils mesurent quelque chose, on a retiré la
-    contrainte `BASIC` de `web.xml` et reconstruit. Résultat : les deux tests
-    échouent (`Tests  2 failed | 2 passed (4)`). La contrainte a ensuite été
-    restaurée.
+    contrainte `BASIC` de `web.xml` et reconstruit. État de la mesure : dans
+    la session, avant le premier commit, avec les quatre tests du seam A
+    écrits. Résultat : les deux tests échouent
+    (`Tests  2 failed | 2 passed (4)`). La contrainte a ensuite été restaurée.
+    Le test négatif de `parseUsers`, ajouté après la relecture, a suivi le même
+    chemin : il est vert d'emblée, et rouge (`Tests  1 failed (1)`) quand on
+    retire le contrôle du rôle de `scripts/users.ts`, sur l'état du commit
+    `f9492e3`.
+- **La preuve du rouge ne correspondait pas à l'historique.**
+  - Symptôme : la PR annonçait le rouge du premier test (`Tests  2 failed (2)`,
+    `ECONNREFUSED 127.0.0.1:8080`) comme s'il sortait du commit de test
+    `d1dd4cc`. La relecture a montré que ce commit ne le reproduit pas.
+    Relancé sur `d1dd4cc`, pile démarrée, il échoue au chargement :
+    `Error: ENOENT: no such file or directory, open '…/fixtures/users.json'`,
+    `Tests  no tests`.
+  - Cause : la mesure a été prise dans la session, sur un état non commité.
+    `fixtures/users.json` existait déjà, seul le premier test
+    (`answers the %s`, deux cas) était écrit, et le legacy n'existait pas
+    encore. Les commits ont été découpés après coup : le commit de test
+    contient les quatre tests, et `fixtures/users.json` n'arrive qu'au commit
+    suivant.
+  - Résolution : le texte de la PR et celui de cette fiche citent désormais
+    l'état de la session. L'historique est gardé tel quel, puisque la fusion
+    se fait en squash. `CLAUDE.md` gagne la règle « une preuve cite l'état
+    exact où elle a été obtenue ».
 
 ## Vérifier soi-même
 
