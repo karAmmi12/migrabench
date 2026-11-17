@@ -21,7 +21,14 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          tickets=$(printf '%s' "$PR_BODY" | grep -oiE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?):? +#[0-9]+' | grep -oE '[0-9]+' | sort -un || true)
+          # Comme GitHub, ignorer les mots-clés écrits dans du code : on retire
+          # d'abord les blocs délimités (``` ou ~~~, fermés ou non), puis le
+          # code en ligne (`…`, ``…``).
+          prose=$(printf '%s' "$PR_BODY" | perl -0777 -pe '
+            s/^[ \t]*(`{3,}|~{3,})[^\n]*\n.*?(?:^[ \t]*\1[`~]*[ \t]*$|\z)//gms;
+            s/(?<!`)(`+)(?!`).+?(?<!`)\1(?!`)//gs;
+          ')
+          tickets=$(printf '%s' "$prose" | grep -oiE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?):? +#[0-9]+' | grep -oE '[0-9]+' | sort -un || true)
           if [ -z "$tickets" ]; then
             echo "Aucun ticket fermé par la PR : rien à vérifier."
             exit 0
