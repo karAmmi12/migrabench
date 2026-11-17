@@ -4,10 +4,13 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
+export const ROLES = ["agent", "instructeur"] as const;
+export type Role = (typeof ROLES)[number];
+
 export interface User {
   username: string;
   password: string;
-  role: string;
+  role: Role;
 }
 
 function escapeXml(value: string): string {
@@ -19,7 +22,7 @@ function escapeXml(value: string): string {
     .replaceAll("'", "&apos;");
 }
 
-function parseUsers(json: string): User[] {
+export function parseUsers(json: string): User[] {
   const data: unknown = JSON.parse(json);
   if (!Array.isArray(data)) throw new Error("Users file must be a JSON array");
   return data.map((entry: unknown, index) => {
@@ -29,11 +32,14 @@ function parseUsers(json: string): User[] {
         throw new Error(`User #${index}: "${field}" must be a non-empty string`);
       }
     }
+    if (!(ROLES as readonly unknown[]).includes(user.role)) {
+      throw new Error(`User #${index}: "role" must be one of ${ROLES.join(", ")}`);
+    }
     return user as User;
   });
 }
 
-export function toTomcatUsersXml(users: User[]): string {
+function toTomcatUsersXml(users: User[]): string {
   const roles = [...new Set(users.map((user) => user.role))];
   const lines = [
     '<?xml version="1.0" encoding="UTF-8"?>',
