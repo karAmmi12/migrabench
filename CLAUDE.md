@@ -35,3 +35,20 @@ Lire `PROTOCOL.md` (le pourquoi) et `docs/PLAN.md` (le comment) avant toute tâc
 
 Legacy, oracle, candidat, run, porte, piège : définitions dans `PROTOCOL.md`.
 Utiliser ces mots, et seulement ceux-là, dans le code et la documentation.
+
+## Agent skills
+
+### Tracker d'issues
+
+Les issues et les specs vivent dans GitHub Issues (`karAmmi12/migrabench`),
+manipulées avec `gh`. Voir `docs/agents/issue-tracker.md`.
+
+### Labels de triage
+
+Les cinq labels par défaut : `needs-triage`, `needs-info`, `ready-for-agent`,
+`ready-for-human`, `wontfix`. Voir `docs/agents/triage-labels.md`.
+
+### Documentation du domaine
+
+Disposition single-context : `GLOSSARY.md` et `docs/adr/` à la racine.
+Voir `docs/agents/domain.md`.
