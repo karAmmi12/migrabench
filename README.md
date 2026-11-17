@@ -24,8 +24,11 @@ Le legacy (Java 8, Struts 1.3.10, Tomcat 9) répond sur
 <http://localhost:8080>, derrière une authentification `BASIC` de Tomcat.
 Les deux utilisateurs fixes, un agent et un instructeur, sont décrits dans
 [`fixtures/users.json`](fixtures/users.json). Ce fichier génère
-`tomcat-users.xml` pendant le build de l'image (ADR 0003) : après une
-modification, relancer avec `--build`.
+`tomcat-users.xml` pendant le build de l'image (ADR 0003).
+
+**Toute modification de `fixtures/users.json` demande
+`docker compose up --build`** : sans `--build`, le legacy garde les anciens
+utilisateurs alors que les tests lisent le nouveau fichier.
 
 ## Tests du banc
 
