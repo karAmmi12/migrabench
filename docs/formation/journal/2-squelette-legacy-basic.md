@@ -69,9 +69,11 @@ seam A, qui appelle le legacy par HTTP (seam A et seam B sont définis dans
 - `fixtures/users.json` : le fichier des utilisateurs, versionné, avec un
   agent et un instructeur. C'est la source unique des identités (ADR 0003).
   Il servira aussi plus tard de `USERS_FILE` à la couche serveur du candidat.
-- `scripts/generate-tomcat-users.ts` : valide le fichier des utilisateurs (un
-  rôle doit être `agent` ou `instructeur`) et écrit `tomcat-users.xml`. Le
-  test réutilise son analyseur, `parseUsers`.
+- `scripts/users.ts` : le modèle du fichier des utilisateurs (`User`, `Role`,
+  `parseUsers`). `parseUsers` refuse un champ vide et tout rôle autre que
+  `agent` ou `instructeur`. Le générateur et le test du seam A l'importent.
+- `scripts/generate-tomcat-users.ts` : lit le fichier des utilisateurs avec
+  `parseUsers` et écrit `tomcat-users.xml`.
 - `fixtures/legacy-app/` : le projet Maven du legacy.
   - `pom.xml` : Java 8, `struts-core` et `struts-taglib` 1.3.10.
   - `web.xml` : `ActionServlet` sur `*.do`, contrainte `BASIC` sur `/*` pour
@@ -90,6 +92,8 @@ seam A, qui appelle le legacy par HTTP (seam A et seam B sont définis dans
   identifiants reçoit `401` avec `WWW-Authenticate: Basic realm="migrabench"`
   (preuve qu'il n'y a pas d'écran de connexion) ; un mauvais mot de passe
   reçoit `401`.
+- `tests/users.test.ts` : un test négatif, sans démarrer le legacy :
+  `parseUsers` refuse un rôle inconnu.
 - `README.md` : comment lancer le legacy et les tests du banc.
 
 ## Les choix faits et pourquoi
@@ -102,16 +106,20 @@ seam A, qui appelle le legacy par HTTP (seam A et seam B sont définis dans
   que dit le README.
 - **Écrire le générateur en TypeScript, exécuté par Node 22 sans compilation**
   (`--experimental-strip-types`). La stack du banc est en TypeScript, et cette
-  option évite d'ajouter un outil de compilation. Dans l'image, le fichier est
-  copié avec l'extension `.mts`, pour être lu comme un module ES sans
-  `package.json` à côté. C'était une précaution. Un essai fait pendant la
-  rédaction de cette fiche montre que Node 22.23.5 exécute aussi le fichier
-  sous son nom `.ts` (`exit=0`, deux utilisateurs générés) : le renommage
-  n'est pas nécessaire.
-- **Pas de test unitaire du générateur.** La spec ne fixe que deux seams pour
-  l'étape 1 (HTTP et lecture du jeu de données). Le seam A couvre le
-  générateur de bout en bout : les identifiants lus dans
-  `fixtures/users.json` doivent passer l'authentification de Tomcat.
+  option évite d'ajouter un outil de compilation. Au départ, le `Dockerfile`
+  copiait le fichier sous l'extension `.mts`, par précaution, pour qu'il soit
+  lu comme un module ES sans `package.json` à côté. Un essai dans
+  `node:22.23.5-alpine`, sur une copie du seul fichier `.ts` et de
+  `users.json` sans `package.json`, a donné `exit=0` et deux utilisateurs
+  générés. Le renommage a donc été retiré après la relecture. Node exige en
+  revanche l'extension dans les imports relatifs (`./users.ts`), d'où
+  `allowImportingTsExtensions` dans `tsconfig.json`.
+- **Le générateur est couvert par le seam A, le modèle par un test négatif.**
+  La spec ne fixe que deux seams pour l'étape 1 (HTTP et lecture du jeu de
+  données). Le seam A couvre le générateur de bout en bout : les
+  identifiants lus dans `fixtures/users.json` doivent passer
+  l'authentification de Tomcat. La relecture a relevé que le refus d'un rôle
+  inconnu, lui, n'était couvert par aucun test, d'où `tests/users.test.ts`.
 - **Attribut `forward` de `<action>` plutôt que `ForwardAction`.** En
   Struts 1.3, `ForwardAction` est dans l'artefact `struts-extras`, que le
   projet n'inclut pas (voir Difficultés). Ajouter une dépendance demande une
@@ -146,6 +154,15 @@ seam A, qui appelle le legacy par HTTP (seam A et seam B sont définis dans
   - le paramètre `candidate` renommé, parce que « candidat » est un mot
     réservé du banc (`PROTOCOL.md`) ;
   - `engines` fixé à Node 22 (`^22`).
+- **Corrections après la relecture de la PR** :
+  - le modèle des utilisateurs est sorti du générateur dans
+    `scripts/users.ts`, parce que le fichier mêlait le modèle, le rendu XML et
+    le point d'entrée ;
+  - un test négatif sur `parseUsers` ;
+  - le renommage `.mts` est retiré ;
+  - seam A et seam B sont définis dans `GLOSSARY.md` ;
+  - une règle s'ajoute à `CLAUDE.md` : une preuve cite l'état exact où elle a
+    été obtenue (voir la dernière difficulté).
 - **Versions de l'outillage** : `vitest` 5.1.0, `typescript` 7.0.2 et
   `@types/node` 22.20.5, soit les versions publiées le jour du ticket
   (`npm view`), avec `@types/node` aligné sur Node 22.
@@ -213,7 +230,7 @@ Attendu : `Container migrabench-legacy-1  Healthy`
 npm test
 ```
 
-Attendu : `Tests  4 passed (4)`
+Attendu : `Test Files  2 passed (2)` et `Tests  5 passed (5)`
 
 ```sh
 npm run typecheck
@@ -268,8 +285,10 @@ Exercice : retirer le bloc qui va de `<security-constraint>` à
 `</login-config>` dans `fixtures/legacy-app/src/main/webapp/WEB-INF/web.xml`,
 puis relancer `docker compose up -d --build --wait` et `npm test`.
 
-Attendu : `Tests  2 failed | 2 passed (4)`. Restaurer le fichier ensuite
-(`git checkout -- fixtures/legacy-app`).
+Attendu : `Tests  2 failed | 3 passed (5)` ; seuls les deux tests de refus
+échouent. `--wait` n'affiche pas `Healthy`, parce que le healthcheck attend
+un `401` que le legacy ne renvoie plus. Restaurer le fichier ensuite
+(`git checkout -- fixtures/legacy-app`) et reconstruire.
 
 ## Pour aller plus loin
 
