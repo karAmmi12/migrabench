@@ -8,7 +8,8 @@ Le banc n'avait encore rien à migrer. Ce ticket pose le squelette du legacy :
 protégée par l'authentification `BASIC` de Tomcat, pour deux utilisateurs
 fixes : un agent et un instructeur. Le ticket installe aussi l'outillage des
 tests du banc (Node 22, TypeScript strict, Vitest) et le premier test du
-seam A, qui appelle le legacy par HTTP.
+seam A, qui appelle le legacy par HTTP (seam A et seam B sont définis dans
+[`GLOSSARY.md`](../../../GLOSSARY.md)).
 
 ## Notions à connaître
 
@@ -23,14 +24,16 @@ seam A, qui appelle le legacy par HTTP.
   [Tomcat 9 : Realm Configuration How-To](https://tomcat.apache.org/tomcat-9.0-doc/realm-howto.html)
 - **Sécurité déclarative dans `web.xml`** : `<security-constraint>` dit quelles
   URL sont protégées et quels rôles y ont accès, et `<login-config>` choisit le
-  mode (`BASIC`). Le code Java n'intervient pas. —
-  [Java EE 6 Tutorial : Securing Web Applications](https://docs.oracle.com/javaee/6/tutorial/doc/gkbaa.html)
+  mode (`BASIC`). Le code Java n'intervient pas. Le `web.xml` du legacy
+  déclare la version 2.5 de la spécification Servlet, celle de Java EE 5. —
+  [Java EE 5 Tutorial : Defining Security Requirements for Web Applications](https://docs.oracle.com/javaee/5/tutorial/doc/bncbe.html)
 - **Struts 1 et `struts-config.xml`** : l'`ActionServlet` reçoit les URL
   `*.do` et les associe à des `<action>`. L'attribut `forward` d'une action
   renvoie directement vers une ressource, une JSP par exemple, sans classe
-  Java. Struts 1 est en fin de vie : c'est ce qui fait de l'application un
-  legacy. —
-  [DTD struts-config 1.3](https://struts.apache.org/dtds/struts-config_1_3.dtd),
+  Java. —
+  [DTD struts-config 1.3](https://struts.apache.org/dtds/struts-config_1_3.dtd)
+- **Fin de vie de Struts 1** : Apache ne maintient plus Struts 1. C'est ce
+  qui fait de l'application un legacy réaliste. —
   [annonce de fin de vie de Struts 1](https://struts.apache.org/struts1eol-announcement.html)
 - **Packaging `war` avec Maven** : `mvn package` produit une archive web
   (`.war`). Nommée `ROOT.war`, elle est servie à la racine `/` de Tomcat. —
@@ -57,10 +60,6 @@ seam A, qui appelle le legacy par HTTP.
 - **`fetch`** : l'API HTTP standard, intégrée à Node 22, avec laquelle le test
   appelle le legacy. —
   [MDN : Fetch API](https://developer.mozilla.org/fr/docs/Web/API/Fetch_API)
-- **Seam** : la frontière publique où un test observe un comportement sans
-  regarder dedans. La spec en fixe deux pour l'étape 1. Le seam A, ce sont
-  les appels HTTP contre la pile Docker. —
-  [spec de l'étape 1, « Décisions de test »](../../specs/01-legacy-app.md)
 
 ## Ce qui a été construit
 
