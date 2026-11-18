@@ -44,8 +44,10 @@ choix viennent des seuls commits, de l'issue et du diff.
    - `# #<N> · <titre de l'issue>`
    - `## Objectif` : le problème que le ticket résout, en deux à quatre phrases.
    - `## Notions à connaître` : une puce par notion que le diff demande de
-     comprendre (une phrase d'explication + un lien vers la documentation
-     officielle de la notion). Un lien non confirmé reçoit `> À vérifier`.
+     comprendre : une phrase d'explication, puis un lien officiel par notion,
+     ou à défaut une source de référence, avec sa nature précisée
+     (republication, version documentée, écarts avec le legacy). Un lien non
+     confirmé reçoit `> À vérifier`.
    - `## Ce qui a été construit` : les fichiers ou groupes de fichiers et
      leur rôle, pour un lecteur qui ouvre le dépôt.
    - `## Les choix faits et pourquoi` : une puce par choix (option retenue,

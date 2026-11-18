@@ -6,6 +6,11 @@
 
   <display-name>migrabench legacy</display-name>
 
+  <!-- Charge le jeu de données en mémoire au démarrage. -->
+  <listener>
+    <listener-class>fr.migrabench.legacy.web.DossierServiceListener</listener-class>
+  </listener>
+
   <servlet>
     <servlet-name>action</servlet-name>
     <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>

@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: fixtures/legacy-app/Dockerfile
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     healthcheck:
       # Prêt quand l'application déployée exige l'authentification (401).
       test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/ | grep -q 401"]

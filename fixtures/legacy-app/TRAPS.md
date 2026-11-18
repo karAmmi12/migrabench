@@ -44,6 +44,10 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
 - **Charge** : présente dans le jeu de données, sur un dossier réservé que
   retrouve une recherche dédiée. Elle est silencieuse
   (`<img src=x onerror="window.__mbXss=1">`) pour ne pas perturber l'oracle.
+  Le dossier est `D-0101`, réservé à la porte XSS (`gate:xss` dans
+  `src/main/resources/dossiers.json`). La recherche dédiée est la recherche
+  par numéro `D-0101`. Une recherche sans critère affiche aussi ce dossier,
+  donc exécute aussi la charge.
 - **Préservé par l'oracle** : rien. L'oracle ne fait aucune assertion sur le
   demandeur de ce dossier réservé.
 - **Mesuré par la porte** : deux résultats distincts, sans verdict unique :
@@ -108,7 +112,10 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
 - **Famille** : à corriger.
 - **Où** : les trois écrans, sur au moins deux niveaux d'imbrication. Le
   tableau de résultats de l'écran 1 est un vrai tableau de données, avec des
-  `<th>`, placé à l'intérieur de la mise en page.
+  `<th>`, placé à l'intérieur de la mise en page. Sur l'écran 1, deux
+  niveaux de mise en page (page, puis contenu) contiennent à la fois un
+  tableau de mise en page des champs du formulaire et le tableau de
+  résultats.
 - **Préservé par l'oracle** : rien.
 - **Mesuré par la porte d'accessibilité**, par une vérification dédiée à
   côté d'axe-core (qui ne détecte pas les tableaux de mise en page), avec deux

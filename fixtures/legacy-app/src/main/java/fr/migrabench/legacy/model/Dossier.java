@@ -1,0 +1,49 @@
+package fr.migrabench.legacy.model;
+
+import java.time.LocalDate;
+
+/** Demande administrative identifiée par un numéro (GLOSSARY.md). */
+public class Dossier {
+
+    private final String number;
+    private final String applicant;
+    private final String subject;
+    private final Status status;
+    private final LocalDate filedOn;
+    private final LocalDate submittedOn;
+
+    public Dossier(String number, String applicant, String subject, Status status,
+                   LocalDate filedOn, LocalDate submittedOn) {
+        this.number = number;
+        this.applicant = applicant;
+        this.subject = subject;
+        this.status = status;
+        this.filedOn = filedOn;
+        this.submittedOn = submittedOn;
+    }
+
+    public String getNumber() {
+        return number;
+    }
+
+    public String getApplicant() {
+        return applicant;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public LocalDate getFiledOn() {
+        return filedOn;
+    }
+
+    /** Date de remise, présente seulement sur un dossier {@code REMIS}. */
+    public LocalDate getSubmittedOn() {
+        return submittedOn;
+    }
+}
