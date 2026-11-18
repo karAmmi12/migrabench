@@ -119,12 +119,12 @@ l'`ActionForm`, ni la JSP, ni du JavaScript côté client ne les montrent.
   - Symptôme : « numÃ©ro » au lieu de « numéro ». Dans les octets de la
     réponse, `é` valait `c3 83 c2 a9` : de l'UTF-8 encodé deux fois.
   - Cause : le fichier `.properties` contenait de l'UTF-8 brut à la place des
-    séquences `é` prévues, et Java 8 le lit en ISO-8859-1.
+    séquences `\u00e9` prévues, et Java 8 le lit en ISO-8859-1.
   - Résolution : réécrire les lignes de messages en `\uXXXX` par un petit
     script Node (l'équivalent de `native2ascii`), en laissant les
     commentaires lisibles.
 - **Espaces insécables restées dans les messages.** Une première
-  substitution cherchait le texte ` ` alors que le fichier contenait
+  substitution cherchait le texte `\u00a0` alors que le fichier contenait
   encore le caractère lui-même. Elle n'a rien remplacé. Elle a été relancée
   après la conversion en `\uXXXX`.
 

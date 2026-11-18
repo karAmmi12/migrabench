@@ -77,10 +77,12 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
 - **Messages** : dans `src/main/resources/fr/migrabench/legacy/ApplicationResources.properties`,
   en `\uXXXX` (fichier lu en ISO-8859-1), avec le texte lisible en
   commentaire au-dessus de chaque message.
-- **`validwhen` sur l'écran 1** : `validwhen` compare des chaînes dans l'ordre
-  lexical, ce qui ne marche pas pour des dates `jj/mm/aaaa`. La règle s'appuie
-  donc sur deux propriétés en lecture seule de `SearchForm`, `filedFromKey` et
-  `filedToKey` (date en `aaaammjj`, `null` si vide ou mal formée). Ces
+- **`validwhen` sur l'écran 1** : `validwhen` compare deux valeurs comme des
+  nombres si les deux sont des entiers, sinon comme des chaînes, dans l'ordre
+  lexical. Des dates `jj/mm/aaaa` seraient donc mal comparées. La règle
+  s'appuie sur deux propriétés en lecture seule de `SearchForm`,
+  `filedFromKey` et `filedToKey` (date en `aaaammjj`, un entier, `null` si
+  vide ou mal formée), comparées comme des nombres. Ces
   propriétés ne valident rien : la règle reste déclarée dans `validation.xml`.
   C'est voulu et cela fait partie du piège : le sens de la règle est réparti
   entre `validation.xml` et `SearchForm`, comme souvent dans les vrais legacy
