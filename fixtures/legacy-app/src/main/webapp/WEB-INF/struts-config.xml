@@ -10,13 +10,23 @@
   <action-mappings>
     <!-- Écran 1 : formulaire seul à l'ouverture. -->
     <action path="/recherche" forward="/WEB-INF/jsp/recherche.jsp"/>
-    <!-- Écran 1 : formulaire soumis, avec résultats. -->
+    <!-- Écran 1 : formulaire soumis, avec résultats. Une saisie refusée par
+         validation.xml revient sur la JSP (input) avec les valeurs saisies. -->
     <action path="/rechercher"
             type="fr.migrabench.legacy.web.SearchAction"
             name="searchForm"
             scope="request"
-            validate="false">
+            validate="true"
+            input="/WEB-INF/jsp/recherche.jsp">
       <forward name="success" path="/WEB-INF/jsp/recherche.jsp"/>
     </action>
   </action-mappings>
+
+  <message-resources parameter="fr.migrabench.legacy.ApplicationResources"/>
+
+  <!-- Règles de saisie déclarées seulement dans validation.xml (TRAPS.md). -->
+  <plug-in className="org.apache.struts.validator.ValidatorPlugIn">
+    <set-property property="pathnames"
+                  value="/org/apache/struts/validator/validator-rules.xml,/WEB-INF/validation.xml"/>
+  </plug-in>
 </struts-config>

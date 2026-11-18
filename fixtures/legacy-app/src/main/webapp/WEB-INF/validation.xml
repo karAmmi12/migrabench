@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE form-validation PUBLIC
+  "-//Apache Software Foundation//DTD Commons Validator Rules Configuration 1.3.0//EN"
+  "http://jakarta.apache.org/commons/dtds/validator_1_3_0.dtd">
+<!-- Piège « règles présentes seulement dans validation.xml » (TRAPS.md) :
+     aucune de ces règles n'est reprise dans les ActionForm, les JSP ou
+     l'API interne. Ne pas corriger. -->
+<form-validation>
+  <formset>
+    <!-- Écran 1 : recherche de dossiers. Tous les champs sont facultatifs. -->
+    <form name="searchForm">
+      <field property="number" depends="mask">
+        <msg name="mask" key="errors.search.number.mask"/>
+        <var>
+          <var-name>mask</var-name>
+          <var-value>^D-[0-9]{4}$</var-value>
+        </var>
+      </field>
+      <field property="filedFrom" depends="date">
+        <msg name="date" key="errors.search.filedFrom.date"/>
+        <var>
+          <var-name>datePatternStrict</var-name>
+          <var-value>dd/MM/yyyy</var-value>
+        </var>
+      </field>
+      <!-- validwhen compare des chaînes dans l'ordre lexical : il s'appuie
+           donc sur les clés aaaammjj de SearchForm, comparées comme des
+           entiers. Une clé vaut null si sa date est vide ou mal formée.
+           La grammaire de validwhen est binaire : un seul « or » par
+           paire de parenthèses. -->
+      <field property="filedTo" depends="date,validwhen">
+        <msg name="date" key="errors.search.filedTo.date"/>
+        <msg name="validwhen" key="errors.search.filedTo.validwhen"/>
+        <var>
+          <var-name>datePatternStrict</var-name>
+          <var-value>dd/MM/yyyy</var-value>
+        </var>
+        <var>
+          <var-name>test</var-name>
+          <var-value>((filedFromKey == null) or ((filedToKey == null) or (filedToKey &gt;= filedFromKey)))</var-value>
+        </var>
+      </field>
+    </form>
+  </formset>
+</form-validation>

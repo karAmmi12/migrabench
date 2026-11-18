@@ -56,8 +56,8 @@ public class SearchAction extends Action {
     }
 
     /**
-     * Une date mal formée est ignorée ici : c'est {@code validation.xml} qui
-     * la refuse avant l'action (ticket de validation de l'écran 1).
+     * Une date mal formée n'arrive pas ici : {@code validation.xml} la refuse
+     * avant l'action. Elle serait ignorée sinon.
      */
     private static LocalDate parseDate(String value) {
         if (blankToNull(value) == null) {

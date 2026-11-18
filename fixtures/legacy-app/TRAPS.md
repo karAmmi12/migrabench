@@ -74,6 +74,15 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
   | 2 Fiche | Demandeur | obligatoire, 80 caractères au plus | `required`, `maxlength` |
   | 2 Fiche | Objet | obligatoire, 200 caractères au plus | `required`, `maxlength` |
 
+- **Messages** : dans `src/main/resources/fr/migrabench/legacy/ApplicationResources.properties`,
+  en `\uXXXX` (fichier lu en ISO-8859-1), avec le texte lisible en
+  commentaire au-dessus de chaque message.
+- **`validwhen` sur l'écran 1** : `validwhen` compare des chaînes dans l'ordre
+  lexical, ce qui ne marche pas pour des dates `jj/mm/aaaa`. La règle s'appuie
+  donc sur deux propriétés en lecture seule de `SearchForm`, `filedFromKey` et
+  `filedToKey` (date en `aaaammjj`, `null` si vide ou mal formée). Ce ne sont
+  pas des règles : la règle reste déclarée dans `validation.xml`.
+
 - **Vérifié par l'oracle**, avec un résultat par règle :
   1. la soumission est refusée (écran 2 : après rechargement de la fiche, la
      valeur n'a pas changé) ;
