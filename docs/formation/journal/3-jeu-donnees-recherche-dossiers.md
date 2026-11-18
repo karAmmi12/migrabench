@@ -84,7 +84,10 @@ partagé entre deux scénarios ou portes.
 - `struts-config.xml` : `/recherche.do` affiche le formulaire seul, et
   `/rechercher.do` affiche le formulaire et les résultats.
 - `web.xml` : déclare le listener.
-- `pom.xml` : ajoute `jackson-databind`.
+- `pom.xml` : ajoute `jackson-databind` 2.18.11.
+- `PROTOCOL.md` : une limite de plus. Struts 1.3.10 a des failles connues
+  qui ne font pas partie des pièges mesurés, et la pile ne doit jamais être
+  exposée hors de la machine locale.
 - `WEB-INF/jsp/recherche.jsp` : l'écran 1.
   - Champs Numéro, Demandeur, Statut, Déposé du, Déposé au, chacun avec un
     `<label for>`, et le bouton Rechercher.
@@ -130,33 +133,38 @@ partagé entre deux scénarios ou portes.
   ticket #4, et elle refusera ces saisies avant l'action. D'ici là, une date
   mal formée élargit les résultats au lieu d'être refusée. La relecture l'a
   noté.
-- **`jackson-databind` 2.12.7.1.** La spec impose Jackson, et cette version
-  tourne sous Java 8. Elle corrige CVE-2022-42003 (GHSA-jjjh-jjxp-wpff) et
-  CVE-2022-42004 (GHSA-rgv9-q543-rqg4). Dans les deux avis, la plage
-  vulnérable de la branche 2.12 est `< 2.12.7.1`, corrigée en 2.12.7.1.
-  Elle n'est pourtant pas sans faille connue : OSV et la GitHub Advisory
-  Database recensent chacun **11 avis** qui touchent 2.12.7.1, publiés entre
-  juin et septembre 2026. Quatre sont de gravité HIGH :
-  - GHSA-j3rv-43j4-c7qm (CVE-2026-54512) ;
-  - GHSA-rmj7-2vxq-3g9f (CVE-2026-54513) ;
-  - GHSA-cxp5-3px4-pw24 (CVE-2026-91777) ;
-  - GHSA-wv8q-qhhj-9h54 (CVE-2026-91776).
+- **`jackson-databind` 2.18.11, et non une version de l'époque du legacy.**
+  La spec impose Jackson. La première version retenue, 2.12.7.1, avait été
+  choisie de mémoire, pour sa compatibilité Java 8 et le correctif de
+  CVE-2022-42003 et CVE-2022-42004. Une vérification dans les bases
+  officielles a montré qu'elle restait touchée par **11 avis**, publiés entre
+  juin et septembre 2026, dont quatre de gravité HIGH :
+  - GHSA-j3rv-43j4-c7qm ;
+  - GHSA-rmj7-2vxq-3g9f ;
+  - GHSA-cxp5-3px4-pw24 ;
+  - GHSA-wv8q-qhhj-9h54.
 
   Aucun de ces avis n'est corrigé dans la branche 2.12. La plus petite version
   2.x qui les corrige tous est 2.18.11.
-  - Sources, consultées le 18/11/2026 :
-    - `POST https://api.osv.dev/v1/query` avec
-      `com.fasterxml.jackson.core:jackson-databind`, `Maven`, `2.12.7.1` ;
-    - `GET https://api.osv.dev/v1/vulns/<id>` pour les plages corrigées ;
-    - `gh api "/advisories?affects=com.fasterxml.jackson.core:jackson-databind@2.12.7.1&ecosystem=maven"`,
-      qui renvoie 11 avis ;
-    - `gh api "/advisories?cve_id=CVE-2022-4200x"` pour les deux CVE de 2022.
-  - Garder 2.12.7.1 ou monter de version n'est pas encore tranché, voir la
-    PR #12.
-  - Hypothèse de l'agent, non vérifiée : le legacy ne lit avec Jackson que
-    son propre fichier, sans typage polymorphe ni données venues du
-    navigateur, ce qui limiterait l'exposition.
-    > À vérifier : l'exposition réelle de chaque avis dans cet usage n'a pas été analysée.
+
+  L'humain a tranché pour 2.18.11, avec cette raison : « une faille non
+  choisie serait un piège non déclaré ». Les pièges du legacy sont
+  volontaires et documentés (`TRAPS.md`). Une faille de dépendance ne l'est
+  pas, et elle fausserait la mesure.
+
+  Les failles de Struts 1.3.10 lui-même restent, car elles sont inhérentes au
+  legacy. Elles sont déclarées dans les limites de `PROTOCOL.md`.
+  - Résultat de la requête OSV le 18/11/2026 à 15:52 UTC :
+    `jackson-databind` 2.18.11 → 0 avis, `jackson-core` et
+    `jackson-annotations` 2.18.11 → 0 avis. La GitHub Advisory Database
+    donne aussi 0 avis pour `jackson-databind` 2.18.11.
+  - Témoin, même requête, même jour : `jackson-databind` 2.12.7.1 → 11 avis.
+  - Compatibilité Java 8 :
+    - l'image se reconstruit sans cache (`docker compose build --no-cache`,
+      `exit=0`) ;
+    - le war contient `jackson-databind-2.18.11.jar` ;
+    - la pile charge les 31 dossiers ;
+    - `npm test` donne `Tests  10 passed (10)`.
 - **Les dates de dépôt supposent une horloge figée vers le 15/11/2025.**
   L'horloge est choisie par #6. Une valeur proche garde environ 18 mois de
   dépôts derrière elle.
@@ -189,6 +197,22 @@ partagé entre deux scénarios ou portes.
   - Cause : zsh ne découpe pas une variable non citée en plusieurs mots,
     contrairement à bash, et `g` était déjà un alias du shell.
   - Résolution : écrire les vérifications dans un script lancé avec `bash`.
+- **Une version de dépendance choisie de mémoire.**
+  - Symptôme : la PR affirmait que `jackson-databind` 2.12.7.1 était sans
+    faille connue. L'humain a demandé une vérification dans une base
+    officielle.
+  - Cause : l'affirmation venait de la mémoire de l'agent, sans source.
+  - Résolution : une requête OSV a trouvé 11 avis, ce qui a conduit à
+    passer à 2.18.11 (voir les choix).
+- **Une requête OSV faussement rassurante.**
+  - Symptôme : la première requête sur 2.18.11 a répondu `0` pour Jackson
+    et pour Struts 1.3.10. Or Struts 1.3.10 a des failles connues.
+  - Cause : zsh ne découpe pas une variable en mots, si bien que
+    `set -- $q` a envoyé à OSV un nom de paquet incluant la version. Un nom
+    inconnu renvoie 0 avis, sans erreur.
+  - Résolution : relancer avec des arguments explicites, et ajouter un
+    témoin (2.12.7.1 doit renvoyer 11). Retenir qu'un résultat vide ne vaut
+    preuve que si la même requête sait trouver quelque chose.
 - **Le premier `gh issue view 3` n'a rien affiché.**
   - Symptôme : la commande n'a rien affiché, mais le `git log` qui la suivait
     a bien répondu.
@@ -207,7 +231,8 @@ partagé entre deux scénarios ou portes.
 ## Vérifier soi-même
 
 Prérequis : `docker compose up -d --build --wait`. Mesures faites sur le
-commit `61f3cac`.
+commit `61f3cac`, puis refaites sur `55557cd` (Jackson 2.18.11), où
+`npm test` donne encore `Tests  10 passed (10)`.
 
 ```sh
 npx vitest run tests/seam-b
@@ -244,6 +269,20 @@ curl -s -u agent:agent-mb "http://localhost:8080/rechercher.do?number=D-9999" | 
 ```
 Résultat observé : seulement la ligne
 `<p>Aucun dossier ne correspond à vos critères.</p>`, sans `<th>`.
+
+```sh
+curl -s -X POST https://api.osv.dev/v1/query \
+  -d '{"package":{"name":"com.fasterxml.jackson.core:jackson-databind","ecosystem":"Maven"},"version":"2.18.11"}'
+```
+Résultat observé le 18/11/2026 : aucune entrée `vulns`, soit 0 avis. Témoin : avec
+`"version":"2.12.7.1"`, on obtient 11 avis. Le résultat peut changer avec le
+temps, puisque de nouveaux avis sont publiés.
+
+```sh
+docker run --rm --entrypoint sh migrabench-legacy -c 'jar tf /usr/local/tomcat/webapps/ROOT.war | grep "lib/jackson"'
+```
+Résultat observé : `jackson-databind-2.18.11.jar`, `jackson-annotations-2.18.11.jar`
+et `jackson-core-2.18.11.jar`.
 
 Dans un navigateur, connecté en agent, ouvrir
 `http://localhost:8080/rechercher.do?number=D-0101`, puis taper
