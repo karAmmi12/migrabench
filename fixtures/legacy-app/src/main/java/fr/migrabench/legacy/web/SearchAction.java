@@ -11,9 +11,7 @@ import org.apache.struts.action.ActionMapping;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,9 +19,6 @@ import java.util.List;
 public class SearchAction extends Action {
 
     public static final String RESULTS = "results";
-
-    private static final DateTimeFormatter INPUT_DATE =
-            DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);
 
     @Override
     public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
@@ -69,7 +64,7 @@ public class SearchAction extends Action {
             return null;
         }
         try {
-            return LocalDate.parse(value, INPUT_DATE);
+            return LocalDate.parse(value, ScreenDate.FORMAT);
         } catch (DateTimeParseException e) {
             return null;
         }
