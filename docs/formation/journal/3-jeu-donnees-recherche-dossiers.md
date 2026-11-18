@@ -26,6 +26,7 @@ partagé entre deux scénarios ou portes.
   choisit une suite (`findForward`). Le lien entre les deux est déclaré dans
   `struts-config.xml` (`<form-bean>`, `<action name=…>`). —
   [DTD struts-config 1.3](https://struts.apache.org/dtds/struts-config_1_3.dtd)
+  > À vérifier : ce lien décrit la syntaxe de `struts-config.xml`, pas les concepts `ActionForm` et `Action` ; aucune documentation du concept n'a été ouverte pendant la session.
 - **Balises Struts `html`, `bean`, `logic`** : `<html:form>`, `<html:text>`,
   `<html:select>` génèrent le formulaire et gardent les valeurs saisies.
   `<logic:iterate>` parcourt une liste. `<bean:write>` affiche une propriété en
@@ -116,8 +117,8 @@ partagé entre deux scénarios ou portes.
   associé à deux scénarios ou portes » réussirait par construction. Avec la
   table, il peut échouer pour de bon (voir Difficultés).
 - **Un seul dossier réservé, `D-0101`.** Les dossiers réservés des scénarios
-  de remise et de la porte de rôle sont ajoutés par #6, comme le prévoit cette
-  issue. Les créer maintenant obligerait à deviner des noms de scénarios qui
+  de remise et de la porte de rôle sont ajoutés par #6, comme le prévoit l'issue #6
+  (« Dossiers réservés de l'écran ajoutés au jeu de données »). Les créer maintenant obligerait à deviner des noms de scénarios qui
   n'existent pas encore.
 - **Une recherche vide affiche aussi `D-0101`**, donc exécute la charge.
   C'est conforme à « un formulaire vide renvoie tous les dossiers ». La
@@ -151,6 +152,12 @@ partagé entre deux scénarios ou portes.
 
   Aucun de ces avis n'est corrigé dans la branche 2.12. La plus petite version
   2.x qui les corrige tous est 2.18.11.
+  - Source : `GET https://api.osv.dev/v1/vulns/<id>` pour chacun des 11 avis,
+    le 18/11/2026. Les dates `published` vont du 2026-06-23 au 2026-09-30.
+    Sous 2.19, les versions corrigées (`fixed`) sont 2.14.0, 2.18.8, 2.18.9,
+    2.18.10 et 2.18.11 : la plus haute, 2.18.11, les corrige donc toutes.
+    Les plages qui commencent à 2.19.0 ne sont corrigées qu'en 2.21.7, et
+    celles qui commencent à 2.22.0 en 2.22.3.
 
   L'humain a tranché pour 2.18.11, avec cette raison : « une faille non
   choisie serait un piège non déclaré ». Les pièges du legacy sont
@@ -171,19 +178,31 @@ partagé entre deux scénarios ou portes.
     - la pile charge les 31 dossiers ;
     - `npm test` donne `Tests  10 passed (10)`.
 - **Ports publiés liés à `127.0.0.1`.** Écrite seule, `"8080:8080"` fait
-  publier le port par Docker sur toutes les interfaces de l'hôte. Le legacy
-  était alors joignable depuis le réseau local, ce qui contredisait la limite
-  qu'on venait d'ajouter à `PROTOCOL.md`. L'agent l'a relevé, et l'humain a
+  publier le port par Docker sur toutes les interfaces de l'hôte, donc au
+  réseau local, ce qui contredisait la limite qu'on venait d'ajouter à
+  `PROTOCOL.md`. L'accès depuis le réseau avant le changement n'a pas été
+  mesuré. L'agent l'a relevé, et l'humain a
   demandé la correction dans ce ticket, avec la règle générale dans
-  l'ADR 0004. Vérification sur la pile recréée :
+  l'ADR 0004. Vérification sur la pile recréée depuis l'état du commit
+  `da7a6b0` :
   - `docker compose port legacy 8080` donne `127.0.0.1:8080` ;
   - `http://localhost:8080/recherche.do` répond `200` ;
   - la même URL par l'adresse réseau local de l'hôte échoue (code `curl`
     `000`, aucune réponse) ;
   - `npm test` donne `Tests  10 passed (10)`.
 - **Les dates de dépôt supposent une horloge figée vers le 15/11/2025.**
-  L'horloge est choisie par #6. Une valeur proche garde environ 18 mois de
-  dépôts derrière elle.
+  Les dépôts vont du 06/05/2024 au 27/10/2025. L'horloge est choisie par #6.
+  Hypothèse : avec une horloge vers le 15/11/2025, les dépôts couvrent
+  environ 18 mois avant elle. Ce n'est pas une mesure, et c'est à
+  revérifier une fois l'horloge fixée.
+- **Un seul format de date pour les écrans** (commit `cd002e9`). La
+  relecture de la PR a trouvé le format déclaré deux fois : `dd/MM/uuuu`
+  pour la saisie, `dd/MM/yyyy` pour l'affichage. `ScreenDate.FORMAT` sert
+  maintenant aux deux. Contrôle sur la pile reconstruite :
+  - `D-0012` s'affiche `14/02/2025` ;
+  - la plage du 14/02/2025 au 14/02/2025 renvoie encore `D-0012` et `D-0019` ;
+  - `31/02/2025` est ignoré (format `STRICT`), et la recherche renvoie les 31 dossiers ;
+  - `npm test` donne `Tests  10 passed (10)`.
 - **Corrections après relecture** (commit `61f3cac`) :
   - les numéros sont comparés comme des nombres, et non plus comme des
     chaînes ;
@@ -297,8 +316,22 @@ temps, puisque de nouveaux avis sont publiés.
 ```sh
 docker run --rm --entrypoint sh migrabench-legacy -c 'jar tf /usr/local/tomcat/webapps/ROOT.war | grep "lib/jackson"'
 ```
-Résultat observé : `jackson-databind-2.18.11.jar`, `jackson-annotations-2.18.11.jar`
+Résultat observé sur l'image construite depuis `55557cd` :
+`jackson-databind-2.18.11.jar`, `jackson-annotations-2.18.11.jar`
 et `jackson-core-2.18.11.jar`.
+
+```sh
+curl -s -X POST https://api.osv.dev/v1/query \
+  -d '{"package":{"name":"org.apache.struts:struts-core","ecosystem":"Maven"},"version":"1.3.10"}'
+gh api "/advisories?affects=org.apache.struts:struts-core@1.3.10&ecosystem=maven"
+```
+Résultat observé le 18/11/2026 à 15:52 UTC, d'où viennent les comptes de
+`PROTOCOL.md` :
+- OSV : 4 avis, GHSA-4g42-gqrg-4633 (CVE-2023-34396), GHSA-5ggr-mpgw-3mgx
+  (CVE-2016-1182), GHSA-7jw3-5q4w-89qg (CVE-2016-1181) et
+  GHSA-cvvx-r33m-v7pq (CVE-2015-0899) ;
+- GitHub Advisory Database : 5 avis, les mêmes quatre et GHSA-9848-v244-962p
+  (CVE-2012-1007).
 
 Dans un navigateur, connecté en agent, ouvrir
 `http://localhost:8080/rechercher.do?number=D-0101`, puis taper
