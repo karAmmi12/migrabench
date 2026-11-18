@@ -1,0 +1,6 @@
+**/node_modules
+**/target
+.git
+*.har
+playwright-report
+test-results

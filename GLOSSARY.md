@@ -37,6 +37,15 @@ Endpoints JSON du legacy (rechercher, lire, modifier, remettre), joignables
 seulement par la couche serveur du candidat.
 _Éviter_ : API legacy, services
 
+**Seam A** :
+Frontière où les tests du banc observent le legacy par des appels HTTP
+contre la pile `docker compose up`, sans regarder ses classes Java
+(spec de l'étape 1).
+
+**Seam B** :
+Frontière où les tests du banc lisent le fichier du jeu de données sans
+démarrer le legacy (spec de l'étape 1).
+
 ## Domaine du legacy
 
 **Dossier** :
