@@ -130,11 +130,33 @@ partagé entre deux scénarios ou portes.
   ticket #4, et elle refusera ces saisies avant l'action. D'ici là, une date
   mal formée élargit les résultats au lieu d'être refusée. La relecture l'a
   noté.
-- **`jackson-databind` 2.12.7.1.** La spec impose Jackson. Cette version
-  tourne sous Java 8 et corrige CVE-2022-42003 et CVE-2022-42004. Une version
-  plus récente aurait éloigné le legacy de son époque, et une plus ancienne
-  aurait apporté des failles connues.
-  > À vérifier : la liste des CVE corrigées vient de la mémoire de l'agent, pas d'une source consultée pendant la session.
+- **`jackson-databind` 2.12.7.1.** La spec impose Jackson, et cette version
+  tourne sous Java 8. Elle corrige CVE-2022-42003 (GHSA-jjjh-jjxp-wpff) et
+  CVE-2022-42004 (GHSA-rgv9-q543-rqg4). Dans les deux avis, la plage
+  vulnérable de la branche 2.12 est `< 2.12.7.1`, corrigée en 2.12.7.1.
+  Elle n'est pourtant pas sans faille connue : OSV et la GitHub Advisory
+  Database recensent chacun **11 avis** qui touchent 2.12.7.1, publiés entre
+  juin et septembre 2026. Quatre sont de gravité HIGH :
+  - GHSA-j3rv-43j4-c7qm (CVE-2026-54512) ;
+  - GHSA-rmj7-2vxq-3g9f (CVE-2026-54513) ;
+  - GHSA-cxp5-3px4-pw24 (CVE-2026-91777) ;
+  - GHSA-wv8q-qhhj-9h54 (CVE-2026-91776).
+
+  Aucun de ces avis n'est corrigé dans la branche 2.12. La plus petite version
+  2.x qui les corrige tous est 2.18.11.
+  - Sources, consultées le 18/11/2026 :
+    - `POST https://api.osv.dev/v1/query` avec
+      `com.fasterxml.jackson.core:jackson-databind`, `Maven`, `2.12.7.1` ;
+    - `GET https://api.osv.dev/v1/vulns/<id>` pour les plages corrigées ;
+    - `gh api "/advisories?affects=com.fasterxml.jackson.core:jackson-databind@2.12.7.1&ecosystem=maven"`,
+      qui renvoie 11 avis ;
+    - `gh api "/advisories?cve_id=CVE-2022-4200x"` pour les deux CVE de 2022.
+  - Garder 2.12.7.1 ou monter de version n'est pas encore tranché, voir la
+    PR #12.
+  - Hypothèse de l'agent, non vérifiée : le legacy ne lit avec Jackson que
+    son propre fichier, sans typage polymorphe ni données venues du
+    navigateur, ce qui limiterait l'exposition.
+    > À vérifier : l'exposition réelle de chaque avis dans cet usage n'a pas été analysée.
 - **Les dates de dépôt supposent une horloge figée vers le 15/11/2025.**
   L'horloge est choisie par #6. Une valeur proche garde environ 18 mois de
   dépôts derrière elle.
