@@ -28,11 +28,14 @@
       <artifactId>struts-taglib</artifactId>
       <version>${struts.version}</version>
     </dependency>
-    <!-- Lecture du jeu de données (dossiers.json) au démarrage. -->
+    <!-- Lecture du jeu de données (dossiers.json) au démarrage.
+         Version récente choisie exprès : une faille non choisie serait un
+         piège non déclaré. 2.18.11 : aucun avis OSV au 18/11/2026. -->
+
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.12.7.1</version>
+      <version>2.18.11</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
