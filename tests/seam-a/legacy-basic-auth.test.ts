@@ -1,24 +1,8 @@
 // Seam A : appels HTTP contre la pile `docker compose up`.
 // Prérequis : `docker compose up -d --build --wait` (voir README).
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { parseUsers, ROLES, type Role, type User } from "../../scripts/users.ts";
-
-const LEGACY_URL = process.env.LEGACY_URL ?? "http://localhost:8080";
-
-const users = parseUsers(
-  readFileSync(new URL("../../fixtures/users.json", import.meta.url), "utf8"),
-);
-
-function userWithRole(role: Role): User {
-  const user = users.find((entry) => entry.role === role);
-  if (!user) throw new Error(`No user with role ${role} in fixtures/users.json`);
-  return user;
-}
-
-function basicAuthHeader(user: User): string {
-  return `Basic ${Buffer.from(`${user.username}:${user.password}`).toString("base64")}`;
-}
+import { ROLES } from "../../scripts/users.ts";
+import { basicAuthHeader, LEGACY_URL, userWithRole } from "./legacy-client.ts";
 
 describe("legacy page served behind Tomcat BASIC authentication", () => {
   it.each(ROLES)("answers the %s", async (role) => {
