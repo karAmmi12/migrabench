@@ -88,6 +88,11 @@ partagé entre deux scénarios ou portes.
 - `PROTOCOL.md` : une limite de plus. Struts 1.3.10 a des failles connues
   qui ne font pas partie des pièges mesurés, et la pile ne doit jamais être
   exposée hors de la machine locale.
+- `docker-compose.yml` : le port du legacy est publié en
+  `"127.0.0.1:8080:8080"`, et non plus en `"8080:8080"`.
+- `docs/adr/0004-topologie-docker.md` : pose la règle générale. Tout port
+  publié sur l'hôte (legacy, service d'archivage, candidat) est lié à
+  `127.0.0.1`.
 - `WEB-INF/jsp/recherche.jsp` : l'écran 1.
   - Champs Numéro, Demandeur, Statut, Déposé du, Déposé au, chacun avec un
     `<label for>`, et le bouton Rechercher.
@@ -165,6 +170,17 @@ partagé entre deux scénarios ou portes.
     - le war contient `jackson-databind-2.18.11.jar` ;
     - la pile charge les 31 dossiers ;
     - `npm test` donne `Tests  10 passed (10)`.
+- **Ports publiés liés à `127.0.0.1`.** Écrite seule, `"8080:8080"` fait
+  publier le port par Docker sur toutes les interfaces de l'hôte. Le legacy
+  était alors joignable depuis le réseau local, ce qui contredisait la limite
+  qu'on venait d'ajouter à `PROTOCOL.md`. L'agent l'a relevé, et l'humain a
+  demandé la correction dans ce ticket, avec la règle générale dans
+  l'ADR 0004. Vérification sur la pile recréée :
+  - `docker compose port legacy 8080` donne `127.0.0.1:8080` ;
+  - `http://localhost:8080/recherche.do` répond `200` ;
+  - la même URL par l'adresse réseau local de l'hôte échoue (code `curl`
+    `000`, aucune réponse) ;
+  - `npm test` donne `Tests  10 passed (10)`.
 - **Les dates de dépôt supposent une horloge figée vers le 15/11/2025.**
   L'horloge est choisie par #6. Une valeur proche garde environ 18 mois de
   dépôts derrière elle.
