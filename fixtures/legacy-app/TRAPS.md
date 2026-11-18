@@ -95,6 +95,11 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
   avant de tester. Un demandeur ou un objet fait seulement d'espaces est
   refusé avec le message « obligatoire ». Une valeur acceptée est
   enregistrée telle quelle, sans retirer les espaces.
+- **Validation avant verrou sur l'écran 2** : `validation.xml` passe avant
+  le service métier. Une requête forgée qui change un champ verrouillé
+  reçoit `409`, sauf si elle viole aussi une règle de saisie : elle reçoit
+  alors la fiche avec le message d'erreur. Dans les deux cas, rien n'est
+  enregistré.
 - **Retour de l'écran 2 après refus** : l'`input` de `/enregistrer` est
   l'action `/ficheSaisie.do`, pas la JSP, car la fiche a besoin du statut
   pour afficher le verrou. Cette action relit le statut et garde la saisie.
@@ -118,6 +123,11 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
 - **Raccourci** : `Ctrl+S` sur l'écran 2 seulement, via un gestionnaire
   `onkeydown` écrit à la main dans la JSP, avec `preventDefault`. Pas de
   variante `Cmd+S`.
+- **Touches qui déclenchent l'enregistrement** : le gestionnaire teste
+  `ctrlKey` et le code de la touche S, sans regarder `Maj` ni `Alt`.
+  `Ctrl+Maj+S`, ou `AltGr+S` sous Windows (qui positionne `ctrlKey`),
+  enregistrent donc aussi. C'est le comportement de référence du legacy, mais
+  l'oracle ne vérifie que `Ctrl+S`.
 - **Fiche non modifiable** : sur un dossier `REMIS`, la JSP ne rend ni le
   bouton « Enregistrer » ni le gestionnaire. `Ctrl+S` n'a alors aucun effet
   sur l'application, et le navigateur garde son comportement par défaut.
