@@ -20,9 +20,9 @@
       <table width="100%" border="0" cellpadding="2" cellspacing="0">
         <tr>
           <td>
+            <html:errors/>
             <%-- Piège « focus initial » (TRAPS.md) : focus sur Numéro par
                  l'attribut focus, que Struts transforme en JavaScript. --%>
-            <html:errors/>
             <html:form action="/rechercher" method="get" focus="number">
               <table border="0" cellpadding="2" cellspacing="0">
                 <tr>

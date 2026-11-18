@@ -80,8 +80,11 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
 - **`validwhen` sur l'écran 1** : `validwhen` compare des chaînes dans l'ordre
   lexical, ce qui ne marche pas pour des dates `jj/mm/aaaa`. La règle s'appuie
   donc sur deux propriétés en lecture seule de `SearchForm`, `filedFromKey` et
-  `filedToKey` (date en `aaaammjj`, `null` si vide ou mal formée). Ce ne sont
-  pas des règles : la règle reste déclarée dans `validation.xml`.
+  `filedToKey` (date en `aaaammjj`, `null` si vide ou mal formée). Ces
+  propriétés ne valident rien : la règle reste déclarée dans `validation.xml`.
+- **Espaces dans « Numéro »** : `mask` ne retire pas les espaces. Un numéro
+  fait seulement d'espaces, ou entouré d'espaces (`D-0001 `), est refusé
+  avec le message du format. C'est le comportement de référence du legacy.
 
 - **Vérifié par l'oracle**, avec un résultat par règle :
   1. la soumission est refusée (écran 2 : après rechargement de la fiche, la

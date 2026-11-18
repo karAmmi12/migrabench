@@ -3,7 +3,6 @@ package fr.migrabench.legacy.web;
 import org.apache.struts.validator.ValidatorForm;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 
 /**
  * Formulaire de l'écran 1. Pas de {@code validate()} propre : les règles sont
@@ -72,14 +71,10 @@ public class SearchForm extends ValidatorForm {
 
     /** {@code null} si la date est vide ou mal formée. */
     private static String sortableKey(String value) {
-        if (value == null || value.isEmpty()) {
+        LocalDate date = ScreenDate.parseOrNull(value);
+        if (date == null) {
             return null;
         }
-        try {
-            LocalDate date = LocalDate.parse(value, ScreenDate.FORMAT);
-            return String.format("%04d%02d%02d", date.getYear(), date.getMonthValue(), date.getDayOfMonth());
-        } catch (DateTimeParseException e) {
-            return null;
-        }
+        return String.format("%04d%02d%02d", date.getYear(), date.getMonthValue(), date.getDayOfMonth());
     }
 }
