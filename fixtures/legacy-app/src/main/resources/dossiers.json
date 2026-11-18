@@ -37,7 +37,9 @@
     { "number": "D-0105", "applicant": "Mathéo Garnier", "subject": "Inscription au périscolaire", "status": "BROUILLON", "filedOn": "2025-10-06" },
     { "number": "D-0106", "applicant": "Inès Vallée", "subject": "Déclaration d'un meublé de tourisme", "status": "BROUILLON", "filedOn": "2025-10-13" },
     { "number": "D-0107", "applicant": "Pierre-Étienne Duval", "subject": "Demande d'arrêté de circulation", "status": "BROUILLON", "filedOn": "2025-10-20" },
-    { "number": "D-0108", "applicant": "Chloé Bérenger", "subject": "Réservation de la salle des fêtes", "status": "BROUILLON", "filedOn": "2025-10-27" }
+    { "number": "D-0108", "applicant": "Chloé Bérenger", "subject": "Réservation de la salle des fêtes", "status": "BROUILLON", "filedOn": "2025-10-27" },
+    { "number": "D-0109", "applicant": "Yannick Le Gall", "subject": "Permis de démolir d'un hangar agricole", "status": "EN_INSTRUCTION", "filedOn": "2025-11-03" },
+    { "number": "D-0110", "applicant": "Margaux Delacroix", "subject": "Autorisation de terrasse « Le Petit Zinc »", "status": "REMIS", "filedOn": "2025-06-16", "submittedOn": "2025-08-25" }
   ],
   "reservations": {
     "gate:xss": ["D-0101"],
@@ -47,6 +49,8 @@
     "scenario:sheet-applicant-required": ["D-0105"],
     "scenario:sheet-applicant-maxlength": ["D-0106"],
     "scenario:sheet-subject-required": ["D-0107"],
-    "scenario:sheet-subject-maxlength": ["D-0108"]
+    "scenario:sheet-subject-maxlength": ["D-0108"],
+    "scenario:sheet-lock-en-instruction": ["D-0109"],
+    "scenario:sheet-lock-remis": ["D-0110"]
   }
 }
