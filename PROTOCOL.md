@@ -81,3 +81,9 @@ Le vocabulaire du domaine du legacy et les termes dérivés sont définis dans
   d'accessibilité. Si l'arbre s'avère trop indulgent sur le legacy, on compte
   à la place, dans le DOM, les éléments `table` sans `role="presentation"`
   ni `role="none"`.
+- Struts 1.3.10 a des failles connues, inhérentes au legacy : sa branche
+  n'est plus maintenue. Au 18/11/2026, OSV recense 4 avis sur `struts-core`
+  1.3.10, et la GitHub Advisory Database en recense 5. Ces failles ne font
+  pas partie des pièges mesurés : aucune porte ne les vérifie, et un candidat
+  n'est pas noté sur elles. La pile du banc (legacy, service d'archivage,
+  candidat) ne doit donc jamais être exposée hors de la machine locale.
