@@ -226,7 +226,8 @@ Résultat observé : seulement la ligne
 Dans un navigateur, connecté en agent, ouvrir
 `http://localhost:8080/rechercher.do?number=D-0101`, puis taper
 `window.__mbXss` dans la console.
-> À vérifier : l'humain a fait la vérification dans le navigateur, mais la valeur obtenue (1 attendu) n'a pas été rapportée.
+Résultat observé par l'humain, sur la pile construite depuis `61f3cac` : `1`.
+La charge s'exécute, et le legacy échoue bien à la porte XSS.
 
 ## Pour aller plus loin
 
