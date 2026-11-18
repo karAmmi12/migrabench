@@ -82,6 +82,9 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
   donc sur deux propriétés en lecture seule de `SearchForm`, `filedFromKey` et
   `filedToKey` (date en `aaaammjj`, `null` si vide ou mal formée). Ces
   propriétés ne valident rien : la règle reste déclarée dans `validation.xml`.
+  C'est voulu et cela fait partie du piège : le sens de la règle est réparti
+  entre `validation.xml` et `SearchForm`, comme souvent dans les vrais legacy
+  Struts. Un candidat doit lire les deux pour la retrouver.
 - **Espaces dans « Numéro »** : `mask` ne retire pas les espaces. Un numéro
   fait seulement d'espaces, ou entouré d'espaces (`D-0001 `), est refusé
   avec le message du format. C'est le comportement de référence du legacy.
