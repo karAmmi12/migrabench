@@ -1,0 +1,38 @@
+{
+  "dossiers": [
+    { "number": "D-0001", "applicant": "Élodie Marchand", "subject": "Permis de construire d'une véranda", "status": "REMIS", "filedOn": "2024-05-06", "submittedOn": "2024-07-15" },
+    { "number": "D-0002", "applicant": "Jean-François L'Hôte", "subject": "Déclaration préalable pour une clôture", "status": "BROUILLON", "filedOn": "2024-05-21" },
+    { "number": "D-0003", "applicant": "Association « Les Amis du Lavoir »", "subject": "Demande de subvention pour la fête du quartier", "status": "EN_INSTRUCTION", "filedOn": "2024-06-03" },
+    { "number": "D-0004", "applicant": "Elodie Fontaine", "subject": "Autorisation d'occupation du domaine public", "status": "REMIS", "filedOn": "2024-06-18", "submittedOn": "2024-08-02" },
+    { "number": "D-0005", "applicant": "Gaëlle Le Bihan", "subject": "Inscription à la cantine scolaire", "status": "BROUILLON", "filedOn": "2024-07-01" },
+    { "number": "D-0006", "applicant": "Société \"Bâtir Ensemble\"", "subject": "Permis d'aménager d'un lotissement", "status": "EN_INSTRUCTION", "filedOn": "2024-07-22" },
+    { "number": "D-0007", "applicant": "Noël d'Arcy", "subject": "Changement d'usage d'un local commercial", "status": "REMIS", "filedOn": "2024-08-12", "submittedOn": "2024-10-01" },
+    { "number": "D-0008", "applicant": "Zoé Bénard", "subject": "Demande d'acte de naissance", "status": "BROUILLON", "filedOn": "2024-09-02" },
+    { "number": "D-0009", "applicant": "Hélène Côté", "subject": "Raccordement au réseau d'assainissement", "status": "EN_INSTRUCTION", "filedOn": "2024-09-16" },
+    { "number": "D-0010", "applicant": "Loïc Ménard", "subject": "Ravalement de façade, 12 rue de l'Église", "status": "REMIS", "filedOn": "2024-10-07", "submittedOn": "2024-11-20" },
+    { "number": "D-0011", "applicant": "Françoise O'Neill", "subject": "Abattage d'un arbre remarquable", "status": "BROUILLON", "filedOn": "2024-10-28" },
+    { "number": "D-0012", "applicant": "Comité des fêtes de Saint-Rémy", "subject": "Buvette temporaire « Fête de la musique »", "status": "EN_INSTRUCTION", "filedOn": "2025-02-14" },
+    { "number": "D-0013", "applicant": "Benoît Lefèvre", "subject": "Extension d'une maison individuelle", "status": "REMIS", "filedOn": "2024-11-18", "submittedOn": "2025-01-09" },
+    { "number": "D-0014", "applicant": "Anaïs Dubœuf", "subject": "Carte de stationnement résident", "status": "BROUILLON", "filedOn": "2024-12-02" },
+    { "number": "D-0015", "applicant": "SCI \"Les Érables\"", "subject": "Division parcellaire", "status": "EN_INSTRUCTION", "filedOn": "2024-12-16" },
+    { "number": "D-0016", "applicant": "Jérôme Perrin-Lagarde", "subject": "Installation de panneaux photovoltaïques", "status": "REMIS", "filedOn": "2025-01-06", "submittedOn": "2025-02-24" },
+    { "number": "D-0017", "applicant": "Maëlys N'Diaye", "subject": "Demande de logement social", "status": "BROUILLON", "filedOn": "2025-01-20" },
+    { "number": "D-0018", "applicant": "Cédric Aubert", "subject": "Enseigne lumineuse « Chez Dédé »", "status": "EN_INSTRUCTION", "filedOn": "2025-02-03" },
+    { "number": "D-0019", "applicant": "Margaux de La Tour d'Auvergne", "subject": "Piscine enterrée de 32 m²", "status": "REMIS", "filedOn": "2025-02-14", "submittedOn": "2025-04-07" },
+    { "number": "D-0020", "applicant": "Thérèse Gauthier", "subject": "Reconnaissance d'un bail rural", "status": "BROUILLON", "filedOn": "2025-03-10" },
+    { "number": "D-0021", "applicant": "Groupement \"Agri'Bio du Val\"", "subject": "Marché de producteurs hebdomadaire", "status": "EN_INSTRUCTION", "filedOn": "2025-03-31" },
+    { "number": "D-0022", "applicant": "Raphaël Müller", "subject": "Modification d'un permis de construire", "status": "REMIS", "filedOn": "2025-04-14", "submittedOn": "2025-06-02" },
+    { "number": "D-0023", "applicant": "Inès Chérif", "subject": "Dérogation à l'horaire de chantier", "status": "BROUILLON", "filedOn": "2025-05-05" },
+    { "number": "D-0024", "applicant": "Éric Lemaître", "subject": "Création d'un accès sur voie départementale", "status": "EN_INSTRUCTION", "filedOn": "2025-05-26" },
+    { "number": "D-0025", "applicant": "Joséphine Faure", "subject": "Démolition d'un garage", "status": "REMIS", "filedOn": "2025-06-16", "submittedOn": "2025-08-04" },
+    { "number": "D-0026", "applicant": "Aurélien d'Estienne", "subject": "Terrasse de café sur trottoir", "status": "BROUILLON", "filedOn": "2025-07-07" },
+    { "number": "D-0027", "applicant": "Clémence Rivière", "subject": "Surélévation d'un immeuble", "status": "EN_INSTRUCTION", "filedOn": "2025-07-28" },
+    { "number": "D-0028", "applicant": "Ophélie Martin-Ségur", "subject": "Changement de destination d'une grange", "status": "REMIS", "filedOn": "2025-08-25", "submittedOn": "2025-10-13" },
+    { "number": "D-0029", "applicant": "Yannick Le Goff", "subject": "Autorisation de travaux en ERP", "status": "BROUILLON", "filedOn": "2025-09-22" },
+    { "number": "D-0030", "applicant": "Amélie Poulain-Després", "subject": "Mise en conformité d'un assainissement autonome", "status": "EN_INSTRUCTION", "filedOn": "2025-10-27" },
+    { "number": "D-0101", "applicant": "<img src=x onerror=\"window.__mbXss=1\">", "subject": "Dossier réservé à la porte XSS", "status": "BROUILLON", "filedOn": "2025-09-08" }
+  ],
+  "reservations": {
+    "gate:xss": ["D-0101"]
+  }
+}
