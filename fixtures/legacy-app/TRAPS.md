@@ -74,6 +74,23 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
   | 2 Fiche | Demandeur | obligatoire, 80 caractères au plus | `required`, `maxlength` |
   | 2 Fiche | Objet | obligatoire, 200 caractères au plus | `required`, `maxlength` |
 
+- **Messages** : dans `src/main/resources/fr/migrabench/legacy/ApplicationResources.properties`,
+  en `\uXXXX` (fichier lu en ISO-8859-1), avec le texte lisible en
+  commentaire au-dessus de chaque message.
+- **`validwhen` sur l'écran 1** : `validwhen` compare deux valeurs comme des
+  nombres si les deux sont des entiers, sinon comme des chaînes, dans l'ordre
+  lexical. Des dates `jj/mm/aaaa` seraient donc mal comparées. La règle
+  s'appuie sur deux propriétés en lecture seule de `SearchForm`,
+  `filedFromKey` et `filedToKey` (date en `aaaammjj`, un entier, `null` si
+  vide ou mal formée), comparées comme des nombres. Ces
+  propriétés ne valident rien : la règle reste déclarée dans `validation.xml`.
+  C'est voulu et cela fait partie du piège : le sens de la règle est réparti
+  entre `validation.xml` et `SearchForm`, comme souvent dans les vrais legacy
+  Struts. Un candidat doit lire les deux pour la retrouver.
+- **Espaces dans « Numéro »** : `mask` ne retire pas les espaces. Un numéro
+  fait seulement d'espaces, ou entouré d'espaces (`D-0001 `), est refusé
+  avec le message du format. C'est le comportement de référence du legacy.
+
 - **Vérifié par l'oracle**, avec un résultat par règle :
   1. la soumission est refusée (écran 2 : après rechargement de la fiche, la
      valeur n'a pas changé) ;

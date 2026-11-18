@@ -10,8 +10,6 @@ import org.apache.struts.action.ActionMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,8 +26,10 @@ public class SearchAction extends Action {
                 blankToNull(form.getNumber()),
                 blankToNull(form.getApplicant()),
                 parseStatus(form.getStatus()),
-                parseDate(form.getFiledFrom()),
-                parseDate(form.getFiledTo()));
+                // Une date mal formée n'arrive pas ici : validation.xml la
+                // refuse avant l'action. Elle serait ignorée sinon.
+                ScreenDate.parseOrNull(form.getFiledFrom()),
+                ScreenDate.parseOrNull(form.getFiledTo()));
 
         List<SearchResultRow> rows = new ArrayList<SearchResultRow>();
         for (Dossier dossier : DossierServiceListener.serviceOf(servlet.getServletContext()).search(criteria)) {
@@ -51,21 +51,6 @@ public class SearchAction extends Action {
         try {
             return Status.valueOf(value);
         } catch (IllegalArgumentException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Une date mal formée est ignorée ici : c'est {@code validation.xml} qui
-     * la refuse avant l'action (ticket de validation de l'écran 1).
-     */
-    private static LocalDate parseDate(String value) {
-        if (blankToNull(value) == null) {
-            return null;
-        }
-        try {
-            return LocalDate.parse(value, ScreenDate.FORMAT);
-        } catch (DateTimeParseException e) {
             return null;
         }
     }
