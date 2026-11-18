@@ -41,5 +41,26 @@
         </var>
       </field>
     </form>
+
+    <!-- Écran 2 : fiche dossier. Le verrou par statut n'est pas ici : il est
+         appliqué par le service métier. -->
+    <form name="dossierForm">
+      <field property="applicant" depends="required,maxlength">
+        <msg name="required" key="errors.sheet.applicant.required"/>
+        <msg name="maxlength" key="errors.sheet.applicant.maxlength"/>
+        <var>
+          <var-name>maxlength</var-name>
+          <var-value>80</var-value>
+        </var>
+      </field>
+      <field property="subject" depends="required,maxlength">
+        <msg name="required" key="errors.sheet.subject.required"/>
+        <msg name="maxlength" key="errors.sheet.subject.maxlength"/>
+        <var>
+          <var-name>maxlength</var-name>
+          <var-value>200</var-value>
+        </var>
+      </field>
+    </form>
   </formset>
 </form-validation>

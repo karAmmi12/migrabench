@@ -5,6 +5,7 @@
 <struts-config>
   <form-beans>
     <form-bean name="searchForm" type="fr.migrabench.legacy.web.SearchForm"/>
+    <form-bean name="dossierForm" type="fr.migrabench.legacy.web.DossierForm"/>
   </form-beans>
 
   <action-mappings>
@@ -19,6 +20,35 @@
             validate="true"
             input="/WEB-INF/jsp/recherche.jsp">
       <forward name="success" path="/WEB-INF/jsp/recherche.jsp"/>
+    </action>
+
+    <!-- Écran 2 : fiche du dossier ?number=, formulaire rempli avec le dossier. -->
+    <action path="/fiche"
+            type="fr.migrabench.legacy.web.ShowDossierAction"
+            name="dossierForm"
+            scope="request"
+            validate="false">
+      <forward name="success" path="/WEB-INF/jsp/fiche.jsp"/>
+    </action>
+    <!-- Écran 2 : retour d'une saisie refusée par validation.xml. La fiche
+         garde les valeurs saisies ; seul le statut est relu. -->
+    <action path="/ficheSaisie"
+            type="fr.migrabench.legacy.web.ShowDossierAction"
+            name="dossierForm"
+            scope="request"
+            validate="false"
+            parameter="keepInput">
+      <forward name="success" path="/WEB-INF/jsp/fiche.jsp"/>
+    </action>
+    <!-- Écran 2 : enregistrement (bouton ou Ctrl+S). Une saisie refusée par
+         validation.xml revient sur /ficheSaisie.do (input). -->
+    <action path="/enregistrer"
+            type="fr.migrabench.legacy.web.SaveDossierAction"
+            name="dossierForm"
+            scope="request"
+            validate="true"
+            input="/ficheSaisie.do">
+      <forward name="saved" path="/fiche.do" redirect="true"/>
     </action>
   </action-mappings>
 

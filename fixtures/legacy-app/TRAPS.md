@@ -91,6 +91,14 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
   fait seulement d'espaces, ou entouré d'espaces (`D-0001 `), est refusé
   avec le message du format. C'est le comportement de référence du legacy.
 
+- **Espaces dans les champs de l'écran 2** : `required` retire les espaces
+  avant de tester. Un demandeur ou un objet fait seulement d'espaces est
+  refusé avec le message « obligatoire ». Une valeur acceptée est
+  enregistrée telle quelle, sans retirer les espaces.
+- **Retour de l'écran 2 après refus** : l'`input` de `/enregistrer` est
+  l'action `/ficheSaisie.do`, pas la JSP, car la fiche a besoin du statut
+  pour afficher le verrou. Cette action relit le statut et garde la saisie.
+
 - **Vérifié par l'oracle**, avec un résultat par règle :
   1. la soumission est refusée (écran 2 : après rechargement de la fiche, la
      valeur n'a pas changé) ;
@@ -110,6 +118,9 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
 - **Raccourci** : `Ctrl+S` sur l'écran 2 seulement, via un gestionnaire
   `onkeydown` écrit à la main dans la JSP, avec `preventDefault`. Pas de
   variante `Cmd+S`.
+- **Fiche non modifiable** : sur un dossier `REMIS`, la JSP ne rend ni le
+  bouton « Enregistrer » ni le gestionnaire. `Ctrl+S` n'a alors aucun effet
+  sur l'application, et le navigateur garde son comportement par défaut.
 - **Focus initial** : par l'attribut `focus` de `<html:form>`, transformé en
   JavaScript par Struts. Il se place sur « Numéro » (écran 1) et sur « Objet »
   (écran 2).
