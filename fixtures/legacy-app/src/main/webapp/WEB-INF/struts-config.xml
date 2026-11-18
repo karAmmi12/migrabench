@@ -3,7 +3,20 @@
   "-//Apache Software Foundation//DTD Struts Configuration 1.3//EN"
   "http://struts.apache.org/dtds/struts-config_1_3.dtd">
 <struts-config>
+  <form-beans>
+    <form-bean name="searchForm" type="fr.migrabench.legacy.web.SearchForm"/>
+  </form-beans>
+
   <action-mappings>
+    <!-- Écran 1 : formulaire seul à l'ouverture. -->
     <action path="/recherche" forward="/WEB-INF/jsp/recherche.jsp"/>
+    <!-- Écran 1 : formulaire soumis, avec résultats. -->
+    <action path="/rechercher"
+            type="fr.migrabench.legacy.web.SearchAction"
+            name="searchForm"
+            scope="request"
+            validate="false">
+      <forward name="success" path="/WEB-INF/jsp/recherche.jsp"/>
+    </action>
   </action-mappings>
 </struts-config>
