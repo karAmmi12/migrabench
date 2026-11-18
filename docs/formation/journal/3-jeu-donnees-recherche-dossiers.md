@@ -24,9 +24,19 @@ partagé entre deux scénarios ou portes.
 - **`ActionForm` et `Action` de Struts 1** : l'`ActionForm` reçoit les
   paramètres de la requête par ses setters. L'`Action` exécute le traitement et
   choisit une suite (`findForward`). Le lien entre les deux est déclaré dans
-  `struts-config.xml` (`<form-bean>`, `<action name=…>`). —
-  [DTD struts-config 1.3](https://struts.apache.org/dtds/struts-config_1_3.dtd)
-  > À vérifier : ce lien décrit la syntaxe de `struts-config.xml`, pas les concepts `ActionForm` et `Action` ; aucune documentation du concept n'a été ouverte pendant la session.
+  `struts-config.xml` (`<form-bean>`, `<action name=…>`). — guide
+  utilisateur de Struts 1,
+  [4.3 ActionForm Classes](https://weblegacy.github.io/struts1/userGuide/building_controller.html#action_form_classes)
+  et
+  [4.4 Action Classes](https://weblegacy.github.io/struts1/userGuide/building_controller.html#action_classes).
+  - Nature de la source : une republication communautaire. Le site est
+    signé « © 2000–2024 Web-Legacy », il n'est pas publié par Apache, et il
+    documente la version 1.5.0-RC2 (en-tête des pages, consulté le
+    18/11/2026). Le legacy, lui, est en 1.3.10.
+  - Attention aux paquets : le guide désigne les types servlet par
+    `jakarta.servlet`, par exemple `jakarta.servlet.http.HttpServletRequest`
+    dans sa préface (`userGuide/preface.html`). Le legacy utilise
+    `javax.servlet`. La page du chapitre 4, elle, ne nomme aucun paquet.
 - **Balises Struts `html`, `bean`, `logic`** : `<html:form>`, `<html:text>`,
   `<html:select>` génèrent le formulaire et gardent les valeurs saisies.
   `<logic:iterate>` parcourt une liste. `<bean:write>` affiche une propriété en
