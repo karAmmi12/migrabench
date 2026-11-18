@@ -28,7 +28,7 @@ describe("dataset", () => {
     expect(new Set(numbers).size).toBe(numbers.length);
   });
 
-  it("shares dossiers D-0001 to D-0030 in read, covering the three statuses", () => {
+  it("shares dossiers D-0001 to D-0030 read-only, covering the three statuses", () => {
     const shared = dataset.dossiers.filter((dossier) => !isReservedNumber(dossier.number));
 
     expect(shared.map((dossier) => dossier.number)).toEqual(
@@ -39,20 +39,22 @@ describe("dataset", () => {
     );
   });
 
-  it("reserves dossiers from D-0101, each one to a single scenario or gate", () => {
-    const reserved = dataset.dossiers
-      .map((dossier) => dossier.number)
-      .filter(isReservedNumber);
-    const owners = (number: string) =>
-      Object.keys(dataset.reservations).filter((name) =>
+  it("starts reserved dossiers at D-0101", () => {
+    const reserved = dataset.dossiers.map((dossier) => dossier.number).filter(isReservedNumber);
+
+    expect(reserved).toContain("D-0101");
+    for (const number of reserved) expect(sequenceOf(number)).toBeGreaterThanOrEqual(101);
+  });
+
+  it("assigns each reserved dossier to exactly one scenario or gate", () => {
+    const reserved = dataset.dossiers.map((dossier) => dossier.number).filter(isReservedNumber);
+
+    for (const number of reserved) {
+      const owners = Object.keys(dataset.reservations).filter((name) =>
         dataset.reservations[name]?.includes(number),
       );
-
-    expect(reserved[0]).toBe("D-0101");
-    for (const number of reserved) expect({ number, owners: owners(number) }).toEqual({
-      number,
-      owners: [expect.any(String)],
-    });
+      expect(owners, `owners of ${number}`).toHaveLength(1);
+    }
   });
 
   it("reserves only dossiers that exist in the reserved range", () => {
@@ -64,6 +66,11 @@ describe("dataset", () => {
   });
 });
 
+// Les dossiers partagés vont jusqu'à D-0030 ; tout numéro au-delà est réservé.
 function isReservedNumber(number: string): boolean {
-  return number >= "D-0101";
+  return sequenceOf(number) > 30;
+}
+
+function sequenceOf(number: string): number {
+  return Number(number.slice("D-".length));
 }

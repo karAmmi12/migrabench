@@ -21,7 +21,7 @@ public class DossierService {
     }
 
     /** Dossiers qui satisfont tous les critères, triés par numéro, sans pagination. */
-    public synchronized List<Dossier> search(SearchCriteria criteria) {
+    public List<Dossier> search(SearchCriteria criteria) {
         List<Dossier> results = new ArrayList<Dossier>();
         for (Dossier dossier : dossiers) {
             if (matches(dossier, criteria)) {
