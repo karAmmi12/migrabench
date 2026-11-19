@@ -9,8 +9,8 @@ const ROUTE = "/accuse-de-remise";
 
 // Valeur témoin fournie par le banc, la même que celle du legacy. Sans elle,
 // le service refuse de démarrer, comme le legacy sans FROZEN_DATE.
-const TOKEN = process.env.ARCHIVE_TOKEN;
-if (!TOKEN) {
+const ARCHIVE_TOKEN = process.env.ARCHIVE_TOKEN;
+if (!ARCHIVE_TOKEN) {
   console.error("ARCHIVE_TOKEN is not set: the archive service cannot start");
   process.exit(1);
 }
@@ -22,7 +22,7 @@ const server = createServer((request, response) => {
     return;
   }
 
-  if (url.searchParams.get("jeton") !== TOKEN) {
+  if (url.searchParams.get("jeton") !== ARCHIVE_TOKEN) {
     response.writeHead(403, { "Content-Type": "text/plain; charset=UTF-8" }).end("Jeton refusé\n");
     return;
   }

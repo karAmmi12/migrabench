@@ -40,7 +40,7 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
   navigateur la voit.
 - **Service d'archivage** : `fixtures/archive-service/server.ts`, un fichier,
   une route : `GET /accuse-de-remise?jeton=…&numero=…`. Il délivre l'accusé
-  de remise (`200`) si le jeton est égal à `ARCHIVE_TOKEN`, à la casse près,
+  de remise (`200`) si le jeton est égal à `ARCHIVE_TOKEN`, en respectant la casse,
   et le refuse (`403`) sinon, jeton absent ou vide compris. Il ne connaît pas
   les dossiers : il ne vérifie pas le numéro. Port `8090`, sur `mb-internal`
   et publié sur `127.0.0.1:8090` (ADR 0004).
