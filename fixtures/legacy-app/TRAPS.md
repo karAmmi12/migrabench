@@ -128,9 +128,11 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
   `Ctrl+Maj+S`, ou `AltGr+S` sous Windows (qui positionne `ctrlKey`),
   enregistrent donc aussi. C'est le comportement de référence du legacy, mais
   l'oracle ne vérifie que `Ctrl+S`.
-- **Fiche non modifiable** : sur un dossier `REMIS`, la JSP ne rend ni le
-  bouton « Enregistrer » ni le gestionnaire. `Ctrl+S` n'a alors aucun effet
-  sur l'application, et le navigateur garde son comportement par défaut.
+- **Fiche non modifiable** : sur un dossier `REMIS`, la JSP ne rend pas le
+  bouton « Enregistrer ». Le gestionnaire est rendu, mais il appelle
+  seulement `preventDefault`, sans enregistrer. `Ctrl+S` n'a donc aucun
+  effet, et la boîte d'enregistrement du navigateur ne s'ouvre pas (spec,
+  story 31).
 - **Focus initial** : par l'attribut `focus` de `<html:form>`, transformé en
   JavaScript par Struts. Il se place sur « Numéro » (écran 1) et sur « Objet »
   (écran 2).

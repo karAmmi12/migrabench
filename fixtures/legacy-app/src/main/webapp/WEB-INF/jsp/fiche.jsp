@@ -8,10 +8,11 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Fiche dossier</title>
-<logic:equal name="sheet" property="editable" value="true">
 <%-- Piège « raccourci clavier » (TRAPS.md) : Ctrl+S enregistre, par un
      gestionnaire onkeydown écrit à la main, avec preventDefault. Pas de
-     variante Cmd+S. Absent quand la fiche n'est pas modifiable. Ne pas corriger. --%>
+     variante Cmd+S. Quand la fiche n'est pas modifiable (REMIS), le
+     gestionnaire empêche seulement la boîte d'enregistrement du navigateur,
+     sans enregistrer. Ne pas corriger. --%>
 <script type="text/javascript">
 document.onkeydown = function (event) {
   event = event || window.event;
@@ -21,12 +22,13 @@ document.onkeydown = function (event) {
     } else {
       event.returnValue = false;
     }
+<logic:equal name="sheet" property="editable" value="true">
     document.forms["dossierForm"].submit();
+</logic:equal>
     return false;
   }
 };
 </script>
-</logic:equal>
 </head>
 <body>
 <%-- Piège « mise en page en <table> imbriquées » (TRAPS.md) : tableaux de

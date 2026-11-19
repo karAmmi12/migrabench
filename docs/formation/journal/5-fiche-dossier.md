@@ -90,8 +90,9 @@ page en `<table>` imbriquées, est **à corriger**.
     `404` sur un numéro inconnu.
 - **`WEB-INF/jsp/fiche.jsp`** : la fiche et ses pièges.
   - Deux `<html:text>`, avec `readonly` calculé par un scriptlet.
-  - Le bouton « Enregistrer » et le gestionnaire `Ctrl+S` rendus seulement
-    si la fiche est modifiable.
+  - Le bouton « Enregistrer » rendu seulement si la fiche est modifiable.
+  - Le gestionnaire `Ctrl+S` rendu sur toutes les fiches, avec
+    `preventDefault`. Il n'enregistre que si la fiche est modifiable.
   - `focus="subject"` sur `<html:form>`, et les `tabindex` 1, 2, 3.
   - Trois niveaux de `<table>`.
 - **Configuration** :
@@ -141,9 +142,14 @@ page en `<table>` imbriquées, est **à corriger**.
   décider du bouton. Une action qui relit le statut sans toucher à la
   saisie le lui fournit. Prendre le statut dans un champ caché aurait laissé
   le client décider du verrou affiché.
-- **Gestionnaire `Ctrl+S` absent sur `REMIS`, retenu ; gestionnaire
-  présent qui ne fait rien, écarté.** Ainsi, « sans effet » veut dire sans
-  effet sur l'application. Le navigateur garde son comportement normal.
+- **Sur `REMIS`, un gestionnaire `Ctrl+S` qui appelle seulement
+  `preventDefault`, retenu ; pas de gestionnaire, écarté.** La spec
+  (story 31) demande que `Ctrl+S` n'ait aucun effet sur un dossier `REMIS`
+  « et n'ouvre pas la boîte d'enregistrement du navigateur ». La première
+  version ne rendait pas le gestionnaire sur `REMIS`, ce qui laissait le
+  navigateur faire son action par défaut. La relecture de la PR l'a relevé,
+  et l'humain a tranché : la story 31 fait foi (voir « Difficultés
+  rencontrées »).
 - **Filtre UTF-8 de Tomcat, retenu.** La fiche est le premier écran qui
   envoie en `POST`. Le filtre est fourni par Tomcat : aucune dépendance
   n'est ajoutée.
@@ -164,7 +170,22 @@ page en `<table>` imbriquées, est **à corriger**.
 
 ## Difficultés rencontrées
 
-Aucune difficulté relevée pendant la session.
+- **Le mode headless masquait la boîte d'enregistrement.**
+  - Symptôme : la première version ne rendait pas le gestionnaire `Ctrl+S`
+    sur un dossier `REMIS`. La vérification par Playwright, en headless,
+    n'a vu aucun problème : `Ctrl+S` « ne change pas de page ». La relecture
+    en deux axes de la PR a ensuite relevé que la spec (story 31) interdit
+    la boîte d'enregistrement du navigateur sur `REMIS`.
+  - Cause : en headless, les boîtes de dialogue du navigateur n'apparaissent
+    pas, et la vérification ne regardait que la page. Relancé hors headless
+    sur la pile `cc3cbb7`, le même `Ctrl+S` sur `D-0001` donnait une frappe
+    S avec `defaultPrevented` à `false` : rien n'empêchait l'action par
+    défaut du navigateur. La boîte elle-même n'a pas pu être vue : la
+    capture d'écran (`screencapture`) a échoué faute d'autorisation
+    d'enregistrement de l'écran.
+  - Résolution : sur `REMIS`, le gestionnaire est rendu et appelle seulement
+    `preventDefault`. La vérification porte désormais sur `defaultPrevented`
+    de l'événement, pas sur l'absence de boîte à l'œil.
 
 ## Vérifier soi-même
 
@@ -188,10 +209,19 @@ curl -s -u "$AUTH" "http://localhost:8080/fiche.do?number=D-0003" | grep -oE '<i
 ```
 
 ```sh
-curl -s -u "$AUTH" "http://localhost:8080/fiche.do?number=D-0001" | grep -cE 'Enregistrer|onkeydown'
+curl -s -u "$AUTH" "http://localhost:8080/fiche.do?number=D-0001" | grep -E 'value="Enregistrer"|preventDefault\(\)|\.submit\(\)'
 ```
 
-2. Attendu sur un dossier `REMIS` : `0`, ni bouton ni gestionnaire `Ctrl+S`.
+2. Attendu sur un dossier `REMIS` : le gestionnaire appelle
+   `preventDefault`, mais pas de bouton « Enregistrer » ni d'appel à
+   `submit()`. Observé sur la pile reconstruite avec le correctif
+   `fix(legacy): prevent the browser save dialog on a REMIS sheet` (sur un
+   dossier `BROUILLON` comme `D-0002`, la même commande montre aussi
+   `submit()` et le bouton) :
+
+```
+      event.preventDefault();
+```
 
 ```sh
 curl -s -u "$AUTH" "http://localhost:8080/fiche.do?number=D-0002" | grep 'focusControl ='
@@ -283,7 +313,17 @@ avec le Chrome installé :
     Demandeur, puis la page). Chaque page a 2 tableaux contenus dans un autre.
   - Sur `D-0104`, `Ctrl+S` enregistre l'objet saisi, et l'événement a
     `defaultPrevented` à vrai. `Cmd+S` (`Meta+s`) n'enregistre pas.
-  - Sur `D-0001` (`REMIS`), `Ctrl+S` ne change pas de page.
+  - Sur `D-0001` (`REMIS`), `Ctrl+S` ne change pas de page. Cette
+    vérification, en headless, n'a pas vu le défaut corrigé ensuite (voir
+    « Difficultés rencontrées »).
+- Hors headless, sur la pile reconstruite avec le correctif
+  `fix(legacy): prevent the browser save dialog on a REMIS sheet` :
+  - sur `D-0001` (`REMIS`), la frappe S de `Ctrl+S` a `defaultPrevented`
+    à vrai, la page ne change pas, et l'objet est inchangé après
+    rechargement ;
+  - `Cmd+S` (`Meta+s`) reste sans gestionnaire : `defaultPrevented` à faux ;
+  - sur `D-0104` (`BROUILLON`), `Ctrl+S` a `defaultPrevented` à vrai et
+    enregistre l'objet saisi.
 - Sur la pile `cc3cbb7` : sur la fiche de `D-0101`, `window.__mbXss` vaut
   `undefined`, la page ne contient aucune `<img>`, et le champ Demandeur
   affiche la charge en texte. Comme témoin, la recherche de `D-0101` sur
