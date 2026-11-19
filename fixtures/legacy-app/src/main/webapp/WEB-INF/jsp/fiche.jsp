@@ -81,9 +81,9 @@ document.onkeydown = function (event) {
                 </logic:equal>
               </table>
             </html:form>
-            <logic:notEqual name="dossier" property="status" value="BROUILLON">
+            <logic:equal name="dossier" property="submissionLinked" value="true">
             <p><html:link action="/remise" paramId="number" paramName="dossier" paramProperty="number">Remise</html:link></p>
-            </logic:notEqual>
+            </logic:equal>
           </td>
         </tr>
       </table>

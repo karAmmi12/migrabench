@@ -1,6 +1,7 @@
 package fr.migrabench.legacy.web;
 
 import fr.migrabench.legacy.model.Dossier;
+import fr.migrabench.legacy.model.Status;
 
 /**
  * Dossier prêt à afficher par les JSP des écrans 2 et 3 : valeurs en lecture
@@ -34,6 +35,15 @@ public class DossierView {
      */
     public String getStatus() {
         return dossier.getStatus().name();
+    }
+
+    /**
+     * Lien « Remise » sur la fiche : statut {@code EN_INSTRUCTION} ou
+     * {@code REMIS}, comme le dit la spec de l'écran 2.
+     */
+    public boolean isSubmissionLinked() {
+        Status status = dossier.getStatus();
+        return status == Status.EN_INSTRUCTION || status == Status.REMIS;
     }
 
     public String getStatusLabel() {
