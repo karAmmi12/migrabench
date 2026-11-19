@@ -10,7 +10,7 @@ chiffré : fidélité aux usages, sécurité, accessibilité, performance, coût
 - Plan de construction : [docs/PLAN.md](docs/PLAN.md)
 - Règles de travail avec l'agent : [CLAUDE.md](CLAUDE.md)
 
-État : en construction (étape 1).
+État : étape 1 livrée (application legacy de test) ; étape 2 (oracle) à venir.
 
 ## Lancer le legacy
 
@@ -39,6 +39,27 @@ délivre l'accusé de remise que l'écran 3 lie à un dossier `REMIS`, si le
 jeton présenté est la valeur témoin `ARCHIVE_TOKEN` de [`.env`](.env). Le
 legacy et lui la reçoivent tous deux de ce fichier.
 
+L'API interne JSON du legacy (rechercher, lire, modifier, remettre) répond
+sur le port `8081`, joignable seulement depuis le réseau Docker
+`mb-internal`, à l'adresse `http://legacy:8081` (ADR 0004). Ce port n'est
+pas publié sur l'hôte, et un filtre par port refuse l'API interne sur le
+port `8080` (403). Elle ignore l'identité de l'appelant et n'applique aucune
+règle de `validation.xml` (ADR 0003). Ses quatre endpoints :
+
+| Endpoint | Réponse |
+|---|---|
+| `GET /api/dossiers?number=&applicant=&status=&filedFrom=&filedTo=` | `200 {"dossiers": [dossier, …]}`, triés par numéro |
+| `GET /api/dossiers/{numéro}` | `200 dossier` ; `404` numéro inconnu |
+| `PUT /api/dossiers/{numéro}`, corps `{"applicant": "…", "subject": "…"}` | `200 dossier` ; `409` champ verrouillé modifié ; `404` ; `400` corps mal formé |
+| `POST /api/dossiers/{numéro}/remise` | `200 dossier` ; `409` dossier pas `EN_INSTRUCTION` ; `404` |
+
+Un dossier s'écrit `{"number", "applicant", "subject", "status", "filedOn",
+"submittedOn"}`, statut en majuscules (`BROUILLON`, `EN_INSTRUCTION`,
+`REMIS`), dates en `aaaa-mm-jj`, `submittedOn` à `null` hors `REMIS`. Les
+critères de recherche ont la sémantique de l'écran 1 : vides ou absents, ils
+ne filtrent pas ; comme l'action de l'écran 1, un statut inconnu ou une date
+mal formée est ignoré. Une erreur s'écrit `{"error": "…"}`.
+
 **Toute modification de `fixtures/users.json` demande
 `docker compose up --build`** : sans `--build`, le legacy garde les anciens
 utilisateurs alors que les tests lisent le nouveau fichier.
@@ -54,4 +75,8 @@ npm run typecheck   # tsc --noEmit
 
 Les tests du seam A appellent le legacy par HTTP sur `LEGACY_URL`
 (par défaut `http://localhost:8080`) et le service d'archivage sur
-`ARCHIVE_URL` (par défaut `http://localhost:8090`).
+`ARCHIVE_URL` (par défaut `http://localhost:8090`). Ceux de l'API interne
+partent de `mb-internal` : ils lancent leurs requêtes dans le conteneur du
+service d'archivage (`docker compose exec`). Ils écrivent sur les dossiers
+réservés `D-0113` et `D-0114` (`test:internal-api`) et remettent les valeurs
+initiales : ils peuvent tourner sans redémarrer le legacy.

@@ -5,8 +5,13 @@ services:
     build:
       context: .
       dockerfile: fixtures/legacy-app/Dockerfile
+    # Seul le port 8080 (JSP) est publié. Le port 8081 (API interne) n'est
+    # joignable que par mb-internal (ADR 0004).
     ports:
       - "127.0.0.1:8080:8080"
+    networks:
+      - default
+      - mb-internal
     # Valeurs du banc (horloge figée FROZEN_DATE, valeur témoin ARCHIVE_TOKEN),
     # passées telles quelles au conteneur : une variable du shell ne peut pas
     # les remplacer. Sans FROZEN_DATE, le legacy refuse de démarrer.
@@ -40,7 +45,7 @@ services:
       retries: 30
 
 networks:
-  # Réseau sans sortie vers l'extérieur (ADR 0004) : service d'archivage
-  # aujourd'hui ; port 8081 du legacy (#8) et couche serveur du candidat à venir.
+  # Réseau sans sortie vers l'extérieur (ADR 0004) : port 8081 du legacy
+  # (API interne), service d'archivage, et couche serveur du candidat à venir.
   mb-internal:
     internal: true

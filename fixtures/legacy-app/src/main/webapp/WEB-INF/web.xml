@@ -26,6 +26,32 @@
     <url-pattern>/*</url-pattern>
   </filter-mapping>
 
+  <!-- Filtre par port : pièce du banc, ni piège ni comportement à migrer
+       (ADR 0004). Refuse l'API interne si la requête n'arrive pas par 8081. -->
+  <filter>
+    <filter-name>internalApiPort</filter-name>
+    <filter-class>fr.migrabench.legacy.api.InternalApiPortFilter</filter-class>
+    <init-param>
+      <param-name>port</param-name>
+      <param-value>8081</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>internalApiPort</filter-name>
+    <url-pattern>/api/*</url-pattern>
+  </filter-mapping>
+
+  <!-- API interne JSON (rechercher, lire, modifier, remettre). -->
+  <servlet>
+    <servlet-name>internalApi</servlet-name>
+    <servlet-class>fr.migrabench.legacy.api.InternalApiServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>internalApi</servlet-name>
+    <url-pattern>/api/*</url-pattern>
+  </servlet-mapping>
+
   <servlet>
     <servlet-name>action</servlet-name>
     <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
@@ -57,6 +83,16 @@
       <role-name>agent</role-name>
       <role-name>instructeur</role-name>
     </auth-constraint>
+  </security-constraint>
+
+  <!-- L'API interne ignore l'identité de l'appelant (ADR 0003) : pas
+       d'authentification sur /api/*, motif plus précis que /*. Son isolation
+       tient au filtre par port et au réseau mb-internal (ADR 0004). -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>internal API</web-resource-name>
+      <url-pattern>/api/*</url-pattern>
+    </web-resource-collection>
   </security-constraint>
 
   <login-config>
