@@ -296,6 +296,12 @@ grep -rnE 'validate\(|html:javascript|maxlength=' fixtures/legacy-app/src/main/j
 9. Attendu : seulement les deux commentaires Javadoc, de `SearchForm.java`
    et de `DossierForm.java`. Aucune règle n'est reprise hors de
    `validation.xml`, et aucun `maxlength` n'est posé sur les champs.
+   Observé au commit `097b611` :
+
+```
+fixtures/legacy-app/src/main/java/fr/migrabench/legacy/web/SearchForm.java:8: * Formulaire de l'écran 1. Pas de {@code validate()} propre : les règles sont
+fixtures/legacy-app/src/main/java/fr/migrabench/legacy/web/DossierForm.java:6: * Formulaire de l'écran 2. Pas de {@code validate()} propre : les règles sont
+```
 
 ```sh
 npm test
