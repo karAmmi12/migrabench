@@ -51,4 +51,9 @@ public class Dossier {
     public Dossier withApplicantAndSubject(String newApplicant, String newSubject) {
         return new Dossier(number, newApplicant, newSubject, status, filedOn, submittedOn);
     }
+
+    /** Copie du dossier passé à {@code REMIS} à cette date. */
+    public Dossier submittedOn(LocalDate date) {
+        return new Dossier(number, applicant, subject, Status.REMIS, filedOn, date);
+    }
 }

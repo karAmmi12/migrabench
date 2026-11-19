@@ -5,6 +5,8 @@ import { describe, expect, it } from "vitest";
 interface Dossier {
   number: string;
   status: string;
+  filedOn: string;
+  submittedOn?: string;
 }
 
 interface Dataset {
@@ -18,6 +20,18 @@ const dataset: Dataset = JSON.parse(
     "utf8",
   ),
 );
+
+// Horloge figée transmise par le banc au legacy (docker-compose.yml). Les
+// dates ISO aaaa-mm-jj se comparent comme des chaînes.
+const FROZEN_DATE = frozenDateOf(
+  readFileSync(new URL("../../docker-compose.yml", import.meta.url), "utf8"),
+);
+
+function frozenDateOf(compose: string): string {
+  const match = /^\s*FROZEN_DATE:\s*"(\d{4}-\d{2}-\d{2})"\s*$/m.exec(compose);
+  if (!match?.[1]) throw new Error("FROZEN_DATE not found in docker-compose.yml");
+  return match[1];
+}
 
 describe("dataset", () => {
   it("has unique numbers formatted as D- followed by four digits", () => {
@@ -54,6 +68,23 @@ describe("dataset", () => {
         dataset.reservations[name]?.includes(number),
       );
       expect(owners, `owners of ${number}`).toHaveLength(1);
+    }
+  });
+
+  it("gives a submission date to REMIS dossiers, and to them only", () => {
+    for (const dossier of dataset.dossiers) {
+      expect(dossier.submittedOn !== undefined, `submission date of ${dossier.number}`).toBe(
+        dossier.status === "REMIS",
+      );
+    }
+  });
+
+  it("dates filings and submissions on or before the frozen clock, submissions after filings", () => {
+    for (const dossier of dataset.dossiers) {
+      expect(dossier.filedOn <= FROZEN_DATE, `filing date of ${dossier.number}`).toBe(true);
+      if (dossier.submittedOn === undefined) continue;
+      expect(dossier.submittedOn >= dossier.filedOn, `submission date of ${dossier.number}`).toBe(true);
+      expect(dossier.submittedOn <= FROZEN_DATE, `submission date of ${dossier.number}`).toBe(true);
     }
   });
 
