@@ -2,7 +2,7 @@
 <%@ taglib uri="http://struts.apache.org/tags-html" prefix="html" %>
 <%@ taglib uri="http://struts.apache.org/tags-bean" prefix="bean" %>
 <%@ taglib uri="http://struts.apache.org/tags-logic" prefix="logic" %>
-<bean:define id="sheet" name="sheet" type="fr.migrabench.legacy.web.DossierSheet"/>
+<bean:define id="dossier" name="dossier" type="fr.migrabench.legacy.web.DossierView"/>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
@@ -25,30 +25,30 @@
             <table border="0" cellpadding="2" cellspacing="0">
               <tr>
                 <td>Numéro</td>
-                <td><bean:write name="sheet" property="number"/></td>
+                <td><bean:write name="dossier" property="number"/></td>
               </tr>
               <tr>
                 <td>Demandeur</td>
-                <td><bean:write name="sheet" property="applicant"/></td>
+                <td><bean:write name="dossier" property="applicant"/></td>
               </tr>
               <tr>
                 <td>Objet</td>
-                <td><bean:write name="sheet" property="subject"/></td>
+                <td><bean:write name="dossier" property="subject"/></td>
               </tr>
               <tr>
                 <td>Statut</td>
-                <td><bean:write name="sheet" property="statusLabel"/></td>
+                <td><bean:write name="dossier" property="statusLabel"/></td>
               </tr>
               <tr>
                 <td>Déposé le</td>
-                <td><bean:write name="sheet" property="filedOn"/></td>
+                <td><bean:write name="dossier" property="filedOn"/></td>
               </tr>
             </table>
           </td>
         </tr>
         <tr>
           <td>
-<logic:equal name="sheet" property="status" value="EN_INSTRUCTION">
+<logic:equal name="dossier" property="status" value="EN_INSTRUCTION">
 <%-- Piège « contrôle de rôle dans la vue » (TRAPS.md) : seul ce scriptlet
      affiche ou masque le bouton. RemiseAction ne vérifie aucun rôle.
      Ne pas corriger. --%>
@@ -61,10 +61,10 @@
             <p>Remise réservée aux instructeurs</p>
 <% } %>
 </logic:equal>
-<logic:equal name="sheet" property="status" value="REMIS">
-            <p>Dossier remis le <bean:write name="sheet" property="submittedOn"/></p>
+<logic:equal name="dossier" property="status" value="REMIS">
+            <p>Dossier remis le <bean:write name="dossier" property="submittedOn"/></p>
 </logic:equal>
-<logic:equal name="sheet" property="status" value="BROUILLON">
+<logic:equal name="dossier" property="status" value="BROUILLON">
             <p>Ce dossier ne peut pas être remis</p>
 </logic:equal>
           </td>

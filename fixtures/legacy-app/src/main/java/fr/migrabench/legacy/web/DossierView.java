@@ -3,14 +3,14 @@ package fr.migrabench.legacy.web;
 import fr.migrabench.legacy.model.Dossier;
 
 /**
- * Partie en lecture seule de l'écran 2 et verrou du statut, prêts à afficher.
- * Sert aussi le récapitulatif de l'écran 3.
+ * Dossier prêt à afficher par les JSP des écrans 2 et 3 : valeurs en lecture
+ * seule (dates en jj/mm/aaaa), statut et verrou des champs de la fiche.
  */
-public class DossierSheet {
+public class DossierView {
 
     private final Dossier dossier;
 
-    public DossierSheet(Dossier dossier) {
+    public DossierView(Dossier dossier) {
         this.dossier = dossier;
     }
 

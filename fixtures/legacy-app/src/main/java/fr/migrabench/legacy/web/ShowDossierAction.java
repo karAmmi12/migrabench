@@ -16,11 +16,12 @@ import java.io.IOException;
  * l'utilisent. {@code /fiche} remplit le formulaire avec le dossier.
  * {@code /ficheSaisie} (paramètre {@value #KEEP_INPUT}) garde la saisie
  * refusée par {@code validation.xml} et ne recharge que le statut.
- * {@code /remise} affiche l'écran de remise, qui n'utilise que {@link DossierSheet}.
+ * {@code /remise} affiche l'écran de remise, qui n'utilise que
+ * {@link DossierView}.
  */
 public class ShowDossierAction extends Action {
 
-    public static final String SHEET = "sheet";
+    public static final String DOSSIER = "dossier";
     static final String KEEP_INPUT = "keepInput";
 
     @Override
@@ -39,7 +40,7 @@ public class ShowDossierAction extends Action {
             form.setApplicant(dossier.getApplicant());
             form.setSubject(dossier.getSubject());
         }
-        request.setAttribute(SHEET, new DossierSheet(dossier));
+        request.setAttribute(DOSSIER, new DossierView(dossier));
         return mapping.findForward("success");
     }
 }
