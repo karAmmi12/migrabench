@@ -13,13 +13,19 @@ toujours).
 
 ## Notions à connaître
 
-- **Expression JSP `<%= … %>` dans un scriptlet** : du code Java évalué côté
-  serveur, dont le résultat est écrit tel quel dans le HTML. Tout ce qu'elle
-  produit arrive donc au navigateur. —
+- **Scriptlet JSP `<% … %>`** : un bloc de code Java placé dans la page et
+  exécuté côté serveur à chaque requête. —
   [The Java EE 5 Tutorial : JSP Scriptlets](https://docs.oracle.com/javaee/5/tutorial/doc/bnaou.html)
-  > À vérifier : la page a été confirmée par son titre (« JSP Scriptlets »),
-  > pas relue en entier ; la syntaxe `<%= %>` y est-elle décrite ou sur une
-  > page voisine du même tutoriel ?
+- **Expression JSP `<%= … %>`** : la syntaxe est
+  `<%= scripting-language-expression %>`. La valeur de l'expression est
+  convertie en chaîne et écrite telle quelle dans la page, sans échappement.
+  Tout ce qu'elle produit arrive donc au navigateur. —
+  [The Java EE 5 Tutorial : JSP Expressions](https://docs.oracle.com/javaee/5/tutorial/doc/bnaov.html)
+  - L'exemple du tutoriel fait lui-même ce que fait le piège. Un scriptlet
+    calcule `resp = hello.sayHello(request.getParameter("username"))`, une
+    valeur issue d'un paramètre de requête. Puis `<%= resp %>` l'écrit dans
+    `<h2>` sans échappement. C'est la documentation officielle qui montre ce
+    schéma, ce qui explique qu'il soit si courant dans les legacy JSP.
 - **`System.getenv(name)`** : « Gets the value of the specified environment
   variable ». Le legacy lit ainsi `ARCHIVE_TOKEN`, que le banc lui passe par
   `env_file`. Sans la variable, la méthode rend `null`. —
@@ -107,10 +113,11 @@ toujours).
   legacy l'écrirait, et une seconde lecture de `System.getenv()` aurait
   brouillé le piège. Contrepartie : changer le port publié oblige à modifier
   la JSP ; le test du lien le détecterait.
-- **`archive` sur deux réseaux.** `mb-internal` pour la future couche serveur
-  du candidat, le réseau par défaut pour publier le port vers le navigateur.
-  > À vérifier : un service attaché seulement à un réseau `internal: true`
-  > ne peut pas publier de port ; raisonnement de la session, non mesuré.
+- **`archive` sur deux réseaux.** Il est sur `mb-internal` pour la future
+  couche serveur du candidat, et sur le réseau par défaut pour publier le port
+  vers le navigateur. Un service branché seulement sur un réseau
+  `internal: true` ne publie pas son port. Mesuré avec un service jetable dans
+  une composition temporaire (voir « Vérifier soi-même »).
 - **Le legacy n'est pas encore sur `mb-internal`.** Son port `8081` et le
   filtre par port arrivent avec #8 ; ce ticket ne fait que déclarer le réseau.
 - **`healthcheck` sur un `403` sans jeton**, pour garder « une route » sans
@@ -199,6 +206,42 @@ docker run --rm migrabench-archive; echo "exit=$?"
 # ARCHIVE_TOKEN is not set: the archive service cannot start
 # exit=1
 ```
+
+Un port publié ne sort pas d'un réseau `internal: true`. Mesure faite avec
+Docker Engine 29.1.3 et Compose 2.40.3-desktop.1, avec un service jetable
+dans une composition temporaire hors du dépôt. Le service est branché
+seulement sur un réseau `internal: true`, avec
+`ports: ["127.0.0.1:18099:8099"]`. Fichier `compose.yml` :
+
+```yaml
+name: mbprobe-internal
+services:
+  probe:
+    image: node:22.23.5-alpine
+    command: ["node", "-e", "require('node:http').createServer((q, r) => r.end('probe ok\\n')).listen(8099)"]
+    ports:
+      - "127.0.0.1:18099:8099"
+    networks:
+      - only-internal
+networks:
+  only-internal:
+    internal: true
+```
+
+```sh
+docker compose up -d
+docker compose ps --format '{{.Name}} {{.State}} {{.Ports}}'
+# mbprobe-internal-probe-1 running 8099/tcp        ← aucune liaison vers l'hôte
+docker port mbprobe-internal-probe-1
+# (aucune sortie)
+curl -sS -m 5 http://127.0.0.1:18099/
+# curl: (7) Failed to connect to 127.0.0.1 port 18099 after 1 ms: Couldn't connect to server
+docker compose exec -T probe wget -qO- http://127.0.0.1:8099/
+# probe ok                                         ← le service tourne bien
+docker compose down
+```
+
+Le conteneur, le réseau et le fichier ont été supprimés après la mesure.
 
 Les tests du banc :
 
