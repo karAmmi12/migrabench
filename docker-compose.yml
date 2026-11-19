@@ -17,3 +17,30 @@ services:
       interval: 2s
       timeout: 2s
       retries: 60
+
+  # Service d'archivage simulé : un fichier, une route (fixtures/archive-service).
+  # Sur mb-internal pour la couche serveur du candidat, et publié sur l'hôte
+  # pour que le navigateur suive le lien « Accusé de remise » du legacy (ADR 0004).
+  archive:
+    build:
+      context: .
+      dockerfile: fixtures/archive-service/Dockerfile
+    ports:
+      - "127.0.0.1:8090:8090"
+    # Même .env que le legacy : la valeur témoin ARCHIVE_TOKEN est la même des deux côtés.
+    env_file: .env
+    networks:
+      - default
+      - mb-internal
+    healthcheck:
+      # Prêt quand le service refuse une requête sans jeton (403).
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8090/accuse-de-remise').then((r) => process.exit(r.status === 403 ? 0 : 1), () => process.exit(1))"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+networks:
+  # Réseau sans sortie vers l'extérieur : port 8081 du legacy, service
+  # d'archivage, couche serveur du candidat (ADR 0004).
+  mb-internal:
+    internal: true
