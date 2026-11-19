@@ -113,7 +113,10 @@ automatique. Les scénarios de lecture ne vérifient que les dossiers partagés
 `D-0001` à `D-0030`. Ils ne vérifient jamais le contenu d'un dossier réservé,
 ni le nombre total de lignes d'un résultat : pendant l'exécution, les
 scénarios qui écrivent modifient les dossiers réservés, éventuellement en
-parallèle. Legacy redémarré avant chaque exécution complète.
+parallèle. Un scénario qui attend une recherche sans résultat utilise des
+critères qu'aucun dossier réservé ne peut satisfaire, quelle que soit sa
+valeur modifiée (un numéro ou une plage de dates, pas un demandeur). Legacy
+redémarré avant chaque exécution complète.
 **Fini quand** : 100 % vert sur 5 exécutions consécutives contre le legacy.
 
 ### 3. Contrat de candidat et runner
