@@ -32,14 +32,23 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
 ## Secret lu par `System.getenv()` dans un scriptlet
 
 - **Famille** : à corriger (avec une face à préserver).
-- **Où** : écran 3. Après une remise, un lien « Accusé de remise » pointe vers
-  le service d'archivage. La JSP y ajoute
+- **Où** : écran 3. Sur un dossier `REMIS`, un lien « Accusé de remise »
+  pointe vers le service d'archivage. La JSP y ajoute
   `?jeton=<%= System.getenv("ARCHIVE_TOKEN") %>`, si bien que le secret part
-  en clair dans le HTML puis dans l'URL de la requête.
-- **Service d'archivage** : un fichier, une route. Il délivre l'accusé de
-  remise si le jeton est bon.
-- **Valeur témoin** : fixe et unique, injectée par le banc dans
-  l'environnement du legacy et dans celui de la couche serveur du candidat.
+  en clair dans le HTML puis dans l'URL de la requête. L'adresse du service
+  est écrite en dur dans la JSP (`http://localhost:8090`), telle que le
+  navigateur la voit.
+- **Service d'archivage** : `fixtures/archive-service/server.ts`, un fichier,
+  une route : `GET /accuse-de-remise?jeton=…&numero=…`. Il délivre l'accusé
+  de remise (`200`) si le jeton est égal à `ARCHIVE_TOKEN`, à la casse près,
+  et le refuse (`403`) sinon, jeton absent ou vide compris. Il ne connaît pas
+  les dossiers : il ne vérifie pas le numéro. Port `8090`, sur `mb-internal`
+  et publié sur `127.0.0.1:8090` (ADR 0004).
+- **Valeur témoin** : `ARCHIVE_TOKEN=mbtemoin-7c41e9a2b58d306f`, fixe et
+  unique, dans `.env`. Le banc l'injecte (`env_file`) dans l'environnement du
+  legacy, du service d'archivage et, plus tard, de la couche serveur du
+  candidat. Elle ne contient que des lettres minuscules, des chiffres et un
+  tiret : son encodage pour une URL est elle-même.
 - **Préservé par l'oracle** : l'instructeur clique sur « Accusé de remise »
   et obtient le document.
 - **Mesuré par la porte** : la valeur témoin, en clair, en base64 ou encodée
