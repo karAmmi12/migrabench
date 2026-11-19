@@ -4,7 +4,7 @@
 // par le port 8081.
 import { describe, expect, it } from "vitest";
 import { basicAuthHeader, LEGACY_URL, UNKNOWN_USER, userWithRole } from "./legacy-client.ts";
-import { callInternalApi, fetchFromInternal, INTERNAL_API_URL } from "./internal-api-client.ts";
+import { callInternalApi } from "./internal-api-client.ts";
 
 interface Criteria {
   number?: string;
@@ -114,13 +114,19 @@ const RESERVED_EN_INSTRUCTION = {
   subject: "Occupation temporaire d'une place de marché",
 };
 
+interface EditableFields {
+  applicant: string;
+  subject: string;
+}
+
 async function updateThenRestore(
-  dossier: { number: string; applicant: string; subject: string },
-  change: { applicant: string; subject: string },
+  dossier: EditableFields & { number: string },
+  change: EditableFields,
+  headers: Record<string, string> = {},
 ): Promise<{ status: number; json: unknown }> {
   const path = `/api/dossiers/${dossier.number}`;
   try {
-    return await callInternalApi("PUT", path, change);
+    return await callInternalApi("PUT", path, change, headers);
   } finally {
     const restored = await callInternalApi("PUT", path, { applicant: dossier.applicant, subject: dossier.subject });
     expect(restored.status, `restore ${dossier.number}`).toBe(200);
@@ -154,7 +160,7 @@ describe("internal API update, under the status lock of screen 2", () => {
     { name: "the subject of a REMIS dossier", number: "D-0001", field: "subject" },
   ])("refuses with 409 a change of $name, and saves nothing", async ({ number, field }) => {
     const before = await callInternalApi("GET", `/api/dossiers/${number}`);
-    const current = before.json as { applicant: string; subject: string };
+    const current = before.json as EditableFields;
 
     const { status } = await callInternalApi("PUT", `/api/dossiers/${number}`, {
       applicant: current.applicant,
@@ -168,7 +174,7 @@ describe("internal API update, under the status lock of screen 2", () => {
 
   it.each(["D-0003", "D-0001"])("accepts the current values of locked dossier %s, which are no change", async (number) => {
     const before = await callInternalApi("GET", `/api/dossiers/${number}`);
-    const current = before.json as { applicant: string; subject: string };
+    const current = before.json as EditableFields;
 
     const { status, json } = await callInternalApi("PUT", `/api/dossiers/${number}`, {
       applicant: current.applicant,
@@ -232,19 +238,11 @@ describe("internal API, ignoring the caller's identity", () => {
     { name: "with the agent's credentials", headers: { Authorization: basicAuthHeader(userWithRole("agent")) } },
     { name: "with unknown credentials", headers: { Authorization: basicAuthHeader(UNKNOWN_USER) } },
   ])("edits a dossier $name", async ({ headers }) => {
-    const path = `/api/dossiers/${RESERVED_BROUILLON.number}`;
     const change = { applicant: RESERVED_BROUILLON.applicant, subject: "Objet modifié sans contrôle de rôle" };
-    try {
-      const response = await fetchFromInternal(`${INTERNAL_API_URL}${path}`, {
-        method: "PUT",
-        headers: { ...headers, "Content-Type": "application/json" },
-        body: JSON.stringify(change),
-      });
 
-      expect(response.status).toBe(200);
-      expect(JSON.parse(response.body)).toMatchObject(change);
-    } finally {
-      await callInternalApi("PUT", path, { applicant: RESERVED_BROUILLON.applicant, subject: RESERVED_BROUILLON.subject });
-    }
+    const { status, json } = await updateThenRestore(RESERVED_BROUILLON, change, headers);
+
+    expect(status).toBe(200);
+    expect(json).toMatchObject(change);
   });
 });

@@ -31,11 +31,11 @@ fetch(url, JSON.parse(request)).then(
   (error) => { console.error(String(error.cause ?? error)); process.exit(2); },
 );`;
 
-const run = promisify(execFile);
+const execFileAsync = promisify(execFile);
 
 /** Requête HTTP émise depuis mb-internal. Rejette si la connexion échoue. */
 export async function fetchFromInternal(url: string, request: InternalRequest = {}): Promise<InternalResponse> {
-  const { stdout } = await run("docker", [
+  const { stdout } = await execFileAsync("docker", [
     "compose", "exec", "-T", "archive", "node", "-e", PROBE, url, JSON.stringify(request),
   ]);
   return JSON.parse(stdout) as InternalResponse;
@@ -46,12 +46,13 @@ export async function callInternalApi(
   method: string,
   path: string,
   body?: unknown,
+  headers: Record<string, string> = {},
 ): Promise<{ status: number; json: unknown }> {
   const response = await fetchFromInternal(`${INTERNAL_API_URL}${path}`, {
     method,
     ...(body === undefined
-      ? {}
-      : { headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+      ? { headers }
+      : { headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify(body) }),
   });
   return { status: response.status, json: response.body === "" ? undefined : JSON.parse(response.body) };
 }
