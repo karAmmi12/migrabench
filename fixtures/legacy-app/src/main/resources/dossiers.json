@@ -39,7 +39,9 @@
     { "number": "D-0107", "applicant": "Pierre-Étienne Duval", "subject": "Demande d'arrêté de circulation", "status": "BROUILLON", "filedOn": "2025-10-20" },
     { "number": "D-0108", "applicant": "Chloé Bérenger", "subject": "Réservation de la salle des fêtes", "status": "BROUILLON", "filedOn": "2025-10-29" },
     { "number": "D-0109", "applicant": "Yannick Le Gall", "subject": "Permis de démolir d'un hangar agricole", "status": "EN_INSTRUCTION", "filedOn": "2025-11-03" },
-    { "number": "D-0110", "applicant": "Margaux Delacroix", "subject": "Autorisation de terrasse « Le Petit Zinc »", "status": "REMIS", "filedOn": "2025-06-18", "submittedOn": "2025-08-25" }
+    { "number": "D-0110", "applicant": "Margaux Delacroix", "subject": "Autorisation de terrasse « Le Petit Zinc »", "status": "REMIS", "filedOn": "2025-06-18", "submittedOn": "2025-08-25" },
+    { "number": "D-0111", "applicant": "Clément Saint-Aubin", "subject": "Raccordement au réseau d'eau potable", "status": "EN_INSTRUCTION", "filedOn": "2025-08-11" },
+    { "number": "D-0112", "applicant": "Maïwenn O'Neill", "subject": "Demande d'autorisation de « vide-grenier »", "status": "EN_INSTRUCTION", "filedOn": "2025-08-18" }
   ],
   "reservations": {
     "gate:xss": ["D-0101"],
@@ -51,6 +53,8 @@
     "scenario:sheet-subject-required": ["D-0107"],
     "scenario:sheet-subject-maxlength": ["D-0108"],
     "scenario:sheet-lock-en-instruction": ["D-0109"],
-    "scenario:sheet-lock-remis": ["D-0110"]
+    "scenario:sheet-lock-remis": ["D-0110"],
+    "scenario:remise-instructeur": ["D-0111"],
+    "gate:role": ["D-0112"]
   }
 }
