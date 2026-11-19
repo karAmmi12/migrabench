@@ -14,7 +14,9 @@ import java.io.IOException;
 
 /**
  * Écran 3, bouton « Remettre » : remet le dossier, sans confirmation, puis
- * revient sur l'écran de remise. Une remise refusée par le service métier (dossier pas {@code EN_INSTRUCTION}) reçoit 409.
+ * revient sur l'écran de remise. Une remise refusée par le service métier
+ * (dossier pas {@code EN_INSTRUCTION}) reçoit 409. Un {@code GET} reçoit 405 :
+ * un lien suivi ou préchargé ne doit pas remettre un dossier.
  *
  * <p>Piège « contrôle de rôle dans la vue » (TRAPS.md) : aucun rôle n'est
  * vérifié ici, ni par l'attribut {@code roles} du mapping. Un {@code POST}

@@ -28,7 +28,7 @@ const FROZEN_DATE = frozenDateOf(
 );
 
 function frozenDateOf(compose: string): string {
-  const match = /^\s*FROZEN_DATE:\s*"(\d{4}-\d{2}-\d{2})"\s*$/m.exec(compose);
+  const match = /^\s*FROZEN_DATE:\s*["']?(\d{4}-\d{2}-\d{2})["']?\s*$/m.exec(compose);
   if (!match?.[1]) throw new Error("FROZEN_DATE not found in docker-compose.yml");
   return match[1];
 }

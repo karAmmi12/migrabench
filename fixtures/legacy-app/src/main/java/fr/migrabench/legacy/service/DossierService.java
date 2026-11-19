@@ -82,7 +82,7 @@ public class DossierService {
         if (current.getStatus() != Status.EN_INSTRUCTION) {
             throw new RefusedSubmissionException(number, current.getStatus());
         }
-        Dossier submitted = current.submittedOn(LocalDate.now(clock));
+        Dossier submitted = current.withSubmission(LocalDate.now(clock));
         dossiers.set(index, submitted);
         return submitted;
     }

@@ -53,7 +53,7 @@ public class Dossier {
     }
 
     /** Copie du dossier passé à {@code REMIS} à cette date. */
-    public Dossier submittedOn(LocalDate date) {
+    public Dossier withSubmission(LocalDate date) {
         return new Dossier(number, applicant, subject, Status.REMIS, filedOn, date);
     }
 }

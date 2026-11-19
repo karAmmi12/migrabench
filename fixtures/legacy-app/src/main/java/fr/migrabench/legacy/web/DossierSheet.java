@@ -28,7 +28,10 @@ public class DossierSheet {
         return dossier.getSubject();
     }
 
-    /** Nom du statut ({@code BROUILLON}, {@code EN_INSTRUCTION}, {@code REMIS}), pour les tests des JSP. */
+    /**
+     * Nom du statut ({@code BROUILLON}, {@code EN_INSTRUCTION}, {@code REMIS}),
+     * comparé par {@code <logic:equal>} dans les JSP.
+     */
     public String getStatus() {
         return dossier.getStatus().name();
     }
