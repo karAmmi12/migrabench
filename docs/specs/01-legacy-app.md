@@ -80,7 +80,7 @@ mesurable.
 37. En tant qu'instructeur, je veux voir un récapitulatif en lecture seule du dossier sur l'écran de remise, pour vérifier ce que je remets.
 38. En tant qu'instructeur, je veux un bouton « Remettre » sur un dossier `EN_INSTRUCTION`, qui remet sans confirmation et revient au même écran, pour enchaîner les remises.
 39. En tant qu'instructeur, je veux voir « Dossier remis le jj/mm/aaaa » après la remise, pour en garder la trace.
-40. En tant qu'instructeur, je veux un lien « Accusé de remise » sur un dossier `REMIS`, qui ouvre le document délivré par le service d'archivage, pour prouver la remise.
+40. En tant qu'instructeur, je veux un lien « Accusé de remise » sur un dossier `REMIS`, qui ouvre le document délivré par le service d'archivage, pour prouver la remise. Le lien est visible pour tous les rôles, agent compris : c'est une consultation, pas une action.
 
 ### Couche serveur du candidat (consommatrice de l'API interne)
 
@@ -161,7 +161,8 @@ mesurable.
   - `EN_INSTRUCTION` et instructeur : bouton « Remettre », `POST` vers
     `RemiseAction`, sans confirmation, retour au même écran ;
   - `EN_INSTRUCTION` et agent : « Remise réservée aux instructeurs » ;
-  - `REMIS` : « Dossier remis le jj/mm/aaaa » et lien « Accusé de remise » ;
+  - `REMIS` : « Dossier remis le jj/mm/aaaa » et lien « Accusé de remise »,
+    pour tous les rôles ;
   - `BROUILLON` : « Ce dossier ne peut pas être remis ». L'action et l'API
     interne refusent la transition.
 
@@ -238,8 +239,12 @@ Chaque piège est planté tel quel et documenté dans `TRAPS.md` (ADR 0001).
   interne n'est joignable que par le port `8081`. Les tests des seams A et B
   sont verts.
 - Non tranché, à décider pendant l'implémentation et à noter dans la PR :
-  le langage et le port publié du service d'archivage ; la valeur témoin
-  elle-même ; le format JSON exact des quatre endpoints de l'API interne.
+  le format JSON exact des quatre endpoints de l'API interne.
+- Tranché par #7 : le service d'archivage est écrit en TypeScript, lancé par
+  Node 22 (`--experimental-strip-types`) sans dépendance, sur le port `8090`
+  publié sur `127.0.0.1:8090`. Sa route est
+  `GET /accuse-de-remise?jeton=…&numero=…`. La valeur témoin `ARCHIVE_TOKEN`
+  vaut `mbtemoin-7c41e9a2b58d306f`, fixée dans `.env` comme `FROZEN_DATE`.
 - Tranché par #6 (PR #15) : l'horloge figée est la variable `FROZEN_DATE`
   (aaaa-mm-jj), qui vaut `2025-11-15`. Elle est fixée dans `.env`, versionné,
   que `docker compose` passe tel quel au legacy (`env_file`) et que lit le

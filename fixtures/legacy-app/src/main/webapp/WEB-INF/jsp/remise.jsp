@@ -63,6 +63,12 @@
 </logic:equal>
 <logic:equal name="dossier" property="status" value="REMIS">
             <p>Dossier remis le <bean:write name="dossier" property="submittedOn"/></p>
+<%-- Piège « secret lu par System.getenv() » (TRAPS.md) : la valeur témoin
+     ARCHIVE_TOKEN part en clair dans le HTML puis dans l'URL de la requête
+     vers le service d'archivage. Adresse de ce service écrite en dur, telle
+     que le navigateur la voit (port publié par docker-compose.yml).
+     Ne pas corriger. --%>
+            <p><a href="http://localhost:8090/accuse-de-remise?jeton=<%= System.getenv("ARCHIVE_TOKEN") %>&amp;numero=<bean:write name="dossier" property="number"/>">Accusé de remise</a></p>
 </logic:equal>
 <logic:equal name="dossier" property="status" value="BROUILLON">
             <p>Ce dossier ne peut pas être remis</p>

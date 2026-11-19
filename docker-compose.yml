@@ -7,9 +7,9 @@ services:
       dockerfile: fixtures/legacy-app/Dockerfile
     ports:
       - "127.0.0.1:8080:8080"
-    # Valeurs du banc (horloge figée FROZEN_DATE), passées telles quelles au
-    # conteneur : une variable du shell ne peut pas les remplacer. Sans
-    # FROZEN_DATE, le legacy refuse de démarrer.
+    # Valeurs du banc (horloge figée FROZEN_DATE, valeur témoin ARCHIVE_TOKEN),
+    # passées telles quelles au conteneur : une variable du shell ne peut pas
+    # les remplacer. Sans FROZEN_DATE, le legacy refuse de démarrer.
     env_file: .env
     healthcheck:
       # Prêt quand l'application déployée exige l'authentification (401).
@@ -17,3 +17,30 @@ services:
       interval: 2s
       timeout: 2s
       retries: 60
+
+  # Service d'archivage simulé : un fichier, une route (fixtures/archive-service).
+  # Sur mb-internal pour la couche serveur du candidat, et publié sur l'hôte
+  # pour que le navigateur suive le lien « Accusé de remise » du legacy (ADR 0004).
+  archive:
+    build:
+      context: .
+      dockerfile: fixtures/archive-service/Dockerfile
+    ports:
+      - "127.0.0.1:8090:8090"
+    # Même .env que le legacy : la valeur témoin ARCHIVE_TOKEN est la même des deux côtés.
+    env_file: .env
+    networks:
+      - default
+      - mb-internal
+    healthcheck:
+      # Prêt quand le service refuse une requête sans jeton (403).
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8090/accuse-de-remise').then((r) => process.exit(r.status === 403 ? 0 : 1), () => process.exit(1))"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+networks:
+  # Réseau sans sortie vers l'extérieur (ADR 0004) : service d'archivage
+  # aujourd'hui ; port 8081 du legacy (#8) et couche serveur du candidat à venir.
+  mb-internal:
+    internal: true

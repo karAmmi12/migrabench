@@ -34,6 +34,11 @@ l'autre. Sans elle, le legacy ne démarre pas. Le jeu de données est rechargé 
 démarrage : `docker compose restart legacy` annule les remises et les
 modifications.
 
+Le service d'archivage simulé répond sur <http://localhost:8090>. Il
+délivre l'accusé de remise que l'écran 3 lie à un dossier `REMIS`, si le
+jeton présenté est la valeur témoin `ARCHIVE_TOKEN` de [`.env`](.env). Le
+legacy et lui la reçoivent tous deux de ce fichier.
+
 **Toute modification de `fixtures/users.json` demande
 `docker compose up --build`** : sans `--build`, le legacy garde les anciens
 utilisateurs alors que les tests lisent le nouveau fichier.
@@ -48,4 +53,5 @@ npm run typecheck   # tsc --noEmit
 ```
 
 Les tests du seam A appellent le legacy par HTTP sur `LEGACY_URL`
-(par défaut `http://localhost:8080`).
+(par défaut `http://localhost:8080`) et le service d'archivage sur
+`ARCHIVE_URL` (par défaut `http://localhost:8090`).
