@@ -47,7 +47,10 @@ les identifiants par `httpCredentials`.
   legacy, sans endpoint `reset` dans l'API interne. Chaque scénario qui
   modifie des données possède ses propres dossiers réservés.
 - Les dossiers réservés sont déclarés dans le jeu de données et associés au
-  nom du scénario ou de la porte qui écrit. Un test du banc vérifie qu'aucun
+  nom du scénario (`scenario:`), de la porte (`gate:`) ou du test du banc
+  (`test:`) qui écrit. Un test du banc qui écrit, comme ceux de l'API
+  interne, remet les valeurs initiales de ses dossiers réservés pour pouvoir
+  être relancé sans redémarrage. Un test du banc vérifie qu'aucun
   dossier réservé n'est partagé. Le legacy est redémarré avant chaque
   exécution complète de l'oracle. Les scénarios qui écrivent n'ont pas de
   relance automatique Playwright, car leur dossier réservé a pu être modifié

@@ -28,6 +28,16 @@ et `USERS_FILE`. Le legacy reçoit `ARCHIVE_TOKEN` et l'horloge figée.
   comportement du legacy à migrer**. Un candidat n'a pas à le reproduire.
 - Un test du banc vérifie qu'un appel à l'API interne par le port `8080` est
   refusé.
+- Ce que garantit l'isolation : l'API interne n'est pas joignable depuis
+  l'hôte, donc pas depuis le navigateur. Le port `8081` n'est pas publié, et
+  un test du banc vérifie qu'une connexion de l'hôte à `8081` échoue. C'est la
+  menace visée : le front d'un candidat qui appelle l'API interne directement.
+- Limite connue : le legacy est aussi sur le réseau `default`, nécessaire pour
+  publier `8080`, et Tomcat écoute sur `8081` sur toutes ses interfaces. Un
+  conteneur branché sur `default` joint donc `legacy:8081`. Aucun conteneur
+  du banc n'est sur `default` seul : le service d'archivage et la couche
+  serveur du candidat sont aussi sur `mb-internal`. On ne fige ni
+  sous-réseau ni adresse IP pour fermer cette limite.
 - Tout port publié sur l'hôte, pour le legacy, le service d'archivage ou le
   candidat, est lié à `127.0.0.1`. Un service ajouté plus tard à la
   composition suit la même règle.
