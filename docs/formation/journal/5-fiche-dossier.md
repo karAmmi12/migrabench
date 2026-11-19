@@ -17,18 +17,32 @@ page en `<table>` imbriquées, est **à corriger**.
 - **Validateurs `required` et `maxlength` de Struts Validator** : deux
   validateurs standard de `validator-rules.xml`, déclarés champ par champ
   dans `validation.xml`. La limite de `maxlength` est passée par une
-  `<var>`. `required` retire les espaces avant de tester : une valeur faite
-  seulement d'espaces est refusée. —
+  `<var>`. —
   [Struts 1 : Validator FAQ](https://weblegacy.github.io/struts1/faqs/validator.html)
   - Nature de la source : republication communautaire (Web-Legacy), qui
     documente la version 1.5.0-RC2. Le legacy est en 1.3.10.
-  > À vérifier : la FAQ ne dit pas explicitement que `required` retire les espaces. Ce comportement a été observé sur le legacy (voir « Vérifier soi-même », commande 6).
+- **`required` et les espaces** : observé sur le legacy, un demandeur fait
+  de deux espaces est refusé avec « Le demandeur est obligatoire. »
+  (« Vérifier soi-même », commande 6). Dans le `struts-core-1.3.10.jar` du
+  legacy, `javap -c` montre que `FieldChecks.validateRequired` appelle
+  `GenericValidator.isBlankOrNull`. La Javadoc de cette méthode dit :
+  « Checks if the field isn't null and length of the field is greater than
+  zero not including whitespace. » —
+  [Commons Validator : GenericValidator](https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/GenericValidator.html)
+  - Nature de la source : Javadoc officielle d'Apache Commons Validator,
+    dans sa dernière version (publiée le 28/07/2026). Le legacy embarque
+    `commons-validator-1.3.1.jar`.
 - **`input` d'une action Struts vers une autre action** : quand
   `validation.xml` refuse une saisie, Struts transfère la requête au chemin
-  `input` du mapping, sans appeler l'action. Ce chemin peut être une JSP ou
-  une autre action (`/ficheSaisie.do` ici). Un formulaire en portée
-  `request` est alors réutilisé, avec les valeurs saisies.
-  > À vérifier : aucune page de référence n'est citée pour ce comportement. Il a été observé sur le legacy (commande 6 : la valeur saisie `"  "` est gardée).
+  `input` du mapping, sans appeler l'action. Par défaut
+  (`inputForward=false`), le guide décrit ce chemin comme « a
+  module-relative path to the resource to be used as the input form » : une
+  JSP, ou une autre action. —
+  [Struts 1 : guide utilisateur, configuration](https://weblegacy.github.io/struts1/userGuide/configuration.html)
+  (même republication, version 1.5.0-RC2). Observé sur le legacy : avec
+  `input="/ficheSaisie.do"`, une saisie refusée revient sur la fiche avec
+  les messages d'erreur, et le formulaire garde la valeur saisie (deux
+  espaces, commande 6).
 - **Attribut `readonly`** : un champ `readonly` ne se modifie pas, mais il
   reste dans l'ordre de tabulation et sa valeur part avec le formulaire. Ce
   n'est donc qu'un verrou d'affichage : une requête écrite à la main peut
@@ -41,12 +55,12 @@ page en `<table>` imbriquées, est **à corriger**.
 - **`preventDefault`** : empêche l'action par défaut du navigateur pour un
   événement. Ici, `Ctrl+S` ne doit pas ouvrir « Enregistrer la page sous ». —
   [MDN : Event.preventDefault()](https://developer.mozilla.org/fr/docs/Web/API/Event/preventDefault)
-- **Filtre d'encodage de Tomcat** : Tomcat lit le corps d'un `POST` en
-  ISO-8859-1 si la requête ne précise pas son encodage.
-  `SetCharacterEncodingFilter`, fourni par Tomcat, fixe UTF-8 avant la
-  lecture des paramètres. —
+- **Filtre d'encodage de Tomcat** : `SetCharacterEncodingFilter`, fourni
+  par Tomcat, fixe l'encodage de la requête (UTF-8 ici) avant la lecture
+  des paramètres. La fiche est le premier écran qui envoie sa saisie en
+  `POST`. Le filtre fixe l'encodage de ce corps au lieu de le laisser au
+  réglage par défaut du conteneur. —
   [Tomcat 9 : Container Provided Filters, Set Character Encoding Filter](https://tomcat.apache.org/tomcat-9.0-doc/config/filter.html)
-  > À vérifier : le filtre a été posé avant le premier `POST`. Le décodage en ISO-8859-1 sans filtre n'a pas été observé pendant la session.
 - **Post/Redirect/Get** : après un `POST` réussi, le serveur répond par une
   redirection (`302`) vers la page à afficher. Recharger la page ne renvoie
   donc pas le formulaire. —
@@ -276,7 +290,15 @@ avec le Chrome installé :
   l'écran 1 donne `window.__mbXss = 1` : le piège XSS de l'écran 1 est
   intact.
 
-> À vérifier : l'humain indique avoir vérifié dans le navigateur, mais le texte de ses observations n'a pas été fourni (« [ce que tu as observé] »). À compléter par l'humain.
+Dans le navigateur, sur la pile reconstruite après `cc3cbb7` (le code du
+legacy n'a pas changé depuis), l'humain a vérifié :
+
+- le lien du numéro mène de l'écran 1 à la fiche ;
+- le demandeur de `D-0101` est échappé ;
+- le focus est sur « Objet » au chargement ;
+- la tabulation suit Objet → Demandeur → Enregistrer ;
+- `Ctrl+S` enregistre ;
+- un dossier `REMIS` est en lecture seule, sans bouton « Enregistrer ».
 
 ## Pour aller plus loin
 
