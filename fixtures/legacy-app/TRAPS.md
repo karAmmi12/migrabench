@@ -182,6 +182,23 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
   `role="presentation"` ni `role="none"`. C'est une heuristique du banc
   (voir les limites de `PROTOCOL.md`).
 
+## Hors pièges : blocage des comptes par Tomcat
+
+Ce n'est pas un piège : ni porte, ni oracle ne le mesurent, et un candidat
+n'a pas à le reproduire. C'est un comportement du legacy qui menace les
+exécutions consécutives du banc.
+
+- **Où** : `conf/server.xml` de l'image Tomcat 9 enveloppe le realm des
+  utilisateurs dans un `LockOutRealm` (réglages par défaut). Laissé en place.
+- **Comportement** : après 5 échecs d'authentification consécutifs, le nom
+  d'utilisateur est bloqué 5 minutes, même avec le bon mot de passe. Les
+  échecs sont comptés par nom ; une authentification réussie remet le
+  compte à zéro. Un redémarrage du legacy lève tous les blocages.
+- **Règle** : un test, un scénario de l'oracle ou une porte qui envoie de
+  faux identifiants vise un nom d'utilisateur absent de
+  `fixtures/users.json` (`UNKNOWN_USER` dans `tests/seam-a/legacy-client.ts`),
+  jamais l'agent ni l'instructeur.
+
 ## Extensions possibles, hors périmètre
 
 - XSS injecté par l'écran 2 (modification du demandeur) plutôt que par le jeu

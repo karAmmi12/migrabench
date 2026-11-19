@@ -15,6 +15,17 @@ export function userWithRole(role: Role): User {
   return user;
 }
 
-export function basicAuthHeader(user: User): string {
+// Tomcat bloque un nom d'utilisateur 5 minutes après 5 échecs consécutifs
+// (LockOutRealm de server.xml, laissé en place). Un test de faux identifiants
+// vise donc toujours ce nom, absent de fixtures/users.json, jamais l'agent ni
+// l'instructeur : il ne peut pas bloquer un compte dont dépendent les autres
+// tests, l'oracle ou les portes.
+export const UNKNOWN_USER = { username: "inconnu", password: "inconnu-mb" } as const;
+
+if (users.some((user) => user.username === UNKNOWN_USER.username)) {
+  throw new Error(`${UNKNOWN_USER.username} must not be a user of fixtures/users.json`);
+}
+
+export function basicAuthHeader(user: Pick<User, "username" | "password">): string {
   return `Basic ${Buffer.from(`${user.username}:${user.password}`).toString("base64")}`;
 }
