@@ -23,15 +23,19 @@ seulement dans la vue : l'agent ne voit pas le bouton « Remettre », mais un
   JSP, il ne protège que l'affichage, pas l'action qui reçoit le `POST`. —
   [Java EE 5 : HttpServletRequest](https://docs.oracle.com/javaee/5/api/javax/servlet/http/HttpServletRequest.html)
 - **Attribut `roles` d'un mapping Struts** : « A comma-delimited list of the
-  user security roles that can access this mapping ». Avec lui, c'est Struts
-  qui contrôle le rôle avant l'action ; c'est pourquoi le mapping
-  `/remettre` ne l'a pas (commentaire de l'issue #6). —
-  [Struts 1 : guide utilisateur, 4.8 Writing Action Mappings](https://weblegacy.github.io/struts1/userGuide/building_controller.html)
-  - Nature de la source : republication communautaire (Web-Legacy), qui
-    documente la version 1.5.0-RC2. Le legacy est en 1.3.10.
-  > À vérifier : le nom `AuthorizeAction` vient du commentaire de l'issue ;
-  > la page lue cite l'attribut `roles` mais la fiche n'a pas confirmé
-  > qu'elle nomme cette commande de la chaîne de traitement.
+  user security roles that can access this mapping ». —
+  [Struts 1 : guide utilisateur, 4.8 Writing Action Mappings](https://weblegacy.github.io/struts1/userGuide/building_controller.html#a4.8_Writing_Action_Mappings)
+- **Commande `AuthorizeAction` du Request Processor** : une étape de la
+  chaîne qui traite chaque requête Struts : « If the mapping has a role
+  associated with it, ensure the requesting client has the specified role.
+  If the client does not, raise an error and stop processing of the
+  request. » Avec l'attribut `roles`, c'est donc Struts qui contrôlerait le
+  rôle avant l'action ; c'est pourquoi le mapping `/remettre` ne l'a pas
+  (commentaire de l'issue #6). —
+  [Struts 1 : guide utilisateur, 4.2.1 Request Processor](https://weblegacy.github.io/struts1/userGuide/building_controller.html#a4.2.1_Request_Processor)
+  - Nature de la source, pour 4.2.1 et 4.8 : republication communautaire
+    (Web-Legacy), qui documente la version 1.5.0-RC2. Le legacy est en
+    1.3.10.
 - **`LockOutRealm` de Tomcat** : enveloppe le realm des utilisateurs et
   bloque un nom d'utilisateur après des échecs d'authentification
   consécutifs. Valeurs par défaut documentées : `failureCount` 5,
@@ -49,11 +53,13 @@ seulement dans la vue : l'agent ne voit pas le bouton « Remettre », mais un
 - **`util.parseEnv`** : lit le contenu d'un fichier `.env` et rend un objet,
   sans dépendance. Ajouté en v21.7.0, stable depuis v22.21.0. —
   [Node.js 22 : util.parseEnv](https://nodejs.org/docs/latest-v22.x/api/util.html)
-- **Méthode HTTP 405 et statut 409** : 405 « Method Not Allowed » pour un
-  `GET` sur une action qui modifie ; 409 « Conflict » pour une transition
-  refusée par l'état du dossier, comme pour un champ verrouillé au ticket #5. —
-  [MDN : codes de réponse HTTP](https://developer.mozilla.org/fr/docs/Web/HTTP/Status)
-  > À vérifier : lien non ouvert pendant la session.
+- **Statuts HTTP 405 et 409** : 405 « Method Not Allowed » pour un `GET`
+  sur une action qui modifie (« La méthode de la requête est connue du
+  serveur mais n'est pas prise en charge pour la ressource cible ») ;
+  409 « Conflict » pour une transition refusée par l'état du dossier, comme
+  pour un champ verrouillé au ticket #5 (« Cette réponse est envoyée
+  lorsqu'une requête entre en conflit avec l'état actuel du serveur »). —
+  [MDN : codes de réponse HTTP](https://developer.mozilla.org/fr/docs/Web/HTTP/Reference/Status)
 
 ## Ce qui a été construit
 
@@ -165,30 +171,33 @@ seulement dans la vue : l'agent ne voit pas le bouton « Remettre », mais un
   - Symptôme : toutes les requêtes `curl` de vérification recevaient `401`.
     Puis `npm test` est passé au rouge : les 6 tests « answers the … » des
     écrans échouaient, alors qu'ils venaient de passer.
-  - Cause : le premier script passait les identifiants dans une variable
-    (`A="-u agent:agent-mb"`, puis `curl -s $A …`), que le shell n'a pas
-    découpée en deux arguments. Les requêtes partaient avec de mauvais
-    identifiants, et le `LockOutRealm` de Tomcat a bloqué `agent` et
-    `instructeur`. Deux autres tentatives (tableaux, puis fonctions shell)
-    ont aussi reçu `401`. `curl -v` montrait pourtant un en-tête
-    `Authorization` correct pour `agent:agent-mb` : le compte était déjà
-    bloqué. `conf/server.xml` de l'image active bien ce realm.
-    > À vérifier : par quel chemin exact les arguments mal découpés ont
-    > produit des échecs comptés pour `agent` et `instructeur` (nom
-    > d'utilisateur envoyé non inspecté).
-  - Résolution : redémarrage du legacy (`docker compose restart legacy`),
-    qui lève les blocages ; identifiants passés en clair dans des fonctions
-    shell (`ag(){ curl -s -u agent:agent-mb "$@"; }`). L'incident a ensuite
-    mené au changement du test de faux identifiants (voir les choix).
-- **Le contexte qui ne démarre pas ne s'affiche que dans les logs.** Pour
-  vérifier le refus de démarrer sans horloge, l'image a été lancée sans
-  `FROZEN_DATE` (session, après les trois premiers commits). Tomcat démarre,
-  mais le contexte échoue : `SEVERE … One or more listeners failed to start`
-  puis `Context [] startup failed due to previous errors`. Le message
-  `FROZEN_DATE is not set` n'apparaît pas dans `docker logs` ; Tomcat renvoie
-  à « the appropriate container log file », qui n'a pas été ouvert.
-  > À vérifier : la réponse HTTP de Tomcat et l'état du healthcheck quand le
-  > contexte racine a échoué n'ont pas été relevés.
+  - Cause : les comptes `agent` et `instructeur` étaient bloqués par le
+    `LockOutRealm` de Tomcat, actif dans `conf/server.xml` de l'image, après
+    l'exécution d'un script de vérification mal écrit. `curl -v` montrait un
+    en-tête `Authorization` correct pour `agent:agent-mb`, refusé quand
+    même.
+  - Résolution : un redémarrage du legacy (`docker compose restart legacy`)
+    a débloqué les deux comptes. L'incident a ensuite mené au changement du
+    test de faux identifiants (voir les choix).
+- **Sans horloge, Tomcat tourne mais l'application est absente.**
+  - Symptôme : l'image lancée sans `FROZEN_DATE` démarre (`Server startup
+    in [332] milliseconds`), mais toute requête reçoit `404`, avec ou sans
+    identifiants, et `docker logs` ne montre que
+    `SEVERE … One or more listeners failed to start. Full details will be
+    found in the appropriate container log file`, puis
+    `Context [] startup failed due to previous errors`.
+  - Cause : `DossierServiceListener` refuse de démarrer sans horloge.
+    Tomcat abandonne le contexte racine et garde le serveur. Le message ne
+    se trouve que dans le journal détaillé de `/usr/local/tomcat/logs` :
+    `java.lang.IllegalStateException: FROZEN_DATE is not set: the bench
+    must freeze the clock`.
+  - Résolution : rien à corriger, c'est le comportement voulu. Le
+    healthcheck de la composition le détecte, puisqu'il attend un `401` et
+    reçoit un `404` : le conteneur finit `unhealthy`. Mesure sur l'image
+    construite au commit `5ae115a` (code inchangé depuis), lancée par
+    `docker run` avec le healthcheck de `docker-compose.yml`, car Compose
+    refuse de lancer la pile sans `FROZEN_DATE` (commande 6) : `404` sur `/`
+    et sur `/remise.do`, puis `unhealthy failingStreak=60`.
 
 ## Vérifier soi-même
 
