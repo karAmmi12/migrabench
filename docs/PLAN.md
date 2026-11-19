@@ -115,8 +115,11 @@ ni le nombre total de lignes d'un résultat : pendant l'exécution, les
 scénarios qui écrivent modifient les dossiers réservés, éventuellement en
 parallèle. Un scénario qui attend une recherche sans résultat utilise des
 critères qu'aucun dossier réservé ne peut satisfaire, quelle que soit sa
-valeur modifiée (un numéro ou une plage de dates, pas un demandeur). Legacy
-redémarré avant chaque exécution complète.
+valeur modifiée (un numéro ou une plage de dates, pas un demandeur). En
+headless, les boîtes de dialogue du navigateur n'apparaissent pas : l'oracle
+ne vérifie jamais leur absence à l'œil. Pour un raccourci clavier, il vérifie
+`defaultPrevented` sur l'événement. Legacy redémarré avant chaque exécution
+complète.
 **Fini quand** : 100 % vert sur 5 exécutions consécutives contre le legacy.
 
 ### 3. Contrat de candidat et runner
