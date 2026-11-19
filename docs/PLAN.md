@@ -109,7 +109,11 @@ Scénarios Playwright avec sélecteurs sémantiques (`getByRole`, `getByLabel`),
 paramétrés par `BASE_URL`. Parcours nominaux, erreurs de validation, clavier
 seul, enregistrement HAR. Identifiants passés par `httpCredentials`. Chaque
 scénario qui écrit utilise ses dossiers réservés et n'a pas de relance
-automatique. Legacy redémarré avant chaque exécution complète.
+automatique. Les scénarios de lecture ne vérifient que les dossiers partagés
+`D-0001` à `D-0030`. Ils ne vérifient jamais le contenu d'un dossier réservé,
+ni le nombre total de lignes d'un résultat : pendant l'exécution, les
+scénarios qui écrivent modifient les dossiers réservés, éventuellement en
+parallèle. Legacy redémarré avant chaque exécution complète.
 **Fini quand** : 100 % vert sur 5 exécutions consécutives contre le legacy.
 
 ### 3. Contrat de candidat et runner
