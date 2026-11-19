@@ -1,5 +1,6 @@
 // Seam B : lecture statique du jeu de données, sans démarrer le legacy.
 import { readFileSync } from "node:fs";
+import { parseEnv } from "node:util";
 import { describe, expect, it } from "vitest";
 
 interface Dossier {
@@ -21,16 +22,18 @@ const dataset: Dataset = JSON.parse(
   ),
 );
 
-// Horloge figée transmise par le banc au legacy (docker-compose.yml). Les
-// dates ISO aaaa-mm-jj se comparent comme des chaînes.
+// Horloge figée transmise par le banc au legacy, lue dans le .env que lit
+// aussi docker compose. Les dates ISO aaaa-mm-jj se comparent comme des chaînes.
 const FROZEN_DATE = frozenDateOf(
-  readFileSync(new URL("../../docker-compose.yml", import.meta.url), "utf8"),
+  parseEnv(readFileSync(new URL("../../.env", import.meta.url), "utf8")),
 );
 
-function frozenDateOf(compose: string): string {
-  const match = /^\s*FROZEN_DATE:\s*["']?(\d{4}-\d{2}-\d{2})["']?\s*$/m.exec(compose);
-  if (!match?.[1]) throw new Error("FROZEN_DATE not found in docker-compose.yml");
-  return match[1];
+function frozenDateOf(env: NodeJS.Dict<string>): string {
+  const date = env.FROZEN_DATE;
+  if (date === undefined || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new Error(`FROZEN_DATE in .env is not an ISO date (yyyy-mm-dd): ${date}`);
+  }
+  return date;
 }
 
 describe("dataset", () => {

@@ -8,9 +8,9 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     environment:
-      # Horloge figée (aaaa-mm-jj) : toute date de remise en provient. Le
-      # legacy refuse de démarrer sans elle.
-      FROZEN_DATE: "2025-11-14"
+      # Horloge figée (aaaa-mm-jj), fixée dans .env : toute date de remise en
+      # provient. Le legacy refuse de démarrer sans elle.
+      FROZEN_DATE: ${FROZEN_DATE:?FROZEN_DATE must be set in .env}
     healthcheck:
       # Prêt quand l'application déployée exige l'authentification (401).
       test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/ | grep -q 401"]

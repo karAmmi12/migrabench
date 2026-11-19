@@ -27,7 +27,10 @@ Les deux utilisateurs fixes, un agent et un instructeur, sont décrits dans
 `tomcat-users.xml` pendant le build de l'image (ADR 0003).
 
 L'horloge du legacy est figée par la variable `FROZEN_DATE` (aaaa-mm-jj),
-fixée dans `docker-compose.yml` : toute date de remise en provient. Sans
+fixée dans [`.env`](.env), que lisent `docker compose` et les tests : toute
+date de remise en provient. Une variable `FROZEN_DATE` exportée dans le shell
+l'emporte sur `.env` pour `docker compose`, pas pour les tests : ne pas en
+exporter. Sans
 elle, le legacy ne démarre pas. Le jeu de données est rechargé à chaque
 démarrage : `docker compose restart legacy` annule les remises et les
 modifications.
