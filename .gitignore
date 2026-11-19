@@ -4,8 +4,8 @@ target/
 .env
 .env.*
 !.env.example
-# .env ne contient que des valeurs du banc (horloge, valeur témoin), jamais de
-# vrai secret : il est versionné, car il fait partie de l'état initial d'un run.
+# .env ne contient que des valeurs du banc (aujourd'hui l'horloge figée),
+# jamais de vrai secret : il est versionné, car il fait partie de l'état initial d'un run.
 !.env
 playwright-report/
 test-results/

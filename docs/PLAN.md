@@ -119,8 +119,8 @@ valeur modifiée (un numéro ou une plage de dates, pas un demandeur). En
 headless, les boîtes de dialogue du navigateur n'apparaissent pas : l'oracle
 ne vérifie jamais leur absence à l'œil. Pour un raccourci clavier, il vérifie
 `defaultPrevented` sur l'événement. Legacy redémarré avant chaque exécution
-complète. Tomcat bloque un nom d'utilisateur 5 minutes après 5 échecs
-d'authentification consécutifs (`LockOutRealm`, voir `TRAPS.md`) : un
+complète. Tomcat bloque un nom d'utilisateur après 5 échecs
+d'authentification consécutifs (5 minutes par défaut) (`LockOutRealm`, voir `TRAPS.md`) : un
 scénario ou un test de faux identifiants vise toujours un nom absent de
 `fixtures/users.json`, jamais l'agent ni l'instructeur.
 **Fini quand** : 100 % vert sur 5 exécutions consécutives contre le legacy.

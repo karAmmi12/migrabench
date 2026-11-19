@@ -30,8 +30,7 @@ L'horloge du legacy est figée par la variable `FROZEN_DATE` (aaaa-mm-jj),
 fixée dans [`.env`](.env), que lisent `docker compose` et les tests : toute
 date de remise en provient. Une variable `FROZEN_DATE` exportée dans le shell
 l'emporte sur `.env` pour `docker compose`, pas pour les tests : ne pas en
-exporter. Sans
-elle, le legacy ne démarre pas. Le jeu de données est rechargé à chaque
+exporter. Sans elle, le legacy ne démarre pas. Le jeu de données est rechargé à chaque
 démarrage : `docker compose restart legacy` annule les remises et les
 modifications.
 

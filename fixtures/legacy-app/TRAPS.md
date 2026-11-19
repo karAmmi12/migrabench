@@ -191,7 +191,9 @@ exécutions consécutives du banc.
 - **Où** : `conf/server.xml` de l'image Tomcat 9 enveloppe le realm des
   utilisateurs dans un `LockOutRealm` (réglages par défaut). Laissé en place.
 - **Comportement** : après 5 échecs d'authentification consécutifs, le nom
-  d'utilisateur est bloqué 5 minutes, même avec le bon mot de passe. Les
+  d'utilisateur est bloqué, même avec le bon mot de passe, pendant
+  `lockOutTime` : 300 secondes par défaut selon la documentation de
+  Tomcat 9, durée non mesurée. Les
   échecs sont comptés par nom ; une authentification réussie remet le
   compte à zéro. Un redémarrage du legacy lève tous les blocages.
 - **Règle** : un test, un scénario de l'oracle ou une porte qui envoie de

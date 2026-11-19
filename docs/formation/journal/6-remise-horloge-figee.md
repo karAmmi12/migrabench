@@ -113,8 +113,10 @@ seulement dans la vue : l'agent ne voit pas le bouton « Remettre », mais un
   qui donnait « vers le 15/11/2025 » comme hypothèse non mesurée, à
   revérifier une fois l'horloge fixée. Aucune des deux dates n'était donc
   imposée ; on a aligné sur la seule référence écrite (commit `b0eb616`).
-  Les dépôts vont du 06/05/2024 au 03/11/2025 : environ 18 mois avant
-  l'horloge, ce que la fiche #3 laissait à revérifier.
+  Les dépôts vont du 06/05/2024 au 03/11/2025 (`dossiers.json`) : 558 jours,
+  soit 18 mois et 9 jours, séparent le premier dépôt de l'horloge. La
+  fiche #3 demandait de le revérifier ; c'est conforme à « environ 18 mois »
+  de la spec.
 - **Horloge `java.time.Clock` plutôt qu'une interface maison.** `Clock`
   existe en Java 8 et `Clock.fixed` fait exactement le besoin. Une interface
   maison aurait ajouté du code sans gain.

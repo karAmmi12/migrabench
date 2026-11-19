@@ -15,8 +15,8 @@ export function userWithRole(role: Role): User {
   return user;
 }
 
-// Tomcat bloque un nom d'utilisateur 5 minutes après 5 échecs consécutifs
-// (LockOutRealm de server.xml, laissé en place). Un test de faux identifiants
+// Tomcat bloque un nom d'utilisateur après 5 échecs consécutifs, 5 minutes par
+// défaut (LockOutRealm de server.xml, laissé en place). Un test de faux identifiants
 // vise donc toujours ce nom, absent de fixtures/users.json, jamais l'agent ni
 // l'instructeur : il ne peut pas bloquer un compte dont dépendent les autres
 // tests, l'oracle ou les portes.
