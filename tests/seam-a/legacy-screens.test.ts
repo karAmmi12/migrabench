@@ -8,6 +8,7 @@ import { basicAuthHeader, LEGACY_URL, userWithRole } from "./legacy-client.ts";
 // Dossier partagé en lecture : ces tests ne font que des GET.
 const SCREENS = [
   { name: "dossier sheet", path: "/fiche.do?number=D-0001", title: "Fiche dossier" },
+  { name: "submission", path: "/remise.do?number=D-0003", title: "Remise du dossier" },
 ] as const;
 
 describe.each(SCREENS)("$name screen", ({ path, title }) => {

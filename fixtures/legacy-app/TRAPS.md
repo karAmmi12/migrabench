@@ -11,7 +11,17 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
 - **Où** : écran 3 (remise). `RemiseAction` et l'endpoint de remise de l'API
   interne ne vérifient aucun rôle. Seul un scriptlet
   `request.isUserInRole("instructeur")` affiche ou masque le bouton
-  « Remettre ».
+  « Remettre ». L'agent voit à la place « Remise réservée aux
+  instructeurs ».
+- **Pas d'attribut `roles` sur le mapping** : `<action path="/remettre">`
+  de `struts-config.xml` n'a pas d'attribut `roles`. Avec lui, Struts
+  contrôlerait le rôle avant d'exécuter l'action (`AuthorizeAction` dans la
+  chaîne de traitement, section 4.8 du guide utilisateur Struts 1.3) : le
+  contrôle serait fait par le framework et le piège ne serait plus planté.
+- **Dossier réservé** : `D-0112` (`gate:role` dans
+  `src/main/resources/dossiers.json`), `EN_INSTRUCTION`. La remise réussie
+  par l'instructeur dans l'oracle utilise `D-0111`
+  (`scenario:remise-instructeur`).
 - **Préservé par l'oracle** : l'instructeur voit le bouton et réussit la
   remise ; l'agent ne voit pas le bouton.
 - **Mesuré par la porte** : la requête émise quand l'instructeur clique sur

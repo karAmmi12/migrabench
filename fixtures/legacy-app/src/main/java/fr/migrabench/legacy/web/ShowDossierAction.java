@@ -12,10 +12,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Écran 2 : affiche la fiche du dossier {@code number}. Deux mappings
+ * Écrans 2 et 3 : affiche le dossier {@code number}. Trois mappings
  * l'utilisent. {@code /fiche} remplit le formulaire avec le dossier.
  * {@code /ficheSaisie} (paramètre {@value #KEEP_INPUT}) garde la saisie
  * refusée par {@code validation.xml} et ne recharge que le statut.
+ * {@code /remise} affiche l'écran de remise, qui n'utilise que {@link DossierSheet}.
  */
 public class ShowDossierAction extends Action {
 
