@@ -46,10 +46,19 @@ seulement dans la vue : l'agent ne voit pas le bouton « Remettre », mais un
     écrite sur cette page : elle a été **observée** sur le legacy (voir
     « Les choix faits et pourquoi »).
 - **Fichier `.env` de Docker Compose** : « the default method for setting
-  variables » pour l'interpolation de `docker-compose.yml`.
-  `${VAR:?erreur}` arrête Compose si la variable est vide ou absente. Une
-  variable du shell l'emporte sur `.env`. —
+  variables » pour l'interpolation de `docker-compose.yml`. Une variable du
+  shell l'emporte alors sur `.env`. —
   [Compose : variable interpolation](https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/)
+- **Attribut `env_file` d'un service Compose** : « used to specify one or
+  more files that contain environment variables to be passed to the
+  containers ». La documentation ne dit pas si le shell peut remplacer ces
+  valeurs ; observé ici : non (commande 6). —
+  [Compose : services, env_file](https://docs.docker.com/reference/compose-file/services/#env_file)
+- **`engines` et `engine-strict` de npm** : sans `engine-strict`, le champ
+  `engines` de `package.json` « is advisory only ». Avec `engine-strict=true`,
+  npm « will stubbornly refuse to install » sous une version de Node non
+  compatible (sauf `--force`). —
+  [npm 10 : config, engine-strict](https://docs.npmjs.com/cli/v10/using-npm/config#engine-strict)
 - **`util.parseEnv`** : lit le contenu d'un fichier `.env` et rend un objet,
   sans dépendance. Ajouté en v21.7.0, stable depuis v22.21.0. —
   [Node.js 22 : util.parseEnv](https://nodejs.org/docs/latest-v22.x/api/util.html)
@@ -66,8 +75,8 @@ seulement dans la vue : l'agent ne voit pas le bouton « Remettre », mais un
 - `.env` : `FROZEN_DATE=2025-11-15`, versionné. `.gitignore` le garde sous
   contrôle de version (`!.env`), avec un commentaire : valeurs du banc, jamais
   de vrai secret.
-- `docker-compose.yml` : passe `FROZEN_DATE` au legacy par
-  `${FROZEN_DATE:?FROZEN_DATE must be set in .env}`.
+- `docker-compose.yml` : passe `.env` tel quel au legacy par
+  `env_file: .env`.
 - `DossierServiceListener` : construit `Clock.fixed` à minuit UTC du jour de
   `FROZEN_DATE` et l'injecte dans `DossierService`. Sans la variable, ou
   avec une date mal formée, le contexte ne démarre pas.
@@ -86,9 +95,11 @@ seulement dans la vue : l'agent ne voit pas le bouton « Remettre », mais un
   réutilise `ShowDossierAction`), `/remettre` remet puis redirige vers
   `/remise.do`. 404 sur un numéro inconnu, 409 sur une transition refusée,
   405 sur un `GET`. Pas d'attribut `roles`.
-- `fiche.jsp` : lien « Remise » sauf sur un `BROUILLON`.
-- `DossierSheet` : récapitulatif de l'écran 3 (`applicant`, `subject`,
-  `status`, `submittedOn` en jj/mm/aaaa).
+- `fiche.jsp` : lien « Remise » sur un dossier `EN_INSTRUCTION` ou `REMIS`
+  (`DossierView.isSubmissionLinked`).
+- `DossierView`, ancien `DossierSheet` : le dossier prêt à afficher pour
+  les écrans 2 et 3 (`applicant`, `subject`, `status`, `submittedOn` en
+  jj/mm/aaaa, verrous), publié sous l'attribut de requête `dossier`.
 - `dossiers.json` : `D-0111` (`scenario:remise-instructeur`) et `D-0112`
   (`gate:role`), tous deux `EN_INSTRUCTION`.
 - Tests :
@@ -102,7 +113,10 @@ seulement dans la vue : l'agent ne voit pas le bouton « Remettre », mais un
 - `TRAPS.md` : l'absence d'attribut `roles`, les dossiers réservés, et une
   section « Hors pièges » sur le blocage des comptes. `PLAN.md` (étape 2) :
   la règle des faux identifiants. `README.md` : l'horloge et la remise à
-  zéro par redémarrage.
+  zéro par redémarrage. `docs/specs/01-legacy-app.md` : l'horloge passe des
+  questions ouvertes aux décisions.
+- `package.json` (`engines` : `^22.21.0`) et `.npmrc`
+  (`engine-strict=true`) : `npm install` refuse une autre version de Node.
 
 ## Les choix faits et pourquoi
 
@@ -134,7 +148,7 @@ seulement dans la vue : l'agent ne voit pas le bouton « Remettre », mais un
   porte de rôle la cherchera sous ce nom. Une première version s'appelait
   `SubmitDossierAction` et a été renommée avant le premier commit.
 - **`/remise` réutilise `ShowDossierAction`** au lieu d'une nouvelle action :
-  il suffit de lire le dossier et de le passer à la JSP par `DossierSheet`.
+  il suffit de lire le dossier et de le passer à la JSP par `DossierView`.
 - **Refus d'une remise d'un dossier déjà `REMIS`** (409), en plus du
   `BROUILLON` demandé : la transition va seulement de `EN_INSTRUCTION` à
   `REMIS`.
@@ -166,6 +180,22 @@ seulement dans la vue : l'agent ne voit pas le bouton « Remettre », mais un
   `e6242a3`. Laissé tel quel, validé par l'humain : la même forme dans
   `RemiseAction` et `SaveDossierAction`, et la règle « seul `EN_INSTRUCTION`
   est remis » écrite à la fois dans le service et dans les JSP.
+- **Relecture de la PR #15.** Retenu par l'humain :
+  - `env_file: .env` plutôt que l'interpolation `${FROZEN_DATE:?…}` : avec
+    l'interpolation, une variable exportée dans le shell l'emportait sur
+    `.env` pour Compose mais pas pour le seam B. Avec `env_file`, les deux
+    lisent toujours la même valeur. On perd le message d'erreur de Compose
+    quand `FROZEN_DATE` manque ; la détection reste assurée par le refus de
+    démarrer du legacy.
+  - `DossierSheet` renommé `DossierView` : la classe sert aussi l'écran 3,
+    et un nom trompeur serait une difficulté non déclarée pour les
+    candidats qui lisent le legacy.
+  - Lien « Remise » écrit comme la spec (« `EN_INSTRUCTION` ou `REMIS` ») au
+    lieu de « pas `BROUILLON` », équivalent avec trois statuts seulement.
+  - `engines` resserré à `^22.21.0`, la version où `util.parseEnv` devient
+    stable, et `engine-strict=true` dans `.npmrc`.
+  Laissé tel quel : la même phrase sur l'horloge et la règle du blocage
+  répétées à plusieurs endroits de la documentation.
 
 ## Difficultés rencontrées
 
@@ -196,15 +226,29 @@ seulement dans la vue : l'agent ne voit pas le bouton « Remettre », mais un
   - Résolution : rien à corriger, c'est le comportement voulu. Le
     healthcheck de la composition le détecte, puisqu'il attend un `401` et
     reçoit un `404` : le conteneur finit `unhealthy`. Mesure sur l'image
-    construite au commit `5ae115a` (code inchangé depuis), lancée par
-    `docker run` avec le healthcheck de `docker-compose.yml`, car Compose
-    refuse de lancer la pile sans `FROZEN_DATE` (commande 6) : `404` sur `/`
-    et sur `/remise.do`, puis `unhealthy failingStreak=60`.
+    construite au commit `5ae115a`, lancée par `docker run` avec le
+    healthcheck de `docker-compose.yml`, car à cet état Compose refusait de
+    lancer la pile sans `FROZEN_DATE` : `404` sur `/` et sur `/remise.do`,
+    puis `unhealthy failingStreak=60`. Depuis le passage à `env_file`
+    (commit `00cdd84`), ce refus du legacy est la seule détection.
+- **Les tests tournaient sous Node 24, pas sous Node 22.**
+  - Symptôme : à la relecture de la PR #15, `node --version` donnait
+    `v24.12.0` alors que `.nvmrc` indique `22`. Les mesures
+    `Tests  18 passed (18)` citées jusque-là avaient été obtenues sous
+    Node 24.
+  - Cause : rien n'imposait la version de Node : `engines` valait `^22`,
+    sans `engine-strict`, donc seulement indicatif.
+  - Résolution : `engines` à `^22.21.0` et `engine-strict=true`. Sous Node
+    24, `npm install` échoue maintenant avec `EBADENGINE`. Les mesures ont
+    été refaites sous Node v22.23.5 (npm 10.9.9). Effet de bord : npm 10
+    réécrit `package-lock.json`, écrit jusque-là par npm 11, avec des
+    marques `"peer": true`.
 
 ## Vérifier soi-même
 
-État de référence : commit `5ae115a`, pile reconstruite. Les commandes 7
-et 8 remettent des dossiers : terminer par la commande 11.
+État de référence : commit `9bde933`, pile reconstruite, Node v22.23.5
+(npm 10.9.9). Les commandes 7 et 8 remettent des dossiers : terminer par la
+commande 11.
 
 1. Lancer la pile et les tests.
 
@@ -252,14 +296,14 @@ et 8 remettent des dossiers : terminer par la commande 11.
 
    Observé : `3` (page, contenu, récapitulatif).
 
-6. Sans horloge, Compose refuse de lancer la pile (la variable vide du shell
-   l'emporte sur `.env`).
+6. Une variable `FROZEN_DATE` du shell ne remplace pas celle de `.env`.
 
    ```sh
-   FROZEN_DATE= docker compose config
+   FROZEN_DATE=2000-01-01 docker compose config | grep FROZEN
+   docker compose exec legacy printenv FROZEN_DATE
    ```
 
-   Observé : `required variable FROZEN_DATE is missing a value: FROZEN_DATE must be set in .env`.
+   Observé : `FROZEN_DATE: "2025-11-15"`, puis `2025-11-15`.
 
 7. Remise par l'instructeur, datée par l'horloge figée.
 
@@ -317,6 +361,6 @@ et 8 remettent des dossiers : terminer par la commande 11.
 - Étape 4, porte de rôle : rejouer la requête de l'instructeur avec les
   identifiants de l'agent sur `D-0112`, après redémarrage. Le legacy y
   échoue (commande 8). ADR 0001 pour les deux familles de pièges.
-- Limite connue : une variable `FROZEN_DATE` exportée dans le shell
-  l'emporte sur `.env` pour Compose, pas pour le test du seam B, qui lit
-  seulement `.env`.
+- Limite connue : la description de l'horloge et la règle du blocage des
+  comptes sont répétées dans plusieurs fichiers (`.env`, README, `TRAPS.md`,
+  `PLAN.md`, commentaires du code). Une modification doit les suivre toutes.
