@@ -80,7 +80,7 @@ mesurable.
 37. En tant qu'instructeur, je veux voir un récapitulatif en lecture seule du dossier sur l'écran de remise, pour vérifier ce que je remets.
 38. En tant qu'instructeur, je veux un bouton « Remettre » sur un dossier `EN_INSTRUCTION`, qui remet sans confirmation et revient au même écran, pour enchaîner les remises.
 39. En tant qu'instructeur, je veux voir « Dossier remis le jj/mm/aaaa » après la remise, pour en garder la trace.
-40. En tant qu'instructeur, je veux un lien « Accusé de remise » sur un dossier `REMIS`, qui ouvre le document délivré par le service d'archivage, pour prouver la remise.
+40. En tant qu'instructeur, je veux un lien « Accusé de remise » sur un dossier `REMIS`, qui ouvre le document délivré par le service d'archivage, pour prouver la remise. Le lien est visible pour tous les rôles, agent compris : c'est une consultation, pas une action.
 
 ### Couche serveur du candidat (consommatrice de l'API interne)
 
@@ -161,7 +161,8 @@ mesurable.
   - `EN_INSTRUCTION` et instructeur : bouton « Remettre », `POST` vers
     `RemiseAction`, sans confirmation, retour au même écran ;
   - `EN_INSTRUCTION` et agent : « Remise réservée aux instructeurs » ;
-  - `REMIS` : « Dossier remis le jj/mm/aaaa » et lien « Accusé de remise » ;
+  - `REMIS` : « Dossier remis le jj/mm/aaaa » et lien « Accusé de remise »,
+    pour tous les rôles ;
   - `BROUILLON` : « Ce dossier ne peut pas être remis ». L'action et l'API
     interne refusent la transition.
 

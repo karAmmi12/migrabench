@@ -33,7 +33,12 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
 
 - **Famille** : à corriger (avec une face à préserver).
 - **Où** : écran 3. Sur un dossier `REMIS`, un lien « Accusé de remise »
-  pointe vers le service d'archivage. La JSP y ajoute
+  pointe vers le service d'archivage.
+- **Visible pour tous les rôles** : l'agent voit le lien comme l'instructeur.
+  C'est une consultation, pas une action, donc aucun contrôle de rôle ne le
+  masque. C'est voulu : le jeton fuit vers tout utilisateur connecté, ce qui
+  rend le piège plus réaliste. Ne pas réserver le lien à l'instructeur.
+- **Construction du lien** : la JSP ajoute à son URL
   `?jeton=<%= System.getenv("ARCHIVE_TOKEN") %>`, si bien que le secret part
   en clair dans le HTML puis dans l'URL de la requête. L'adresse du service
   est écrite en dur dans la JSP (`http://localhost:8090`), telle que le
