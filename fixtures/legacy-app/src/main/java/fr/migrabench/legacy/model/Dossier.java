@@ -46,4 +46,9 @@ public class Dossier {
     public LocalDate getSubmittedOn() {
         return submittedOn;
     }
+
+    /** Copie du dossier avec un autre demandeur et un autre objet. */
+    public Dossier withApplicantAndSubject(String newApplicant, String newSubject) {
+        return new Dossier(number, newApplicant, newSubject, status, filedOn, submittedOn);
+    }
 }

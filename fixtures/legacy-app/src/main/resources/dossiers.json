@@ -30,9 +30,27 @@
     { "number": "D-0028", "applicant": "Ophélie Martin-Ségur", "subject": "Changement de destination d'une grange", "status": "REMIS", "filedOn": "2025-08-25", "submittedOn": "2025-10-13" },
     { "number": "D-0029", "applicant": "Yannick Le Goff", "subject": "Autorisation de travaux en ERP", "status": "BROUILLON", "filedOn": "2025-09-22" },
     { "number": "D-0030", "applicant": "Amélie Poulain-Després", "subject": "Mise en conformité d'un assainissement autonome", "status": "EN_INSTRUCTION", "filedOn": "2025-10-27" },
-    { "number": "D-0101", "applicant": "<img src=x onerror=\"window.__mbXss=1\">", "subject": "Dossier réservé à la porte XSS", "status": "BROUILLON", "filedOn": "2025-09-08" }
+    { "number": "D-0101", "applicant": "<img src=x onerror=\"window.__mbXss=1\">", "subject": "Dossier réservé à la porte XSS", "status": "BROUILLON", "filedOn": "2025-09-08" },
+    { "number": "D-0102", "applicant": "Thérèse Lagarde", "subject": "Déclaration préalable pour un abri de jardin", "status": "BROUILLON", "filedOn": "2025-09-15" },
+    { "number": "D-0103", "applicant": "Rémi Castagné", "subject": "Autorisation de travaux sur un mur d'enceinte", "status": "EN_INSTRUCTION", "filedOn": "2025-09-24" },
+    { "number": "D-0104", "applicant": "Agnès Rousseau-Léger", "subject": "Demande de place de stationnement « livraison »", "status": "BROUILLON", "filedOn": "2025-09-29" },
+    { "number": "D-0105", "applicant": "Mathéo Garnier", "subject": "Inscription au périscolaire", "status": "BROUILLON", "filedOn": "2025-10-06" },
+    { "number": "D-0106", "applicant": "Inès Vallée", "subject": "Déclaration d'un meublé de tourisme", "status": "BROUILLON", "filedOn": "2025-10-13" },
+    { "number": "D-0107", "applicant": "Pierre-Étienne Duval", "subject": "Demande d'arrêté de circulation", "status": "BROUILLON", "filedOn": "2025-10-20" },
+    { "number": "D-0108", "applicant": "Chloé Bérenger", "subject": "Réservation de la salle des fêtes", "status": "BROUILLON", "filedOn": "2025-10-29" },
+    { "number": "D-0109", "applicant": "Yannick Le Gall", "subject": "Permis de démolir d'un hangar agricole", "status": "EN_INSTRUCTION", "filedOn": "2025-11-03" },
+    { "number": "D-0110", "applicant": "Margaux Delacroix", "subject": "Autorisation de terrasse « Le Petit Zinc »", "status": "REMIS", "filedOn": "2025-06-18", "submittedOn": "2025-08-25" }
   ],
   "reservations": {
-    "gate:xss": ["D-0101"]
+    "gate:xss": ["D-0101"],
+    "scenario:sheet-save-brouillon": ["D-0102"],
+    "scenario:sheet-save-en-instruction": ["D-0103"],
+    "scenario:sheet-ctrl-s": ["D-0104"],
+    "scenario:sheet-applicant-required": ["D-0105"],
+    "scenario:sheet-applicant-maxlength": ["D-0106"],
+    "scenario:sheet-subject-required": ["D-0107"],
+    "scenario:sheet-subject-maxlength": ["D-0108"],
+    "scenario:sheet-lock-en-instruction": ["D-0109"],
+    "scenario:sheet-lock-remis": ["D-0110"]
   }
 }

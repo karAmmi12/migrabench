@@ -91,6 +91,19 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
   fait seulement d'espaces, ou entouré d'espaces (`D-0001 `), est refusé
   avec le message du format. C'est le comportement de référence du legacy.
 
+- **Espaces dans les champs de l'écran 2** : `required` retire les espaces
+  avant de tester. Un demandeur ou un objet fait seulement d'espaces est
+  refusé avec le message « obligatoire ». Une valeur acceptée est
+  enregistrée telle quelle, sans retirer les espaces.
+- **Validation avant verrou sur l'écran 2** : `validation.xml` passe avant
+  le service métier. Une requête forgée qui change un champ verrouillé
+  reçoit `409`, sauf si elle viole aussi une règle de saisie : elle reçoit
+  alors la fiche avec le message d'erreur. Dans les deux cas, rien n'est
+  enregistré.
+- **Retour de l'écran 2 après refus** : l'`input` de `/enregistrer` est
+  l'action `/ficheSaisie.do`, pas la JSP, car la fiche a besoin du statut
+  pour afficher le verrou. Cette action relit le statut et garde la saisie.
+
 - **Vérifié par l'oracle**, avec un résultat par règle :
   1. la soumission est refusée (écran 2 : après rechargement de la fiche, la
      valeur n'a pas changé) ;
@@ -110,6 +123,16 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
 - **Raccourci** : `Ctrl+S` sur l'écran 2 seulement, via un gestionnaire
   `onkeydown` écrit à la main dans la JSP, avec `preventDefault`. Pas de
   variante `Cmd+S`.
+- **Touches qui déclenchent l'enregistrement** : le gestionnaire teste
+  `ctrlKey` et le code de la touche S, sans regarder `Maj` ni `Alt`.
+  `Ctrl+Maj+S`, ou `AltGr+S` sous Windows (qui positionne `ctrlKey`),
+  enregistrent donc aussi. C'est le comportement de référence du legacy, mais
+  l'oracle ne vérifie que `Ctrl+S`.
+- **Fiche non modifiable** : sur un dossier `REMIS`, la JSP ne rend pas le
+  bouton « Enregistrer ». Le gestionnaire est rendu, mais il appelle
+  seulement `preventDefault`, sans enregistrer. `Ctrl+S` n'a donc aucun
+  effet, et la boîte d'enregistrement du navigateur ne s'ouvre pas (spec,
+  story 31).
 - **Focus initial** : par l'attribut `focus` de `<html:form>`, transformé en
   JavaScript par Struts. Il se place sur « Numéro » (écran 1) et sur « Objet »
   (écran 2).

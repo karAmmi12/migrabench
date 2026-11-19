@@ -61,6 +61,12 @@ _Éviter_ : usager, client
 État d'un dossier parmi `BROUILLON`, `EN_INSTRUCTION` et `REMIS`.
 _Éviter_ : état, étape
 
+**Verrou** :
+Interdiction de modifier un champ du dossier, posée par son statut :
+le demandeur à partir de `EN_INSTRUCTION`, l'objet à partir de `REMIS`.
+Appliqué par le service métier, pas seulement par l'écran.
+_Éviter_ : blocage, gel
+
 **Remise** :
 Transmission d'un dossier `EN_INSTRUCTION`, qui le fait passer
 irréversiblement au statut `REMIS`.
