@@ -11,7 +11,17 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
 - **Où** : écran 3 (remise). `RemiseAction` et l'endpoint de remise de l'API
   interne ne vérifient aucun rôle. Seul un scriptlet
   `request.isUserInRole("instructeur")` affiche ou masque le bouton
-  « Remettre ».
+  « Remettre ». L'agent voit à la place « Remise réservée aux
+  instructeurs ».
+- **Pas d'attribut `roles` sur le mapping** : `<action path="/remettre">`
+  de `struts-config.xml` n'a pas d'attribut `roles`. Avec lui, Struts
+  contrôlerait le rôle avant d'exécuter l'action (`AuthorizeAction` dans la
+  chaîne de traitement, section 4.8 du guide utilisateur Struts 1.3) : le
+  contrôle serait fait par le framework et le piège ne serait plus planté.
+- **Dossier réservé** : `D-0112` (`gate:role` dans
+  `src/main/resources/dossiers.json`), `EN_INSTRUCTION`. La remise réussie
+  par l'instructeur dans l'oracle utilise `D-0111`
+  (`scenario:remise-instructeur`).
 - **Préservé par l'oracle** : l'instructeur voit le bouton et réussit la
   remise ; l'agent ne voit pas le bouton.
 - **Mesuré par la porte** : la requête émise quand l'instructeur clique sur
@@ -171,6 +181,25 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
   compte à la place, dans le DOM, les éléments `table` sans
   `role="presentation"` ni `role="none"`. C'est une heuristique du banc
   (voir les limites de `PROTOCOL.md`).
+
+## Hors pièges : blocage des comptes par Tomcat
+
+Ce n'est pas un piège : ni porte, ni oracle ne le mesurent, et un candidat
+n'a pas à le reproduire. C'est un comportement du legacy qui menace les
+exécutions consécutives du banc.
+
+- **Où** : `conf/server.xml` de l'image Tomcat 9 enveloppe le realm des
+  utilisateurs dans un `LockOutRealm` (réglages par défaut). Laissé en place.
+- **Comportement** : après 5 échecs d'authentification consécutifs, le nom
+  d'utilisateur est bloqué, même avec le bon mot de passe, pendant
+  `lockOutTime` : 300 secondes par défaut selon la documentation de
+  Tomcat 9, durée non mesurée. Les
+  échecs sont comptés par nom ; une authentification réussie remet le
+  compte à zéro. Un redémarrage du legacy lève tous les blocages.
+- **Règle** : un test, un scénario de l'oracle ou une porte qui envoie de
+  faux identifiants vise un nom d'utilisateur absent de
+  `fixtures/users.json` (`UNKNOWN_USER` dans `tests/seam-a/legacy-client.ts`),
+  jamais l'agent ni l'instructeur.
 
 ## Extensions possibles, hors périmètre
 

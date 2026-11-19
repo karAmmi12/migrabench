@@ -50,6 +50,25 @@
             input="/ficheSaisie.do">
       <forward name="saved" path="/fiche.do" redirect="true"/>
     </action>
+
+    <!-- Écran 3 : remise du dossier ?number=, récapitulatif en lecture seule. -->
+    <action path="/remise"
+            type="fr.migrabench.legacy.web.ShowDossierAction"
+            name="dossierForm"
+            scope="request"
+            validate="false">
+      <forward name="success" path="/WEB-INF/jsp/remise.jsp"/>
+    </action>
+    <!-- Écran 3 : bouton « Remettre », POST seulement, puis retour sur l'écran.
+         Piège « contrôle de rôle dans la vue » (TRAPS.md) : pas d'attribut
+         roles ici, sinon Struts contrôlerait le rôle lui-même. Ne pas corriger. -->
+    <action path="/remettre"
+            type="fr.migrabench.legacy.web.RemiseAction"
+            name="dossierForm"
+            scope="request"
+            validate="false">
+      <forward name="submitted" path="/remise.do" redirect="true"/>
+    </action>
   </action-mappings>
 
   <message-resources parameter="fr.migrabench.legacy.ApplicationResources"/>

@@ -2,7 +2,7 @@
 <%@ taglib uri="http://struts.apache.org/tags-html" prefix="html" %>
 <%@ taglib uri="http://struts.apache.org/tags-bean" prefix="bean" %>
 <%@ taglib uri="http://struts.apache.org/tags-logic" prefix="logic" %>
-<bean:define id="sheet" name="sheet" type="fr.migrabench.legacy.web.DossierSheet"/>
+<bean:define id="dossier" name="dossier" type="fr.migrabench.legacy.web.DossierView"/>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
@@ -22,7 +22,7 @@ document.onkeydown = function (event) {
     } else {
       event.returnValue = false;
     }
-<logic:equal name="sheet" property="editable" value="true">
+<logic:equal name="dossier" property="editable" value="true">
     document.forms["dossierForm"].submit();
 </logic:equal>
     return false;
@@ -53,27 +53,27 @@ document.onkeydown = function (event) {
               <table border="0" cellpadding="2" cellspacing="0">
                 <tr>
                   <td>Numéro</td>
-                  <td><bean:write name="sheet" property="number"/></td>
+                  <td><bean:write name="dossier" property="number"/></td>
                 </tr>
                 <tr>
                   <td>Statut</td>
-                  <td><bean:write name="sheet" property="statusLabel"/></td>
+                  <td><bean:write name="dossier" property="statusLabel"/></td>
                 </tr>
                 <tr>
                   <td>Déposé le</td>
-                  <td><bean:write name="sheet" property="filedOn"/></td>
+                  <td><bean:write name="dossier" property="filedOn"/></td>
                 </tr>
                 <tr>
                   <td><label for="applicant">Demandeur</label></td>
                   <td><html:text property="applicant" styleId="applicant" size="50" tabindex="2"
-                                 readonly="<%= sheet.isApplicantLocked() %>"/></td>
+                                 readonly="<%= dossier.isApplicantLocked() %>"/></td>
                 </tr>
                 <tr>
                   <td><label for="subject">Objet</label></td>
                   <td><html:text property="subject" styleId="subject" size="80" tabindex="1"
-                                 readonly="<%= sheet.isSubjectLocked() %>"/></td>
+                                 readonly="<%= dossier.isSubjectLocked() %>"/></td>
                 </tr>
-                <logic:equal name="sheet" property="editable" value="true">
+                <logic:equal name="dossier" property="editable" value="true">
                 <tr>
                   <td>&nbsp;</td>
                   <td><html:submit value="Enregistrer" tabindex="3"/></td>
@@ -81,6 +81,9 @@ document.onkeydown = function (event) {
                 </logic:equal>
               </table>
             </html:form>
+            <logic:equal name="dossier" property="submissionLinked" value="true">
+            <p><html:link action="/remise" paramId="number" paramName="dossier" paramProperty="number">Remise</html:link></p>
+            </logic:equal>
           </td>
         </tr>
       </table>

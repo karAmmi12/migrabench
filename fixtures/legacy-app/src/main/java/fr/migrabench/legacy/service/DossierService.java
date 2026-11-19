@@ -2,7 +2,10 @@ package fr.migrabench.legacy.service;
 
 import fr.migrabench.legacy.model.Dossier;
 import fr.migrabench.legacy.model.SearchCriteria;
+import fr.migrabench.legacy.model.Status;
 
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -16,9 +19,12 @@ import java.util.Locale;
 public class DossierService {
 
     private final List<Dossier> dossiers;
+    private final Clock clock;
 
-    public DossierService(List<Dossier> dossiers) {
+    /** @param clock horloge figée par le banc : toute date de remise en provient */
+    public DossierService(List<Dossier> dossiers, Clock clock) {
         this.dossiers = new ArrayList<Dossier>(dossiers);
+        this.clock = clock;
     }
 
     /** Dossiers qui satisfont tous les critères, triés par numéro, sans pagination. */
@@ -60,6 +66,25 @@ public class DossierService {
         Dossier updated = current.withApplicantAndSubject(applicant, subject);
         dossiers.set(index, updated);
         return updated;
+    }
+
+    /**
+     * Remet le dossier : il passe irréversiblement de {@code EN_INSTRUCTION} à
+     * {@code REMIS}, daté du jour de l'horloge. Aucun contrôle de rôle ici
+     * (piège « contrôle de rôle dans la vue », TRAPS.md).
+     *
+     * @throws UnknownDossierException si aucun dossier ne porte ce numéro
+     * @throws RefusedSubmissionException si le dossier n'est pas {@code EN_INSTRUCTION}
+     */
+    public synchronized Dossier submit(String number) {
+        int index = indexOf(number);
+        Dossier current = dossiers.get(index);
+        if (current.getStatus() != Status.EN_INSTRUCTION) {
+            throw new RefusedSubmissionException(number, current.getStatus());
+        }
+        Dossier submitted = current.withSubmission(LocalDate.now(clock));
+        dossiers.set(index, submitted);
+        return submitted;
     }
 
     private int indexOf(String number) {

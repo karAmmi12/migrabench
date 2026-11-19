@@ -108,8 +108,9 @@ mesurable.
   métier. Pas de contrôle de rôle, pas de règle de `validation.xml`.
 - **Chargeur du jeu de données** : lit le fichier JSON au démarrage via
   Jackson, en mémoire. Aucune persistance.
-- **Horloge** : abstraction injectée dans le service, figée par une variable
-  d'environnement fournie par le banc. Toute date de remise en provient.
+- **Horloge** : `java.time.Clock` injectée dans le service, figée par la
+  variable d'environnement `FROZEN_DATE` fournie par le banc. Toute date de
+  remise en provient.
 - **Actions Struts et JSP** : trois écrans, `ActionForm` sans `validate()`,
   validation déclarée seulement dans `validation.xml`.
 - **API interne** : quatre endpoints JSON (rechercher, lire, modifier,
@@ -237,10 +238,12 @@ Chaque piège est planté tel quel et documenté dans `TRAPS.md` (ADR 0001).
   interne n'est joignable que par le port `8081`. Les tests des seams A et B
   sont verts.
 - Non tranché, à décider pendant l'implémentation et à noter dans la PR :
-  le langage et le port publié du service d'archivage ; le nom de la
-  variable d'environnement de l'horloge figée et sa valeur ; la valeur
-  témoin elle-même ; le format JSON exact des quatre endpoints de l'API
-  interne.
+  le langage et le port publié du service d'archivage ; la valeur témoin
+  elle-même ; le format JSON exact des quatre endpoints de l'API interne.
+- Tranché par #6 (PR #15) : l'horloge figée est la variable `FROZEN_DATE`
+  (aaaa-mm-jj), qui vaut `2025-11-15`. Elle est fixée dans `.env`, versionné,
+  que `docker compose` passe tel quel au legacy (`env_file`) et que lit le
+  test du seam B. Sans elle, le legacy refuse de démarrer.
 - Question reportée de `TRAPS.md` : garder le texte exact des messages
   d'erreur en stratégie Design System. Sans effet sur l'étape 1.
 - Suite prévue par `docs/KICKOFF.md` : `/to-tickets` sur cette spec.
