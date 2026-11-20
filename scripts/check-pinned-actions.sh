@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# Contrôle de CI (#22) : chaque `uses:` des workflows est épinglé sur un SHA
-# de commit complet, suivi de sa version en commentaire.
+# Contrôle de CI des actions épinglées par SHA (#22).
+# Règle, limites et procédure : docs/agents/pinned-actions.md.
 set -euo pipefail
 
 dir="${1:-.github/workflows}"
-uses='^[[:space:]]*(-[[:space:]]+)?uses:'
-pinned="${uses}[[:space:]]+[A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+@[0-9a-f]{40} # v[0-9]+\.[0-9]+\.[0-9]+[[:space:]]*\$"
+# Toute clé `uses`, guillemetée ou non, en mapping de bloc ou de flux. Seule la
+# forme de bloc `- uses: owner/repo@<sha> # vX.Y.Z` est acceptée.
+uses='(^|[-{,[:space:]])["'\'']?uses["'\'']?[[:space:]]*:'
+pinned='^[[:space:]]*(-[[:space:]]+)?uses:[[:space:]]+[A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+@[0-9a-f]{40} # v[0-9]+\.[0-9]+\.[0-9]+[[:space:]]*$'
 status=0
 found=0
 

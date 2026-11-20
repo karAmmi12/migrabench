@@ -1,5 +1,5 @@
-// Contrôle de CI : chaque action d'un workflow est épinglée sur un SHA de
-// commit complet, suivi de sa version en commentaire (#22).
+// Contrôle de CI des actions épinglées par SHA (#22).
+// Règle et limites : docs/agents/pinned-actions.md.
 import { execFile } from "node:child_process";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -60,6 +60,18 @@ describe("pinned actions check", () => {
     const { code } = await check(workflows({ "ci.yml": job(ref) }));
 
     expect(code).toBe(1);
+  });
+
+  it.each([
+    ["a flow mapping step", "      - { uses: actions/checkout@v4 }"],
+    ["a quoted uses key", '      - "uses": actions/checkout@v4'],
+  ])("refuses %s", async (_case, step) => {
+    const content = ["jobs:", "  build:", "    runs-on: ubuntu-24.04", "    steps:", step, ""].join("\n");
+
+    const { code, stdout } = await check(workflows({ "ci.yml": content }));
+
+    expect(code).toBe(1);
+    expect(stdout).toContain("actions/checkout@v4");
   });
 
   it("fails on a missing directory instead of checking nothing", async () => {
