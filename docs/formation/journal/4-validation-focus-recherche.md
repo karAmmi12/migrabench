@@ -41,8 +41,33 @@ l'`ActionForm`, ni la JSP, ni du JavaScript côté client ne les montrent.
   `\uXXXX`. —
   [Java 8 : Properties](https://docs.oracle.com/javase/8/docs/api/java/util/Properties.html)
 - **Attribut `focus` de `<html:form>`** : Struts génère, après le formulaire,
-  un petit script qui place le curseur sur le champ nommé.
-  > À vérifier : aucune page de référence de la balise `<html:form>` n'a été trouvée sur la republication Web-Legacy (deux adresses essayées, 404). Le comportement a été observé dans le HTML servi (voir « Vérifier soi-même »).
+  un petit script qui place le curseur sur le champ nommé. —
+  `META-INF/tld/struts-html.tld`, contenu dans le
+  `struts-taglib-1.3.10.jar` que le legacy embarque.
+  - Description de `<html:form>` (ligne 1883 du TLD) : « Define An Input
+    Form. Renders an HTML <form> element whose contents are described by the
+    body content of this tag. »
+  - Description de l'attribut `focus` (ligne 1993) : « The field name (among
+    the fields on this form) to which initial focus will be assigned with a
+    JavaScript function. If not specified, no special JavaScript for this
+    purpose will be rendered. »
+  - Nature de la source : source primaire. C'est le descripteur de balises
+    publié par Apache dans le jar même que sert le legacy (manifeste :
+    `Implementation-Title: Struts Taglib`, `Implementation-Version: 1.3.10`,
+    `Implementation-Vendor: Apache Software Foundation`). La republication
+    Web-Legacy n'a pas de page de référence pour cette balise : deux adresses
+    essayées ont répondu 404.
+  - Pour la retrouver, avec le legacy démarré :
+
+    ```sh
+    docker compose cp legacy:/usr/local/tomcat/webapps/ROOT/WEB-INF/lib/struts-taglib-1.3.10.jar .
+    unzip -p struts-taglib-1.3.10.jar META-INF/tld/struts-html.tld | sed -n '1883,2001p'
+    ```
+
+    Le jar extrait le 20/11/2026 sur le commit `eac0eb2` a pour SHA-256
+    `6aededa9c434f4e02bc0241db2481accfce50b573e5b68d84b8f6dd9efe58768`.
+  - Le script généré est observé dans le HTML servi (voir « Vérifier
+    soi-même »).
 
 ## Ce qui a été construit
 
