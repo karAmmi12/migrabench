@@ -34,8 +34,10 @@ personne d'autre ne touche. Trois sortes de propriétaires : un scénario
 _Éviter_ : dossier de test, fixture
 
 **API interne** :
-Endpoints JSON du legacy (rechercher, lire, modifier, remettre), joignables
-seulement par la couche serveur du candidat.
+Endpoints JSON du legacy (rechercher, lire, modifier, remettre), servis sur
+le port `8081`. Elle n'est pas joignable depuis l'hôte, donc pas depuis le
+navigateur ; seule la couche serveur du candidat est censée l'appeler. Limite
+connue de cette isolation : voir l'ADR 0004.
 _Éviter_ : API legacy, services
 
 **Seam A** :
