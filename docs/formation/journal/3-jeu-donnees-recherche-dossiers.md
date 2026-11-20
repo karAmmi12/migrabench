@@ -41,8 +41,36 @@ partagé entre deux scénarios ou portes.
   `<html:select>` génèrent le formulaire et gardent les valeurs saisies.
   `<logic:iterate>` parcourt une liste. `<bean:write>` affiche une propriété en
   échappant le HTML, sauf avec `filter="false"`. —
-  [Struts 1 : documentation des taglibs](https://struts.apache.org/1.x/struts-taglib/)
-  > À vérifier : l'adresse de la documentation Struts 1 archivée n'a pas été ouverte pendant la session.
+  `META-INF/tld/struts-bean.tld` et `META-INF/tld/struts-logic.tld`, contenus
+  dans le `struts-taglib-1.3.10.jar` que le legacy embarque.
+  - `<bean:write>` (ligne 958 de `struts-bean.tld`) : « Render the value of
+    the specified bean property to the current JspWriter. » Attribut `filter`
+    (ligne 1005) : « If this attribute is set to true, the rendered property
+    value will be filtered for characters that are sensitive in HTML, and any
+    such characters will be replaced by their entity equivalents. » Le TLD ne
+    donne pas la valeur par défaut. Que l'absence de `filter` échappe le HTML
+    se constate dans le HTML servi par le legacy, pas dans cette source.
+  - `<logic:iterate>` (ligne 485 de `struts-logic.tld`) : « Repeat the nested
+    body content of this tag over a specified collection. »
+  - Nature de la source : source primaire. Ce sont les descripteurs de
+    balises publiés par Apache dans le jar même que sert le legacy (manifeste :
+    `Implementation-Version: 1.3.10`, `Implementation-Vendor: Apache Software
+    Foundation`).
+  - Sur la republication Web-Legacy, la section
+    [Struts Taglib](https://weblegacy.github.io/struts1/struts-taglib/index.html)
+    a un guide par bibliothèque
+    ([Bean Taglib Guide](https://weblegacy.github.io/struts1/struts-taglib/dev_bean.html),
+    [Logic Taglib Guide](https://weblegacy.github.io/struts1/struts-taglib/dev_logic.html),
+    version 1.5.0-RC2, « © 2000–2024 Web-Legacy », consultés le 20/11/2026).
+    Ces guides ne décrivent ni `<bean:write>` ni `<logic:iterate>`, et leur
+    lien vers la référence des balises (`tagreference.html`) répond 404.
+  - Pour retrouver les descriptions, avec le legacy démarré :
+
+    ```sh
+    docker compose cp legacy:/usr/local/tomcat/webapps/ROOT/WEB-INF/lib/struts-taglib-1.3.10.jar .
+    unzip -p struts-taglib-1.3.10.jar META-INF/tld/struts-bean.tld | sed -n '958,1016p'
+    unzip -p struts-taglib-1.3.10.jar META-INF/tld/struts-logic.tld | sed -n '485,495p'
+    ```
 - **XSS (cross-site scripting)** : du HTML fourni par un utilisateur est
   inséré sans échappement dans la page, et le navigateur l'exécute. Ici, la
   charge `<img src=x onerror="…">` se lance quand l'image `x` ne se charge pas. —
@@ -263,7 +291,6 @@ partagé entre deux scénarios ou portes.
     a bien répondu.
   - Résolution : relancée avec `--repo karAmmi12/migrabench --json …`, elle a
     rendu l'issue.
-  > À vérifier : la cause de la sortie vide n'a pas été établie.
 - **Le lien vers la fiche répond 500, pas 404.**
   - Symptôme : `/fiche.do?number=D-0001` répond `500`.
   - Cause : le journal montre
