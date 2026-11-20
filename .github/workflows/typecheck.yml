@@ -1,6 +1,6 @@
 # Typecheck sur chaque PR (#23).
 # Job séparé, sans Docker : retour rapide, indépendant de la pile (#20).
-name: Typecheck
+name: Vérification des types
 
 on:
   pull_request:
@@ -18,8 +18,14 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
+          # .nvmrc dit « 22 » ; engines exige ^22.21.0 et .npmrc refuse
+          # une version hors de engines. On prend la dernière 22.x plutôt
+          # que celle en cache sur le runner.
+          check-latest: true
           cache: npm
 
-      - run: npm ci
+      - name: Installation des dépendances
+        run: npm ci
 
-      - run: npm run typecheck
+      - name: Typecheck
+        run: npm run typecheck
