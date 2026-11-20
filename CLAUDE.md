@@ -55,3 +55,8 @@ Les cinq labels par défaut : `needs-triage`, `needs-info`, `ready-for-agent`,
 
 Disposition single-context : `GLOSSARY.md` et `docs/adr/` à la racine.
 Voir `docs/agents/domain.md`.
+
+### Actions des workflows
+
+Toute action ajoutée ou mise à jour dans `.github/workflows/` est épinglée
+par SHA : voir `docs/agents/pinned-actions.md`.
