@@ -4,8 +4,10 @@ Remplace l'ADR 0002. Un candidat ne modifie pas le legacy. Il livre une
 application React + TypeScript et une **couche serveur du candidat** (BFF)
 écrite en TypeScript sur Node 22, avec un framework libre. Cette couche sert
 le bundle React et constitue la seule URL exposée du candidat. Elle appelle
-l'**API interne** du legacy (rechercher, lire, modifier, remettre), joignable
-seulement depuis le réseau Docker interne. Ainsi le legacy est identique pour
+l'**API interne** du legacy (rechercher, lire, modifier, remettre) par le
+réseau Docker interne. L'API interne n'est pas joignable depuis l'hôte, donc
+pas depuis le navigateur ; la limite de cette isolation est décrite dans
+l'ADR 0004. Ainsi le legacy est identique pour
 tous les candidats (règle 1 de `PROTOCOL.md`), et seule la part produite par
 l'agent IA varie. L'API interne a les mêmes défauts que les JSP : elle ne
 vérifie aucun rôle et ignore l'identité de l'appelant. C'est donc à la couche
@@ -47,7 +49,10 @@ les identifiants par `httpCredentials`.
   legacy, sans endpoint `reset` dans l'API interne. Chaque scénario qui
   modifie des données possède ses propres dossiers réservés.
 - Les dossiers réservés sont déclarés dans le jeu de données et associés au
-  nom du scénario ou de la porte qui écrit. Un test du banc vérifie qu'aucun
+  nom du scénario (`scenario:`), de la porte (`gate:`) ou du test du banc
+  (`test:`) qui écrit. Un test du banc qui écrit, comme ceux de l'API
+  interne, remet les valeurs initiales de ses dossiers réservés pour pouvoir
+  être relancé sans redémarrage. Un test du banc vérifie qu'aucun
   dossier réservé n'est partagé. Le legacy est redémarré avant chaque
   exécution complète de l'oracle. Les scénarios qui écrivent n'ont pas de
   relance automatique Playwright, car leur dossier réservé a pu être modifié

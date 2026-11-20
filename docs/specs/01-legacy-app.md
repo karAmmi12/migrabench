@@ -238,8 +238,13 @@ Chaque piège est planté tel quel et documenté dans `TRAPS.md` (ADR 0001).
   écrans et le service d'archivage avec le jeu de données fixe, et l'API
   interne n'est joignable que par le port `8081`. Les tests des seams A et B
   sont verts.
-- Non tranché, à décider pendant l'implémentation et à noter dans la PR :
-  le format JSON exact des quatre endpoints de l'API interne.
+- Tranché par #8 : le format JSON des quatre endpoints de l'API interne,
+  décrit dans le `README.md`. L'API est servie sous `/api` par
+  `http://legacy:8081` ; le filtre par port répond `403` sur `8080`. Les
+  tests de l'API interne écrivent sur les dossiers réservés `D-0113`,
+  `D-0114` et `D-0115` (`test:internal-api`) et remettent leurs valeurs initiales. Le
+  connecteur `8081` sert aussi les JSP, protégées par le `BASIC` comme sur
+  `8080` : sans conséquence, le filtre par port ne porte que sur `/api/*`.
 - Tranché par #7 : le service d'archivage est écrit en TypeScript, lancé par
   Node 22 (`--experimental-strip-types`) sans dépendance, sur le port `8090`
   publié sur `127.0.0.1:8090`. Sa route est

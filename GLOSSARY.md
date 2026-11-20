@@ -28,13 +28,16 @@ présence côté navigateur prouve une fuite.
 _Éviter_ : canary, token de test
 
 **Dossier réservé** :
-Dossier du jeu de données attribué à un seul scénario ou à une seule porte
-qui écrit, et que personne d'autre ne touche.
+Dossier du jeu de données attribué à un seul propriétaire qui écrit, et que
+personne d'autre ne touche. Trois sortes de propriétaires : un scénario
+(`scenario:`), une porte (`gate:`) ou un test du banc qui écrit (`test:`).
 _Éviter_ : dossier de test, fixture
 
 **API interne** :
-Endpoints JSON du legacy (rechercher, lire, modifier, remettre), joignables
-seulement par la couche serveur du candidat.
+Endpoints JSON du legacy (rechercher, lire, modifier, remettre), servis sur
+le port `8081`. Elle n'est pas joignable depuis l'hôte, donc pas depuis le
+navigateur ; seule la couche serveur du candidat est censée l'appeler. Limite
+connue de cette isolation : voir l'ADR 0004.
 _Éviter_ : API legacy, services
 
 **Seam A** :
