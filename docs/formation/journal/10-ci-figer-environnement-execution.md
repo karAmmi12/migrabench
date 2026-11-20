@@ -3,7 +3,7 @@
 ## Objectif
 
 Le workflow `.github/workflows/fiche-ticket.yml` tournait sur
-`ubuntu-latest` avec `actions/checkout@v4`. Le run 44118322036 (PR #9)
+`ubuntu-latest` avec `actions/checkout@v4`. L'exécution 44118322036 (PR #9)
 affichait deux annotations non bloquantes : un *warning* parce que
 `checkout@v4` vise Node.js 20, qui est déprécié, et une *notice* qui
 annonçait le passage d'`ubuntu-latest` à Ubuntu 26. Ce ticket fige le runner
@@ -99,14 +99,14 @@ grep -nE 'runs-on|checkout@' .github/workflows/fiche-ticket.yml
 Observé : `runs-on: ubuntu-24.04` et
 `actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1`.
 
-Sur la PR, le run du workflow « Fiche de formation » doit passer sans
+Sur la PR, l'exécution du workflow « Fiche de formation » doit passer sans
 annotation. Pour lire les annotations d'un job :
 
 ```sh
 gh api repos/karAmmi12/migrabench/check-runs/<id-du-job>/annotations --jq '.[] | "\(.annotation_level): \(.message)"'
 ```
 
-Observé sur le run
+Observé sur l'exécution
 [44773175821](https://github.com/karAmmi12/migrabench/actions/runs/44773175821)
 (PR #21, commit `9cf8cb0`) : conclusion `success`, et aucune annotation,
 donc ni le *warning* Node.js 20 ni la notice sur `ubuntu-latest`.
