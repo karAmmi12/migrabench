@@ -67,8 +67,26 @@ choix viennent des seuls commits, de l'issue et du diff.
    « Les chiffres viennent de mesures » de `CLAUDE.md`). Corriger ou marquer
    `> À vérifier`. Fini quand chaque passage respecte la règle de provenance.
 
+   **Preuve postérieure à la PR** : un résultat qui n'existe qu'après
+   l'ouverture de la PR (l'exécution de la CI, sa durée, ses annotations) se
+   marque `> À vérifier après l'exécution de la CI de la PR : <ce qu'il faudra
+   relever>`. L'étape 5 le reporte.
+
 4. **Committer** la fiche seule : `docs(formation): add training sheet for #<N>`.
    La CI refuse une PR qui ferme le ticket #<N> sans
    `docs/formation/journal/<N>-*.md`.
 
-Rendre le chemin de la fiche et la liste des passages `> À vérifier`.
+5. **Reporter après l'exécution de la CI de la PR**, une fois la PR ouverte
+   et sa CI terminée, avant la fusion. En une seule fois :
+   - remplacer chaque ligne `> À vérifier après l'exécution de la CI de la
+     PR` par le résultat observé : le lien de l'exécution, le commit sur
+     lequel elle a tourné (son head SHA), et la sortie réelle. Une durée se
+     lit dans `gh run view <id> --json startedAt,updatedAt` ;
+   - committer : `docs(formation): record PR CI result in #<N> training sheet` ;
+   - cocher la case correspondante du plan de test de la PR, avec le même lien.
+
+   Fini quand plus aucune ligne `> À vérifier après l'exécution de la CI de
+   la PR` ne reste dans la fiche.
+
+Rendre le chemin de la fiche et la liste des passages `> À vérifier`, en deux
+groupes : ceux à lever maintenant, et ceux à reporter à l'étape 5.

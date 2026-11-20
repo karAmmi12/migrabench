@@ -20,7 +20,7 @@ le SHA d'une étiquette.
   le fait avec `gh api`. — [docs/agents/pinned-actions.md](../../agents/pinned-actions.md)
 - **Commandes de workflow** : une ligne
   `::error file=<fichier>,line=<ligne>::<message>` écrite sur la sortie d'une
-  étape devient une annotation d'erreur sur le run, attachée au fichier et à
+  étape devient une annotation d'erreur de l'exécution, attachée au fichier et à
   la ligne. —
   [GitHub Docs : Workflow commands](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands)
 - **Mappings de bloc et de flux en YAML** : une étape peut s'écrire
@@ -33,7 +33,7 @@ le SHA d'une étiquette.
   (manuel de GNU grep, celui du runner `ubuntu-24.04` ; les tests ont tourné
   sous macOS, avec BSD grep)
 
-  Sous GNU grep, seul le cas accepté est observé : le run de la PR a lancé
+  Sous GNU grep, seul le cas accepté est observé : l'exécution de la CI de la PR a lancé
   le script sur les workflows du dépôt (voir « Vérifier soi-même »). Les cas
   refusés n'ont tourné que sous macOS, car la suite Vitest ne tourne pas en
   CI.
@@ -68,7 +68,7 @@ le SHA d'une étiquette.
   C'est l'interface validée par l'humain avant les tests. Le test négatif
   reste ainsi dans la suite, au lieu d'une exécution locale citée une fois.
   Ce que ces tests ne prouvent pas : que le contrôle est bien lancé par la
-  CI. C'est le run de la PR qui le prouve.
+  CI. C'est l'exécution de la CI de la PR qui le prouve.
 - **Un workflow dédié plutôt qu'une étape dans `fiche-ticket.yml`.** Le
   ticket permet les deux. `fiche-ticket.yml` vérifie les fiches de
   formation ; y ajouter ce contrôle lui donnerait une deuxième raison de
@@ -151,7 +151,7 @@ npx vitest run tests/pinned-actions.test.ts
 
 Observé : `Tests  9 passed (9)`.
 
-Sur la PR, le workflow « Actions épinglées » doit passer. Observé sur le run
+Sur la PR, le workflow « Actions épinglées » doit passer. Observé sur l'exécution
 [44777959324](https://github.com/karAmmi12/migrabench/actions/runs/44777959324)
 (PR #25, commit `aa5d288`) : l'étape lance
 `bash scripts/check-pinned-actions.sh .github/workflows`, conclusion
