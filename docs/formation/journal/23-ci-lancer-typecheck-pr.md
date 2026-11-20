@@ -96,6 +96,10 @@ machines utilisent le même Node.
   `process.versions.node.split(".")[0]` (`22`) à tout le contenu de
   `.nvmrc` (`22.23.5`). Résolution : comparer la version complète, sans le
   préfixe `v` (`0282e43`).
+- **`git revert -q` refusé.** Symptôme : `git revert --no-edit HEAD -q` a
+  affiché l'aide de `git revert` sans rien faire. Cause : `git revert`
+  n'accepte pas l'option `-q`. Résolution : `git revert --no-commit HEAD`,
+  puis un commit (`302f507`).
 - **Un réglage retiré après la relecture.** `check-latest: true` (commit
   `49fa85d`) répondait au risque relevé par la relecture « standards », mais
   introduisait une version de Node mouvante. Retiré dans `0ba4365`, au
@@ -133,15 +137,29 @@ Observé : aucune sortie, puis `exit 0`.
 
 Sur la PR, le workflow « Vérification des types » doit passer.
 
-> À vérifier après l'exécution de la CI de la PR : lien de l'exécution
-> verte, head SHA, conclusion de l'étape « Typecheck », version de Node
-> installée par `setup-node`.
+Observé sur l'exécution
+[44785462516](https://github.com/karAmmi12/migrabench/actions/runs/44785462516)
+(PR #27, commit `2589020`) : `setup-node` affiche
+`Found in cache @ /opt/hostedtoolcache/node/22.23.5/x64` puis
+`node: v22.23.5` ; l'étape « Typecheck » lance `tsc --noEmit`, conclusion
+`success`, en 13 s (`startedAt` 17:40:00Z, `updatedAt` 17:40:13Z).
 
 Test négatif : une erreur de type volontaire doit faire échouer le job.
 
-> À vérifier après l'exécution de la CI de la PR : lien de l'exécution
-> rouge, head SHA du commit qui introduit l'erreur, message de `tsc`, puis
-> commit qui retire l'erreur.
+Le commit `c39fd09` ajoute `tests/type-error.ts`, qui contient
+`export const deliberate: number = "not a number";`. Observé sur
+l'exécution
+[44785577656](https://github.com/karAmmi12/migrabench/actions/runs/44785577656)
+(commit `c39fd09`), conclusion `failure` :
+
+```
+##[error]tests/type-error.ts(2,14): error TS2322: Type 'string' is not assignable to type 'number'.
+##[error]Process completed with exit code 1.
+```
+
+Le commit `302f507` annule `c39fd09`. Observé sur l'exécution
+[44785666272](https://github.com/karAmmi12/migrabench/actions/runs/44785666272)
+(commit `302f507`) : conclusion `success`.
 
 ## Pour aller plus loin
 
