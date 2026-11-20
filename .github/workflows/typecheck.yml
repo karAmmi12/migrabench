@@ -18,10 +18,6 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
-          # .nvmrc dit « 22 » ; engines exige ^22.21.0 et .npmrc refuse
-          # une version hors de engines. On prend la dernière 22.x plutôt
-          # que celle en cache sur le runner.
-          check-latest: true
           cache: npm
 
       - name: Installation des dépendances
