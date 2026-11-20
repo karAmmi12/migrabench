@@ -97,3 +97,9 @@ réservés `D-0113`, `D-0114` et `D-0115` (`test:internal-api`) et remettent
 les valeurs initiales : ils peuvent tourner sans redémarrer le legacy. Les
 dossiers partagés ne leur servent qu'à des lectures et à des refus, qui
 n'enregistrent rien.
+
+Sur chaque PR, le workflow « Tests du banc » (`.github/workflows/tests.yml`)
+construit la pile, attend ses healthchecks (`--wait`), puis lance `npm test`
+sous le Node de `.nvmrc`. Il publie en artefact `traces-tests`, gardé 7 jours,
+le rapport JUnit de Vitest et les journaux de la pile. Le typecheck tourne
+dans un workflow à part, sans Docker (« Vérification des types »).
