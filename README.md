@@ -78,9 +78,10 @@ utilisateurs alors que les tests lisent le nouveau fichier.
 
 ## Tests du banc
 
-Prérequis : Node 22 (voir `.nvmrc`), puis `npm install`. `npm test` refuse
-de tourner sous une autre version majeure de Node et demande `nvm use`
-(script `pretest`) ; `engine-strict` ne garde que `npm install`.
+Prérequis : la version exacte de Node fixée dans `.nvmrc` (la même que la
+CI), puis `npm install`. `npm test` refuse de tourner sous une autre version
+de Node et demande `nvm use` (script `pretest`) ; `engine-strict` ne garde
+que `npm install`.
 
 ```sh
 npm test            # Vitest ; les tests du seam A exigent la pile Docker lancée
