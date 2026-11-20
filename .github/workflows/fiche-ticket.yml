@@ -13,9 +13,9 @@ permissions:
 
 jobs:
   fiche-ticket:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Une fiche par ticket fermé par la PR
         env:
