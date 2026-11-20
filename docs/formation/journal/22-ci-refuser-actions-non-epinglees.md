@@ -33,7 +33,10 @@ le SHA d'une étiquette.
   (manuel de GNU grep, celui du runner `ubuntu-24.04` ; les tests ont tourné
   sous macOS, avec BSD grep)
 
-> À vérifier : sous GNU grep, seul le run de la PR lancera le script, sur les workflows du dépôt ; la suite Vitest n'y tourne pas.
+  Sous GNU grep, seul le cas accepté est observé : le run de la PR a lancé
+  le script sur les workflows du dépôt (voir « Vérifier soi-même »). Les cas
+  refusés n'ont tourné que sous macOS, car la suite Vitest ne tourne pas en
+  CI.
 
 ## Ce qui a été construit
 
@@ -148,9 +151,11 @@ npx vitest run tests/pinned-actions.test.ts
 
 Observé : `Tests  9 passed (9)`.
 
-Sur la PR, le workflow « Actions épinglées » doit passer.
-
-> À vérifier : run de la PR non observé au moment de la rédaction, relever son lien et sa conclusion.
+Sur la PR, le workflow « Actions épinglées » doit passer. Observé sur le run
+[44777959324](https://github.com/karAmmi12/migrabench/actions/runs/44777959324)
+(PR #25, commit `aa5d288`) : l'étape lance
+`bash scripts/check-pinned-actions.sh .github/workflows`, conclusion
+`success`, aucune annotation.
 
 ## Pour aller plus loin
 
