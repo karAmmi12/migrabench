@@ -1,0 +1,20 @@
+# Chaque action des workflows est épinglée sur un SHA de commit complet,
+# suivi de sa version en commentaire (#22). Procédure :
+# docs/agents/pinned-actions.md.
+name: Actions épinglées
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  pinned-actions:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Chaque uses est épinglé par SHA
+        run: bash scripts/check-pinned-actions.sh .github/workflows
