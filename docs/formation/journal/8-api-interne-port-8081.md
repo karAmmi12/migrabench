@@ -77,8 +77,9 @@ de l'étape 1.
   l'insertion rate.
 - `docker-compose.yml` : `legacy` rejoint `default` et `mb-internal`. Seul
   `8080` est publié.
-- `dossiers.json` : deux dossiers réservés, `D-0113` (`BROUILLON`) et `D-0114`
-  (`EN_INSTRUCTION`), au propriétaire `test:internal-api`.
+- `dossiers.json` : trois dossiers réservés, `D-0113` (`BROUILLON`),
+  `D-0114` (`EN_INSTRUCTION`) et `D-0115` (`REMIS`), au propriétaire
+  `test:internal-api`.
 - Tests du seam A :
   - `tests/seam-a/internal-api-client.ts` : envoie la requête depuis le
     conteneur du service d'archivage, qui est sur `mb-internal`, par
@@ -88,8 +89,9 @@ de l'étape 1.
     `mb-internal` et depuis l'hôte, même avec identifiants. `8081` n'est pas
     joignable depuis l'hôte ;
   - `tests/seam-a/internal-api.test.ts` : la sémantique de la recherche, le
-    verrou du statut, le refus de la remise d'un `BROUILLON`, et l'absence de
-    règles de `validation.xml` et de contrôle d'identité.
+    verrou du statut, le `400` d'un corps mal formé, le refus de la remise
+    d'un `BROUILLON`, et l'absence de règles de `validation.xml` et de
+    contrôle d'identité.
 - Documentation :
   - `README.md` : le format JSON et l'état « étape 1 livrée » ;
   - `docs/specs/01-legacy-app.md` : la note « Tranché par #8 » ;
@@ -135,8 +137,12 @@ de l'étape 1.
 - **Écritures sur des dossiers réservés, puis remise des valeurs initiales.**
   Les tests de modification remettent les valeurs initiales dans un
   `finally`, ce qui permet de les relancer sans redémarrer le legacy. Un
-  refus ou un renvoi des valeurs actuelles ne modifie rien : ces cas
-  utilisent les dossiers partagés `D-0001`, `D-0002` et `D-0003`.
+  refus (`409`) n'enregistre rien : ces cas utilisent les dossiers partagés
+  `D-0001`, `D-0002` et `D-0003`. Renvoyer les valeurs actuelles, en
+  revanche, passe par un enregistrement, même sans changement. La relecture
+  de la PR #17 l'a relevé sur `D-0001` et `D-0003` : ces cas ont été
+  déplacés sur `D-0114` (`EN_INSTRUCTION`) et `D-0115` (`REMIS`, ajouté pour
+  cela).
 - **La remise réussie n'a pas de test automatique.** Elle ne peut pas être
   annulée, et un test qui remet un dossier échouerait à la relance sans
   redémarrage. Elle a été vérifiée à la main sur `D-0114`, puis le legacy a

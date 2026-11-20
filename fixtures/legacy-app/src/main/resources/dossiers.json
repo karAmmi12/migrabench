@@ -43,7 +43,8 @@
     { "number": "D-0111", "applicant": "Clément Saint-Aubin", "subject": "Raccordement au réseau d'eau potable", "status": "EN_INSTRUCTION", "filedOn": "2025-08-11" },
     { "number": "D-0112", "applicant": "Maïwenn O'Neill", "subject": "Demande d'autorisation de « vide-grenier »", "status": "EN_INSTRUCTION", "filedOn": "2025-08-18" },
     { "number": "D-0113", "applicant": "Lucie Arnaud", "subject": "Demande de carte d'accès à la déchetterie", "status": "BROUILLON", "filedOn": "2025-07-14" },
-    { "number": "D-0114", "applicant": "Bastien Royer", "subject": "Occupation temporaire d'une place de marché", "status": "EN_INSTRUCTION", "filedOn": "2025-07-21" }
+    { "number": "D-0114", "applicant": "Bastien Royer", "subject": "Occupation temporaire d'une place de marché", "status": "EN_INSTRUCTION", "filedOn": "2025-07-21" },
+    { "number": "D-0115", "applicant": "Hugo Perrault", "subject": "Déclaration d'un puits domestique", "status": "REMIS", "filedOn": "2025-04-22", "submittedOn": "2025-06-09" }
   ],
   "reservations": {
     "gate:xss": ["D-0101"],
@@ -58,6 +59,6 @@
     "scenario:sheet-lock-remis": ["D-0110"],
     "scenario:remise-instructeur": ["D-0111"],
     "gate:role": ["D-0112"],
-    "test:internal-api": ["D-0113", "D-0114"]
+    "test:internal-api": ["D-0113", "D-0114", "D-0115"]
   }
 }

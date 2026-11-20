@@ -4,7 +4,7 @@
 // par le port 8081.
 import { describe, expect, it } from "vitest";
 import { basicAuthHeader, LEGACY_URL, UNKNOWN_USER, userWithRole } from "./legacy-client.ts";
-import { callInternalApi } from "./internal-api-client.ts";
+import { callInternalApi, fetchFromInternal, INTERNAL_API_URL } from "./internal-api-client.ts";
 
 interface Criteria {
   number?: string;
@@ -101,6 +101,8 @@ describe("internal API read", () => {
 });
 
 // Dossiers réservés à ces tests (test:internal-api dans le jeu de données).
+// Les dossiers partagés D-0001 à D-0003 ne servent qu'à des lectures et à
+// des refus, qui n'enregistrent rien.
 // Chaque modification acceptée est annulée par une seconde modification qui
 // remet les valeurs initiales : les tests peuvent tourner sans redémarrage.
 const RESERVED_BROUILLON = {
@@ -112,6 +114,11 @@ const RESERVED_EN_INSTRUCTION = {
   number: "D-0114",
   applicant: "Bastien Royer",
   subject: "Occupation temporaire d'une place de marché",
+};
+const RESERVED_REMIS = {
+  number: "D-0115",
+  applicant: "Hugo Perrault",
+  subject: "Déclaration d'un puits domestique",
 };
 
 interface EditableFields {
@@ -172,17 +179,20 @@ describe("internal API update, under the status lock of screen 2", () => {
     expect((await callInternalApi("GET", `/api/dossiers/${number}`)).json).toEqual(before.json);
   });
 
-  it.each(["D-0003", "D-0001"])("accepts the current values of locked dossier %s, which are no change", async (number) => {
-    const before = await callInternalApi("GET", `/api/dossiers/${number}`);
-    const current = before.json as EditableFields;
+  // Renvoyer les valeurs actuelles passe par un enregistrement : sur des
+  // dossiers réservés, pas sur les dossiers partagés en lecture.
+  it.each([
+    { status: "EN_INSTRUCTION", dossier: RESERVED_EN_INSTRUCTION },
+    { status: "REMIS", dossier: RESERVED_REMIS },
+  ])("accepts the current values of a $status dossier, which are no change", async ({ status, dossier }) => {
+    const path = `/api/dossiers/${dossier.number}`;
+    const before = await callInternalApi("GET", path);
+    expect(before.json).toMatchObject({ status, applicant: dossier.applicant, subject: dossier.subject });
 
-    const { status, json } = await callInternalApi("PUT", `/api/dossiers/${number}`, {
-      applicant: current.applicant,
-      subject: current.subject,
-    });
+    const response = await callInternalApi("PUT", path, { applicant: dossier.applicant, subject: dossier.subject });
 
-    expect(status).toBe(200);
-    expect(json).toEqual(before.json);
+    expect(response.status).toBe(200);
+    expect(response.json).toEqual(before.json);
   });
 
   it("refuses with 409 a locked change that also breaks an input rule", async () => {
@@ -195,6 +205,32 @@ describe("internal API update, under the status lock of screen 2", () => {
     const { status } = await callInternalApi("PUT", "/api/dossiers/D-0099", { applicant: "A", subject: "B" });
 
     expect(status).toBe(404);
+  });
+});
+
+describe("internal API update, with a malformed body", () => {
+  // Le 400 est le contrat de l'API, pas une règle de saisie. Un corps refusé
+  // n'enregistre rien : les tests visent quand même un dossier réservé.
+  it.each([
+    { name: "a body that is not JSON", body: "pas du json" },
+    { name: "no body", body: "" },
+    { name: "a missing subject", body: JSON.stringify({ applicant: RESERVED_BROUILLON.applicant }) },
+    { name: "a non-string applicant", body: JSON.stringify({ applicant: 42, subject: RESERVED_BROUILLON.subject }) },
+    { name: "a null subject", body: JSON.stringify({ applicant: RESERVED_BROUILLON.applicant, subject: null }) },
+    { name: "a JSON array", body: "[]" },
+  ])("refuses with 400 $name, and saves nothing", async ({ body }) => {
+    const path = `/api/dossiers/${RESERVED_BROUILLON.number}`;
+    const before = await callInternalApi("GET", path);
+
+    const response = await fetchFromInternal(`${INTERNAL_API_URL}${path}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body,
+    });
+
+    expect(response.status).toBe(400);
+    expect(JSON.parse(response.body)).toHaveProperty("error");
+    expect((await callInternalApi("GET", path)).json).toEqual(before.json);
   });
 });
 

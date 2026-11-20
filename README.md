@@ -90,5 +90,7 @@ Les tests du seam A appellent le legacy par HTTP sur `LEGACY_URL`
 `ARCHIVE_URL` (par défaut `http://localhost:8090`). Ceux de l'API interne
 partent de `mb-internal` : ils lancent leurs requêtes dans le conteneur du
 service d'archivage (`docker compose exec`). Ils écrivent sur les dossiers
-réservés `D-0113` et `D-0114` (`test:internal-api`) et remettent les valeurs
-initiales : ils peuvent tourner sans redémarrer le legacy.
+réservés `D-0113`, `D-0114` et `D-0115` (`test:internal-api`) et remettent
+les valeurs initiales : ils peuvent tourner sans redémarrer le legacy. Les
+dossiers partagés ne leur servent qu'à des lectures et à des refus, qui
+n'enregistrent rien.
