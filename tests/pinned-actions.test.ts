@@ -62,6 +62,24 @@ describe("pinned actions check", () => {
     expect(code).toBe(1);
   });
 
+  it("fails on a missing directory instead of checking nothing", async () => {
+    const dir = join(tmpdir(), "mb-workflows-missing");
+
+    const { code, stdout } = await check(dir);
+
+    expect(code).toBe(1);
+    expect(stdout).toContain(`::error::Aucun workflow trouvé dans ${dir}`);
+  });
+
+  it("fails on a directory without any workflow", async () => {
+    const dir = workflows({ "README.md": "# not a workflow\n" });
+
+    const { code, stdout } = await check(dir);
+
+    expect(code).toBe(1);
+    expect(stdout).toContain(`::error::Aucun workflow trouvé dans ${dir}`);
+  });
+
   it("accepts the repository's own workflows", async () => {
     const { code, stdout } = await check(new URL("../.github/workflows", import.meta.url).pathname);
 
