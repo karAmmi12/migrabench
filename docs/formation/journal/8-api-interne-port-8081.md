@@ -36,11 +36,9 @@ de l'étape 1.
   [The Java EE 5 Tutorial : Defining Security Requirements for Web Applications](https://docs.oracle.com/javaee/5/tutorial/doc/bncbe.html)
 - **Jackson `ObjectMapper`** : lit et écrit du JSON en Java. La dépendance
   était déjà dans `pom.xml` pour le jeu de données. —
-  [FasterXML/jackson-databind](https://github.com/FasterXML/jackson-databind)
-  (dépôt du projet).
-
-  > À vérifier : lien vers la javadoc de `ObjectMapper` en 2.18, introuvable
-  > à l'adresse essayée (`fasterxml.github.io/jackson-databind/javadoc/2.18/…`, 404).
+  [javadoc.io : ObjectMapper, jackson-databind 2.18.11](https://javadoc.io/doc/com.fasterxml.jackson.core/jackson-databind/2.18.11/com/fasterxml/jackson/databind/ObjectMapper.html)
+  (javadoc republiée par javadoc.io à partir des artefacts Maven, version
+  documentée 2.18.11, celle du `pom.xml`)
 - **Un service Compose sur deux réseaux** : un conteneur branché sur deux
   réseaux est joignable par son nom de service sur chacun. Un réseau
   `internal: true` ne permet pas de publier un port vers l'hôte, d'où la
