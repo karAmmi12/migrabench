@@ -101,6 +101,11 @@ gardées 7 jours.
   `(eval):1: no matches found: repos/actions/upload-artifact/contents/action.yml?ref=v7.0.2`.
   Cause : zsh lit le `?` de l'URL comme un motif de fichiers. Résolution :
   mettre le chemin entre guillemets simples.
+- **Codes de couleur dans le journal de la CI.** Symptôme : chercher
+  `Tests +[0-9]+ passed` dans `gh run view --log` ne trouvait rien, car le
+  journal contient `^[[1m^[[32m80 passed…`. Cause : Vitest colore sa
+  sortie, et le journal garde les codes ANSI. Résolution : les retirer
+  avant la recherche (`sed 's/\^\[\[[0-9;]*m//g'`).
 
 ## Vérifier soi-même
 
@@ -125,13 +130,55 @@ rapport : `<testsuites name="vitest tests" tests="80" failures="0" errors="0" �
 
 Sur la PR, le workflow « Tests du banc » doit passer.
 
-> À vérifier après l'exécution de la CI de la PR : lien de l'exécution verte, head SHA, durée (`gh run view <id> --json startedAt,updatedAt`), taille de l'artefact `traces-tests`.
+Observé sur l'exécution de la CI
+[44790602695](https://github.com/karAmmi12/migrabench/actions/runs/44790602695)
+(PR #28, commit `d6661cd`) : `node: v22.23.5`, puis
+`Container migrabench-archive-1  Healthy` et
+`Container migrabench-legacy-1  Healthy`, puis
+`Test Files  11 passed (11)` et `Tests  80 passed (80)` ; conclusion
+`success`. Durée relevée avec
+`gh run view 44790602695 --json startedAt,updatedAt` : `startedAt`
+18:12:41Z, `updatedAt` 18:14:04Z, soit 83 s. Artefact `traces-tests` :
+5326 octets (`gh api repos/karAmmi12/migrabench/actions/runs/44790602695/artifacts`),
+expiration le 2026-11-27, 7 jours après sa création.
 
 Test négatif : un test volontairement en échec doit faire échouer le job,
 et l'artefact `traces-tests` doit être publié quand même, avec un rapport
 JUnit qui montre l'échec.
 
-> À vérifier après l'exécution de la CI de la PR : commit du test en échec, lien de l'exécution rouge, conclusion, durée, taille de l'artefact, extrait du `junit.xml` téléchargé ; puis commit d'annulation et son exécution verte.
+Le commit `2b8fdea` ajoute `tests/deliberate-failure.test.ts`, qui attend
+`expect(1 + 1).toBe(3)`. Observé sur l'exécution de la CI
+[44790888300](https://github.com/karAmmi12/migrabench/actions/runs/44790888300)
+(commit `2b8fdea`), conclusion `failure`, en 82 s (`startedAt` 18:14:29Z,
+`updatedAt` 18:15:51Z). Les étapes, lues avec
+`gh run view 44790888300 --json jobs` :
+
+```
+Construction et démarrage de la pile: success
+Tests: failure
+Journaux de la pile: success
+Publication des traces: success
+```
+
+Le journal de l'étape « Tests » : `Tests  1 failed | 80 passed (81)`, puis
+`##[error]Process completed with exit code 1.`
+
+L'artefact `traces-tests` de cette exécution fait 5551 octets. Téléchargé
+avec `gh run download 44790888300 -n traces-tests -D <dossier>`, il
+contient `compose-logs.txt`, `compose-ps.txt` et `junit.xml`, dont :
+
+```xml
+<testsuites name="vitest tests" tests="81" failures="1" errors="0" …>
+    <testsuite name="tests/deliberate-failure.test.ts" … tests="1" failures="1" …>
+        <testcase classname="tests/deliberate-failure.test.ts" name="deliberately fails to prove the CI job fails" …>
+            <failure message="expected 2 to be 3 // Object.is equality" type="AssertionError">
+```
+
+Le commit `0fc6b85` annule `2b8fdea`. Observé sur l'exécution de la CI
+[44791193579](https://github.com/karAmmi12/migrabench/actions/runs/44791193579)
+(commit `0fc6b85`) : `Tests  80 passed (80)`, conclusion `success`, en
+84 s (`startedAt` 18:16:23Z, `updatedAt` 18:17:47Z) ; artefact
+`traces-tests` de 5417 octets.
 
 ## Pour aller plus loin
 
