@@ -101,8 +101,10 @@ grep -nw "run" .claude/skills/fiche-ticket/SKILL.md
 Observé : une seule ligne, la commande `gh run view <id> --json startedAt,updatedAt`.
 
 Sur la PR, le workflow « Fiche de formation » doit trouver cette fiche.
-
-> À vérifier après l'exécution de la CI de la PR : lien de l'exécution du workflow « Fiche de formation », son head SHA et la ligne « Fiche trouvée pour #24. ».
+Observé sur l'exécution
+[44782383572](https://github.com/karAmmi12/migrabench/actions/runs/44782383572)
+(PR #26, head SHA `9b9c32b`) : conclusion `success`, et la ligne
+`Fiche trouvée pour #24.` dans le journal.
 
 ## Pour aller plus loin
 
