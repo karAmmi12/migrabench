@@ -100,6 +100,6 @@ n'enregistrent rien.
 
 Sur chaque PR, le workflow « Tests du banc » (`.github/workflows/tests.yml`)
 construit la pile, attend ses healthchecks (`--wait`), puis lance `npm test`
-sous le Node de `.nvmrc`. Il publie en artefact `traces-tests`, gardé 7 jours,
-le rapport JUnit de Vitest et les journaux de la pile. Le typecheck tourne
-dans un workflow à part, sans Docker (« Vérification des types »).
+sous le Node de `.nvmrc`. Il publie en artefact le rapport JUnit de Vitest et
+les journaux de la pile (nom et durée de conservation : voir le workflow).
+Le typecheck tourne dans un workflow à part, sans Docker (« Vérification des types »).
