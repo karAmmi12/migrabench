@@ -40,25 +40,37 @@ jeton présenté est la valeur témoin `ARCHIVE_TOKEN` de [`.env`](.env). Le
 legacy et lui la reçoivent tous deux de ce fichier.
 
 L'API interne JSON du legacy (rechercher, lire, modifier, remettre) répond
-sur le port `8081`, joignable seulement depuis le réseau Docker
-`mb-internal`, à l'adresse `http://legacy:8081` (ADR 0004). Ce port n'est
-pas publié sur l'hôte, et un filtre par port refuse l'API interne sur le
-port `8080` (403). Elle ignore l'identité de l'appelant et n'applique aucune
-règle de `validation.xml` (ADR 0003). Ses quatre endpoints :
+sur le port `8081`, à l'adresse `http://legacy:8081` depuis le réseau Docker
+`mb-internal`. Ce port n'est pas publié sur l'hôte : l'API interne n'est
+donc pas joignable depuis le navigateur, et seule la couche serveur du
+candidat est censée l'appeler. Un filtre par port la refuse sur le port
+`8080` (403). Limite connue : un conteneur du réseau `default` de Docker
+joint aussi `legacy:8081` (ADR 0004). Elle ignore l'identité de l'appelant
+et n'applique aucune règle de `validation.xml` (ADR 0003). Ses quatre
+endpoints :
 
 | Endpoint | Réponse |
 |---|---|
 | `GET /api/dossiers?number=&applicant=&status=&filedFrom=&filedTo=` | `200 {"dossiers": [dossier, …]}`, triés par numéro |
 | `GET /api/dossiers/{numéro}` | `200 dossier` ; `404` numéro inconnu |
-| `PUT /api/dossiers/{numéro}`, corps `{"applicant": "…", "subject": "…"}` | `200 dossier` ; `409` champ verrouillé modifié ; `404` ; `400` corps mal formé |
-| `POST /api/dossiers/{numéro}/remise` | `200 dossier` ; `409` dossier pas `EN_INSTRUCTION` ; `404` |
+| `PUT /api/dossiers/{numéro}`, corps `{"applicant": "…", "subject": "…"}` | `200 dossier` ; `409` champ verrouillé modifié, rien n'est enregistré ; `404` ; `400` corps mal formé |
+| `POST /api/dossiers/{numéro}/remise`, sans corps | `200 dossier` ; `409` dossier pas `EN_INSTRUCTION` ; `404` |
 
 Un dossier s'écrit `{"number", "applicant", "subject", "status", "filedOn",
 "submittedOn"}`, statut en majuscules (`BROUILLON`, `EN_INSTRUCTION`,
 `REMIS`), dates en `aaaa-mm-jj`, `submittedOn` à `null` hors `REMIS`. Les
 critères de recherche ont la sémantique de l'écran 1 : vides ou absents, ils
 ne filtrent pas ; comme l'action de l'écran 1, un statut inconnu ou une date
-mal formée est ignoré. Une erreur s'écrit `{"error": "…"}`.
+mal formée est ignoré.
+
+Pour modifier, renvoyer un champ verrouillé à l'identique n'est pas une
+modification. Le `400` ne vise que le contrat de l'API : un corps qui n'est
+pas du JSON, ou un champ absent ou qui n'est pas une chaîne. Une chaîne vide
+ou trop longue est acceptée, faute de règle de `validation.xml`.
+
+Une erreur rendue par l'API interne s'écrit `{"error": "…"}`. Les refus de
+Tomcat, avant l'API, restent ses pages HTML : le `403` du filtre par port,
+et le `405` d'une méthode que l'API ne traite pas (`DELETE`, par exemple).
 
 **Toute modification de `fixtures/users.json` demande
 `docker compose up --build`** : sans `--build`, le legacy garde les anciens

@@ -21,8 +21,9 @@ FROM tomcat:9.0.124-jdk8-temurin
 RUN rm -rf /usr/local/tomcat/webapps/*
 COPY --from=users /work/tomcat-users.xml /usr/local/tomcat/conf/tomcat-users.xml
 COPY --from=build /build/target/ROOT.war /usr/local/tomcat/webapps/ROOT.war
-# Second connecteur : 8081 pour l'API interne, joignable par mb-internal
-# seulement (ADR 0004). Le grep fait échouer le build si l'insertion rate.
+# Second connecteur : 8081 pour l'API interne, non publié sur l'hôte. Il
+# écoute sur toutes les interfaces : limite connue de l'ADR 0004.
+# Le grep fait échouer le build si l'insertion rate.
 RUN sed -i 's|<Connector port="8080" protocol="HTTP/1.1"|<Connector port="8081" protocol="HTTP/1.1" connectionTimeout="20000" maxParameterCount="1000" />\n    &|' conf/server.xml \
  && grep -q '<Connector port="8081"' conf/server.xml
 EXPOSE 8080 8081

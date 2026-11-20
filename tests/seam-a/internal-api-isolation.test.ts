@@ -1,6 +1,8 @@
-// Seam A : l'API interne n'est joignable que par le port 8081, depuis
-// mb-internal (ADR 0004). Le filtre par port est une pièce du banc, pas un
-// piège : il refuse l'API interne sur le port 8080, avec ou sans identifiants.
+// Seam A : l'API interne est servie sur le port 8081, appelée depuis
+// mb-internal, et ce port n'est pas joignable depuis l'hôte (ADR 0004, qui
+// note aussi la limite du réseau default). Le filtre par port est une pièce
+// du banc, pas un piège : il refuse l'API interne sur le port 8080, avec ou
+// sans identifiants.
 import { describe, expect, it } from "vitest";
 import { basicAuthHeader, LEGACY_URL, userWithRole } from "./legacy-client.ts";
 import {

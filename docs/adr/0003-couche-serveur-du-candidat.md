@@ -4,8 +4,10 @@ Remplace l'ADR 0002. Un candidat ne modifie pas le legacy. Il livre une
 application React + TypeScript et une **couche serveur du candidat** (BFF)
 écrite en TypeScript sur Node 22, avec un framework libre. Cette couche sert
 le bundle React et constitue la seule URL exposée du candidat. Elle appelle
-l'**API interne** du legacy (rechercher, lire, modifier, remettre), joignable
-seulement depuis le réseau Docker interne. Ainsi le legacy est identique pour
+l'**API interne** du legacy (rechercher, lire, modifier, remettre) par le
+réseau Docker interne. L'API interne n'est pas joignable depuis l'hôte, donc
+pas depuis le navigateur ; la limite de cette isolation est décrite dans
+l'ADR 0004. Ainsi le legacy est identique pour
 tous les candidats (règle 1 de `PROTOCOL.md`), et seule la part produite par
 l'agent IA varie. L'API interne a les mêmes défauts que les JSP : elle ne
 vérifie aucun rôle et ignore l'identité de l'appelant. C'est donc à la couche

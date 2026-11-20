@@ -6,7 +6,8 @@ services:
       context: .
       dockerfile: fixtures/legacy-app/Dockerfile
     # Seul le port 8080 (JSP) est publié. Le port 8081 (API interne) n'est
-    # joignable que par mb-internal (ADR 0004).
+    # pas joignable depuis l'hôte ; la couche serveur du candidat l'appelle
+    # par mb-internal. Limite connue : default le joint aussi (ADR 0004).
     ports:
       - "127.0.0.1:8080:8080"
     networks:

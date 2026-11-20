@@ -37,7 +37,10 @@ de l'étape 1.
 - **Jackson `ObjectMapper`** : lit et écrit du JSON en Java. La dépendance
   était déjà dans `pom.xml` pour le jeu de données. —
   [FasterXML/jackson-databind](https://github.com/FasterXML/jackson-databind)
-  (dépôt du projet, la javadoc 2.18 n'a pas été trouvée à l'adresse essayée)
+  (dépôt du projet).
+
+  > À vérifier : lien vers la javadoc de `ObjectMapper` en 2.18, introuvable
+  > à l'adresse essayée (`fasterxml.github.io/jackson-databind/javadoc/2.18/…`, 404).
 - **Un service Compose sur deux réseaux** : un conteneur branché sur deux
   réseaux est joignable par son nom de service sur chacun. Un réseau
   `internal: true` ne permet pas de publier un port vers l'hôte, d'où la
