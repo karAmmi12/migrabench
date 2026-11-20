@@ -30,7 +30,8 @@ machines utilisent le même Node.
   `npm test` sous un autre Node que celui de `.nvmrc`. —
   [npm Docs : scripts (Pre & Post Scripts)](https://docs.npmjs.com/cli/v10/using-npm/scripts)
 - **`engine-strict`** (`.npmrc`) : `npm install` et `npm ci` refusent une
-  version de Node hors de `engines` (`^22.21.0`). Il ne protège pas
+  version de Node hors de `engines` (`22.23.5`, `^22.21.0` avant ce ticket).
+  Il ne protège pas
   `npm test`, d'où le `pretest`. —
   [npm Docs : config, engine-strict](https://docs.npmjs.com/cli/v10/using-npm/config#engine-strict)
 
@@ -50,6 +51,11 @@ machines utilisent le même Node.
   écrit à partir de la version de Node qui exécute les tests. Les tests
   négatifs sont une autre version de la même majeure et une autre majeure.
 - `README.md` : les prérequis parlent de la version exacte de `.nvmrc`.
+- `package.json` et `package-lock.json` : `engines.node` passe de
+  `^22.21.0` à `22.23.5`, la version de `.nvmrc`.
+- `tests/node-version-sync.test.ts` : 2 tests Vitest. Le premier échoue si
+  `engines.node` et `.nvmrc` ne désignent pas la même version ; le second,
+  si `package-lock.json` ne reprend pas `engines.node` de `package.json`.
 
 ## Les choix faits et pourquoi
 
@@ -75,6 +81,14 @@ machines utilisent le même Node.
   sens du ticket : les tests locaux tournent sous le même Node que la CI.
   Option écartée : continuer à ne comparer que la majeure, ce qui laisserait
   les machines et la CI diverger sur la version mineure.
+- **`engines.node` fixé à `22.23.5`, et un test qui le lie à `.nvmrc`.**
+  Décision humaine, après la première version de la PR : avec `^22.21.0`,
+  `npm install` acceptait une 22.x que `npm test` refusait. Le test empêche
+  une montée de version de changer l'un sans l'autre. Option écartée :
+  dériver l'une des deux valeurs de l'autre par un script, qui ajouterait
+  une étape de génération. Le second test, sur `package-lock.json`, n'était
+  pas demandé : il couvre la copie de `engines` que `npm install` écrit dans
+  le verrou, régénéré ici par `npm install --package-lock-only`.
 - **Noms en français** pour le workflow et ses étapes, comme « Fiche de
   formation » et « Actions épinglées » ; point relevé par la relecture
   « standards ». Le nom de l'étape « Typecheck » reste celui du script.
@@ -96,6 +110,10 @@ machines utilisent le même Node.
   `process.versions.node.split(".")[0]` (`22`) à tout le contenu de
   `.nvmrc` (`22.23.5`). Résolution : comparer la version complète, sans le
   préfixe `v` (`0282e43`).
+- **Le test de synchronisation, rouge d'abord.** Symptôme : avant le
+  changement de `package.json`, le test a échoué avec
+  `Expected: "22.23.5"` et `Received: "^22.21.0"`. Résolution :
+  `engines.node` à `22.23.5`, verrou régénéré ; le test passe.
 - **`git revert -q` refusé.** Symptôme : `git revert --no-edit HEAD -q` a
   affiché l'aide de `git revert` sans rien faire. Cause : `git revert`
   n'accepte pas l'option `-q`. Résolution : `git revert --no-commit HEAD`,
@@ -107,7 +125,11 @@ machines utilisent le même Node.
 
 ## Vérifier soi-même
 
-État observé : commit `0ba4365`, le 2026-11-20, sous Node `v22.23.5`.
+État observé : commit `0ba4365`, le 2026-11-20, sous Node `v22.23.5`. Les
+résultats du test de synchronisation, de `npm ci` et les 80 tests ont été
+observés sur `46c1e3b` avec les changements du commit
+« build: pin engines.node to the .nvmrc version » (`engines.node`, verrou,
+test), juste avant ce commit.
 
 ```sh
 nvm use && npm run typecheck; echo "exit $?"
@@ -126,8 +148,23 @@ npm test
 ```
 
 Observé sous `v22.23.5` : `Test Files  10 passed (10)`,
-`Tests  78 passed (78)`. Sous `v24.12.0` :
+`Tests  78 passed (78)` ; après l'ajout du test de synchronisation,
+`Test Files  11 passed (11)`, `Tests  80 passed (80)`. Sous `v24.12.0` :
 `npm test requires Node 22.23.5 (.nvmrc), found v24.12.0.`
+
+```sh
+npx vitest run tests/node-version-sync.test.ts
+```
+
+Observé : `Tests  2 passed (2)`. Avant le changement de `engines` :
+`Tests  1 failed | 1 passed (2)`.
+
+```sh
+npm ci; echo "exit $?"
+```
+
+Observé sous `v22.23.5` : `found 0 vulnerabilities`, puis `exit 0`. Sous
+`v24.12.0` (`npm ci --dry-run`) : `npm error code EBADENGINE`.
 
 ```sh
 bash scripts/check-pinned-actions.sh .github/workflows; echo "exit $?"
@@ -165,7 +202,8 @@ Le commit `302f507` annule `c39fd09`. Observé sur l'exécution
 
 - #20, « CI : exécuter npm test avec la pile Docker » : il pourra lire le
   même `.nvmrc`, et le `pretest` y vérifiera la version exacte.
-- Monter Node demande désormais de changer `.nvmrc` et, si besoin,
-  `engines` dans `package.json` ; la CI et le `pretest` suivent `.nvmrc`.
-- Limite connue : `engines` (`^22.21.0`) reste plus large que `.nvmrc`.
-  `npm install` accepte donc une 22.x que `npm test` refuse.
+- Monter Node demande de changer `.nvmrc` et `engines.node` ensemble, puis
+  de régénérer `package-lock.json` ; `tests/node-version-sync.test.ts`
+  échoue sinon. La CI et le `pretest` suivent `.nvmrc`.
+- Limite connue : ce test tourne avec `npm test`, que la CI ne lance pas
+  encore (#20). D'ici là, il ne protège qu'en local.

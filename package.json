@@ -5,7 +5,7 @@
   "description": "Banc de mesure pour migrations de front legacy assistées par agent.",
   "type": "module",
   "engines": {
-    "node": "^22.21.0"
+    "node": "22.23.5"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
