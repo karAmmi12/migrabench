@@ -1,6 +1,5 @@
-# Chaque action des workflows est épinglée sur un SHA de commit complet,
-# suivi de sa version en commentaire (#22). Procédure :
-# docs/agents/pinned-actions.md.
+# Contrôle des actions épinglées par SHA (#22).
+# Règle et procédure : docs/agents/pinned-actions.md.
 name: Actions épinglées
 
 on:
