@@ -1,8 +1,10 @@
-// Scénarios @remise de l'oracle (spec de l'étape 2, tableau « Remise »), hors
-// accusé : récapitulatif et remise. Valeurs attendues relevées sur le legacy.
+// Scénarios @remise de l'oracle (spec de l'étape 2, tableau « Remise ») :
+// récapitulatif, remise et accusé de remise. Valeurs attendues relevées sur le
+// legacy ; la référence d'archivage, elle, est calculée avec le sel de l'exécution.
 // Présence : au moins une occurrence exacte affichée (atLeastOne) ; absence :
 // aucune occurrence (toHaveCount(0)).
 import type { Page } from "@playwright/test";
+import { archiveReference } from "../archive-reference.ts";
 import {
   atLeastOne,
   button,
@@ -10,7 +12,9 @@ import {
   exactText,
   expect,
   markReached,
+  openReceipt,
   openSubmission,
+  recordVariant,
   refuseDialogs,
   test,
 } from "../support.ts";
@@ -80,5 +84,40 @@ test.describe(() => {
         dialogs.expectNone();
       }
     });
+  });
+});
+
+// Sel de l'exécution, transmis au seul processus Playwright par `npm run oracle`.
+function executionSalt(): string {
+  const salt = process.env.ARCHIVE_SALT;
+  if (!salt) throw new Error("ARCHIVE_SALT is not set: the receipt scenarios run only through `npm run oracle`");
+  return salt;
+}
+
+// M5 et M6 : le clic mène à une page (même onglet ou nouvel onglet, enregistré
+// comme variante), qui porte le titre et la référence d'archivage attendue.
+async function checkReceipt(page: Page, number: string): Promise<void> {
+  await test.step("verification: receipt page with its title and archive reference", async () => {
+    const expected = archiveReference(executionSalt(), number);
+    const receipt = await openReceipt(atLeastOne(receiptLink(page)));
+    recordVariant("receipt-tab", receipt.tab);
+    await expect(shown(receipt.page, `Accusé de remise du dossier ${number}`)).toBeVisible();
+    await expect(shown(receipt.page, `Référence d'archivage : ${expected}`)).toBeVisible();
+  });
+}
+
+test("receipt-agent", { tag: "@remise" }, async ({ page }) => {
+  await openSubmission(page, "D-0007", "Changement d'usage d'un local commercial");
+  markReached();
+  await checkReceipt(page, "D-0007");
+});
+
+test.describe(() => {
+  test.use({ identity: "instructeur" });
+
+  test("receipt-instructeur", { tag: "@remise" }, async ({ page }) => {
+    await openSubmission(page, "D-0010", "Ravalement de façade, 12 rue de l'Église");
+    markReached();
+    await checkReceipt(page, "D-0010");
   });
 });

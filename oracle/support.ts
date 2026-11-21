@@ -1,19 +1,21 @@
 // Outils partagés des scénarios de l'oracle (spec de l'étape 2, « Modules ») :
 // fixture par rôle avec un HAR par scénario, navigation depuis BASE_URL (vers
 // la recherche, la fiche et la remise), relecture, lecture des numéros
-// affichés, textes exacts, dossiers partagés, statut atteint. La mesure de `defaultPrevented`
-// est dans default-prevented.ts, le refus des boîtes de dialogue dans
-// dialogs.ts, le comptage des champs modifiables dans editable-fields.ts, la
-// vérification de présence dans occurrences.ts.
+// affichés, textes exacts, dossiers partagés, statut atteint, variantes. La
+// mesure de `defaultPrevented` est dans default-prevented.ts, le refus des
+// boîtes de dialogue dans dialogs.ts, le comptage des champs modifiables dans
+// editable-fields.ts, la vérification de présence dans occurrences.ts,
+// l'ouverture de l'accusé de remise dans receipt.ts.
 import { readFileSync } from "node:fs";
 import { test as base, expect, type Locator, type Page } from "@playwright/test";
 import { parseUsersWithoutUnknown, type Role, UNKNOWN_USER } from "../scripts/users.ts";
-import { REACH_ANNOTATION, REREAD_ANNOTATION } from "./collect.ts";
+import { REACH_ANNOTATION, REREAD_ANNOTATION, VARIANT_ANNOTATION } from "./collect.ts";
 import { atLeastOne } from "./occurrences.ts";
 
 export { pressAndReadDefaultPrevented } from "./default-prevented.ts";
 export { refuseDialogs } from "./dialogs.ts";
 export { editableFieldCount } from "./editable-fields.ts";
+export { openReceipt } from "./receipt.ts";
 export { atLeastOne } from "./occurrences.ts";
 
 export { expect } from "@playwright/test";
@@ -57,6 +59,12 @@ export const test = base.extend<{ identity: Identity }>({
 // un scénario non atteint, un échec avec elle un scénario échoué.
 export function markReached(): void {
   test.info().annotations.push({ type: REACH_ANNOTATION, description: "reached" });
+}
+
+// Variante observée quand le moyen est libre (spec de l'étape 2, « Variantes
+// observées ») : enregistrée pour le rapport, jamais pour juger.
+export function recordVariant(key: string, value: string): void {
+  test.info().annotations.push({ type: VARIANT_ANNOTATION, description: `${key}=${value}` });
 }
 
 // Libellé de champ au texte exact, espaces normalisés ; seuls deux-points et
