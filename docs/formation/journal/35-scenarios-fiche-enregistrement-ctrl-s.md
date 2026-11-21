@@ -234,9 +234,16 @@ npm test
 #       Tests  131 passed (131)
 ```
 
-> À vérifier après l'exécution de la CI de la PR : le job « tests » installe
-> Chromium et passe `tests/oracle/default-prevented.test.ts` (lien de
-> l'exécution, head SHA, sortie).
+En CI, sur le commit `e085b2f` de la PR #43, « Tests du banc », exécution
+[44940946102](https://github.com/karAmmi12/migrabench/actions/runs/44940946102),
+`success` en 125 s (19:26:28Z → 19:28:33Z) :
+
+```text
+Chrome for Testing 159.0.8154.6 (playwright chromium v1255) downloaded to /home/runner/.cache/ms-playwright/chromium-1255
+ ✓ tests/oracle/default-prevented.test.ts (1 test) 461ms
+ Test Files  19 passed (19)
+      Tests  131 passed (131)
+```
 
 ## Pour aller plus loin
 
