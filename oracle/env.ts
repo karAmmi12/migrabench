@@ -1,4 +1,4 @@
-// Variables par lesquelles runOracle (oracle/run.ts) passe à la configuration
+// Variables par lesquelles executeOracle (oracle/execute.ts) passe à la configuration
 // Playwright (oracle/playwright.config.ts) ce que seule l'exécution complète connaît.
 export const ORACLE_ENV = {
   outputDir: "MB_ORACLE_OUTPUT_DIR",

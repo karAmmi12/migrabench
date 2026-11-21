@@ -1,11 +1,11 @@
-// `npm run oracle` : commande mince sur runOracle. BASE_URL désigne le front
+// `npm run oracle` : commande mince sur executeOracle. BASE_URL désigne le front
 // à mesurer (le legacy par défaut) ; ORACLE_SALT impose le sel, pour le
 // diagnostic seulement. Code de sortie non nul si un scénario n'a pas réussi.
 import { relative } from "node:path";
-import { DEFAULT_BASE_URL, runOracle } from "./run.ts";
+import { DEFAULT_BASE_URL, executeOracle } from "./execute.ts";
 
 const salt = process.env.ORACLE_SALT;
-const { resultFile, summary, errors } = await runOracle({
+const { resultFile, summary, errors } = await executeOracle({
   baseUrl: process.env.BASE_URL ?? DEFAULT_BASE_URL,
   ...(salt === undefined ? {} : { salt }),
 });

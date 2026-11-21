@@ -1,5 +1,5 @@
 // Configuration Playwright de l'oracle (spec de l'étape 2, « Exécution »).
-// Lancée par runOracle (oracle/run.ts), qui fournit BASE_URL, le dossier de
+// Lancée par executeOracle (oracle/execute.ts), qui fournit BASE_URL, le dossier de
 // sortie hors du dépôt, le fichier du reporter JSON et les métadonnées.
 import { defineConfig, devices } from "@playwright/test";
 import { DEFAULT_BASE_URL, ORACLE_ENV } from "./env.ts";

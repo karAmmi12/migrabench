@@ -12,30 +12,31 @@ import { parseEnv } from "node:util";
 import type { JSONReport } from "@playwright/test/reporter";
 import { artifactPaths, collect, type OracleSummary } from "./collect.ts";
 import { DEFAULT_BASE_URL, ORACLE_ENV } from "./env.ts";
+import { GIT_STATUS_ARGS, RESULTS_DIR_FROM_ROOT, worktreeState, type WorktreeState } from "./worktree.ts";
 
 export { DEFAULT_BASE_URL };
 
-const ROOT = fileURLToPath(new URL("..", import.meta.url));
-const RESULTS_DIR_FROM_ROOT = join("results", "oracle");
+// Sans barre finale : la collecte rapporte les chemins à cette racine.
+const ROOT = fileURLToPath(new URL("..", import.meta.url)).replace(/\/$/, "");
 const RESULTS_DIR = join(ROOT, RESULTS_DIR_FROM_ROOT);
 const CONFIG = join(ROOT, "oracle", "playwright.config.ts");
 // Services recréés à chaque exécution : le legacy recharge son jeu de données au démarrage.
 const SERVICES = ["legacy", "archive"] as const;
 
-export interface RunOracleOptions {
+export interface ExecuteOracleOptions {
   baseUrl?: string;
   // Imposé : diagnostic seulement, jamais pour une mesure.
   salt?: string;
 }
 
-export interface RunOracleResult {
+export interface ExecuteOracleResult {
   resultFile: string;
   summary: OracleSummary;
   // Erreurs de Playwright hors scénarios (configuration, chargement des fichiers).
   errors: number;
 }
 
-export async function runOracle({ baseUrl = DEFAULT_BASE_URL, salt }: RunOracleOptions = {}): Promise<RunOracleResult> {
+export async function executeOracle({ baseUrl = DEFAULT_BASE_URL, salt }: ExecuteOracleOptions = {}): Promise<ExecuteOracleResult> {
   const prepared = await prepare(baseUrl, salt ?? randomBytes(32).toString("hex"));
   const report = await launch(prepared);
   return collectAndWrite(prepared, report);
@@ -44,7 +45,7 @@ export async function runOracle({ baseUrl = DEFAULT_BASE_URL, salt }: RunOracleO
 // Environnement relevé avant Playwright : métadonnées du résultat.
 interface Environment {
   benchCommit: string;
-  worktree: "clean" | "dirty";
+  worktree: WorktreeState;
   node: string;
   images: Record<string, string>;
   frozenDate: string | null;
@@ -68,10 +69,7 @@ async function prepare(baseUrl: string, salt: string): Promise<PreparedExecution
     ARCHIVE_SALT: salt,
   });
   const benchCommit = (await captureStdout("git", ["rev-parse", "HEAD"])).trim();
-  // Les résultats déjà écrits ne changent pas l'état mesuré : sans cette
-  // exclusion, la deuxième exécution d'une série se dirait sur un arbre modifié.
-  const changes = await captureStdout("git", ["status", "--porcelain", "--", ".", `:!${RESULTS_DIR_FROM_ROOT}`]);
-  const worktree = changes.trim() === "" ? "clean" : "dirty";
+  const worktree = worktreeState(await captureStdout("git", [...GIT_STATUS_ARGS]));
   const images: Record<string, string> = {};
   for (const service of SERVICES) images[service] = await imageOf(service);
   const env = parseEnv(await readFile(join(ROOT, ".env"), "utf8"));
@@ -99,13 +97,13 @@ async function launch({ baseUrl, salt, metadata, outputDir, reportFile }: Prepar
   return readFile(reportFile, "utf8");
 }
 
-async function collectAndWrite({ salt, startedAt, metadata }: PreparedExecution, raw: string): Promise<RunOracleResult> {
+async function collectAndWrite({ salt, startedAt, metadata }: PreparedExecution, raw: string): Promise<ExecuteOracleResult> {
   // Le sel n'apparaît dans le résultat qu'une fois Playwright terminé.
   if (raw.includes(salt)) throw new Error("The Playwright report contains the salt before collection");
   const report = JSON.parse(raw) as JSONReport;
   const hashes: Record<string, string> = {};
   for (const path of artifactPaths(report)) hashes[path] = await sha256(path);
-  const { report: result, summary } = collect(report, { hashes, salt });
+  const { report: result, summary } = collect(report, { hashes, salt, root: ROOT });
   await mkdir(RESULTS_DIR, { recursive: true });
   const resultFile = join(RESULTS_DIR, `${timestamp(startedAt)}-${metadata.benchCommit.slice(0, 7)}.json`);
   await writeFile(resultFile, `${JSON.stringify(result, null, 2)}\n`);
