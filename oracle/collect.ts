@@ -1,6 +1,8 @@
 // Collecte de l'oracle (fonction pure) : prend le JSON du reporter Playwright,
 // les empreintes de ses HAR et traces et le sel, et rend le résultat enrichi
-// (spec de l'étape 2, « Résultat JSON »).
+// (spec de l'étape 2, « Résultat JSON »). Le résultat est versionné : aucun
+// chemin absolu de la machine qui l'a produit n'y reste.
+import { isAbsolute, relative } from "node:path";
 import type { JSONReport, JSONReportSpec, JSONReportSuite, JSONReportTest } from "@playwright/test/reporter";
 
 export const REACH_ANNOTATION = "mb:reach";
@@ -41,7 +43,16 @@ export interface CollectInput {
   // Empreinte SHA-256 (hexadécimal) de chaque fichier cité par artifactPaths.
   hashes: Readonly<Record<string, string>>;
   salt: string;
+  // Racine du dépôt, à laquelle tous les chemins du résultat sont rapportés.
+  root: string;
 }
+
+// Champs du JSON Playwright qui contiennent un chemin de fichier, ou une liste
+// de chemins (argv : binaire de Node et de Playwright).
+const PATH_KEYS = new Set(["path", "file", "configFile", "rootDir", "outputDir", "testDir", "snapshotDir", "argv"]);
+
+// Débuts de chemin qui trahiraient un répertoire personnel (macOS, Linux).
+const HOME_PREFIXES = ["/Users/", "/home/"];
 
 // Fichiers à hacher avant la collecte : HAR et trace de chaque scénario.
 export function artifactPaths(report: JSONReport): string[] {
@@ -54,7 +65,7 @@ export function artifactPaths(report: JSONReport): string[] {
   );
 }
 
-export function collect(report: JSONReport, { hashes, salt }: CollectInput): { report: JSONReport; summary: OracleSummary } {
+export function collect(report: JSONReport, { hashes, salt, root }: CollectInput): { report: JSONReport; summary: OracleSummary } {
   const result = structuredClone(report);
   const statuses: ScenarioOutcome[] = [];
 
@@ -71,7 +82,28 @@ export function collect(report: JSONReport, { hashes, salt }: CollectInput): { r
 
   const summary = summarize(statuses);
   result.config.metadata = { ...result.config.metadata, salt, summary };
-  return { report: result, summary };
+  const relativeResult = relativizePaths(result, root) as JSONReport;
+  const serialized = JSON.stringify(relativeResult);
+  const home = HOME_PREFIXES.find((prefix) => serialized.includes(prefix));
+  if (home !== undefined) throw new Error(`The oracle result would contain a home directory path (${home})`);
+  return { report: relativeResult, summary };
+}
+
+// Un champ de chemin absolu devient relatif à la racine ; dans tout autre texte
+// (messages, piles d'appels, sorties), la racine est retirée là où elle apparaît.
+function relativizePaths(value: unknown, root: string, key?: string): unknown {
+  if (typeof value === "string") {
+    if (key !== undefined && PATH_KEYS.has(key) && isAbsolute(value)) return relative(root, value) || ".";
+    return value.replaceAll(`${root}/`, "").replaceAll(root, ".");
+  }
+  // Les éléments d'une liste héritent de son champ.
+  if (Array.isArray(value)) return value.map((item) => relativizePaths(item, root, key));
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([entryKey, entry]) => [entryKey, relativizePaths(entry, root, entryKey)]),
+    );
+  }
+  return value;
 }
 
 function statusOf(test: JSONReportTest): ScenarioStatus {

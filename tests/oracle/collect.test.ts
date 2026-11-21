@@ -1,9 +1,11 @@
 // Collecte de l'oracle : JSON Playwright fabriqués, sans lancer Playwright.
 import type { JSONReport, JSONReportSpec } from "@playwright/test/reporter";
+import { relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import { artifactPaths, collect } from "../../oracle/collect.ts";
 
 const SALT = "a".repeat(64);
+const ROOT = "/home/runner/work/migrabench/migrabench";
 
 // failed-reached-in-result : mb:reach présent seulement dans les annotations du résultat.
 type Outcome = "passed" | "failed-reached" | "failed-reached-in-result" | "failed-unreached";
@@ -81,7 +83,7 @@ function fakeDigest(path: string): string {
 
 function run(scenarios: ScenarioInput[]) {
   const input = report(scenarios);
-  return collect(input, { hashes: hashesFor(input), salt: SALT });
+  return collect(input, { hashes: hashesFor(input), salt: SALT, root: ROOT });
 }
 
 describe("oracle collection", () => {
@@ -171,7 +173,7 @@ describe("oracle collection", () => {
     const input = report([{ title: "a", outcome: "passed" }]);
     const before = structuredClone(input);
 
-    collect(input, { hashes: hashesFor(input), salt: SALT });
+    collect(input, { hashes: hashesFor(input), salt: SALT, root: ROOT });
 
     expect(input).toEqual(before);
   });
@@ -179,18 +181,85 @@ describe("oracle collection", () => {
   it("fails instead of writing an incomplete result when a scenario has no HAR", () => {
     const input = report([{ title: "a", outcome: "passed" }, { title: "b", outcome: "passed", har: false }]);
 
-    expect(() => collect(input, { hashes: hashesFor(input), salt: SALT })).toThrow("b: no har attachment");
+    expect(() => collect(input, { hashes: hashesFor(input), salt: SALT, root: ROOT })).toThrow("b: no har attachment");
   });
 
   it("fails when a scenario has no trace", () => {
     const input = report([{ title: "a", outcome: "passed", trace: false }]);
 
-    expect(() => collect(input, { hashes: hashesFor(input), salt: SALT })).toThrow("a: no trace attachment");
+    expect(() => collect(input, { hashes: hashesFor(input), salt: SALT, root: ROOT })).toThrow("a: no trace attachment");
   });
 
   it("fails when an artifact has no digest", () => {
     const input = report([{ title: "a", outcome: "passed" }]);
 
-    expect(() => collect(input, { hashes: {}, salt: SALT })).toThrow("a: no digest for /out/a/scenario.har");
+    expect(() => collect(input, { hashes: {}, salt: SALT, root: ROOT })).toThrow("a: no digest for /out/a/scenario.har");
+  });
+});
+
+describe("oracle collection of paths", () => {
+  // Rapport tel que Playwright l'écrit : chemins absolus de la machine qui l'a produit.
+  function machineReport(root: string): JSONReport {
+    const input = report([{ title: "a", outcome: "failed-reached" }]);
+    const config = input.config as unknown as Record<string, unknown>;
+    config.configFile = `${root}/oracle/playwright.config.ts`;
+    config.rootDir = `${root}/oracle/scenarios`;
+    config.argv = [`${root.replace(/\/[^/]+$/, "")}/.nvm/versions/node/v22.23.5/bin/node`, `${root}/node_modules/.bin/playwright`, "test"];
+    config.projects = [{ outputDir: "/tmp/migrabench-oracle/x", testDir: `${root}/oracle/scenarios` }];
+    const result = input.suites[0]!.specs[0]!.tests[0]!.results[0]!;
+    result.attachments = [
+      { name: "har", path: "/tmp/migrabench-oracle/x/a/scenario.har", contentType: "application/json" },
+      { name: "trace", path: `${root}/test-results/a/trace.zip`, contentType: "application/zip" },
+    ];
+    result.errors = [
+      { message: `Error: boom\n    at ${root}/oracle/scenarios/search.spec.ts:12:5`, location: { file: `${root}/oracle/scenarios/search.spec.ts`, line: 12, column: 5 } },
+    ];
+    return input;
+  }
+
+  it.each(["/home/runner/work/migrabench/migrabench", "/Users/someone/migrabench"])(
+    "makes every absolute path relative to the repository root (%s)",
+    (root) => {
+      const input = machineReport(root);
+
+      const { report: result } = collect(input, { hashes: hashesFor(input), salt: SALT, root });
+
+      const serialized = JSON.stringify(result);
+      expect(serialized).not.toContain("/home/");
+      expect(serialized).not.toContain("/Users/");
+      const config = result.config as unknown as Record<string, unknown>;
+      expect(config.configFile).toBe("oracle/playwright.config.ts");
+      expect(config.rootDir).toBe("oracle/scenarios");
+      expect(config.argv).toEqual(["../.nvm/versions/node/v22.23.5/bin/node", "node_modules/.bin/playwright", "test"]);
+      const testResult = result.suites[0]?.specs[0]?.tests[0]?.results[0];
+      expect(testResult?.attachments.map((attachment) => attachment.path)).toEqual([
+        relative(root, "/tmp/migrabench-oracle/x/a/scenario.har"),
+        "test-results/a/trace.zip",
+      ]);
+      expect(testResult?.errors[0]).toEqual({
+        message: "Error: boom\n    at oracle/scenarios/search.spec.ts:12:5",
+        location: { file: "oracle/scenarios/search.spec.ts", line: 12, column: 5 },
+      });
+    },
+  );
+
+  it("still finds the digests of artifacts cited by absolute path", () => {
+    const input = machineReport(ROOT);
+
+    const { report: result } = collect(input, { hashes: hashesFor(input), salt: SALT, root: ROOT });
+
+    expect(result.suites[0]?.specs[0]?.tests[0]?.annotations).toContainEqual({
+      type: "mb:trace",
+      description: `sha256:${fakeDigest(`${ROOT}/test-results/a/trace.zip`)}`,
+    });
+  });
+
+  it("fails rather than write a home directory path left outside the repository", () => {
+    const input = machineReport(ROOT);
+    input.suites[0]!.specs[0]!.tests[0]!.results[0]!.stdout = [{ text: "cache in /home/someone/.cache/ms-playwright\n" }];
+
+    expect(() => collect(input, { hashes: hashesFor(input), salt: SALT, root: ROOT })).toThrow(
+      "The oracle result would contain a home directory path",
+    );
   });
 });
