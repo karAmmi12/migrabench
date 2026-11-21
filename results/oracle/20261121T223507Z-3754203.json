@@ -19,7 +19,7 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "benchCommit": "c23ec0e3ff3e1722e93d7d89ad29d1660be7e7a0",
+      "benchCommit": "3754203a0925813d4527bcbd071170693b437949",
       "worktree": "clean",
       "node": "v22.23.5",
       "chromium": "159.0.8154.6",
@@ -30,9 +30,9 @@
       },
       "frozenDate": "2025-11-15",
       "baseUrl": "http://localhost:8080",
-      "artifacts": ".oracle-artifacts/20261121T223128Z-bb3291eb",
+      "artifacts": ".oracle-artifacts/20261121T223507Z-d6f40d5d",
       "actualWorkers": 7,
-      "salt": "2b7ec02bfdfc712526e9ef13dec629ce5c244e9cb853f3415732699db6a040c2",
+      "salt": "0e4ebdd1e5ec276069ad309802742e5b5c4cb49aeddd7f190168a47c8e13a971",
       "saltImposed": false,
       "summary": {
         "scenarios": 16,
@@ -50,11 +50,11 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": ".oracle-artifacts/20261121T223128Z-bb3291eb",
+        "outputDir": ".oracle-artifacts/20261121T223507Z-d6f40d5d",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "benchCommit": "c23ec0e3ff3e1722e93d7d89ad29d1660be7e7a0",
+          "benchCommit": "3754203a0925813d4527bcbd071170693b437949",
           "worktree": "clean",
           "node": "v22.23.5",
           "chromium": "159.0.8154.6",
@@ -65,7 +65,7 @@
           },
           "frozenDate": "2025-11-15",
           "baseUrl": "http://localhost:8080",
-          "artifacts": ".oracle-artifacts/20261121T223128Z-bb3291eb",
+          "artifacts": ".oracle-artifacts/20261121T223507Z-d6f40d5d",
           "actualWorkers": 7
         },
         "id": "chromium",
@@ -82,11 +82,11 @@
       {
         "grep": {},
         "grepInvert": null,
-        "outputDir": ".oracle-artifacts/20261121T223128Z-bb3291eb",
+        "outputDir": ".oracle-artifacts/20261121T223507Z-d6f40d5d",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "benchCommit": "c23ec0e3ff3e1722e93d7d89ad29d1660be7e7a0",
+          "benchCommit": "3754203a0925813d4527bcbd071170693b437949",
           "worktree": "clean",
           "node": "v22.23.5",
           "chromium": "159.0.8154.6",
@@ -97,7 +97,7 @@
           },
           "frozenDate": "2025-11-15",
           "baseUrl": "http://localhost:8080",
-          "artifacts": ".oracle-artifacts/20261121T223128Z-bb3291eb",
+          "artifacts": ".oracle-artifacts/20261121T223507Z-d6f40d5d",
           "actualWorkers": 7
         },
         "name": "chromium",
@@ -137,7 +137,7 @@
       [
         "json",
         {
-          "outputFile": ".oracle-artifacts/20261121T223128Z-bb3291eb/report.json"
+          "outputFile": ".oracle-artifacts/20261121T223507Z-d6f40d5d/report.json"
         }
       ]
     ],
@@ -176,11 +176,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:8b3e2125a7196db24aeef9dc5565b23eddcd97a0b3627acae30a8b78e2e4353a"
+                  "description": "sha256:2b906f29dd270ed3f43836514b0c1ba7662b919aba1d3309c9e739cda87af568"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:450b46ec39d9bc7c197c6d067faa855ce213fe353d543f368d51576b1f458f3b"
+                  "description": "sha256:5edb6db59d35a2953b825b4e0b9190599cc1edb9ca53756f01e3cc23b340800d"
                 }
               ],
               "expectedStatus": "passed",
@@ -191,7 +191,7 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1280,
+                  "duration": 1233,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -199,14 +199,14 @@
                   "steps": [
                     {
                       "title": "navigation: remise D-0001",
-                      "duration": 993
+                      "duration": 963
                     },
                     {
                       "title": "verification: number, applicant, subject, status, filing date; no editable field",
-                      "duration": 24
+                      "duration": 23
                     }
                   ],
-                  "startTime": "2026-11-21T22:31:33.287Z",
+                  "startTime": "2026-11-21T22:35:13.413Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -232,7 +232,7 @@
           ],
           "id": "6d0ea5dbc551a3552bb1-c24e1e74a5d2e9297bb8",
           "file": "remise.spec.ts",
-          "line": 30,
+          "line": 27,
           "column": 1
         },
         {
@@ -251,11 +251,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:f24bdbe21a1ff1d65b2d5f714627d0a8a6544945f769136b32ab733bf13ac17c"
+                  "description": "sha256:5c8eea1dd7c2f3f2a8344893f95e193ab658e55f42f4f6617cb343f61a9d6992"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:2dd19440be4b9be69020813802ee54bf4433941fe8d0a130ed526bf3f69e65e2"
+                  "description": "sha256:c70b051e88b42846e17e6ae041b3fb9423ba2ef12c08cef7571651c87276b6a9"
                 }
               ],
               "expectedStatus": "passed",
@@ -266,7 +266,7 @@
                   "workerIndex": 1,
                   "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 1261,
+                  "duration": 1212,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -274,14 +274,14 @@
                   "steps": [
                     {
                       "title": "navigation: remise D-0004",
-                      "duration": 994
+                      "duration": 965
                     },
                     {
                       "title": "verification: submission date, receipt link, no Remettre",
-                      "duration": 14
+                      "duration": 12
                     }
                   ],
-                  "startTime": "2026-11-21T22:31:33.291Z",
+                  "startTime": "2026-11-21T22:35:13.401Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -307,7 +307,7 @@
           ],
           "id": "6d0ea5dbc551a3552bb1-699666cd561d207cdb58",
           "file": "remise.spec.ts",
-          "line": 44,
+          "line": 41,
           "column": 1
         },
         {
@@ -326,11 +326,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:76894fe92c8ccc766e9d20604749d5e32e083d734a231d006bcccf6e1c79c215"
+                  "description": "sha256:402faf37e9a9aa4803f8eebb32f922f7ab7f50dfacd1d89f432070fd2d5d0107"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:9d4efa2b85a8db36a52ecf2c8e11e7ca815b4dba4f25e3da3bef1de6cf1110ee"
+                  "description": "sha256:7421aa4166d2c22278966abfc5eb8fdac1bb7ad05558fc4cb33c7eed298e39fc"
                 }
               ],
               "expectedStatus": "passed",
@@ -341,7 +341,7 @@
                   "workerIndex": 2,
                   "parallelIndex": 2,
                   "status": "passed",
-                  "duration": 1257,
+                  "duration": 1193,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -349,14 +349,14 @@
                   "steps": [
                     {
                       "title": "navigation: remise D-0003",
-                      "duration": 994
+                      "duration": 962
                     },
                     {
                       "title": "verification: reserved to instructeurs, no Remettre",
-                      "duration": 10
+                      "duration": 13
                     }
                   ],
-                  "startTime": "2026-11-21T22:31:33.299Z",
+                  "startTime": "2026-11-21T22:35:13.413Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -382,7 +382,7 @@
           ],
           "id": "6d0ea5dbc551a3552bb1-e3a5c5bcc02105506a5f",
           "file": "remise.spec.ts",
-          "line": 55,
+          "line": 52,
           "column": 1
         },
         {
@@ -405,11 +405,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:72172c89b0c31c61139e3518d2625949e5c14b1e926f2b17a95c3635f76b32d3"
+                  "description": "sha256:28efdd2c10781c3bf02dae539b247fd256f53b46011c6be48d71798bf2fa2a8a"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:a62226bbcee0f69edf4de2a4b3594eb8bd1083dcf6a643a57a7edd9f0519701e"
+                  "description": "sha256:aa97c94dd8052bebf12d85019896244b3f6953e948392ec7c900e52e1523665c"
                 }
               ],
               "expectedStatus": "passed",
@@ -420,7 +420,7 @@
                   "workerIndex": 4,
                   "parallelIndex": 4,
                   "status": "passed",
-                  "duration": 1307,
+                  "duration": 1261,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -428,14 +428,14 @@
                   "steps": [
                     {
                       "title": "navigation: remise D-0007",
-                      "duration": 995
+                      "duration": 960
                     },
                     {
                       "title": "verification: receipt page with its title and archive reference",
-                      "duration": 59
+                      "duration": 68
                     }
                   ],
-                  "startTime": "2026-11-21T22:31:33.298Z",
+                  "startTime": "2026-11-21T22:35:13.402Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -465,7 +465,7 @@
           ],
           "id": "6d0ea5dbc551a3552bb1-63e5029ddc2a22e23ffb",
           "file": "remise.spec.ts",
-          "line": 109,
+          "line": 99,
           "column": 1
         }
       ],
@@ -473,7 +473,7 @@
         {
           "title": "",
           "file": "remise.spec.ts",
-          "line": 65,
+          "line": 62,
           "column": 6,
           "specs": [
             {
@@ -492,11 +492,11 @@
                     },
                     {
                       "type": "mb:har",
-                      "description": "sha256:37d6906cad44d24a3a09c178dfd06ac01445fb7c17174d6251370843a1a8402f"
+                      "description": "sha256:e488c61c03029e2edc2d84a573f5a0c969f5e77b2177fbee807b669a99f0933a"
                     },
                     {
                       "type": "mb:trace",
-                      "description": "sha256:cc67a8db70a4a1ff024cf58f5d667240a5e2d5f7c7a327ed464f93e3a96143e1"
+                      "description": "sha256:ef1d354edc6c970fbe6f30f33f9476ca29525dcb73dd6560d732663b8c788587"
                     }
                   ],
                   "expectedStatus": "passed",
@@ -507,7 +507,7 @@
                       "workerIndex": 3,
                       "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 1338,
+                      "duration": 1277,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
@@ -515,14 +515,14 @@
                       "steps": [
                         {
                           "title": "navigation: remise D-0111",
-                          "duration": 993
+                          "duration": 962
                         },
                         {
                           "title": "verification: Remettre without confirmation, then submitted on the frozen date",
-                          "duration": 80
+                          "duration": 82
                         }
                       ],
-                      "startTime": "2026-11-21T22:31:33.289Z",
+                      "startTime": "2026-11-21T22:35:13.402Z",
                       "annotations": [
                         {
                           "type": "mb:reach",
@@ -548,7 +548,7 @@
               ],
               "id": "6d0ea5dbc551a3552bb1-39ea76f1f2c274b1721d",
               "file": "remise.spec.ts",
-              "line": 70,
+              "line": 67,
               "column": 3
             }
           ]
@@ -556,7 +556,7 @@
         {
           "title": "",
           "file": "remise.spec.ts",
-          "line": 115,
+          "line": 105,
           "column": 6,
           "specs": [
             {
@@ -579,11 +579,11 @@
                     },
                     {
                       "type": "mb:har",
-                      "description": "sha256:fe0af772277df54409f1e290b658c007427f61c16eb1aca6022f820e24a194d5"
+                      "description": "sha256:f2460a984214b80c176ad04788e6b77119165e6abce5a8e6c3d8ec2524b75e98"
                     },
                     {
                       "type": "mb:trace",
-                      "description": "sha256:f88773bec7d28e1c0fc60c4e1559be7dd0e00e2ff88f8398fade71b09a4b4276"
+                      "description": "sha256:1c56108a7c557d1868f8cef06aef268942107932a94a192d75801074c924241b"
                     }
                   ],
                   "expectedStatus": "passed",
@@ -594,7 +594,7 @@
                       "workerIndex": 5,
                       "parallelIndex": 5,
                       "status": "passed",
-                      "duration": 1327,
+                      "duration": 1261,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
@@ -602,14 +602,14 @@
                       "steps": [
                         {
                           "title": "navigation: remise D-0010",
-                          "duration": 994
+                          "duration": 963
                         },
                         {
                           "title": "verification: receipt page with its title and archive reference",
-                          "duration": 73
+                          "duration": 66
                         }
                       ],
-                      "startTime": "2026-11-21T22:31:33.282Z",
+                      "startTime": "2026-11-21T22:35:13.408Z",
                       "annotations": [
                         {
                           "type": "mb:reach",
@@ -639,7 +639,7 @@
               ],
               "id": "6d0ea5dbc551a3552bb1-4bba47ef9ec9474d82c9",
               "file": "remise.spec.ts",
-              "line": 118,
+              "line": 108,
               "column": 3
             }
           ]
@@ -668,11 +668,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:6c98182c541b61e010e40e19061462e6120b12c835f32d458fa3798afbc4b495"
+                  "description": "sha256:91d06e2fc58eb33a98fcc843bd3f1698dae8f995406706247dfcd0c845630511"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:bc14fd65ad47104d4877a36a3cad29689ddc90b8fb5f85117c1cfa0960c1e6b0"
+                  "description": "sha256:e14b6f9fa8223c35cb7244cbc28fe09e95edaf4a21430ac1bbc29dae9f7c05a2"
                 }
               ],
               "expectedStatus": "passed",
@@ -683,7 +683,7 @@
                   "workerIndex": 6,
                   "parallelIndex": 6,
                   "status": "passed",
-                  "duration": 1030,
+                  "duration": 889,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -691,14 +691,14 @@
                   "steps": [
                     {
                       "title": "navigation: search",
-                      "duration": 568
+                      "duration": 554
                     },
                     {
                       "title": "verification: every shared dossier, sorted by number",
-                      "duration": 213
+                      "duration": 109
                     }
                   ],
-                  "startTime": "2026-11-21T22:31:33.293Z",
+                  "startTime": "2026-11-21T22:35:13.402Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -751,11 +751,11 @@
                     },
                     {
                       "type": "mb:har",
-                      "description": "sha256:229f218b4d52ceaca6977c9e116537c3411f6bf2b341f8a9af6092edb6b8baa7"
+                      "description": "sha256:98b4e052cc8c3dc571a8f032c76ffb5aeb2a8f69fadb724086d3e14a7baaea84"
                     },
                     {
                       "type": "mb:trace",
-                      "description": "sha256:08fe1ebecc5895fb7180c157086026c7a9414e95b492324f02e8e1cf85d3e0a2"
+                      "description": "sha256:b20474727a83b19e0758c5be86aa7ab69a5ccb2082c6c5f41aeeaf7548ed233d"
                     }
                   ],
                   "expectedStatus": "passed",
@@ -766,7 +766,7 @@
                       "workerIndex": 6,
                       "parallelIndex": 6,
                       "status": "passed",
-                      "duration": 82,
+                      "duration": 85,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
@@ -774,14 +774,14 @@
                       "steps": [
                         {
                           "title": "navigation: load BASE_URL",
-                          "duration": 22
+                          "duration": 16
                         },
                         {
                           "title": "verification: refused with 401, search not shown",
-                          "duration": 11
+                          "duration": 14
                         }
                       ],
-                      "startTime": "2026-11-21T22:31:34.529Z",
+                      "startTime": "2026-11-21T22:35:14.505Z",
                       "annotations": [
                         {
                           "type": "mb:reach",
@@ -837,11 +837,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:ea3d062706effa654997c0e4b21dd2e7c68a2b8ec7d42361b777a8615f1993b0"
+                  "description": "sha256:fd27ea8044830fe6eb4912e6a3ec1349fca007277f7ca9eef2ba238966d9befb"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:1b1844ee1f1e458a9290072da4ee688c2a94591e52fe30da4f0ca25a6029a937"
+                  "description": "sha256:6fc4541c88ee91430eb2b58f68fd2447a42e0b05391c38a79bcae2205d2fcb10"
                 }
               ],
               "expectedStatus": "passed",
@@ -852,7 +852,7 @@
                   "workerIndex": 6,
                   "parallelIndex": 6,
                   "status": "passed",
-                  "duration": 240,
+                  "duration": 254,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -860,14 +860,14 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0002",
-                      "duration": 176
+                      "duration": 179
                     },
                     {
                       "title": "verification: focus on Objet",
-                      "duration": 4
+                      "duration": 3
                     }
                   ],
-                  "startTime": "2026-11-21T22:31:34.638Z",
+                  "startTime": "2026-11-21T22:35:14.606Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -913,11 +913,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:b2ddbf353c61e4d4cb870b2adb773bdb14f5a5ac64b87731de2847de7211f98b"
+                  "description": "sha256:4ada4269c58e1c96948b6702f4d9fa66b84c8eab26057c979f61e428ffe855d7"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:2175dafc876051102c8da20bb19e93553f130d838ba34f2945313826687b17c4"
+                  "description": "sha256:083ddaac42ccd3137c339cd751996c7bbb7d17ec26c3352f4005edef2705b111"
                 }
               ],
               "expectedStatus": "passed",
@@ -928,7 +928,7 @@
                   "workerIndex": 2,
                   "parallelIndex": 2,
                   "status": "passed",
-                  "duration": 266,
+                  "duration": 379,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -936,14 +936,14 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0003",
-                      "duration": 183
+                      "duration": 277
                     },
                     {
                       "title": "verification: Objet, Tab to Demandeur, Tab to Enregistrer",
-                      "duration": 28
+                      "duration": 26
                     }
                   ],
-                  "startTime": "2026-11-21T22:31:34.768Z",
+                  "startTime": "2026-11-21T22:35:14.856Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -988,11 +988,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:7e047809c1bc8d37ed5ba4c4c864fe36c66a77ad1d4ffdc9b92182b3d17ff5de"
+                  "description": "sha256:6f1f4363fea6276c949caeb854dd57ca9cb992d21bc913e5498eef5511a04a9f"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:5c33aa903849ccc3c85e9df1194e4666257c682ca20beab3b6bca9e5fe795957"
+                  "description": "sha256:9546e6bf16ec81183ca59478efb89779dca2d79f63275ccdc2b5414fd0c657f1"
                 }
               ],
               "expectedStatus": "passed",
@@ -1003,7 +1003,7 @@
                   "workerIndex": 1,
                   "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 258,
+                  "duration": 353,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -1011,14 +1011,14 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0006",
-                      "duration": 182
+                      "duration": 267
                     },
                     {
                       "title": "verification: number, status, filing date, applicant, subject",
-                      "duration": 24
+                      "duration": 17
                     }
                   ],
-                  "startTime": "2026-11-21T22:31:34.770Z",
+                  "startTime": "2026-11-21T22:35:14.858Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1067,11 +1067,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:0fdce4edea95ee56f1e94acf0071d75edcfeb834b86b4265e1cb729962833d85"
+                  "description": "sha256:061e1a3e821f8eb151cb52448c23e00d159b8d156d8bdf7be34958a80de9dcf9"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:bea33c52de37d2c18d111990cec0b515158bf37d4df72a65a973c63c7af60db7"
+                  "description": "sha256:e65baf21b2767efd6ed6462b0145f701d57d90afad48aa315ab1a4b6dfdfdba7"
                 }
               ],
               "expectedStatus": "passed",
@@ -1082,7 +1082,7 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 505,
+                  "duration": 557,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -1090,18 +1090,18 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0102",
-                      "duration": 173
+                      "duration": 196
                     },
                     {
                       "title": "verification: save applicant and subject with Enregistrer",
-                      "duration": 84
+                      "duration": 79
                     },
                     {
                       "title": "verification: reread sheet D-0102",
-                      "duration": 187
+                      "duration": 211
                     }
                   ],
-                  "startTime": "2026-11-21T22:31:34.783Z",
+                  "startTime": "2026-11-21T22:35:14.865Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1154,11 +1154,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:1d05808300bc1e27f3da730105c8213f3131e1b4f961d7a84b489e8ed3960388"
+                  "description": "sha256:66b538a0e9ec8871ba62b7f8ee3dfc6963c5ceece203bda20d983773bbea77f8"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:f95794bd843d5000b811de28787e03124334fe156120cc7afe94c27995cc905d"
+                  "description": "sha256:f47403d4dc83c9d2cf8d50de89130b5db24c39027f8f763015eea20e864042c5"
                 }
               ],
               "expectedStatus": "passed",
@@ -1166,10 +1166,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 4,
-                  "parallelIndex": 4,
+                  "workerIndex": 6,
+                  "parallelIndex": 6,
                   "status": "passed",
-                  "duration": 518,
+                  "duration": 527,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -1177,18 +1177,18 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0103",
-                      "duration": 196
+                      "duration": 187
                     },
                     {
                       "title": "verification: save subject with Enregistrer",
-                      "duration": 64
+                      "duration": 65
                     },
                     {
                       "title": "verification: reread sheet D-0103",
-                      "duration": 194
+                      "duration": 214
                     }
                   ],
-                  "startTime": "2026-11-21T22:31:34.825Z",
+                  "startTime": "2026-11-21T22:35:14.879Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1242,11 +1242,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:bea3a6decef5950b8fda51a95e47392faee60271e9efe19b1093d4cc216174bc"
+                  "description": "sha256:39874f4849dc00459275a5d513a394291fd44714be55ec77f979af7b719fc74e"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:85c97aebc27fe159ad015439dae88d66ca2236309cd17f5fd28cc9e00b0e6a38"
+                  "description": "sha256:4505762a733697629551fe81587c707912683848271d45757d324aa85d16e391"
                 }
               ],
               "expectedStatus": "passed",
@@ -1254,10 +1254,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 5,
-                  "parallelIndex": 5,
+                  "workerIndex": 4,
+                  "parallelIndex": 4,
                   "status": "passed",
-                  "duration": 439,
+                  "duration": 564,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -1265,18 +1265,18 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0104",
-                      "duration": 167
+                      "duration": 264
                     },
                     {
                       "title": "verification: Ctrl+S prevents the browser default",
-                      "duration": 24
+                      "duration": 25
                     },
                     {
                       "title": "verification: reread sheet D-0104",
-                      "duration": 185
+                      "duration": 203
                     }
                   ],
-                  "startTime": "2026-11-21T22:31:34.847Z",
+                  "startTime": "2026-11-21T22:35:14.903Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1330,11 +1330,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:327a26b951e6dd1bf209d4b3005507036aa27aef975684e88c5c6d1767735394"
+                  "description": "sha256:82d4891ca5430c162a8cd7056c5ad38f1865374bb505706dfb8177da260b4562"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:205989575d8e35002303496e0fd53727478bd3bb98bd8df12bab6699acdc6336"
+                  "description": "sha256:33cf2ba8ea97da379c4387ab4aeba8126c2aaa9aff5de65c11ae83cef348ad67"
                 }
               ],
               "expectedStatus": "passed",
@@ -1342,10 +1342,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 3,
-                  "parallelIndex": 3,
+                  "workerIndex": 5,
+                  "parallelIndex": 5,
                   "status": "passed",
-                  "duration": 438,
+                  "duration": 541,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -1353,7 +1353,7 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0116",
-                      "duration": 172
+                      "duration": 258
                     },
                     {
                       "title": "verification: Ctrl+S prevents the browser default",
@@ -1361,10 +1361,10 @@
                     },
                     {
                       "title": "verification: reread sheet D-0116",
-                      "duration": 186
+                      "duration": 191
                     }
                   ],
-                  "startTime": "2026-11-21T22:31:34.855Z",
+                  "startTime": "2026-11-21T22:35:14.906Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1413,11 +1413,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:e18c14f05934e0c94b5a903e349cc3b7b80df4aa410ce0d5da57ea0abd9298ca"
+                  "description": "sha256:0e6a81559d8a9dd14cf2159f74e6f02e07596bf8df66a9b9b626ce075524933f"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:2eb62df6c0f4be1c23956c969f273ad63bfb32e272952106dd8f1e076f5886df"
+                  "description": "sha256:6a68be3ee490123f01ca59a86844b0b9f25fb8d839985c649b1241321ea9f3e7"
                 }
               ],
               "expectedStatus": "passed",
@@ -1425,10 +1425,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 6,
-                  "parallelIndex": 6,
+                  "workerIndex": 3,
+                  "parallelIndex": 3,
                   "status": "passed",
-                  "duration": 509,
+                  "duration": 554,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -1436,7 +1436,7 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0002",
-                      "duration": 147
+                      "duration": 177
                     },
                     {
                       "title": "verification: no Remise link on a BROUILLON (D-0002)",
@@ -1444,7 +1444,7 @@
                     },
                     {
                       "title": "navigation: sheet D-0003",
-                      "duration": 137
+                      "duration": 160
                     },
                     {
                       "title": "verification: Remise link on an EN_INSTRUCTION (D-0003)",
@@ -1452,14 +1452,14 @@
                     },
                     {
                       "title": "navigation: sheet D-0001",
-                      "duration": 141
+                      "duration": 138
                     },
                     {
                       "title": "verification: Remise link on a REMIS (D-0001)",
-                      "duration": 2
+                      "duration": 3
                     }
                   ],
-                  "startTime": "2026-11-21T22:31:34.892Z",
+                  "startTime": "2026-11-21T22:35:14.937Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1493,8 +1493,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-11-21T22:31:33.025Z",
-    "duration": 2414.359,
+    "startTime": "2026-11-21T22:35:13.089Z",
+    "duration": 2441.359,
     "expected": 16,
     "skipped": 0,
     "unexpected": 0,
