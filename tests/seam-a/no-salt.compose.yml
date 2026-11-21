@@ -1,0 +1,10 @@
+# Surcharge pour tests/seam-a/archive-no-salt.test.ts : une seconde pile, sous
+# un autre nom de projet, sur les images de la pile du banc, sans port publié
+# pour ne pas gêner la pile déjà démarrée.
+services:
+  legacy:
+    image: migrabench-legacy
+    ports: !reset []
+  archive:
+    image: migrabench-archive
+    ports: !reset []
