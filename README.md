@@ -84,9 +84,17 @@ de Node et demande `nvm use` (script `pretest`) ; `engine-strict` ne garde
 que `npm install`.
 
 ```sh
+export ARCHIVE_SALT="$(openssl rand -hex 32)"
+docker compose up -d --build --wait   # la pile reçoit le sel du shell
 npm test            # Vitest ; les tests du seam A exigent la pile Docker lancée
 npm run typecheck   # tsc --noEmit
 ```
+
+Les tests de la référence d'archivage calculent la référence attendue avec
+`ARCHIVE_SALT` : la pile et `npm test` doivent voir le même sel, sinon ces
+tests échouent. Le sel vient toujours du shell, jamais de `.env`, que lit
+aussi le legacy. Sans `ARCHIVE_SALT`, la pile démarre quand même : le service
+d'archivage tire son propre sel et ne le révèle pas.
 
 Les tests du seam A appellent le legacy par HTTP sur `LEGACY_URL`
 (par défaut `http://localhost:8080`) et le service d'archivage sur
