@@ -254,8 +254,19 @@ npm test
 #       Tests  143 passed (143)
 ```
 
-> À vérifier après l'exécution de la CI de la PR : lien, head SHA, durée et
-> sortie (`Test Files`, `Tests`) du workflow « Tests du banc ».
+En CI, sur le commit `62bd7cd` de la PR #44, « Tests du banc », exécution
+[44953461587](https://github.com/karAmmi12/migrabench/actions/runs/44953461587),
+`success` en 134 s (21:48:42Z → 21:50:56Z) :
+
+```text
+Chrome Headless Shell 159.0.8154.6 (playwright chromium-headless-shell v1255) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1255
+ ✓ tests/check-node-version.test.ts (7 tests) 465ms
+ ✓ tests/oracle/dialogs.test.ts (2 tests) 911ms
+ ✓ tests/oracle/editable-fields.test.ts (2 tests) 598ms
+ ✓ tests/oracle/occurrences.test.ts (4 tests) 690ms
+ Test Files  23 passed (23)
+      Tests  143 passed (143)
+```
 
 ## Pour aller plus loin
 
