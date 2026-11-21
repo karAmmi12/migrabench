@@ -9,6 +9,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseEnv } from "node:util";
 import type { JSONReport } from "@playwright/test/reporter";
+import { browserVersions } from "./browser-versions.ts";
 import { artifactPaths, collect, type OracleSummary } from "./collect.ts";
 import { DEFAULT_BASE_URL, ORACLE_ENV } from "./env.ts";
 import { GIT_STATUS_ARGS, RESULTS_DIR_FROM_ROOT, worktreeState, type WorktreeState } from "./worktree.ts";
@@ -48,6 +49,9 @@ interface Environment {
   benchCommit: string;
   worktree: WorktreeState;
   node: string;
+  // Chromium lancé par l'oracle et @playwright/test qui le pilote.
+  chromium: string;
+  playwright: string;
   images: Record<string, string>;
   frozenDate: string | null;
   baseUrl: string;
@@ -77,6 +81,7 @@ async function prepare(baseUrl: string, salt: string, saltImposed: boolean): Pro
   const worktree = worktreeState(await captureStdout("git", [...GIT_STATUS_ARGS]));
   const images: Record<string, string> = {};
   for (const service of SERVICES) images[service] = await imageOf(service);
+  const { chromium, playwright } = await browserVersions();
   const env = parseEnv(await readFile(join(ROOT, ".env"), "utf8"));
   const executionId = `${timestamp(startedAt)}-${randomBytes(4).toString("hex")}`;
   const artifacts = `${ARTIFACTS_DIR_FROM_ROOT}/${executionId}`;
@@ -84,7 +89,7 @@ async function prepare(baseUrl: string, salt: string, saltImposed: boolean): Pro
     baseUrl,
     salt,
     saltImposed,
-    metadata: { benchCommit, worktree, node: process.version, images, frozenDate: env.FROZEN_DATE ?? null, baseUrl, artifacts },
+    metadata: { benchCommit, worktree, node: process.version, chromium, playwright, images, frozenDate: env.FROZEN_DATE ?? null, baseUrl, artifacts },
     outputDir: join(ROOT, artifacts),
     reportFile: join(ROOT, artifacts, "report.json"),
     startedAt,

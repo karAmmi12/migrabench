@@ -1,10 +1,14 @@
 // Outils partagés des scénarios de l'oracle (spec de l'étape 2, « Modules ») :
-// fixture par rôle avec un HAR par scénario, navigation depuis BASE_URL,
-// lecture des numéros affichés, dossiers partagés, statut atteint.
+// fixture par rôle avec un HAR par scénario, navigation depuis BASE_URL (vers
+// la recherche et vers la fiche), relecture, lecture des numéros affichés,
+// dossiers partagés, statut atteint. La mesure de `defaultPrevented` est dans
+// default-prevented.ts.
 import { readFileSync } from "node:fs";
-import { test as base, type Locator, type Page } from "@playwright/test";
+import { test as base, expect, type Locator, type Page } from "@playwright/test";
 import { parseUsersWithoutUnknown, type Role, UNKNOWN_USER } from "../scripts/users.ts";
-import { REACH_ANNOTATION } from "./collect.ts";
+import { REACH_ANNOTATION, REREAD_ANNOTATION } from "./collect.ts";
+
+export { pressAndReadDefaultPrevented } from "./default-prevented.ts";
 
 export { expect } from "@playwright/test";
 
@@ -67,9 +71,13 @@ export function button(page: Page, name: string): Locator {
 // Vers la recherche : ouvrir BASE_URL ; atteint quand « Numéro » est visible.
 export async function openSearch(page: Page): Promise<void> {
   await test.step("navigation: search", async () => {
-    await page.goto("/");
-    await field(page, "Numéro").waitFor({ state: "visible" });
+    await loadSearch(page);
   });
+}
+
+async function loadSearch(page: Page): Promise<void> {
+  await page.goto("/");
+  await field(page, "Numéro").waitFor({ state: "visible" });
 }
 
 // Numéros affichés : liens dont le nom est exactement un numéro, dans l'ordre du document.
@@ -91,4 +99,53 @@ export const SHARED_NUMBERS: readonly string[] = (() => {
 // à un scénario de lecture, pendant que d'autres scénarios écrivent.
 export async function displayedSharedNumbers(page: Page): Promise<string[]> {
   return (await displayedNumbers(page)).filter((number) => SHARED_NUMBERS.includes(number));
+}
+
+// Vers la fiche : recherche par numéro, clic sur le lien du numéro ; atteint
+// quand « Objet » est visible.
+export async function openSheet(page: Page, number: string): Promise<void> {
+  await test.step(`navigation: sheet ${number}`, async () => {
+    await reachSheet(page, number);
+  });
+}
+
+async function reachSheet(page: Page, number: string): Promise<void> {
+  await loadSearch(page);
+  await field(page, "Numéro").fill(number);
+  await button(page, "Rechercher").click();
+  await page.getByRole("link", { name: number, exact: true }).click();
+  await field(page, "Objet").waitFor({ state: "visible" });
+}
+
+// Relecture : nombre fixe d'essais, chacun une nouvelle navigation vers la
+// fiche dans une nouvelle page du même contexte (jamais page.reload()). Ce
+// réessai n'est pas une relance du scénario. Le rappel vérifie avec l'`expect`
+// qu'il reçoit, dont l'attente est l'intervalle : chaque essai reste court, et
+// l'échec du dernier rend l'erreur de l'assertion, pas un délai dépassé.
+const REREAD = { attempts: 5, intervalMs: 500 } as const;
+const rereadExpect = expect.configure({ timeout: REREAD.intervalMs });
+
+export async function reread(
+  page: Page,
+  number: string,
+  check: (sheet: Page, expectOnce: typeof rereadExpect) => Promise<void>,
+): Promise<void> {
+  await test.step(`verification: reread sheet ${number}`, async () => {
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= REREAD.attempts; attempt += 1) {
+      const sheet = await page.context().newPage();
+      try {
+        await reachSheet(sheet, number);
+        await check(sheet, rereadExpect);
+        test.info().annotations.push({ type: REREAD_ANNOTATION, description: String(attempt) });
+        return;
+      } catch (error) {
+        lastError = error;
+      } finally {
+        await sheet.close();
+      }
+    }
+    test.info().annotations.push({ type: REREAD_ANNOTATION, description: String(REREAD.attempts) });
+    throw lastError;
+  });
 }

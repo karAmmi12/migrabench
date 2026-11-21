@@ -25,6 +25,10 @@ jobs:
       - name: Installation des dépendances
         run: npm ci
 
+      # Le test de la mesure de defaultPrevented (#35) lance un vrai Chromium.
+      - name: Installation de Chromium pour Playwright
+        run: npx playwright install --with-deps chromium
+
       # Un sel par job pour la référence d'archivage (#33) : la pile le passe au
       # seul service d'archivage, les tests du seam A le lisent pour calculer
       # la référence attendue. Jamais dans .env, que lit aussi le legacy.
