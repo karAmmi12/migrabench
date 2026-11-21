@@ -1,0 +1,328 @@
+{
+  "config": {
+    "argv": [
+      "node",
+      "node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "oracle/playwright.config.ts"
+    ],
+    "configFile": "oracle/playwright.config.ts",
+    "rootDir": "oracle/scenarios",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "benchCommit": "6c34da6cd2d8ab9eb753e3b4703ff86cde8fff0f",
+      "worktree": "clean",
+      "node": "v22.23.5",
+      "images": {
+        "legacy": "sha256:c755e129e1d5435b7f9115b297e31de7e6c2868715ca1936f849ecbe4a6d0756",
+        "archive": "sha256:19dcd315129d741e2f82a8bc8a8e37624669928865daff9d7f636758eeb8c182"
+      },
+      "frozenDate": "2025-11-15",
+      "baseUrl": "http://localhost:8080",
+      "artifacts": ".oracle-artifacts/20261121T164222Z-0de04617",
+      "actualWorkers": 2,
+      "salt": "1248029c9da9472e57dd0628b6d8f02ae80553d231f3d00361b9136abad27e55",
+      "summary": {
+        "scenarios": 2,
+        "passed": 2,
+        "failed": 0,
+        "unreached": 0,
+        "passRate": 1,
+        "reachedPassRate": 1,
+        "keyboard": {
+          "passed": 0,
+          "total": 0
+        }
+      }
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": ".oracle-artifacts/20261121T164222Z-0de04617",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "benchCommit": "6c34da6cd2d8ab9eb753e3b4703ff86cde8fff0f",
+          "worktree": "clean",
+          "node": "v22.23.5",
+          "images": {
+            "legacy": "sha256:c755e129e1d5435b7f9115b297e31de7e6c2868715ca1936f849ecbe4a6d0756",
+            "archive": "sha256:19dcd315129d741e2f82a8bc8a8e37624669928865daff9d7f636758eeb8c182"
+          },
+          "frozenDate": "2025-11-15",
+          "baseUrl": "http://localhost:8080",
+          "artifacts": ".oracle-artifacts/20261121T164222Z-0de04617",
+          "actualWorkers": 2
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "oracle/scenarios",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": ".oracle-artifacts/20261121T164222Z-0de04617",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "benchCommit": "6c34da6cd2d8ab9eb753e3b4703ff86cde8fff0f",
+          "worktree": "clean",
+          "node": "v22.23.5",
+          "images": {
+            "legacy": "sha256:c755e129e1d5435b7f9115b297e31de7e6c2868715ca1936f849ecbe4a6d0756",
+            "archive": "sha256:19dcd315129d741e2f82a8bc8a8e37624669928865daff9d7f636758eeb8c182"
+          },
+          "frozenDate": "2025-11-15",
+          "baseUrl": "http://localhost:8080",
+          "artifacts": ".oracle-artifacts/20261121T164222Z-0de04617",
+          "actualWorkers": 2
+        },
+        "name": "chromium",
+        "testDir": "oracle/scenarios",
+        "snapshotDir": "oracle/scenarios",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 30000,
+        "use": {
+          "baseURL": "http://localhost:8080",
+          "trace": "on",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "screen": {
+            "width": 1920,
+            "height": 1080
+          },
+          "deviceScaleFactor": 1,
+          "isMobile": false,
+          "hasTouch": false,
+          "defaultBrowserType": "chromium"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "chromium"
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": ".oracle-artifacts/20261121T164222Z-0de04617/report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.65.1",
+    "workers": 7,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "search.spec.ts",
+      "file": "search.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "search-empty-form",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:42c12983f534c08c905b2038acd4dfad12699c8ec599d16a732ff3132239fa22"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:0158a84cc94049254816c7d5e03c9f034a570c8346b625c513508813ce75ab07"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 801,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 507
+                    },
+                    {
+                      "title": "verification: every shared dossier, sorted by number",
+                      "duration": 123
+                    }
+                  ],
+                  "startTime": "2026-11-21T16:42:28.020Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "search-search-empty-form-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "search-search-empty-form-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-6eabd18225983ea58f0c",
+          "file": "search.spec.ts",
+          "line": 4,
+          "column": 1
+        }
+      ],
+      "suites": [
+        {
+          "title": "",
+          "file": "search.spec.ts",
+          "line": 16,
+          "column": 6,
+          "specs": [
+            {
+              "title": "auth-no-credentials",
+              "ok": true,
+              "tags": [
+                "recherche"
+              ],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:har",
+                      "description": "sha256:78b818fb25a9cea3e57fa34e9101852b0d7a89dbaaf2b5d0ea394bf15b1ce330"
+                    },
+                    {
+                      "type": "mb:trace",
+                      "description": "sha256:4035c8b00f42f9696e69bd30712db8262e372209dfe9cd324c29b9d381bd32bc"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 238,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "steps": [
+                        {
+                          "title": "navigation: load BASE_URL",
+                          "duration": 53
+                        },
+                        {
+                          "title": "verification: refused with 401, search not shown",
+                          "duration": 18
+                        }
+                      ],
+                      "startTime": "2026-11-21T16:42:28.020Z",
+                      "annotations": [
+                        {
+                          "type": "mb:reach",
+                          "description": "reached"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "har",
+                          "contentType": "application/json",
+                          "path": "search-auth-no-credentials-chromium/scenario.har"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "search-auth-no-credentials-chromium/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a088064de9fe351eef5f-edb54c4d3ae98f72a907",
+              "file": "search.spec.ts",
+              "line": 22,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-21T16:42:27.768Z",
+    "duration": 1309.127,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
