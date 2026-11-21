@@ -1,24 +1,20 @@
 // Seam A : l'accusé de remise porte une référence d'archivage que seul le
 // détenteur du sel peut calculer (TRAPS.md, « Référence d'archivage »).
-// Prérequis : la pile démarrée avec un ARCHIVE_SALT connu, le même que celui
-// de l'environnement de `npm test` (README, « Tests du banc »).
+// Prérequis : la pile démarrée par `npm run stack:up`, ou avec le même
+// ARCHIVE_SALT que celui de `npm test` (README, « Tests du banc »).
 import { execFile } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { parseEnv, promisify } from "node:util";
 import { describe, expect, it } from "vitest";
 import { archiveReference } from "../../oracle/archive-reference.ts";
+import { readDevSalt, resolveArchiveSalt } from "../../scripts/dev-archive-salt.ts";
 import { ARCHIVE_TOKEN, ARCHIVE_URL, receiptUrl } from "./archive-client.ts";
 
 const execFileAsync = promisify(execFile);
 
+// ARCHIVE_SALT du shell (CI), sinon le sel de `npm run stack:up`.
 function knownSalt(): string {
-  const salt = process.env.ARCHIVE_SALT;
-  if (salt === undefined || salt === "") {
-    throw new Error("ARCHIVE_SALT is not set: start the stack and run the tests with the same ARCHIVE_SALT (README)");
-  }
-  // Le test négatif cherche aussi le sel décodé en base64 : il doit être hexadécimal.
-  if (!/^(?:[0-9a-f]{2})+$/i.test(salt)) throw new Error("ARCHIVE_SALT must be hexadecimal (openssl rand -hex 32)");
-  return salt;
+  return resolveArchiveSalt(process.env, readDevSalt());
 }
 
 function referenceIn(body: string): string | undefined {
