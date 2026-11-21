@@ -1,6 +1,5 @@
 // Scénarios @fiche de l'oracle (spec de l'étape 2, tableau « Fiche ») :
 // lecture, enregistrement et Ctrl+S. Valeurs attendues relevées sur le legacy.
-import type { Page } from "@playwright/test";
 import {
   button,
   expect,
@@ -8,13 +7,10 @@ import {
   markReached,
   openSheet,
   pressAndReadDefaultPrevented,
+  remiseLink,
   reread,
   test,
 } from "../support.ts";
-
-function remiseLink(page: Page) {
-  return page.getByRole("link", { name: "Remise", exact: true });
-}
 
 test("sheet-initial-focus", { tag: ["@fiche", "@clavier"] }, async ({ page }) => {
   await openSheet(page, "D-0002");

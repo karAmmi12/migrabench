@@ -57,12 +57,16 @@ test.describe(() => {
     markReached();
 
     await test.step("verification: Remettre without confirmation, then submitted on the frozen date", async () => {
-      await button(page, "Remettre").click();
-      dialogs.expectNone();
-      await expect(text(page, "Dossier remis le 15/11/2025")).toBeVisible();
-      await expect(button(page, "Remettre")).toHaveCount(0);
-      await expect(receiptLink(page)).toBeVisible();
-      dialogs.expectNone();
+      // Vérifiée en finally : une boîte refusée, même ouverte après le clic,
+      // devient l'erreur rendue, à la place du texte qu'elle a empêché.
+      try {
+        await button(page, "Remettre").click();
+        await expect(text(page, "Dossier remis le 15/11/2025")).toBeVisible();
+        await expect(button(page, "Remettre")).toHaveCount(0);
+        await expect(receiptLink(page)).toBeVisible();
+      } finally {
+        dialogs.expectNone();
+      }
     });
   });
 });

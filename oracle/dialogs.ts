@@ -12,6 +12,8 @@ export function refuseDialogs(page: Page): RefusedDialogs {
   const refused: string[] = [];
   page.on("dialog", (dialog: Dialog) => {
     refused.push(`${dialog.type()} "${dialog.message()}"`);
+    // La boîte est déjà notée : un refus qui échoue (page fermée entre-temps)
+    // ne change pas le verdict, il n'a pas à faire tomber le processus.
     dialog.dismiss().catch(() => {});
   });
   return {
