@@ -84,9 +84,31 @@ de Node et demande `nvm use` (script `pretest`) ; `engine-strict` ne garde
 que `npm install`.
 
 ```sh
+npm run stack:up    # tire un sel de développement, démarre la pile avec (--build --wait)
 npm test            # Vitest ; les tests du seam A exigent la pile Docker lancée
 npm run typecheck   # tsc --noEmit
 ```
+
+Les tests de la référence d'archivage calculent la référence attendue avec le
+sel de la pile : `ARCHIVE_SALT` du shell s'il est défini (c'est le cas en
+CI), sinon le sel de développement que `npm run stack:up` écrit dans
+`.dev-archive-salt`, fichier ignoré par Git. Sans l'un ni l'autre, ces tests
+échouent avec un message explicite, sans être sautés. La pile et `npm test`
+doivent voir le même sel : après un `npm run oracle`, qui recrée la pile avec
+son propre sel, relancer `npm run stack:up` avant `npm test`.
+
+**Le sel de développement ne sert jamais à une exécution mesurée.** Il est
+écrit en clair sur le disque, lisible par tout ce qui tourne sur la machine,
+y compris un candidat en cours de migration. Une exécution mesurée tire
+toujours son propre sel (`npm run oracle`, sans `ORACLE_SALT`) ; ne jamais
+passer le contenu de `.dev-archive-salt` à `ORACLE_SALT`. Un sel imposé se
+voit dans le résultat : `saltImposed: true` dans ses métadonnées.
+
+Le sel vient toujours du shell, jamais de `.env`, que lit aussi le legacy.
+Sans `ARCHIVE_SALT`, `docker compose up` démarre quand même la pile : le
+service d'archivage tire son propre sel et ne le révèle pas. Un test le
+vérifie sur une seconde pile, sans port publié, à partir des images déjà
+construites (`tests/seam-a/archive-no-salt.test.ts`).
 
 Les tests du seam A appellent le legacy par HTTP sur `LEGACY_URL`
 (par défaut `http://localhost:8080`) et le service d'archivage sur
@@ -124,5 +146,6 @@ résultat donne ce dossier (`artifacts`), y cite chaque fichier par un chemin
 relatif, et par son SHA-256 (ADR 0005). La
 commande rend un code non nul si un scénario n'a pas réussi.
 `ORACLE_SALT` impose le sel, pour rejouer une exécution en diagnostic
-seulement, jamais pour une mesure. Le format du résultat est décrit dans la
+seulement, jamais pour une mesure ; le résultat l'enregistre
+(`saltImposed: true`). Le format du résultat est décrit dans la
 spec de l'étape 2 (`docs/specs/02-oracle.md`, « Résultat JSON »).

@@ -35,6 +35,12 @@ services:
       - "127.0.0.1:8090:8090"
     # Même .env que le legacy : la valeur témoin ARCHIVE_TOKEN est la même des deux côtés.
     env_file: .env
+    # Sel de la référence d'archivage, au seul service d'archivage, depuis
+    # l'environnement du shell (`npm run oracle`, CI), jamais depuis .env que
+    # lit aussi le legacy. Absent du shell, la variable n'est pas transmise et
+    # le service tire son propre sel (TRAPS.md, « Référence d'archivage »).
+    environment:
+      - ARCHIVE_SALT
     networks:
       - default
       - mb-internal

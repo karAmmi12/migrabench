@@ -133,9 +133,10 @@ Un oracle Playwright (Chromium seul) qui tourne tel quel contre le legacy et con
 
 ### Référence d'archivage et sel
 
-- **Calcul** : `HMAC-SHA256(clé = sel, message = numéro du dossier)`, les 12 premiers caractères hexadécimaux en majuscules. L'accusé l'affiche dans une ligne « Référence d'archivage : `<référence>` », sous le titre existant.
+- **Calcul** : `HMAC-SHA256(clé = sel, message = numéro du dossier)`, les 12 premiers caractères hexadécimaux en majuscules. La clé est le sel pris comme texte (les octets UTF-8 de sa forme hexadécimale), comme `openssl dgst -sha256 -hmac <sel>`, pas ses octets décodés. L'accusé l'affiche dans une ligne « Référence d'archivage : `<référence>` », sous le titre existant.
 - **Transmission du sel** : variable `ARCHIVE_SALT`, passée par la composition Docker au seul service `archive`, depuis l'environnement du shell, jamais depuis `.env` (que lit aussi le legacy). Elle ne fait pas partie des variables transmises à la couche serveur du candidat (ADR 0004).
 - **Sans `ARCHIVE_SALT`** : le service d'archivage tire son propre sel au démarrage et ne le révèle pas. La pile reste utilisable par `docker compose up` et par `npm test` ; seuls les scénarios de l'accusé échouent hors de `npm run oracle`, ce qui est voulu.
+- **Sel de développement** : `npm run stack:up` tire un sel, démarre la pile avec et l'écrit dans `.dev-archive-salt`, ignoré par Git, que relit `npm test` quand le shell n'a pas d'`ARCHIVE_SALT`. Ce sel est sur le disque en clair : il ne sert jamais à une exécution mesurée, qui tire toujours le sien. Le passer à `ORACLE_SALT` se voit dans le résultat (`saltImposed: true`).
 - **Le service ne renvoie jamais le sel** : ni dans l'accusé, ni dans un refus (`403`), ni dans un `404`, ni dans un en-tête.
 - **L'oracle vérifie la référence, pas l'URL** : le candidat doit passer par sa couche serveur pour garder le jeton, il peut donc relayer ou réafficher l'accusé, mais il ne peut pas calculer la référence.
 
@@ -240,6 +241,7 @@ Format du reporter JSON de Playwright, enrichi par la collecte. Un fichier par e
   - `artifacts` : dossier des bruts de l'exécution, `.oracle-artifacts/<identifiant de l'exécution>`, depuis la racine du dépôt. Les pièces jointes des scénarios y sont citées par des chemins relatifs à ce dossier ; tout autre chemin du résultat est relatif à la racine du dépôt ;
   - `ciRun` : identifiant de l'exécution de CI et rang de l'exécution complète dans le job (1 à 5 pour le job de preuve), présent seulement en CI ;
   - `salt` : ajouté par la collecte, une fois Playwright terminé ;
+  - `saltImposed` : ajouté par la collecte avec le sel ; `true` si le sel a été imposé (`ORACLE_SALT`), donc exécution de diagnostic, `false` s'il a été tiré par l'exécution. Une mesure a toujours `saltImposed: false` ;
   - `summary` : calculé par la collecte : nombre de scénarios, réussis, échoués, non atteints ; taux sur tous les scénarios ; taux sur les scénarios atteints ; scénarios `@clavier` réussis sur leur total.
 - **Par scénario** (résultat Playwright, tags compris), annotations :
   - `mb:reach` = `reached`, posée par l'oracle à la fin des étapes de navigation. Échec sans elle : non atteint ; échec avec elle : échoué. Pour un scénario en navigation alternée (F14), posée à la fin de la dernière ;
@@ -286,7 +288,7 @@ Format du reporter JSON de Playwright, enrichi par la collecte. Un fichier par e
 
 - **Critère de fin** (`docs/PLAN.md`) : 100 % vert sur 5 exécutions consécutives contre le legacy, chacune enregistrée depuis un arbre de travail propre. Preuve :
   - le job de CI de l'oracle d'abord, puis le job de preuve : images construites une seule fois, puis 5 exécutions complètes consécutives sur ces mêmes images, pile redémarrée et nouveau sel tiré entre deux exécutions, sans exécution échouée entre elles ;
-  - leurs 5 résultats JSON, récupérés depuis les artefacts et versionnés, chacun avec son `ciRun` (identifiant de l'exécution de CI et rang, dans la métadonnée et dans le nom du fichier), `worktree: clean`, 38 scénarios réussis et 0 non atteint ;
+  - leurs 5 résultats JSON, récupérés depuis les artefacts et versionnés, chacun avec son `ciRun` (identifiant de l'exécution de CI et rang, dans la métadonnée et dans le nom du fichier), `worktree: clean`, `saltImposed: false`, 38 scénarios réussis et 0 non atteint ;
   - les 5 résultats montrent le même commit, la même version de Node, la même horloge figée et la même empreinte des images `legacy` et `archive`. L'empreinte est identique par construction ; le critère le vérifie ;
   - les 5 sels sont tous différents ;
   - les tests Vitest verts, et la PR qui cite le job de preuve par son lien.

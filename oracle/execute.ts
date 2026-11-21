@@ -38,7 +38,7 @@ export interface ExecuteOracleResult {
 }
 
 export async function executeOracle({ baseUrl = DEFAULT_BASE_URL, salt }: ExecuteOracleOptions = {}): Promise<ExecuteOracleResult> {
-  const prepared = await prepare(baseUrl, salt ?? randomBytes(32).toString("hex"));
+  const prepared = await prepare(baseUrl, salt ?? randomBytes(32).toString("hex"), salt !== undefined);
   const report = await launch(prepared);
   return collectAndWrite(prepared, report);
 }
@@ -60,13 +60,14 @@ interface Environment {
 interface PreparedExecution {
   baseUrl: string;
   salt: string;
+  saltImposed: boolean;
   metadata: Environment;
   outputDir: string;
   reportFile: string;
   startedAt: Date;
 }
 
-async function prepare(baseUrl: string, salt: string): Promise<PreparedExecution> {
+async function prepare(baseUrl: string, salt: string, saltImposed: boolean): Promise<PreparedExecution> {
   const startedAt = new Date();
   // Le sel passe par l'environnement du shell, jamais par .env (que lit aussi le legacy).
   await spawnProcess("docker", ["compose", "up", "--detach", "--force-recreate", "--no-build", "--wait", ...SERVICES], {
@@ -82,6 +83,7 @@ async function prepare(baseUrl: string, salt: string): Promise<PreparedExecution
   return {
     baseUrl,
     salt,
+    saltImposed,
     metadata: { benchCommit, worktree, node: process.version, images, frozenDate: env.FROZEN_DATE ?? null, baseUrl, artifacts },
     outputDir: join(ROOT, artifacts),
     reportFile: join(ROOT, artifacts, "report.json"),
@@ -102,13 +104,13 @@ async function launch({ baseUrl, salt, metadata, outputDir, reportFile }: Prepar
   return readFile(reportFile, "utf8");
 }
 
-async function collectAndWrite({ salt, startedAt, metadata, outputDir }: PreparedExecution, raw: string): Promise<ExecuteOracleResult> {
+async function collectAndWrite({ salt, saltImposed, startedAt, metadata, outputDir }: PreparedExecution, raw: string): Promise<ExecuteOracleResult> {
   // Le sel n'apparaît dans le résultat qu'une fois Playwright terminé.
   if (raw.includes(salt)) throw new Error("The Playwright report contains the salt before collection");
   const report = JSON.parse(raw) as JSONReport;
   const hashes: Record<string, string> = {};
   for (const path of artifactPaths(report)) hashes[path] = await sha256(path);
-  const { report: result, summary } = collect(report, { hashes, salt, root: ROOT, artifactsDir: outputDir });
+  const { report: result, summary } = collect(report, { hashes, salt, saltImposed, root: ROOT, artifactsDir: outputDir });
   await mkdir(RESULTS_DIR, { recursive: true });
   const resultFile = join(RESULTS_DIR, `${timestamp(startedAt)}-${metadata.benchCommit.slice(0, 7)}.json`);
   await writeFile(resultFile, `${JSON.stringify(result, null, 2)}\n`);

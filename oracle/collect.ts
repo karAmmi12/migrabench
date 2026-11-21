@@ -43,6 +43,8 @@ export interface CollectInput {
   // Empreinte SHA-256 (hexadécimal) de chaque fichier cité par artifactPaths.
   hashes: Readonly<Record<string, string>>;
   salt: string;
+  // Vrai si le sel a été imposé (ORACLE_SALT) : exécution de diagnostic, pas une mesure.
+  saltImposed: boolean;
   // Racine du dépôt, à laquelle les chemins du résultat sont rapportés.
   root: string;
   // Dossier des bruts de l'exécution (.oracle-artifacts/<identifiant>), auquel
@@ -71,7 +73,7 @@ export function artifactPaths(report: JSONReport): string[] {
   );
 }
 
-export function collect(report: JSONReport, { hashes, salt, root, artifactsDir }: CollectInput): { report: JSONReport; summary: OracleSummary } {
+export function collect(report: JSONReport, { hashes, salt, saltImposed, root, artifactsDir }: CollectInput): { report: JSONReport; summary: OracleSummary } {
   const result = structuredClone(report);
   const statuses: ScenarioOutcome[] = [];
 
@@ -97,7 +99,7 @@ export function collect(report: JSONReport, { hashes, salt, root, artifactsDir }
   }
 
   const summary = summarize(statuses);
-  result.config.metadata = { ...result.config.metadata, salt, summary };
+  result.config.metadata = { ...result.config.metadata, salt, saltImposed, summary };
   const relativeResult = relativizePaths(result, root) as JSONReport;
   const serialized = JSON.stringify(relativeResult);
   const home = HOME_PREFIXES.find((prefix) => serialized.includes(prefix));

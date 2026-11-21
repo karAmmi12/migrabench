@@ -25,6 +25,15 @@ jobs:
       - name: Installation des dépendances
         run: npm ci
 
+      # Un sel par job pour la référence d'archivage (#33) : la pile le passe au
+      # seul service d'archivage, les tests du seam A le lisent pour calculer
+      # la référence attendue. Jamais dans .env, que lit aussi le legacy.
+      - name: Tirage du sel d'archivage
+        run: |
+          salt="$(openssl rand -hex 32)"
+          echo "::add-mask::$salt"
+          echo "ARCHIVE_SALT=$salt" >> "$GITHUB_ENV"
+
       # --wait attend que les healthchecks du legacy et du service
       # d'archivage passent ; il échoue si l'un d'eux ne passe pas.
       - name: Construction et démarrage de la pile
