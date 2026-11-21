@@ -1,11 +1,14 @@
 // Outils partagés des scénarios de l'oracle (spec de l'étape 2, « Modules ») :
 // fixture par rôle avec un HAR par scénario, navigation depuis BASE_URL (vers
 // la recherche et vers la fiche), relecture, lecture des numéros affichés,
-// dossiers partagés, statut atteint, mesure de `defaultPrevented`.
+// dossiers partagés, statut atteint. La mesure de `defaultPrevented` est dans
+// default-prevented.ts.
 import { readFileSync } from "node:fs";
 import { test as base, expect, type Locator, type Page } from "@playwright/test";
 import { parseUsersWithoutUnknown, type Role, UNKNOWN_USER } from "../scripts/users.ts";
 import { REACH_ANNOTATION, REREAD_ANNOTATION } from "./collect.ts";
+
+export { pressAndReadDefaultPrevented } from "./default-prevented.ts";
 
 export { expect } from "@playwright/test";
 
@@ -145,45 +148,4 @@ export async function reread(
     test.info().annotations.push({ type: REREAD_ANNOTATION, description: String(REREAD.attempts) });
     throw lastError;
   });
-}
-
-// `defaultPrevented` d'un raccourci : écouteur keydown en capture sur window,
-// lu une fois la propagation terminée (tâche suivante), et remonté à Node par
-// une fonction exposée, pour survivre à un envoi de formulaire qui quitte la page.
-let nextBindingId = 0;
-
-export async function pressAndReadDefaultPrevented(page: Page, keys: string): Promise<boolean> {
-  const binding = `__mbDefaultPrevented${nextBindingId++}`;
-  let report: (prevented: boolean) => void = () => {};
-  const reported = new Promise<boolean>((resolve) => {
-    report = resolve;
-  });
-  await page.exposeFunction(binding, (prevented: boolean) => report(prevented));
-  // Le keydown lu est celui de la touche finale : ceux des touches de
-  // modification (Control pour Control+s) le précèdent et sont ignorés.
-  await page.evaluate((name) => {
-    const modifiers = ["Control", "Shift", "Alt", "Meta", "AltGraph"];
-    const listener = (event: KeyboardEvent): void => {
-      if (modifiers.includes(event.key)) return;
-      window.removeEventListener("keydown", listener, { capture: true });
-      setTimeout(() => {
-        (window as unknown as Record<string, (prevented: boolean) => void>)[name]?.(event.defaultPrevented);
-      }, 0);
-    };
-    window.addEventListener("keydown", listener, { capture: true });
-  }, binding);
-  await page.keyboard.press(keys);
-  return withTimeout(reported, 5_000, `no keydown read after ${keys}`);
-}
-
-async function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
-  let timer: NodeJS.Timeout | undefined;
-  const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error(message)), ms);
-  });
-  try {
-    return await Promise.race([promise, timeout]);
-  } finally {
-    clearTimeout(timer);
-  }
 }
