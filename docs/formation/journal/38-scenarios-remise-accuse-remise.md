@@ -206,10 +206,17 @@ Les tests Vitest ont aussi été vus rouges : d'abord sans module
 une valeur ajoutée au type `receipt-tab` fait échouer le typecheck :
 `TS2578: Unused '@ts-expect-error' directive`.
 
-> À vérifier après l'exécution de la CI de la PR : le lien de l'exécution
-> « Tests du banc », son head SHA, sa durée, et les lignes
-> `tests/oracle/receipt.test.ts` et `tests/oracle/variants.test.ts` de la
-> sortie, avec le total des tests.
+En CI, sur le commit `352e6f9` de la PR #45, « Tests du banc », exécution
+[44957703152](https://github.com/karAmmi12/migrabench/actions/runs/44957703152),
+`success` en 141 s (22:37:21Z → 22:39:42Z) :
+
+```text
+Chrome Headless Shell 159.0.8154.6 (playwright chromium-headless-shell v1255) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1255
+ ✓ tests/oracle/receipt.test.ts (4 tests) 2325ms
+ ✓ tests/oracle/variants.test.ts (8 tests) 4ms
+ Test Files  25 passed (25)
+      Tests  155 passed (155)
+```
 
 ## Pour aller plus loin
 
