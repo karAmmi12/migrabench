@@ -77,6 +77,15 @@ de `defaultPrevented`.
 - **`.github/workflows/tests.yml`** : nouvelle étape
   `npx playwright install --with-deps chromium`, parce que ce test lance
   Chromium.
+- **`oracle/browser-versions.ts`** : demandé par l'humain après l'ouverture
+  de la PR. Il relève la version du Chromium lancé comme le lance l'oracle
+  (`browser.version()`) et celle de `@playwright/test`. `executeOracle` les
+  ajoute aux métadonnées (`chromium`, `playwright`). Le test
+  `tests/oracle/browser-versions.test.ts` a d'abord été rouge (module
+  absent). Il compare ces versions au manifeste `playwright-core/browsers.json`
+  (`chromium-headless-shell`) et à `package-lock.json`. Observé dans une
+  exécution sur l'arbre modifié, non versionnée : `chromium: 159.0.8154.6`,
+  `playwright: 1.65.1`.
 - **`docs/specs/02-oracle.md`** : la borne de `REREAD`, la limite de F13 et
   l'échec explicite de la lecture différée.
 - **`results/oracle/20261121T192342Z-b3a5f91.json`** : le résultat de

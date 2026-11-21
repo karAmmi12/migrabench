@@ -29,7 +29,7 @@ Un oracle Playwright (Chromium seul) qui tourne tel quel contre le legacy et con
 3. En tant que mainteneur du banc, je veux qu'un nouveau sel soit tiré à chaque exécution complète, pour qu'un accusé de remise fabriqué ne puisse pas porter la bonne référence d'archivage.
 4. En tant que mainteneur du banc, je veux que le sel ne soit transmis qu'au service d'archivage et à l'oracle, pour que ni le legacy ni la couche serveur du candidat ne puissent calculer la référence.
 5. En tant que mainteneur du banc, je veux que le résultat JSON enregistre le commit du banc et l'état de l'arbre de travail (propre ou modifié), pour que chaque preuve cite l'état exact où elle a été obtenue.
-6. En tant que mainteneur du banc, je veux que le résultat enregistre la version de Node, l'empreinte des images Docker et l'horloge figée, pour pouvoir rejouer une exécution dans le même environnement.
+6. En tant que mainteneur du banc, je veux que le résultat enregistre la version de Node, celles de Chromium et de `@playwright/test`, l'empreinte des images Docker et l'horloge figée, pour pouvoir rejouer une exécution dans le même environnement.
 7. En tant que mainteneur du banc, je veux que le sel soit enregistré dans le résultat à la fin de l'exécution seulement, pour pouvoir rejouer une exécution en diagnostic sans exposer le sel pendant la mesure.
 8. En tant que mainteneur du banc, je veux que seuls les JSON de résultat soient versionnés, et que traces et HAR soient cités par leur SHA-256, pour que le dépôt ne grossisse pas sans limite (ADR 0005).
 9. En tant que mainteneur du banc, je veux que l'oracle tourne en CI avec ses traces, HAR et JSON gardés 7 jours en artefacts, pour relire un échec sans le reproduire.
@@ -235,6 +235,8 @@ Format du reporter JSON de Playwright, enrichi par la collecte. Un fichier par e
   - `benchCommit` : commit du banc ;
   - `worktree` : `clean` ou `dirty` ;
   - `node` : version de Node ;
+  - `chromium` : version du Chromium lancé par l'oracle (sans canal, en headless), relevée par `browser.version()` ;
+  - `playwright` : version de `@playwright/test` installée ;
   - `images` : empreinte des images Docker `legacy` et `archive` ;
   - `frozenDate` : horloge figée (`FROZEN_DATE`) ;
   - `baseUrl` ;
