@@ -246,6 +246,17 @@ async function expectLocked(input: Locator, value: string): Promise<void> {
   await expect(input).not.toBeEditable();
 }
 
+// Une frappe sur le champ verrouillé ne change pas la valeur affichée : le
+// verrou doit tenir au clavier, pas seulement selon l'état « éditable » de
+// Playwright (un script qui modifie la valeur d'un champ `readonly` échoue ici).
+async function expectKeystrokeIgnored(page: Page, input: Locator, value: string): Promise<void> {
+  // Un champ `disabled` ne prend pas le focus : sans ce blur, la frappe irait
+  // au champ qui l'a (« Objet » sur F11), puis serait enregistrée.
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  await input.press("x");
+  await expect(input).toHaveValue(value);
+}
+
 async function recordLocks(inputs: Locator[]): Promise<void> {
   const locks = new Set<Lock>();
   for (const input of inputs) {
@@ -263,11 +274,7 @@ test("sheet-lock-en-instruction", { tag: "@fiche" }, async ({ page }) => {
   await test.step("verification: Demandeur locked, a keystroke does not change it", async () => {
     const input = field(page, "Demandeur");
     await expectLocked(input, applicant);
-    // Un champ `disabled` ne prend pas le focus : sans ce blur, la frappe
-    // irait au champ qui l'a (« Objet »), puis serait enregistrée.
-    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
-    await input.press("x");
-    await expect(input).toHaveValue(applicant);
+    await expectKeystrokeIgnored(page, input, applicant);
   });
   await test.step("verification: Objet editable, Enregistrer present", async () => {
     await expect(field(page, "Objet")).toBeEditable();
@@ -292,6 +299,10 @@ test("sheet-lock-remis", { tag: "@fiche" }, async ({ page }) => {
     await expectLocked(field(page, "Demandeur"), applicant);
     await expectLocked(field(page, "Objet"), subject);
     await expect(button(page, "Enregistrer")).toHaveCount(0);
+  });
+  await test.step("verification: a keystroke changes neither Demandeur nor Objet", async () => {
+    await expectKeystrokeIgnored(page, field(page, "Demandeur"), applicant);
+    await expectKeystrokeIgnored(page, field(page, "Objet"), subject);
   });
   await recordLocks([field(page, "Demandeur"), field(page, "Objet")]);
   await reread(page, "D-0110", async (sheet, expectOnce) => {

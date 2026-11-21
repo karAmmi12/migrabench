@@ -193,7 +193,7 @@ Identifiant en anglais (titre du `test()` et nom du propriétaire `scenario:` po
 | F9 | `sheet-subject-required` | `@fiche` | `D-0107` réservé | fiche | Objet vidé, « Enregistrer » → « L'objet est obligatoire. » ; saisie gardée ; relecture : rien n'a changé |
 | F10 | `sheet-subject-maxlength` | `@fiche` | `D-0108` réservé | fiche | comme F8 avec 201 caractères dans Objet et « L'objet doit faire 200 caractères au plus. » |
 | F11 | `sheet-lock-en-instruction` | `@fiche` | `D-0109` réservé, `EN_INSTRUCTION` | fiche | « Demandeur » : libellé présent, valeur affichée, non modifiable ; une frappe ne le change pas ; « Objet » modifiable ; « Enregistrer » présent ; après « Enregistrer », relecture : Demandeur inchangé. Variante `lock` |
-| F12 | `sheet-lock-remis` | `@fiche` | `D-0110` réservé, `REMIS` | fiche | « Demandeur » et « Objet » : libellés présents, valeurs affichées, non modifiables ; aucun bouton « Enregistrer » ; relecture : valeurs inchangées. Variante `lock` |
+| F12 | `sheet-lock-remis` | `@fiche` | `D-0110` réservé, `REMIS` | fiche | « Demandeur » et « Objet » : libellés présents, valeurs affichées, non modifiables ; une frappe ne change aucun des deux ; aucun bouton « Enregistrer » ; relecture : valeurs inchangées. Variante `lock` |
 | F13 | `sheet-ctrl-s-remis` | `@fiche @clavier` | `D-0116` réservé (nouveau), `REMIS` | fiche | `Ctrl+S` → `defaultPrevented` vrai ; relecture : valeurs inchangées. La mesure repose sur `defaultPrevented` : la relecture ne peut pas échouer, car l'API interne refuse (`409`) toute modification d'un dossier `REMIS` et la couche serveur du candidat passe par elle (ADR 0003) |
 | F14 | `sheet-remise-link` | `@fiche` | `D-0002` (`BROUILLON`), `D-0003` (`EN_INSTRUCTION`), `D-0001` (`REMIS`), partagés | fiche de chacun, en alternant navigation et vérification | lien « Remise » absent sur `D-0002`, présent sur `D-0003` et `D-0001` |
 
@@ -232,7 +232,7 @@ Valeurs relevées sur le legacy (voir l'en-tête) : R2 à R11, les messages et v
 | `maxlength` | `input-blocked`, `message` | F8, F10 |
 | `receipt-tab` | `same-tab`, `new-tab` | M5, M6 |
 
-La variante est lue (attribut, onglet) pour être enregistrée, jamais pour juger : le jugement reste sur le comportement. Le non-modifiable s'appuie sur l'état « éditable » de Playwright, qui couvre les trois moyens du verrou.
+La variante est lue (attribut, onglet) pour être enregistrée, jamais pour juger : le jugement reste sur le comportement. Le non-modifiable s'appuie sur l'état « éditable » de Playwright et, pour F11 et F12, sur une frappe qui ne doit pas changer la valeur affichée : un verrou qui ne tient pas au clavier échoue, quel que soit son moyen. Sur un champ natif (`<input>`), Playwright ne lit que `readonly` et `disabled` : un `aria-readonly` seul y laisse le champ éditable, et le scénario échoue (constaté sur un candidat factice, #36).
 
 ### Résultat JSON
 
