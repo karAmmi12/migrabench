@@ -221,6 +221,8 @@ Valeurs relevées sur le legacy (voir l'en-tête) : R2 à R11, les messages et v
 ### Limites connues des scénarios
 
 - **M4 ne reconnaît que les boîtes de dialogue du navigateur** (`alert`, `confirm`, `prompt`). Elles sont toutes refusées, et toute boîte refusée fait échouer M4 en la nommant (`Dialog refused: …`) : demander une confirmation, ou afficher une boîte même de simple information, est un changement d'usage. Une confirmation affichée dans la page (une fenêtre modale en HTML, un second bouton à cliquer) n'est pas reconnue comme une boîte de dialogue : M4 échoue alors aussi, puisque « Dossier remis le 15/11/2025 » n'apparaît pas, mais avec un message générique (texte attendu absent), qui ne dit pas qu'une confirmation a été demandée.
+- **M5 et M6 ne guettent un téléchargement que jusqu'au chargement de l'accusé.** Un téléchargement lancé après l'événement `load` de la page (par un script, par exemple) n'est pas reconnu comme tel. Le scénario échoue quand même si l'accusé n'est pas affiché comme une page, mais avec un message générique (texte attendu absent) au lieu de `Receipt downloaded as an attachment (…)`.
+- **Pièce jointe ouverte dans un nouvel onglet : le message dépend de l'ordre des événements.** Chromium ouvre l'onglet puis le ferme, et signale le téléchargement sur la page du lien. Si l'ouverture de l'onglet arrive avant le téléchargement et que l'onglet se ferme avant lui, M5 et M6 échouent sur l'onglet fermé (« Target closed ») au lieu de nommer le téléchargement. Le scénario échoue quand même, seul le message est moins précis.
 
 ### Variantes observées
 
