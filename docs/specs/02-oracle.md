@@ -128,7 +128,7 @@ Un oracle Playwright (Chromium seul) qui tourne tel quel contre le legacy et con
 - **Collecte (fonction pure)** : prend le JSON de Playwright et les empreintes, rend le résultat enrichi. C'est elle que testent les tests Vitest.
 - **Service d'archivage** (ticket de l'étape, prévu par `TRAPS.md`) : ajoute la référence d'archivage à l'accusé.
 - **Jeu de données** : ajout du dossier réservé `D-0116`, `REMIS` avec une date de remise, propriétaire `scenario:sheet-ctrl-s-remis`. Les dossiers partagés restent `D-0001` à `D-0030`. Aucun piège n'est touché.
-- **CI** : un workflow qui lance `npm run oracle` sur la pile Docker, Chromium seul, et garde traces, HAR et JSON 7 jours en artefacts. Actions épinglées par SHA.
+- **CI** : un workflow qui lance `npm run oracle` sur la pile Docker, Chromium seul, et garde traces, HAR et JSON 7 jours en artefacts. Actions épinglées par SHA. C'est dans ce job que sont faites les exécutions de preuve du critère de fin (voir « Notes »).
 - **Dépendance ajoutée** : `@playwright/test`, à justifier dans la PR (l'oracle est défini comme des scénarios Playwright par `PROTOCOL.md`).
 
 ### Référence d'archivage et sel
@@ -144,7 +144,7 @@ Un oracle Playwright (Chromium seul) qui tourne tel quel contre le legacy et con
 - **Vers la recherche** : ouvrir `BASE_URL`. Atteint quand le champ de libellé « Numéro » est visible.
 - **Vers la fiche de `D-xxxx`** : recherche, saisir `D-xxxx` dans « Numéro », cliquer « Rechercher », cliquer le lien de nom `D-xxxx`. Atteint quand le champ « Objet » est visible.
 - **Vers la remise de `D-xxxx`** : fiche, cliquer le lien « Remise ». Atteint quand l'objet du dossier est affiché en texte (récapitulatif).
-- **Relecture** : nouvelle navigation vers la fiche dans une nouvelle page du même contexte, avec une assertion à réessai borné. Pas de `page.reload()` : l'ADR 0006 n'impose aucune route rechargeable.
+- **Relecture** : nouvelle navigation vers la fiche dans une nouvelle page du même contexte, avec une assertion réessayée un nombre fixe de fois (une seule constante, avec son intervalle). Le scénario enregistre combien d'essais ont été nécessaires (annotation `mb:reread-attempts`). Ce réessai n'est jamais une relance du scénario. Pas de `page.reload()` : l'ADR 0006 n'impose aucune route rechargeable.
 - **Numéros affichés** : la suite des liens dont le nom est exactement un numéro (`D-` suivi de 4 chiffres), dans l'ordre du document. Un scénario de recherche filtre cette suite sur les dossiers partagés et la compare à la liste attendue : égalité exacte, donc ordre relatif et absence du complément vérifiés d'un coup.
 - **Refus d'une saisie de recherche** : le message est affiché et aucun numéro de dossier partagé n'est affiché.
 
@@ -236,12 +236,14 @@ Format du reporter JSON de Playwright, enrichi par la collecte. Un fichier par e
   - `images` : empreinte des images Docker `legacy` et `archive` ;
   - `frozenDate` : horloge figée (`FROZEN_DATE`) ;
   - `baseUrl` ;
+  - `ciRun` : identifiant de l'exécution de CI, présent seulement quand l'exécution tourne en CI ;
   - `salt` : ajouté par la collecte, une fois Playwright terminé ;
   - `summary` : calculé par la collecte : nombre de scénarios, réussis, échoués, non atteints ; taux sur tous les scénarios ; taux sur les scénarios atteints ; scénarios `@clavier` réussis sur leur total.
 - **Par scénario** (résultat Playwright, tags compris), annotations :
   - `mb:reach` = `reached`, posée par l'oracle à la fin des étapes de navigation. Échec sans elle : non atteint ; échec avec elle : échoué. Pour un scénario en navigation alternée (F14), posée à la fin de la dernière ;
   - `mb:variant` = `<clé>=<valeur>`, une par variante observée ;
   - `mb:skipped-step` = nom de l'étape sautée et variante qui la justifie ;
+  - `mb:reread-attempts` = nombre d'essais qu'a demandés la relecture, une par relecture ;
   - `mb:har` et `mb:trace` = `sha256:<hex>`, ajoutées par la collecte.
 
 Écart signalé avec `docs/PLAN.md` : le plan fait passer le sel « par des annotations ». Une annotation est propre à un scénario, le sel est propre à l'exécution : la spec le place dans les métadonnées, écrites à la fin, ce qui respecte l'intention (sel enregistré à la fin de l'exécution).
@@ -256,7 +258,7 @@ Format du reporter JSON de Playwright, enrichi par la collecte. Un fichier par e
 ## Décisions de test
 
 - **Ce qui fait un bon test ici** : il observe un comportement de l'extérieur. Les tests Vitest de la collecte lui donnent un JSON Playwright et des empreintes, et lisent le résultat ; ils ne regardent pas ses fonctions internes. Les tests du service d'archivage passent par HTTP.
-- **Seam 1, le plus haut : `npm run oracle` contre le legacy.** C'est le critère de fin : 5 exécutions consécutives, 38 scénarios réussis, aucun non atteint, chacune depuis un arbre de travail propre et versionnée.
+- **Seam 1, le plus haut : `npm run oracle` contre le legacy.** C'est le critère de fin : 5 exécutions consécutives en CI, 38 scénarios réussis, aucun non atteint, chacune depuis un arbre de travail propre et versionnée.
 - **Seam 2 : Vitest sur la collecte**, avec des JSON Playwright fabriqués, en TDD (rouge d'abord) :
   - échec sans `mb:reach` → non atteint ; échec avec → échoué ; réussi → réussi ;
   - les deux taux et le compte `@clavier` sur un jeu connu, cas zéro scénario atteint compris ;
@@ -280,6 +282,10 @@ Format du reporter JSON de Playwright, enrichi par la collecte. Un fichier par e
 
 ## Notes
 
-- **Critère de fin** (`docs/PLAN.md`) : 100 % vert sur 5 exécutions consécutives contre le legacy, chacune enregistrée depuis un arbre de travail propre. Preuve : 5 résultats JSON versionnés, chacun avec `worktree: clean`, 38 scénarios réussis et 0 non atteint, plus les tests Vitest verts et le job de CI de l'oracle vert.
+- **Critère de fin** (`docs/PLAN.md`) : 100 % vert sur 5 exécutions consécutives contre le legacy, chacune enregistrée depuis un arbre de travail propre. Preuve :
+  - le job de CI de l'oracle d'abord, puis les 5 exécutions de preuve faites dans ce job, sur le même commit, dans un environnement identique pour toutes, sans exécution échouée entre elles ;
+  - leurs 5 résultats JSON, récupérés depuis les artefacts et versionnés, chacun avec l'identifiant de son exécution de CI (métadonnée `ciRun` et nom du fichier), `worktree: clean`, 38 scénarios réussis et 0 non atteint ;
+  - les 5 résultats montrent le même commit, la même version de Node et la même horloge figée. Les empreintes des images sont enregistrées ; si elles diffèrent d'une exécution à l'autre (build Docker non reproductible), le constat est noté dans la PR, pas masqué ;
+  - les tests Vitest verts, et la PR qui cite les 5 exécutions de CI par leur lien.
 - La règle 6 (le legacy déclaré comme candidat obtient 100 %) se vérifie à l'étape 3 ; ce critère de fin en est la condition.
 - Suite prévue : `/to-tickets` sur cette spec. Premier ticket naturel : la référence d'archivage et `D-0116`, qui ne dépendent pas de Playwright.
