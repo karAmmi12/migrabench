@@ -145,10 +145,11 @@ Un oracle Playwright (Chromium seul) qui tourne tel quel contre le legacy et con
 - **Vers la recherche** : ouvrir `BASE_URL`. Atteint quand le champ de libellé « Numéro » est visible.
 - **Vers la fiche de `D-xxxx`** : recherche, saisir `D-xxxx` dans « Numéro », cliquer « Rechercher », cliquer le lien de nom `D-xxxx`. Atteint quand le champ « Objet » est visible.
 - **Chargement sans identifiants valides** (R17, R18) : ouvrir `BASE_URL`. Atteint dès qu'une réponse HTTP arrive, quel que soit son statut. Une erreur de connexion rend le scénario non atteint : elle ne doit pas se confondre avec un front qui accepte l'accès sans identifiants.
-- **Vers la remise de `D-xxxx`** : fiche, cliquer le lien « Remise ». Atteint quand l'objet du dossier est affiché en texte (récapitulatif).
+- **Vers la remise de `D-xxxx`** : fiche, cliquer le lien « Remise ». Atteint quand l'objet du dossier est affiché en texte (récapitulatif), au sens de la règle de présence ci-dessous.
 - **Relecture** : nouvelle navigation vers la fiche dans une nouvelle page du même contexte, avec une assertion réessayée un nombre fixe de fois (une seule constante, avec son intervalle). La constante `REREAD` vaut 5 essais de 500 ms : l'intervalle borne l'attente de l'assertion à chaque essai, il n'est pas une pause entre deux essais. L'attente des assertions vaut donc 5 × 500 ms au plus, en plus des navigations. Le scénario enregistre combien d'essais ont été nécessaires (annotation `mb:reread-attempts`). Ce réessai n'est jamais une relance du scénario. Pas de `page.reload()` : l'ADR 0006 n'impose aucune route rechargeable.
 - **Numéros affichés** : la suite des liens dont le nom est exactement un numéro (`D-` suivi de 4 chiffres), dans l'ordre du document. Un scénario de recherche filtre cette suite sur les dossiers partagés et la compare à la liste attendue : égalité exacte, donc ordre relatif et absence du complément vérifiés d'un coup.
 - **Refus d'une saisie de recherche** : le message est affiché et aucun numéro de dossier partagé n'est affiché.
+- **Présence et absence d'un texte** (règle de toute la spec) : une vérification de présence accepte au moins une occurrence exacte affichée du texte (ou du nom accessible, pour un lien) ; un candidat qui répète un texte, par exemple un numéro dans un fil d'Ariane, n'est pas jugé infidèle pour autant. Une vérification d'absence n'en accepte aucune. Appliquée à F3 et à M1 à M4.
 
 ### Scénarios
 
@@ -216,6 +217,10 @@ Valeurs relevées sur le legacy (voir l'en-tête) : R2 à R11, les messages et v
 - **« Ce dossier ne peut pas être remis »** : l'écran de remise d'un dossier `BROUILLON` affiche ce message, mais aucun scénario ne le vérifie. Raison : il est inaccessible par navigation. La fiche d'un `BROUILLON` n'a pas de lien « Remise » (vérifié par F14), et l'oracle n'atteint un écran qu'en cliquant depuis `BASE_URL` (ADR 0006).
 - **Ce qui reste garanti** : la règle métier derrière le message ne dépend pas de l'écran. L'API interne refuse la remise d'un `BROUILLON` (`409`, le dossier reste `BROUILLON`), et `RemiseAction` aussi. Un test du Seam A le vérifie déjà. Comme la couche serveur du candidat passe par l'API interne (ADR 0003), elle ne peut pas affaiblir ce refus.
 - Le comportement est inscrit dans les limites connues de `PROTOCOL.md`.
+
+### Limites connues des scénarios
+
+- **M4 ne reconnaît que les boîtes de dialogue du navigateur** (`alert`, `confirm`, `prompt`). Elles sont toutes refusées, et toute boîte refusée fait échouer M4 en la nommant (`Dialog refused: …`) : demander une confirmation, ou afficher une boîte même de simple information, est un changement d'usage. Une confirmation affichée dans la page (une fenêtre modale en HTML, un second bouton à cliquer) n'est pas reconnue comme une boîte de dialogue : M4 échoue alors aussi, puisque « Dossier remis le 15/11/2025 » n'apparaît pas, mais avec un message générique (texte attendu absent), qui ne dit pas qu'une confirmation a été demandée.
 
 ### Variantes observées
 

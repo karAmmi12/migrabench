@@ -1,20 +1,18 @@
 // Scénarios @fiche de l'oracle (spec de l'étape 2, tableau « Fiche ») :
 // lecture, enregistrement et Ctrl+S. Valeurs attendues relevées sur le legacy.
-import type { Page } from "@playwright/test";
 import {
+  atLeastOne,
   button,
+  exactText,
   expect,
   field,
   markReached,
   openSheet,
   pressAndReadDefaultPrevented,
+  remiseLink,
   reread,
   test,
 } from "../support.ts";
-
-function remiseLink(page: Page) {
-  return page.getByRole("link", { name: "Remise", exact: true });
-}
 
 test("sheet-initial-focus", { tag: ["@fiche", "@clavier"] }, async ({ page }) => {
   await openSheet(page, "D-0002");
@@ -44,9 +42,9 @@ test("sheet-content", { tag: "@fiche" }, async ({ page }) => {
   markReached();
 
   await test.step("verification: number, status, filing date, applicant, subject", async () => {
-    await expect(page.getByText("D-0006", { exact: true })).toBeVisible();
-    await expect(page.getByText("En instruction", { exact: true })).toBeVisible();
-    await expect(page.getByText("22/07/2024", { exact: true })).toBeVisible();
+    await expect(atLeastOne(exactText(page, "D-0006"))).toBeVisible();
+    await expect(atLeastOne(exactText(page, "En instruction"))).toBeVisible();
+    await expect(atLeastOne(exactText(page, "22/07/2024"))).toBeVisible();
     await expect(field(page, "Demandeur")).toHaveValue('Société "Bâtir Ensemble"');
     await expect(field(page, "Objet")).toHaveValue("Permis d'aménager d'un lotissement");
   });
