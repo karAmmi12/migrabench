@@ -87,8 +87,8 @@ réutilisent ce socle.
 - **`tests/oracle/`** : tests Vitest de la collecte et de l'état de l'arbre.
 - **`.gitignore`** : `.oracle-artifacts/`, vérifié par
   `tests/oracle/artifacts-ignored.test.ts` (`git check-ignore`).
-- **`results/oracle/20261121T163457Z-886692d.json`** : le résultat
-  versionné, obtenu au commit `886692d`, arbre propre.
+- **`results/oracle/20261121T164222Z-6c34da6.json`** : le résultat
+  versionné, obtenu au commit `6c34da6`, arbre propre.
 - **`package.json`** : `@playwright/test` (1.65.1) et le script `oracle`.
 - **`README.md`** et **`docs/specs/02-oracle.md`** : section « Lancer
   l'oracle » ; dans la spec, `executeOracle` et la navigation de R17 et R18.
@@ -127,8 +127,12 @@ réutilisent ce socle.
 - **Chemins relatifs à la racine du dépôt** (demande de l'humain) : le
   résultat versionné contenait 8 lignes avec un chemin `/Users/…`. La collecte rapporte
   les champs de chemin à la racine, retire la racine des textes (messages,
-  piles d'appels), et refuse d'écrire un résultat qui contient encore
-  `/Users/` ou `/home/`.
+  piles d'appels), et réduit au seul nom du fichier tout chemin hors du
+  dépôt (`node` pour `config.argv[0]`). Elle refuse d'écrire un résultat qui
+  contient encore `/Users/`, `/home/` ou un chemin qui remonte au-dessus de
+  la racine (`../`). Écarté : garder un chemin relatif hors du dépôt
+  (`../../../../.nvm/versions/node/…`), qui dévoilait la machine et aurait
+  changé en CI.
 - **Bruts dans `.oracle-artifacts/<identifiant de l'exécution>/`**
   (demande de l'humain) : traces et HAR sont écrits dans ce dossier du
   projet, ignoré par Git. Le résultat le donne dans la métadonnée
@@ -175,12 +179,14 @@ réutilisent ce socle.
   `../../../../../../var/folders/qf/…/T/migrabench-oracle/…`. Cause : les
   bruts étaient écrits dans le dossier temporaire du système, hors du
   dépôt. Résolution : `.oracle-artifacts/`, voir les choix ; ce résultat
-  est remplacé par celui de `886692d`.
+  est remplacé, en dernier lieu par celui de `6c34da6`.
 - **La garde des chemins s'est déclenchée sur une vraie exécution.**
   Symptôme : « The oracle result would contain a home directory path
   (/Users/) ». Cause : `config.argv[0]`, le binaire de Node sous `~/.nvm`,
   hors du dépôt et hors des champs de chemin connus. Résolution : `argv`
-  ajouté aux champs de chemin, avec le cas dans le test.
+  ajouté aux champs de chemin, avec le cas dans le test. Le résultat de
+  `886692d` le citait encore par `../../../../.nvm/versions/node/v22.23.5/bin/node` ;
+  il est désormais réduit à `node`.
 - **R17 « échoué » contre une `BASE_URL` injoignable.** Symptôme : contre
   `http://localhost:8099`, R2 était « non atteint » mais R17 « échoué ».
   Cause : `mb:reach` posé avant le chargement. Résolution : voir les choix.
@@ -203,13 +209,13 @@ pas être versionné.
 npx vitest run tests/oracle
 ```
 
-Attendu : `Tests  25 passed (25)`.
+Attendu : `Tests  27 passed (27)`.
 
 ```sh
 npm test && npm run typecheck
 ```
 
-Attendu : `Tests  107 passed (107)`, puis `tsc --noEmit` sans erreur.
+Attendu : `Tests  109 passed (109)`, puis `tsc --noEmit` sans erreur.
 
 ```sh
 npm run oracle; echo "exit=$?"
@@ -234,11 +240,11 @@ Attendu : `net::ERR_CONNECTION_REFUSED` pour les deux scénarios, puis
 Ancien résultat modifié : l'arbre devient « modifié ».
 
 ```sh
-echo " " >> results/oracle/20261121T163457Z-886692d.json
+echo " " >> results/oracle/20261121T164222Z-6c34da6.json
 npm run oracle >/dev/null 2>&1
 git ls-files --others results/oracle   # le nouveau résultat
 # lire config.metadata.worktree dans ce fichier
-git checkout -- results/oracle/20261121T163457Z-886692d.json
+git checkout -- results/oracle/20261121T164222Z-6c34da6.json
 ```
 
 Attendu : `dirty` (observé sur le résultat précédent, `…7b91b86.json`).
@@ -248,7 +254,7 @@ Sans la modification, deux exécutions enchaînées enregistrent toutes deux
 Pièces jointes citées relativement au dossier des bruts :
 
 ```sh
-node -e 'const r=require("./results/oracle/20261121T163457Z-886692d.json");
+node -e 'const r=require("./results/oracle/20261121T164222Z-6c34da6.json");
 const walk=s=>[...s.specs,...(s.suites??[]).flatMap(walk)];
 console.log(r.config.metadata.artifacts);
 for (const s of r.suites.flatMap(walk)) console.log(s.title, s.tests[0].results[0].attachments.map(a=>a.path).join(" "))'
@@ -257,13 +263,13 @@ for (const s of r.suites.flatMap(walk)) console.log(s.title, s.tests[0].results[
 Attendu :
 
 ```
-.oracle-artifacts/20261121T163457Z-15c5be91
+.oracle-artifacts/20261121T164222Z-0de04617
 search-empty-form search-search-empty-form-chromium/scenario.har search-search-empty-form-chromium/trace.zip
 auth-no-credentials search-auth-no-credentials-chromium/scenario.har search-auth-no-credentials-chromium/trace.zip
 ```
 
 ```sh
-grep -cE '/Users/|/home/' results/oracle/20261121T163457Z-886692d.json
+grep -cE '/Users/|/home/' results/oracle/20261121T164222Z-6c34da6.json
 ```
 
 Attendu : `0`.
@@ -275,8 +281,5 @@ Attendu : `0`.
 - #34 à #38 : les 36 autres scénarios, sur les outils de `oracle/support.ts`.
 - #39 : le job de CI de l'oracle et la preuve sur 5 exécutions consécutives,
   qui s'appuie sur la règle de l'arbre propre posée ici.
-- Limite connue : `config.argv[0]`, le binaire de Node, reste cité par un
-  chemin relatif hors du dépôt (`../../../../.nvm/versions/node/…` en
-  local) ; il dépend de la machine et changera en CI.
 - ADR 0005 (résultats JSON versionnés, bruts hors du dépôt) et ADR 0006
   (contrat de l'oracle envers le candidat).
