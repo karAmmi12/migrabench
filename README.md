@@ -10,7 +10,7 @@ chiffré : fidélité aux usages, sécurité, accessibilité, performance, coût
 - Plan de construction : [docs/PLAN.md](docs/PLAN.md)
 - Règles de travail avec l'agent : [CLAUDE.md](CLAUDE.md)
 
-État : étape 1 livrée (application legacy de test) ; étape 2 (oracle) à venir.
+État : étape 1 livrée (application legacy de test) ; étape 2 (oracle) en cours.
 
 ## Lancer le legacy
 
@@ -103,3 +103,24 @@ construit la pile, attend ses healthchecks (`--wait`), puis lance `npm test`
 sous le Node de `.nvmrc`. Il publie en artefact le rapport JUnit de Vitest et
 les journaux de la pile (nom et durée de conservation : voir le workflow).
 Le typecheck tourne dans un workflow à part, sans Docker (« Vérification des types »).
+
+## Lancer l'oracle
+
+Prérequis : les images de la pile construites (`docker compose build`), et
+Chromium pour Playwright (`npx playwright install chromium`).
+
+```sh
+npm run oracle                               # contre le legacy
+BASE_URL=http://localhost:3000 npm run oracle  # contre un autre front
+```
+
+Une exécution complète tire un sel, recrée les conteneurs `legacy` et
+`archive` à partir des images existantes (ce qui remet le jeu de données à
+zéro), lance les scénarios de `oracle/scenarios` sous Chromium, en parallèle
+et sans relance, puis écrit un résultat JSON versionné dans
+`results/oracle/`. Traces et HAR restent hors du dépôt, dans le dossier
+temporaire du système ; le résultat les cite par leur SHA-256 (ADR 0005). La
+commande rend un code non nul si un scénario n'a pas réussi.
+`ORACLE_SALT` impose le sel, pour rejouer une exécution en diagnostic
+seulement, jamais pour une mesure. Le format du résultat est décrit dans la
+spec de l'étape 2 (`docs/specs/02-oracle.md`, « Résultat JSON »).
