@@ -261,7 +261,7 @@ describe("oracle collection of paths", () => {
       const config = result.config as unknown as Record<string, unknown>;
       expect(config.configFile).toBe("oracle/playwright.config.ts");
       expect(config.rootDir).toBe("oracle/scenarios");
-      expect(config.argv).toEqual(["../.nvm/versions/node/v22.23.5/bin/node", "node_modules/.bin/playwright", "test"]);
+      expect(config.argv).toEqual(["node", "node_modules/.bin/playwright", "test"]);
       expect(config.projects).toEqual([{ outputDir: `.oracle-artifacts/${EXECUTION}`, testDir: "oracle/scenarios" }]);
       expect(result.suites[0]?.specs[0]?.tests[0]?.results[0]?.errors[0]).toEqual({
         message: "Error: boom\n    at oracle/scenarios/search.spec.ts:12:5",
@@ -269,6 +269,22 @@ describe("oracle collection of paths", () => {
       });
     },
   );
+
+  it("replaces a path outside the repository with the file name alone", () => {
+    const input = machineReport(ROOT);
+    (input.config as unknown as Record<string, unknown>).argv = ["/opt/hostedtoolcache/node/22.23.5/x64/bin/node", "test"];
+
+    const { report: result } = collectOn(ROOT, input);
+
+    expect((result.config as unknown as Record<string, unknown>).argv).toEqual(["node", "test"]);
+  });
+
+  it("fails rather than write a path that climbs above the repository root", () => {
+    const input = machineReport(ROOT);
+    input.suites[0]!.specs[0]!.tests[0]!.results[0]!.stdout = [{ text: "read ../../shared/fixture.json\n" }];
+
+    expect(() => collectOn(ROOT, input)).toThrow("The oracle result would contain a path above the repository root");
+  });
 
   it("still finds the digests of artifacts cited by absolute path", () => {
     const { report: result } = collectOn(ROOT);

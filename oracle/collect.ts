@@ -2,7 +2,7 @@
 // les empreintes de ses HAR et traces et le sel, et rend le résultat enrichi
 // (spec de l'étape 2, « Résultat JSON »). Le résultat est versionné : aucun
 // chemin absolu de la machine qui l'a produit n'y reste.
-import { isAbsolute, relative } from "node:path";
+import { basename, isAbsolute, relative } from "node:path";
 import type { JSONReport, JSONReportSpec, JSONReportSuite, JSONReportTest } from "@playwright/test/reporter";
 
 export const REACH_ANNOTATION = "mb:reach";
@@ -57,6 +57,9 @@ const PATH_KEYS = new Set(["path", "file", "configFile", "rootDir", "outputDir",
 // Débuts de chemin qui trahiraient un répertoire personnel (macOS, Linux).
 const HOME_PREFIXES = ["/Users/", "/home/"];
 
+// Un segment `..` : un chemin qui remonte au-dessus de la racine du dépôt.
+const PARENT_SEGMENT = /(^|[^\w.])\.\.[/\\]/;
+
 // Fichiers à hacher avant la collecte : HAR et trace de chaque scénario.
 export function artifactPaths(report: JSONReport): string[] {
   return scenarios(report).flatMap(({ test }) =>
@@ -99,14 +102,19 @@ export function collect(report: JSONReport, { hashes, salt, root, artifactsDir }
   const serialized = JSON.stringify(relativeResult);
   const home = HOME_PREFIXES.find((prefix) => serialized.includes(prefix));
   if (home !== undefined) throw new Error(`The oracle result would contain a home directory path (${home})`);
+  if (PARENT_SEGMENT.test(serialized)) throw new Error("The oracle result would contain a path above the repository root");
   return { report: relativeResult, summary };
 }
 
-// Un champ de chemin absolu devient relatif à la racine ; dans tout autre texte
+// Un champ de chemin absolu devient relatif à la racine, ou se réduit au nom du
+// fichier s'il est hors du dépôt (binaire de Node, par exemple) ; dans tout autre texte
 // (messages, piles d'appels, sorties), la racine est retirée là où elle apparaît.
 function relativizePaths(value: unknown, root: string, key?: string): unknown {
   if (typeof value === "string") {
-    if (key !== undefined && PATH_KEYS.has(key) && isAbsolute(value)) return relative(root, value) || ".";
+    if (key !== undefined && PATH_KEYS.has(key) && isAbsolute(value)) {
+      const fromRoot = relative(root, value);
+      return fromRoot.startsWith("..") ? basename(value) : fromRoot || ".";
+    }
     return value.replaceAll(`${root}/`, "").replaceAll(root, ".");
   }
   // Les éléments d'une liste héritent de son champ.
