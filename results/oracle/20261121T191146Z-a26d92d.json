@@ -19,18 +19,18 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "benchCommit": "eafa4719349be575d803744e34daad1a37868944",
+      "benchCommit": "a26d92d5d156714a2b6423f82974cb606d2e1177",
       "worktree": "clean",
       "node": "v22.23.5",
       "images": {
-        "legacy": "sha256:e2023ee29eceb6ec30e71c51ffb303746ab3a85244f5f8e3695eed70d68af672",
-        "archive": "sha256:aec815bf423012cd6b645e782c0976751ea6a2323521fd1ab0a2efbdbfcd2548"
+        "legacy": "sha256:3c98c9e0d9633284c860dcc2ef1851b465df5a73d22dba2efd4bb511dc00073b",
+        "archive": "sha256:e15846805f79c04ddb16e22577bb45ef98a435c2db0a8da89856251b5c176210"
       },
       "frozenDate": "2025-11-15",
       "baseUrl": "http://localhost:8080",
-      "artifacts": ".oracle-artifacts/20261121T190855Z-d5e0433d",
+      "artifacts": ".oracle-artifacts/20261121T191146Z-8346e616",
       "actualWorkers": 7,
-      "salt": "590d0aa56447ee606a65c14593aaddcd3fd835a7612965f72d0bb3bb7b634b21",
+      "salt": "6c32e2bbcea344e808f9920ce28aa522a949a5a9316f7eff4260b92fc3304970",
       "saltImposed": false,
       "summary": {
         "scenarios": 10,
@@ -48,20 +48,20 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": ".oracle-artifacts/20261121T190855Z-d5e0433d",
+        "outputDir": ".oracle-artifacts/20261121T191146Z-8346e616",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "benchCommit": "eafa4719349be575d803744e34daad1a37868944",
+          "benchCommit": "a26d92d5d156714a2b6423f82974cb606d2e1177",
           "worktree": "clean",
           "node": "v22.23.5",
           "images": {
-            "legacy": "sha256:e2023ee29eceb6ec30e71c51ffb303746ab3a85244f5f8e3695eed70d68af672",
-            "archive": "sha256:aec815bf423012cd6b645e782c0976751ea6a2323521fd1ab0a2efbdbfcd2548"
+            "legacy": "sha256:3c98c9e0d9633284c860dcc2ef1851b465df5a73d22dba2efd4bb511dc00073b",
+            "archive": "sha256:e15846805f79c04ddb16e22577bb45ef98a435c2db0a8da89856251b5c176210"
           },
           "frozenDate": "2025-11-15",
           "baseUrl": "http://localhost:8080",
-          "artifacts": ".oracle-artifacts/20261121T190855Z-d5e0433d",
+          "artifacts": ".oracle-artifacts/20261121T191146Z-8346e616",
           "actualWorkers": 7
         },
         "id": "chromium",
@@ -78,20 +78,20 @@
       {
         "grep": {},
         "grepInvert": null,
-        "outputDir": ".oracle-artifacts/20261121T190855Z-d5e0433d",
+        "outputDir": ".oracle-artifacts/20261121T191146Z-8346e616",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "benchCommit": "eafa4719349be575d803744e34daad1a37868944",
+          "benchCommit": "a26d92d5d156714a2b6423f82974cb606d2e1177",
           "worktree": "clean",
           "node": "v22.23.5",
           "images": {
-            "legacy": "sha256:e2023ee29eceb6ec30e71c51ffb303746ab3a85244f5f8e3695eed70d68af672",
-            "archive": "sha256:aec815bf423012cd6b645e782c0976751ea6a2323521fd1ab0a2efbdbfcd2548"
+            "legacy": "sha256:3c98c9e0d9633284c860dcc2ef1851b465df5a73d22dba2efd4bb511dc00073b",
+            "archive": "sha256:e15846805f79c04ddb16e22577bb45ef98a435c2db0a8da89856251b5c176210"
           },
           "frozenDate": "2025-11-15",
           "baseUrl": "http://localhost:8080",
-          "artifacts": ".oracle-artifacts/20261121T190855Z-d5e0433d",
+          "artifacts": ".oracle-artifacts/20261121T191146Z-8346e616",
           "actualWorkers": 7
         },
         "name": "chromium",
@@ -131,7 +131,7 @@
       [
         "json",
         {
-          "outputFile": ".oracle-artifacts/20261121T190855Z-d5e0433d/report.json"
+          "outputFile": ".oracle-artifacts/20261121T191146Z-8346e616/report.json"
         }
       ]
     ],
@@ -170,11 +170,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:cc7f5ed95dbd57a48d221cb8af171aeb93f4041ee5837d30b1ada834daf90ee8"
+                  "description": "sha256:dfd33bf4a44f3118f11e3fe07e946cba124c510cdaee2707a002102dd1f1ae08"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:2bbf5d86052dd35d55a9acf95ee7aea6eee12eb09211e545b85367e54d68970c"
+                  "description": "sha256:37b728f05791a1c8609ecc097ad020efc6e62a19f1ddacc9387f8b64f35de182"
                 }
               ],
               "expectedStatus": "passed",
@@ -185,7 +185,7 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 850,
+                  "duration": 802,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -193,14 +193,14 @@
                   "steps": [
                     {
                       "title": "navigation: search",
-                      "duration": 603
+                      "duration": 499
                     },
                     {
                       "title": "verification: every shared dossier, sorted by number",
-                      "duration": 120
+                      "duration": 139
                     }
                   ],
-                  "startTime": "2026-11-21T19:09:00.584Z",
+                  "startTime": "2026-11-21T19:11:51.596Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -253,11 +253,11 @@
                     },
                     {
                       "type": "mb:har",
-                      "description": "sha256:6c3215d066bee6aebcfdb57d0308a3dcf194e46a8da034d4047046bfe13d8a8c"
+                      "description": "sha256:d4df3ee461099c7637c14c33e5816e232dcb51ed56f5a7ee97c1eb01623b4b6e"
                     },
                     {
                       "type": "mb:trace",
-                      "description": "sha256:13f9b8f6ab6681353daed77faf2b11b03d7e2913987192cf6af38caca77b1592"
+                      "description": "sha256:089fc4a57063422f0cbda291ed31a1dbf17ab9afbfc1b47a2c5aae074622aaa4"
                     }
                   ],
                   "expectedStatus": "passed",
@@ -268,7 +268,7 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 226,
+                      "duration": 180,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
@@ -276,14 +276,14 @@
                       "steps": [
                         {
                           "title": "navigation: load BASE_URL",
-                          "duration": 65
+                          "duration": 20
                         },
                         {
                           "title": "verification: refused with 401, search not shown",
-                          "duration": 25
+                          "duration": 19
                         }
                       ],
-                      "startTime": "2026-11-21T19:09:00.582Z",
+                      "startTime": "2026-11-21T19:11:51.598Z",
                       "annotations": [
                         {
                           "type": "mb:reach",
@@ -339,11 +339,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:50e6799a29ea0be95c647f0551a45f8593c608fed58c9b2f6fa248dc87bd1ccd"
+                  "description": "sha256:3b45422a053d99b2e3a10b44da3ee7cf2ed77d40dc9aafe69d3851350ea02289"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:7ec1b49d3c36cd832009eddd5b59fa53d00dbb41038785e4d650fb4025b63098"
+                  "description": "sha256:dc8e73a3f16dd54006fce41e1ee57dedb8eb96bac1d248a06b52c835310e53fb"
                 }
               ],
               "expectedStatus": "passed",
@@ -354,7 +354,7 @@
                   "workerIndex": 2,
                   "parallelIndex": 2,
                   "status": "passed",
-                  "duration": 1052,
+                  "duration": 938,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -362,14 +362,14 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0002",
-                      "duration": 812
+                      "duration": 746
                     },
                     {
                       "title": "verification: focus on Objet",
-                      "duration": 7
+                      "duration": 8
                     }
                   ],
-                  "startTime": "2026-11-21T19:09:00.583Z",
+                  "startTime": "2026-11-21T19:11:51.593Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -415,11 +415,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:a43bfd7d4662cc5b96c4ac177f6ccd747239e31dc48df6e47da954ce2bcc88e5"
+                  "description": "sha256:102da839579687e1b998585cdef382ef78ca4116d973d427209822c1e5e6b7c7"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:1ca23ef38c0952d805d00ac73382be67cc552f3361c4d5b6a3566a3feacf9b09"
+                  "description": "sha256:b2efdd46a3411778cc011ad3a49884c458c7198a0cba1a5726b03d37aeb467d6"
                 }
               ],
               "expectedStatus": "passed",
@@ -430,7 +430,7 @@
                   "workerIndex": 3,
                   "parallelIndex": 3,
                   "status": "passed",
-                  "duration": 1102,
+                  "duration": 992,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -438,14 +438,14 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0003",
-                      "duration": 810
+                      "duration": 821
                     },
                     {
                       "title": "verification: Objet, Tab to Demandeur, Tab to Enregistrer",
-                      "duration": 31
+                      "duration": 36
                     }
                   ],
-                  "startTime": "2026-11-21T19:09:00.587Z",
+                  "startTime": "2026-11-21T19:11:51.595Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -490,11 +490,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:7a76a2d8fefb3082d48d4beea0dc0b83a0c33f06f8d53e667f9957a761085323"
+                  "description": "sha256:8d8e2ab8d0cf46fb5ca8b3bac30cc904160d3fede947780d2e425a47c71ca07d"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:3694b650ee976c3caa4c8059e256296c51e134dcc1c0294ce130ae943fb6e9df"
+                  "description": "sha256:c4ba01dc21ae6f870e6f386e0cbcca00238891f85a5b9b32f53ee3ef5e618ec7"
                 }
               ],
               "expectedStatus": "passed",
@@ -505,7 +505,7 @@
                   "workerIndex": 4,
                   "parallelIndex": 4,
                   "status": "passed",
-                  "duration": 1092,
+                  "duration": 964,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -513,14 +513,14 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0006",
-                      "duration": 816
+                      "duration": 782
                     },
                     {
                       "title": "verification: number, status, filing date, applicant, subject",
-                      "duration": 26
+                      "duration": 39
                     }
                   ],
-                  "startTime": "2026-11-21T19:09:00.589Z",
+                  "startTime": "2026-11-21T19:11:51.597Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -569,11 +569,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:4b19a95bb924dc4a20a633c90de4489a1dfbca7b47eaca09bd61d100717b458f"
+                  "description": "sha256:50d2784ded9a0c215c3dc5e20541a406b137f487c01d9a85bd2c690711b8ee10"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:df0bdbe771ead7e8dff58d1aea77e6fb0497eb15f63dfe6f4bf92ae856cd4d8e"
+                  "description": "sha256:c70cfc08d8b4ecb76334439dae73a172b32c12c4424eaaa672633969f08aa79a"
                 }
               ],
               "expectedStatus": "passed",
@@ -584,7 +584,7 @@
                   "workerIndex": 5,
                   "parallelIndex": 5,
                   "status": "passed",
-                  "duration": 1331,
+                  "duration": 1225,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -592,18 +592,18 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0102",
-                      "duration": 873
+                      "duration": 734
                     },
                     {
                       "title": "verification: save applicant and subject with Enregistrer",
-                      "duration": 100
+                      "duration": 137
                     },
                     {
                       "title": "verification: reread sheet D-0102",
-                      "duration": 205
+                      "duration": 217
                     }
                   ],
-                  "startTime": "2026-11-21T19:09:00.584Z",
+                  "startTime": "2026-11-21T19:11:51.601Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -656,11 +656,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:8a2ec84556a44cf6e15fd4501b6142dde6e5c011e24775db74dd7ae8676e3d63"
+                  "description": "sha256:279adb99dbfeb9ee0841d7f5de8df483aa7899b3fb447447bf4eecbe2aad17c1"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:494962c8a8d83a00b10a01c49ca5db87c226ca96ac56ab2e62064fe3a0e1fea2"
+                  "description": "sha256:63375d200c8c28a85731c1eca786e0720c13241969b23919429d3976f1398f8a"
                 }
               ],
               "expectedStatus": "passed",
@@ -671,7 +671,7 @@
                   "workerIndex": 6,
                   "parallelIndex": 6,
                   "status": "passed",
-                  "duration": 1358,
+                  "duration": 1191,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -679,18 +679,18 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0103",
-                      "duration": 873
+                      "duration": 781
                     },
                     {
                       "title": "verification: save subject with Enregistrer",
-                      "duration": 103
+                      "duration": 70
                     },
                     {
                       "title": "verification: reread sheet D-0103",
-                      "duration": 202
+                      "duration": 227
                     }
                   ],
-                  "startTime": "2026-11-21T19:09:00.590Z",
+                  "startTime": "2026-11-21T19:11:51.591Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -744,11 +744,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:fcd475d642e28242ed5a9b2582c38554c1030892a69077e7d0da0fe648a8c5bc"
+                  "description": "sha256:7ca52f6273656463d87d257db5642895487614190177afe5824ad6e9153c29dd"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:339e1d7d13a63f3529c61784aae392855a6c198df985834777c7ffddecc6f590"
+                  "description": "sha256:2a7b3ebba56b41305c772550eb5f39327a5f0ced870a945f4bf482c75a958c63"
                 }
               ],
               "expectedStatus": "passed",
@@ -759,7 +759,7 @@
                   "workerIndex": 1,
                   "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 951,
+                  "duration": 986,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -767,18 +767,18 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0104",
-                      "duration": 649
+                      "duration": 692
                     },
                     {
                       "title": "verification: Ctrl+S prevents the browser default",
-                      "duration": 30
+                      "duration": 28
                     },
                     {
                       "title": "verification: reread sheet D-0104",
-                      "duration": 215
+                      "duration": 205
                     }
                   ],
-                  "startTime": "2026-11-21T19:09:01.300Z",
+                  "startTime": "2026-11-21T19:11:51.962Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -832,11 +832,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:1e55751d328b9df90b3f30fb52d9b18f1df06a6a1d333f914e17e736c3724720"
+                  "description": "sha256:a774d22720ce655f1b9c8e6f0e3ec3944fc815909fd50601b386c7dca35d1bcf"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:fa11a8dc0cec73a5fc745b2f3f702711ca2ced0e4cf30b8a3e63a2f0227a9a90"
+                  "description": "sha256:610bbae220d3acf82beaf3141587300d49c2f2a7a07cbfa78858486eb18ef513"
                 }
               ],
               "expectedStatus": "passed",
@@ -847,7 +847,7 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 483,
+                  "duration": 461,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -855,18 +855,18 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0116",
-                      "duration": 217
+                      "duration": 197
                     },
                     {
                       "title": "verification: Ctrl+S prevents the browser default",
-                      "duration": 17
+                      "duration": 18
                     },
                     {
                       "title": "verification: reread sheet D-0116",
-                      "duration": 179
+                      "duration": 176
                     }
                   ],
-                  "startTime": "2026-11-21T19:09:01.952Z",
+                  "startTime": "2026-11-21T19:11:52.590Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -915,11 +915,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:57da300b09719ba978e7f5f1159748e81e647fe4e887285d0cba431f76905ddf"
+                  "description": "sha256:3095bff25be11be6de852562e562c55ea59c069cf0c5d5c1c44493ffb69e2a96"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:f6f4a2af2304ea79fd4d60cc8bf7916be85c24adee5fe117b0b50d9c4213f4b9"
+                  "description": "sha256:72e299a8254f4598850a7f8309ae62494c46e84018d0e81f6448fc7201da5577"
                 }
               ],
               "expectedStatus": "passed",
@@ -930,7 +930,7 @@
                   "workerIndex": 2,
                   "parallelIndex": 2,
                   "status": "passed",
-                  "duration": 483,
+                  "duration": 481,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -938,30 +938,30 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0002",
-                      "duration": 178
+                      "duration": 148
                     },
                     {
                       "title": "verification: no Remise link on a BROUILLON (D-0002)",
-                      "duration": 3
+                      "duration": 2
                     },
                     {
                       "title": "navigation: sheet D-0003",
-                      "duration": 118
+                      "duration": 136
                     },
                     {
                       "title": "verification: Remise link on an EN_INSTRUCTION (D-0003)",
-                      "duration": 4
+                      "duration": 3
                     },
                     {
                       "title": "navigation: sheet D-0001",
-                      "duration": 114
+                      "duration": 117
                     },
                     {
                       "title": "verification: Remise link on a REMIS (D-0001)",
-                      "duration": 3
+                      "duration": 2
                     }
                   ],
-                  "startTime": "2026-11-21T19:09:02.075Z",
+                  "startTime": "2026-11-21T19:11:52.742Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -995,8 +995,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-11-21T19:09:00.290Z",
-    "duration": 2301.053,
+    "startTime": "2026-11-21T19:11:51.387Z",
+    "duration": 1871.91,
     "expected": 10,
     "skipped": 0,
     "unexpected": 0,
