@@ -21,7 +21,7 @@ export { refuseDialogs } from "./dialogs.ts";
 export { editableFieldCount } from "./editable-fields.ts";
 export { openReceipt, receiptLink } from "./receipt.ts";
 export { atLeastOne } from "./occurrences.ts";
-export { lockVariant } from "./lock.ts";
+export { type Lock, lockVariant } from "./lock.ts";
 export { SHEET_MESSAGES } from "./messages.ts";
 
 export { expect } from "@playwright/test";

@@ -3,13 +3,13 @@
 // attendues relevées sur le legacy ; messages au texte exact de
 // ApplicationResources.properties (SHEET_MESSAGES).
 import type { Locator, Page } from "@playwright/test";
-import type { Lock } from "../lock.ts";
 import {
   atLeastOne,
   button,
   exactText,
   expect,
   field,
+  type Lock,
   lockVariant,
   markReached,
   openSheet,
@@ -179,9 +179,12 @@ test("sheet-subject-required", { tag: "@fiche" }, async ({ page }) => {
   });
 });
 
-// Texte de `length` caractères, accentué, tapé touche par touche.
+// Texte de `length` caractères, accentué, tapé touche par touche. Il ne
+// commence ni ne finit par une espace : un candidat qui retire les espaces
+// des bords doit quand même recevoir `length` caractères.
 function tooLong(length: number): string {
-  return "Société d'aménagement de la Vallée de l'Ève ".repeat(Math.ceil(length / 44)).slice(0, length);
+  const seed = "Société d'aménagement de la Vallée de l'Ève ";
+  return `${seed.repeat(Math.ceil(length / seed.length)).slice(0, length - 1)}é`;
 }
 
 // F8 et F10 : `limit` + 1 caractères tapés. Variante `maxlength` : saisie
@@ -260,6 +263,9 @@ test("sheet-lock-en-instruction", { tag: "@fiche" }, async ({ page }) => {
   await test.step("verification: Demandeur locked, a keystroke does not change it", async () => {
     const input = field(page, "Demandeur");
     await expectLocked(input, applicant);
+    // Un champ `disabled` ne prend pas le focus : sans ce blur, la frappe
+    // irait au champ qui l'a (« Objet »), puis serait enregistrée.
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
     await input.press("x");
     await expect(input).toHaveValue(applicant);
   });

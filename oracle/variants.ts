@@ -11,8 +11,13 @@ export interface Variants {
 
 export type VariantKey = keyof Variants;
 
+export interface Annotation {
+  type: string;
+  description: string;
+}
+
 // Annotation `mb:variant` = `<clé>=<valeur>` (spec, « Résultat JSON »).
-export function variantAnnotation<K extends VariantKey>(key: K, value: Variants[K]): { type: string; description: string } {
+export function variantAnnotation<K extends VariantKey>(key: K, value: Variants[K]): Annotation {
   return { type: VARIANT_ANNOTATION, description: `${key}=${value}` };
 }
 
@@ -22,6 +27,6 @@ export function skippedStepAnnotation<K extends VariantKey>(
   step: string,
   key: K,
   value: Variants[K],
-): { type: string; description: string } {
+): Annotation {
   return { type: SKIPPED_STEP_ANNOTATION, description: `${step} (${key}=${value})` };
 }

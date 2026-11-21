@@ -22,6 +22,8 @@ function legacyMessages(): Map<string, string> {
   return messages;
 }
 
+const LEGACY_MESSAGES = legacyMessages();
+
 describe("SHEET_MESSAGES", () => {
   it.each([
     ["applicantRequired", "errors.sheet.applicant.required"],
@@ -29,6 +31,6 @@ describe("SHEET_MESSAGES", () => {
     ["subjectRequired", "errors.sheet.subject.required"],
     ["subjectMaxlength", "errors.sheet.subject.maxlength"],
   ] as const)("%s is the exact text of %s", (name, key) => {
-    expect(SHEET_MESSAGES[name]).toBe(legacyMessages().get(key));
+    expect(SHEET_MESSAGES[name]).toBe(LEGACY_MESSAGES.get(key));
   });
 });
