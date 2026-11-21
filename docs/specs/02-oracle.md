@@ -121,14 +121,14 @@ Un oracle Playwright (Chromium seul) qui tourne tel quel contre le legacy et con
   ```
 
   En interne, trois temps :
-  1. **préparer** : tirer le sel (32 octets aléatoires, en hexadécimal) sauf s'il est imposé ; recréer les conteneurs `legacy` et `archive` (ce qui remet le jeu de données à zéro) avec le sel passé au seul service d'archivage, et attendre qu'ils soient sains ; relever l'environnement.
+  1. **préparer** : tirer le sel (32 octets aléatoires, en hexadécimal) sauf s'il est imposé ; recréer les conteneurs `legacy` et `archive` (ce qui remet le jeu de données à zéro) à partir des images existantes, sans les reconstruire, avec le sel passé au seul service d'archivage, et attendre qu'ils soient sains ; relever l'environnement.
   2. **lancer** : Playwright avec `BASE_URL`, le sel dans l'environnement du seul processus Playwright, le reporter JSON, les traces et HAR écrits hors du dépôt.
   3. **collecter** : calculer le SHA-256 de chaque HAR et de chaque trace, les ajouter au résultat comme annotations du scénario, classer chaque scénario, calculer les taux, ajouter le sel, écrire le résultat JSON versionné.
 - **`npm run oracle`** : commande mince sur `runOracle`. Elle rend un code de sortie non nul si un scénario n'a pas réussi.
 - **Collecte (fonction pure)** : prend le JSON de Playwright et les empreintes, rend le résultat enrichi. C'est elle que testent les tests Vitest.
 - **Service d'archivage** (ticket de l'étape, prévu par `TRAPS.md`) : ajoute la référence d'archivage à l'accusé.
 - **Jeu de données** : ajout du dossier réservé `D-0116`, `REMIS` avec une date de remise, propriétaire `scenario:sheet-ctrl-s-remis`. Les dossiers partagés restent `D-0001` à `D-0030`. Aucun piège n'est touché.
-- **CI** : un workflow qui lance `npm run oracle` sur la pile Docker, Chromium seul, et garde traces, HAR et JSON 7 jours en artefacts. Actions épinglées par SHA. C'est dans ce job que sont faites les exécutions de preuve du critère de fin (voir « Notes »).
+- **CI** : un workflow qui lance `npm run oracle` sur la pile Docker, Chromium seul, et garde traces, HAR et JSON 7 jours en artefacts. Actions épinglées par SHA. La construction des images est une étape distincte de l'exécution complète. Un job de preuve, pour le critère de fin, construit les images une seule fois puis lance l'oracle 5 fois sur ces mêmes images ; entre deux exécutions, la pile est redémarrée et un nouveau sel est tiré (voir « Notes »).
 - **Dépendance ajoutée** : `@playwright/test`, à justifier dans la PR (l'oracle est défini comme des scénarios Playwright par `PROTOCOL.md`).
 
 ### Référence d'archivage et sel
@@ -236,7 +236,7 @@ Format du reporter JSON de Playwright, enrichi par la collecte. Un fichier par e
   - `images` : empreinte des images Docker `legacy` et `archive` ;
   - `frozenDate` : horloge figée (`FROZEN_DATE`) ;
   - `baseUrl` ;
-  - `ciRun` : identifiant de l'exécution de CI, présent seulement quand l'exécution tourne en CI ;
+  - `ciRun` : identifiant de l'exécution de CI et rang de l'exécution complète dans le job (1 à 5 pour le job de preuve), présent seulement en CI ;
   - `salt` : ajouté par la collecte, une fois Playwright terminé ;
   - `summary` : calculé par la collecte : nombre de scénarios, réussis, échoués, non atteints ; taux sur tous les scénarios ; taux sur les scénarios atteints ; scénarios `@clavier` réussis sur leur total.
 - **Par scénario** (résultat Playwright, tags compris), annotations :
@@ -258,7 +258,7 @@ Format du reporter JSON de Playwright, enrichi par la collecte. Un fichier par e
 ## Décisions de test
 
 - **Ce qui fait un bon test ici** : il observe un comportement de l'extérieur. Les tests Vitest de la collecte lui donnent un JSON Playwright et des empreintes, et lisent le résultat ; ils ne regardent pas ses fonctions internes. Les tests du service d'archivage passent par HTTP.
-- **Seam 1, le plus haut : `npm run oracle` contre le legacy.** C'est le critère de fin : 5 exécutions consécutives en CI, 38 scénarios réussis, aucun non atteint, chacune depuis un arbre de travail propre et versionnée.
+- **Seam 1, le plus haut : `npm run oracle` contre le legacy.** C'est le critère de fin : 5 exécutions consécutives dans le job de preuve de la CI, sur les mêmes images, 38 scénarios réussis, aucun non atteint, chacune depuis un arbre de travail propre et versionnée.
 - **Seam 2 : Vitest sur la collecte**, avec des JSON Playwright fabriqués, en TDD (rouge d'abord) :
   - échec sans `mb:reach` → non atteint ; échec avec → échoué ; réussi → réussi ;
   - les deux taux et le compte `@clavier` sur un jeu connu, cas zéro scénario atteint compris ;
@@ -283,9 +283,10 @@ Format du reporter JSON de Playwright, enrichi par la collecte. Un fichier par e
 ## Notes
 
 - **Critère de fin** (`docs/PLAN.md`) : 100 % vert sur 5 exécutions consécutives contre le legacy, chacune enregistrée depuis un arbre de travail propre. Preuve :
-  - le job de CI de l'oracle d'abord, puis les 5 exécutions de preuve faites dans ce job, sur le même commit, dans un environnement identique pour toutes, sans exécution échouée entre elles ;
-  - leurs 5 résultats JSON, récupérés depuis les artefacts et versionnés, chacun avec l'identifiant de son exécution de CI (métadonnée `ciRun` et nom du fichier), `worktree: clean`, 38 scénarios réussis et 0 non atteint ;
-  - les 5 résultats montrent le même commit, la même version de Node et la même horloge figée. Les empreintes des images sont enregistrées ; si elles diffèrent d'une exécution à l'autre (build Docker non reproductible), le constat est noté dans la PR, pas masqué ;
-  - les tests Vitest verts, et la PR qui cite les 5 exécutions de CI par leur lien.
+  - le job de CI de l'oracle d'abord, puis le job de preuve : images construites une seule fois, puis 5 exécutions complètes consécutives sur ces mêmes images, pile redémarrée et nouveau sel tiré entre deux exécutions, sans exécution échouée entre elles ;
+  - leurs 5 résultats JSON, récupérés depuis les artefacts et versionnés, chacun avec son `ciRun` (identifiant de l'exécution de CI et rang, dans la métadonnée et dans le nom du fichier), `worktree: clean`, 38 scénarios réussis et 0 non atteint ;
+  - les 5 résultats montrent le même commit, la même version de Node, la même horloge figée et la même empreinte des images `legacy` et `archive`. L'empreinte est identique par construction ; le critère le vérifie ;
+  - les 5 sels sont tous différents ;
+  - les tests Vitest verts, et la PR qui cite le job de preuve par son lien.
 - La règle 6 (le legacy déclaré comme candidat obtient 100 %) se vérifie à l'étape 3 ; ce critère de fin en est la condition.
 - Suite prévue : `/to-tickets` sur cette spec. Premier ticket naturel : la référence d'archivage et `D-0116`, qui ne dépendent pas de Playwright.
