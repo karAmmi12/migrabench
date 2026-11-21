@@ -3,7 +3,8 @@
 // (règles de validation.xml, contrôle de rôle). Appels depuis mb-internal,
 // par le port 8081.
 import { describe, expect, it } from "vitest";
-import { basicAuthHeader, LEGACY_URL, UNKNOWN_USER, userWithRole } from "./legacy-client.ts";
+import { UNKNOWN_USER } from "../../scripts/users.ts";
+import { basicAuthHeader, LEGACY_URL, userWithRole } from "./legacy-client.ts";
 import { callInternalApi, fetchFromInternal, INTERNAL_API_URL } from "./internal-api-client.ts";
 
 interface Criteria {

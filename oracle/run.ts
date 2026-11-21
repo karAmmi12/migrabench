@@ -11,11 +11,13 @@ import { fileURLToPath } from "node:url";
 import { parseEnv } from "node:util";
 import type { JSONReport } from "@playwright/test/reporter";
 import { artifactPaths, collect, type OracleSummary } from "./collect.ts";
+import { DEFAULT_BASE_URL, ORACLE_ENV } from "./env.ts";
 
-export const DEFAULT_BASE_URL = "http://localhost:8080";
+export { DEFAULT_BASE_URL };
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
-const RESULTS_DIR = join(ROOT, "results", "oracle");
+const RESULTS_DIR_FROM_ROOT = join("results", "oracle");
+const RESULTS_DIR = join(ROOT, RESULTS_DIR_FROM_ROOT);
 const CONFIG = join(ROOT, "oracle", "playwright.config.ts");
 // Services recréés à chaque exécution : le legacy recharge son jeu de données au démarrage.
 const SERVICES = ["legacy", "archive"] as const;
@@ -39,23 +41,37 @@ export async function runOracle({ baseUrl = DEFAULT_BASE_URL, salt }: RunOracleO
   return collectAndWrite(prepared, report);
 }
 
-interface Prepared {
+// Environnement relevé avant Playwright : métadonnées du résultat.
+interface Environment {
+  benchCommit: string;
+  worktree: "clean" | "dirty";
+  node: string;
+  images: Record<string, string>;
+  frozenDate: string | null;
+  baseUrl: string;
+}
+
+// Ce que le premier temps transmet aux deux suivants.
+interface PreparedExecution {
   baseUrl: string;
   salt: string;
-  metadata: Record<string, unknown>;
+  metadata: Environment;
   outputDir: string;
   reportFile: string;
   startedAt: Date;
 }
 
-async function prepare(baseUrl: string, salt: string): Promise<Prepared> {
+async function prepare(baseUrl: string, salt: string): Promise<PreparedExecution> {
   const startedAt = new Date();
   // Le sel passe par l'environnement du shell, jamais par .env (que lit aussi le legacy).
-  await run("docker", ["compose", "up", "--detach", "--force-recreate", "--no-build", "--wait", ...SERVICES], {
+  await spawnProcess("docker", ["compose", "up", "--detach", "--force-recreate", "--no-build", "--wait", ...SERVICES], {
     ARCHIVE_SALT: salt,
   });
-  const benchCommit = (await output("git", ["rev-parse", "HEAD"])).trim();
-  const worktree = (await output("git", ["status", "--porcelain"])).trim() === "" ? "clean" : "dirty";
+  const benchCommit = (await captureStdout("git", ["rev-parse", "HEAD"])).trim();
+  // Les résultats déjà écrits ne changent pas l'état mesuré : sans cette
+  // exclusion, la deuxième exécution d'une série se dirait sur un arbre modifié.
+  const changes = await captureStdout("git", ["status", "--porcelain", "--", ".", `:!${RESULTS_DIR_FROM_ROOT}`]);
+  const worktree = changes.trim() === "" ? "clean" : "dirty";
   const images: Record<string, string> = {};
   for (const service of SERVICES) images[service] = await imageOf(service);
   const env = parseEnv(await readFile(join(ROOT, ".env"), "utf8"));
@@ -70,20 +86,20 @@ async function prepare(baseUrl: string, salt: string): Promise<Prepared> {
   };
 }
 
-async function launch({ baseUrl, salt, metadata, outputDir, reportFile }: Prepared): Promise<string> {
+async function launch({ baseUrl, salt, metadata, outputDir, reportFile }: PreparedExecution): Promise<string> {
   // Code de sortie ignoré : un scénario échoué rend 1, et c'est la collecte qui juge.
-  await run("npx", ["playwright", "test", "--config", CONFIG], {
+  await spawnProcess("npx", ["playwright", "test", "--config", CONFIG], {
     BASE_URL: baseUrl,
     // Le sel n'est transmis qu'au processus Playwright, pour les scénarios de l'accusé.
     ARCHIVE_SALT: salt,
-    MB_ORACLE_OUTPUT_DIR: outputDir,
-    MB_ORACLE_REPORT: reportFile,
-    MB_ORACLE_METADATA: JSON.stringify(metadata),
+    [ORACLE_ENV.outputDir]: outputDir,
+    [ORACLE_ENV.report]: reportFile,
+    [ORACLE_ENV.metadata]: JSON.stringify(metadata),
   }, { allowFailure: true });
   return readFile(reportFile, "utf8");
 }
 
-async function collectAndWrite({ salt, startedAt, metadata }: Prepared, raw: string): Promise<RunOracleResult> {
+async function collectAndWrite({ salt, startedAt, metadata }: PreparedExecution, raw: string): Promise<RunOracleResult> {
   // Le sel n'apparaît dans le résultat qu'une fois Playwright terminé.
   if (raw.includes(salt)) throw new Error("The Playwright report contains the salt before collection");
   const report = JSON.parse(raw) as JSONReport;
@@ -91,15 +107,15 @@ async function collectAndWrite({ salt, startedAt, metadata }: Prepared, raw: str
   for (const path of artifactPaths(report)) hashes[path] = await sha256(path);
   const { report: result, summary } = collect(report, { hashes, salt });
   await mkdir(RESULTS_DIR, { recursive: true });
-  const resultFile = join(RESULTS_DIR, `${timestamp(startedAt)}-${String(metadata.benchCommit).slice(0, 7)}.json`);
+  const resultFile = join(RESULTS_DIR, `${timestamp(startedAt)}-${metadata.benchCommit.slice(0, 7)}.json`);
   await writeFile(resultFile, `${JSON.stringify(result, null, 2)}\n`);
   return { resultFile, summary, errors: report.errors.length };
 }
 
 async function imageOf(service: string): Promise<string> {
-  const container = (await output("docker", ["compose", "ps", "--quiet", service])).trim();
+  const container = (await captureStdout("docker", ["compose", "ps", "--quiet", service])).trim();
   if (container === "") throw new Error(`No running container for service ${service}`);
-  return (await output("docker", ["inspect", "--format", "{{.Image}}", container])).trim();
+  return (await captureStdout("docker", ["inspect", "--format", "{{.Image}}", container])).trim();
 }
 
 async function sha256(path: string): Promise<string> {
@@ -111,11 +127,11 @@ function timestamp(date: Date): string {
   return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 }
 
-function output(command: string, args: string[]): Promise<string> {
-  return run(command, args, {}, { capture: true });
+function captureStdout(command: string, args: string[]): Promise<string> {
+  return spawnProcess(command, args, {}, { capture: true });
 }
 
-function run(
+function spawnProcess(
   command: string,
   args: string[],
   env: Record<string, string>,

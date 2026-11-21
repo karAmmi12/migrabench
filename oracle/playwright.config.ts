@@ -2,8 +2,9 @@
 // Lancée par runOracle (oracle/run.ts), qui fournit BASE_URL, le dossier de
 // sortie hors du dépôt, le fichier du reporter JSON et les métadonnées.
 import { defineConfig, devices } from "@playwright/test";
+import { DEFAULT_BASE_URL, ORACLE_ENV } from "./env.ts";
 
-const outputDir = process.env.MB_ORACLE_OUTPUT_DIR ?? "../test-results/oracle";
+const outputDir = process.env[ORACLE_ENV.outputDir] ?? "../test-results/oracle";
 
 export default defineConfig({
   testDir: "./scenarios",
@@ -11,10 +12,10 @@ export default defineConfig({
   fullyParallel: true,
   retries: 0,
   forbidOnly: true,
-  reporter: [["list"], ["json", { outputFile: process.env.MB_ORACLE_REPORT ?? `${outputDir}/report.json` }]],
-  metadata: JSON.parse(process.env.MB_ORACLE_METADATA ?? "{}") as Record<string, unknown>,
+  reporter: [["list"], ["json", { outputFile: process.env[ORACLE_ENV.report] ?? `${outputDir}/report.json` }]],
+  metadata: JSON.parse(process.env[ORACLE_ENV.metadata] ?? "{}") as Record<string, unknown>,
   use: {
-    baseURL: process.env.BASE_URL ?? "http://localhost:8080",
+    baseURL: process.env.BASE_URL ?? DEFAULT_BASE_URL,
     trace: "on",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
