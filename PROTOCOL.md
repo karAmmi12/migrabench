@@ -41,6 +41,7 @@ Le vocabulaire du domaine du legacy et les termes dérivés sont définis dans
 | Sécurité | charge XSS non exécutée, et affichée en texte (deux résultats) | Playwright + jeu de données piégé |
 | Sécurité | aucun secret serveur dans ce qui arrive au navigateur ou en part (bundle, HTML, requêtes et réponses du HAR) | recherche d'une valeur témoin |
 | Sécurité | contrôle de rôle refusé côté serveur | rejeu de la requête de remise de l'instructeur avec les identifiants de l'agent |
+| Sécurité | authentification exigée côté serveur : aucune requête rejouée sans identifiants ne renvoie de données ni ne modifie un dossier | rejeu sans identifiants des requêtes enregistrées dans le HAR |
 | Sécurité | vulnérabilités des dépendances | npm audit, Semgrep |
 | Accessibilité | violations par gravité | axe-core |
 | Accessibilité | mise en page sans tableau (nombre et imbrication des tableaux) | arbre d'accessibilité, ou comptage dans le DOM à défaut |
@@ -55,7 +56,9 @@ Le vocabulaire du domaine du legacy et les termes dérivés sont définis dans
    la médiane et la dispersion, jamais un seul run.
 3. L'oracle est en lecture seule pour l'agent. Un candidat qui modifie les
    tests est disqualifié.
-4. Les résultats bruts (JSON, traces, captures) sont conservés et versionnés.
+4. Les résultats JSON sont versionnés. Les bruts lourds (traces, captures,
+   HAR) sont conservés hors du dépôt et cités dans le JSON par leur
+   empreinte (ADR 0005).
 5. Toute correction humaine sur un candidat est comptée et décrite.
 6. Le banc est validé sur lui-même : le legacy, déclaré comme candidat, doit
    obtenir 100 % à l'oracle, et échouer aux portes qui mesurent les pièges à
@@ -73,6 +76,15 @@ Le vocabulaire du domaine du legacy et les termes dérivés sont définis dans
   remettre) sur laquelle s'appuie la couche serveur du candidat. C'est une
   facilité du banc : beaucoup de vrais legacy n'en ont pas, et la migration
   doit alors aussi extraire ces services.
+- Les textes visibles du legacy font partie du contrat, quelle que soit la
+  stratégie : libellés des champs, noms des boutons et des liens, messages.
+  L'oracle les compare au texte exact, espaces normalisés. Seuls les
+  libellés de champs tolèrent des deux-points et une marque d'obligation
+  (`*`) finales. Une reformulation volontaire des textes, même fidèle au
+  sens, fait échouer le scénario : l'oracle ne mesure pas l'équivalence de
+  sens.
+- Seul Chromium est mesuré. Un candidat qui fonctionne mal dans Firefox ou
+  Safari n'est pas pénalisé.
 - La recherche de secret porte sur la valeur témoin en clair et sur ses
   encodages courants (base64, encodage URL). Elle ne détecte pas une
   obfuscation volontaire.

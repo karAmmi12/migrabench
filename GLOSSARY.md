@@ -16,6 +16,23 @@ Piège qui cache un comportement implicite du legacy, qu'une bonne migration
 ne doit pas perdre. Il est mesuré par l'oracle.
 _Éviter_ : comportement caché, règle implicite
 
+**Scénario** :
+Unité de l'oracle et de son taux de réussite : une règle ou un comportement
+du legacy, vérifié en une ou plusieurs étapes, qui passe ou échoue d'un bloc.
+_Éviter_ : cas de test, vérification
+
+**Scénario non atteint** :
+Scénario qui échoue avant ses vérifications, parce que le chemin vers
+l'écran vérifié n'aboutit pas. Il compte comme un échec, mais le rapport le
+distingue d'un comportement échoué.
+_Éviter_ : scénario bloqué, scénario sauté
+
+**Variante observée** :
+Moyen choisi par un candidat là où l'oracle laisse le moyen libre (par
+exemple bloquer la saisie ou afficher un message), enregistré avec le
+résultat du scénario.
+_Éviter_ : cas toléré, exception
+
 **Couche serveur du candidat** :
 Partie serveur produite par l'agent IA, seul point d'entrée exposé d'un
 candidat, placée devant l'API interne du legacy.
@@ -78,6 +95,11 @@ _Éviter_ : transmission, envoi, clôture, réduction
 **Accusé de remise** :
 Document délivré par le service d'archivage, qui atteste la remise d'un dossier.
 _Éviter_ : reçu, preuve de remise
+
+**Référence d'archivage** :
+Identifiant porté par un accusé de remise, que seul le service d'archivage
+peut calculer. Elle distingue un vrai accusé d'un accusé fabriqué.
+_Éviter_ : numéro d'accusé, signature
 
 **Service d'archivage** :
 Service externe au legacy, simulé par le banc, qui délivre les accusés de
