@@ -1,10 +1,11 @@
 // Outils partagés des scénarios de l'oracle (spec de l'étape 2, « Modules ») :
-// fixture par rôle avec un HAR par scénario, navigation depuis BASE_URL,
-// lecture des numéros affichés, dossiers partagés, statut atteint.
+// fixture par rôle avec un HAR par scénario, navigation depuis BASE_URL (vers
+// la recherche et vers la fiche), relecture, lecture des numéros affichés,
+// dossiers partagés, statut atteint, mesure de `defaultPrevented`.
 import { readFileSync } from "node:fs";
 import { test as base, expect, type Locator, type Page } from "@playwright/test";
 import { parseUsersWithoutUnknown, type Role, UNKNOWN_USER } from "../scripts/users.ts";
-import { REACH_ANNOTATION } from "./collect.ts";
+import { REACH_ANNOTATION, REREAD_ANNOTATION } from "./collect.ts";
 
 export { expect } from "@playwright/test";
 
@@ -67,9 +68,13 @@ export function button(page: Page, name: string): Locator {
 // Vers la recherche : ouvrir BASE_URL ; atteint quand « Numéro » est visible.
 export async function openSearch(page: Page): Promise<void> {
   await test.step("navigation: search", async () => {
-    await page.goto("/");
-    await field(page, "Numéro").waitFor({ state: "visible" });
+    await loadSearch(page);
   });
+}
+
+async function loadSearch(page: Page): Promise<void> {
+  await page.goto("/");
+  await field(page, "Numéro").waitFor({ state: "visible" });
 }
 
 // Numéros affichés : liens dont le nom est exactement un numéro, dans l'ordre du document.
@@ -102,7 +107,7 @@ export async function openSheet(page: Page, number: string): Promise<void> {
 }
 
 async function reachSheet(page: Page, number: string): Promise<void> {
-  await page.goto("/");
+  await loadSearch(page);
   await field(page, "Numéro").fill(number);
   await button(page, "Rechercher").click();
   await page.getByRole("link", { name: number, exact: true }).click();
@@ -114,8 +119,7 @@ async function reachSheet(page: Page, number: string): Promise<void> {
 // réessai n'est pas une relance du scénario. Le rappel vérifie avec l'`expect`
 // qu'il reçoit, dont l'attente est l'intervalle : chaque essai reste court, et
 // l'échec du dernier rend l'erreur de l'assertion, pas un délai dépassé.
-export const REREAD = { attempts: 5, intervalMs: 500 } as const;
-export const REREAD_ANNOTATION = "mb:reread-attempts";
+const REREAD = { attempts: 5, intervalMs: 500 } as const;
 const rereadExpect = expect.configure({ timeout: REREAD.intervalMs });
 
 export async function reread(
@@ -138,7 +142,7 @@ export async function reread(
         await sheet.close();
       }
     }
-    test.info().annotations.push({ type: REREAD_ANNOTATION, description: `${REREAD.attempts} (failed)` });
+    test.info().annotations.push({ type: REREAD_ANNOTATION, description: String(REREAD.attempts) });
     throw lastError;
   });
 }
@@ -146,10 +150,10 @@ export async function reread(
 // `defaultPrevented` d'un raccourci : écouteur keydown en capture sur window,
 // lu une fois la propagation terminée (tâche suivante), et remonté à Node par
 // une fonction exposée, pour survivre à un envoi de formulaire qui quitte la page.
-let bindingCount = 0;
+let nextBindingId = 0;
 
 export async function pressAndReadDefaultPrevented(page: Page, keys: string): Promise<boolean> {
-  const binding = `__mbDefaultPrevented${bindingCount++}`;
+  const binding = `__mbDefaultPrevented${nextBindingId++}`;
   let report: (prevented: boolean) => void = () => {};
   const reported = new Promise<boolean>((resolve) => {
     report = resolve;

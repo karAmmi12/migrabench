@@ -6,6 +6,7 @@ import { basename, isAbsolute, relative } from "node:path";
 import type { JSONReport, JSONReportSpec, JSONReportSuite, JSONReportTest } from "@playwright/test/reporter";
 
 export const REACH_ANNOTATION = "mb:reach";
+export const REREAD_ANNOTATION = "mb:reread-attempts";
 export const KEYBOARD_TAG = "clavier";
 
 // Pièces jointes que chaque scénario doit porter, et annotation qui cite leur empreinte.
