@@ -93,6 +93,13 @@ Le vocabulaire du domaine du legacy et les termes dérivés sont définis dans
   d'accessibilité. Si l'arbre s'avère trop indulgent sur le legacy, on compte
   à la place, dans le DOM, les éléments `table` sans `role="presentation"`
   ni `role="none"`.
+- Un comportement du legacy n'est pas mesuré : le message « Ce dossier ne
+  peut pas être remis » de l'écran de remise d'un dossier `BROUILLON`. Il
+  est inaccessible par navigation : la fiche d'un `BROUILLON` n'a pas de
+  lien « Remise », et l'oracle n'atteint un écran qu'en cliquant depuis
+  `BASE_URL` (ADR 0006). La règle métier reste garantie : l'API interne
+  refuse la remise d'un `BROUILLON`, et la couche serveur du candidat passe
+  par elle (ADR 0003).
 - Struts 1.3.10 a des failles connues, inhérentes au legacy : sa branche
   n'est plus maintenue. Au 18/11/2026, OSV recense 4 avis sur `struts-core`
   1.3.10, et la GitHub Advisory Database en recense 5. Ces failles ne font
