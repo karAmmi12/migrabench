@@ -10,9 +10,11 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "pretest": "node scripts/check-node-version.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "oracle": "node oracle/cli.ts"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@types/node": "^22.20.5",
     "typescript": "^7.0.2",
     "vitest": "^5.1.0"
