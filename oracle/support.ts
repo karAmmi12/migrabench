@@ -1,9 +1,9 @@
 // Outils partagés des scénarios de l'oracle (spec de l'étape 2, « Modules ») :
 // fixture par rôle avec un HAR par scénario, navigation depuis BASE_URL (vers
 // la recherche, la fiche et la remise), relecture, lecture des numéros
-// affichés, champs modifiables, dossiers partagés, statut atteint. La mesure de
-// `defaultPrevented` est dans default-prevented.ts, le refus des boîtes de
-// dialogue dans dialogs.ts.
+// affichés, dossiers partagés, statut atteint. La mesure de `defaultPrevented`
+// est dans default-prevented.ts, le refus des boîtes de dialogue dans
+// dialogs.ts, le comptage des champs modifiables dans editable-fields.ts.
 import { readFileSync } from "node:fs";
 import { test as base, expect, type Locator, type Page } from "@playwright/test";
 import { parseUsersWithoutUnknown, type Role, UNKNOWN_USER } from "../scripts/users.ts";
@@ -11,6 +11,7 @@ import { REACH_ANNOTATION, REREAD_ANNOTATION } from "./collect.ts";
 
 export { pressAndReadDefaultPrevented } from "./default-prevented.ts";
 export { refuseDialogs } from "./dialogs.ts";
+export { editableFieldCount } from "./editable-fields.ts";
 
 export { expect } from "@playwright/test";
 
@@ -119,28 +120,18 @@ async function reachSheet(page: Page, number: string): Promise<void> {
   await field(page, "Objet").waitFor({ state: "visible" });
 }
 
+export function remiseLink(page: Page): Locator {
+  return page.getByRole("link", { name: "Remise", exact: true });
+}
+
 // Vers la remise : fiche, clic sur le lien « Remise » ; atteint quand l'objet
 // du dossier est affiché en texte (récapitulatif).
 export async function openRemise(page: Page, number: string, subject: string): Promise<void> {
   await test.step(`navigation: remise ${number}`, async () => {
     await reachSheet(page, number);
-    await page.getByRole("link", { name: "Remise", exact: true }).click();
+    await remiseLink(page).click();
     await page.getByText(subject, { exact: true }).waitFor({ state: "visible" });
   });
-}
-
-// Rôles des champs de saisie. Un champ est modifiable selon l'état « éditable »
-// de Playwright, qui couvre readonly, disabled et aria-readonly.
-const FIELD_ROLES = ["textbox", "searchbox", "combobox", "spinbutton", "checkbox", "radio", "switch", "slider"] as const;
-
-export async function editableFieldCount(page: Page): Promise<number> {
-  let count = 0;
-  for (const role of FIELD_ROLES) {
-    for (const element of await page.getByRole(role).all()) {
-      if (await element.isEditable()) count += 1;
-    }
-  }
-  return count;
 }
 
 // Relecture : nombre fixe d'essais, chacun une nouvelle navigation vers la
