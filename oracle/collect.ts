@@ -26,6 +26,17 @@ export interface OracleSummary {
   keyboard: { passed: number; total: number };
 }
 
+// Un scénario : une spec, exécutée par l'unique projet (Chromium seul).
+interface Scenario {
+  spec: JSONReportSpec;
+  test: JSONReportTest;
+}
+
+interface ScenarioOutcome {
+  status: ScenarioStatus;
+  keyboard: boolean;
+}
+
 export interface CollectInput {
   // Empreinte SHA-256 (hexadécimal) de chaque fichier cité par artifactPaths.
   hashes: Readonly<Record<string, string>>;
@@ -45,7 +56,7 @@ export function artifactPaths(report: JSONReport): string[] {
 
 export function collect(report: JSONReport, { hashes, salt }: CollectInput): { report: JSONReport; summary: OracleSummary } {
   const result = structuredClone(report);
-  const statuses: { status: ScenarioStatus; keyboard: boolean }[] = [];
+  const statuses: ScenarioOutcome[] = [];
 
   for (const { spec, test } of scenarios(result)) {
     for (const { attachment: name, annotation } of ARTIFACTS) {
@@ -65,11 +76,15 @@ export function collect(report: JSONReport, { hashes, salt }: CollectInput): { r
 
 function statusOf(test: JSONReportTest): ScenarioStatus {
   if (lastResult(test).status === "passed" && test.status === "expected") return "passed";
-  const reached = test.annotations.some((annotation) => annotation.type === REACH_ANNOTATION);
+  // Annotation posée pendant le scénario : selon la version de Playwright, elle
+  // figure dans les annotations du test, du résultat, ou des deux.
+  const reached = [...test.annotations, ...lastResult(test).annotations].some(
+    (annotation) => annotation.type === REACH_ANNOTATION,
+  );
   return reached ? "failed" : "unreached";
 }
 
-function summarize(statuses: { status: ScenarioStatus; keyboard: boolean }[]): OracleSummary {
+function summarize(statuses: ScenarioOutcome[]): OracleSummary {
   const count = (status: ScenarioStatus) => statuses.filter((entry) => entry.status === status).length;
   const passed = count("passed");
   const failed = count("failed");
@@ -85,9 +100,8 @@ function summarize(statuses: { status: ScenarioStatus; keyboard: boolean }[]): O
   };
 }
 
-// Un scénario = une spec exécutée par l'unique projet (Chromium seul).
-function scenarios(report: JSONReport): { spec: JSONReportSpec; test: JSONReportTest }[] {
-  const walk = (suite: JSONReportSuite): { spec: JSONReportSpec; test: JSONReportTest }[] => [
+function scenarios(report: JSONReport): Scenario[] {
+  const walk = (suite: JSONReportSuite): Scenario[] => [
     ...suite.specs.flatMap((spec) => spec.tests.map((test) => ({ spec, test }))),
     ...(suite.suites ?? []).flatMap(walk),
   ];

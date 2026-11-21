@@ -5,7 +5,8 @@ import { artifactPaths, collect } from "../../oracle/collect.ts";
 
 const SALT = "a".repeat(64);
 
-type Outcome = "passed" | "failed-reached" | "failed-unreached";
+// failed-reached-in-result : mb:reach présent seulement dans les annotations du résultat.
+type Outcome = "passed" | "failed-reached" | "failed-reached-in-result" | "failed-unreached";
 
 interface ScenarioInput {
   title: string;
@@ -16,7 +17,9 @@ interface ScenarioInput {
 }
 
 function spec({ title, outcome, tags = ["recherche"], har = true, trace = true }: ScenarioInput): JSONReportSpec {
-  const annotations = outcome === "failed-unreached" ? [] : [{ type: "mb:reach", description: "reached" }];
+  const reach = [{ type: "mb:reach", description: "reached" }];
+  const annotations = outcome === "failed-unreached" || outcome === "failed-reached-in-result" ? [] : reach;
+  const resultAnnotations = outcome === "failed-reached-in-result" ? reach : annotations;
   const attachments = [
     ...(har ? [{ name: "har", path: `/out/${title}/scenario.har`, contentType: "application/json" }] : []),
     ...(trace ? [{ name: "trace", path: `/out/${title}/trace.zip`, contentType: "application/zip" }] : []),
@@ -50,7 +53,7 @@ function spec({ title, outcome, tags = ["recherche"], har = true, trace = true }
             retry: 0,
             startTime: "2026-11-21T00:00:00.000Z",
             attachments,
-            annotations,
+            annotations: resultAnnotations,
           },
         ],
       },
@@ -90,6 +93,12 @@ describe("oracle collection", () => {
     ]);
 
     expect(summary).toMatchObject({ scenarios: 3, passed: 1, failed: 1, unreached: 1 });
+  });
+
+  it("reads mb:reach from the result annotations too", () => {
+    const { summary } = run([{ title: "a", outcome: "failed-reached-in-result" }]);
+
+    expect(summary).toMatchObject({ failed: 1, unreached: 0 });
   });
 
   it("computes both rates and the @clavier count", () => {
@@ -146,7 +155,7 @@ describe("oracle collection", () => {
     ]);
   });
 
-  it("adds the salt and the summary to the run metadata, after the environment", () => {
+  it("adds the salt and the summary to the execution metadata, after the environment", () => {
     const { report: result, summary } = run([{ title: "a", outcome: "passed" }]);
 
     expect(result.config.metadata).toEqual({
