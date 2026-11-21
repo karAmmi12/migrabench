@@ -143,6 +143,7 @@ Un oracle Playwright (Chromium seul) qui tourne tel quel contre le legacy et con
 
 - **Vers la recherche** : ouvrir `BASE_URL`. Atteint quand le champ de libellé « Numéro » est visible.
 - **Vers la fiche de `D-xxxx`** : recherche, saisir `D-xxxx` dans « Numéro », cliquer « Rechercher », cliquer le lien de nom `D-xxxx`. Atteint quand le champ « Objet » est visible.
+- **Chargement sans identifiants valides** (R17, R18) : ouvrir `BASE_URL`. Atteint dès qu'une réponse HTTP arrive, quel que soit son statut. Une erreur de connexion rend le scénario non atteint : elle ne doit pas se confondre avec un front qui accepte l'accès sans identifiants.
 - **Vers la remise de `D-xxxx`** : fiche, cliquer le lien « Remise ». Atteint quand l'objet du dossier est affiché en texte (récapitulatif).
 - **Relecture** : nouvelle navigation vers la fiche dans une nouvelle page du même contexte, avec une assertion réessayée un nombre fixe de fois (une seule constante, avec son intervalle). Le scénario enregistre combien d'essais ont été nécessaires (annotation `mb:reread-attempts`). Ce réessai n'est jamais une relance du scénario. Pas de `page.reload()` : l'ADR 0006 n'impose aucune route rechargeable.
 - **Numéros affichés** : la suite des liens dont le nom est exactement un numéro (`D-` suivi de 4 chiffres), dans l'ordre du document. Un scénario de recherche filtre cette suite sur les dossiers partagés et la compare à la liste attendue : égalité exacte, donc ordre relatif et absence du complément vérifiés d'un coup.
@@ -172,8 +173,8 @@ Identifiant en anglais (titre du `test()` et nom du propriétaire `scenario:` po
 | R14 | `search-filed-from-format` | `@recherche` | — | recherche | Déposé du `2025-01-01` → refusé ; « La date « Déposé du » doit être au format jj/mm/aaaa. » ; valeur gardée |
 | R15 | `search-filed-to-format` | `@recherche` | — | recherche | Déposé au `31/02/2025` (date impossible) → refusé ; « La date « Déposé au » doit être au format jj/mm/aaaa. » ; valeur gardée |
 | R16 | `search-filed-range-order` | `@recherche` | — | recherche | Déposé du `02/01/2025` au `01/01/2025` → refusé ; « La date « Déposé au » doit être postérieure ou égale à la date « Déposé du ». » ; les deux valeurs gardées |
-| R17 | `auth-no-credentials` | `@recherche` | — | aucune (le chargement est la vérification) | sans identifiants : au moins une réponse `401` de l'origine de `BASE_URL`, et le champ « Numéro » n'est pas affiché |
-| R18 | `auth-unknown-user` | `@recherche` | — | aucune | utilisateur inconnu (absent de `fixtures/users.json`) : mêmes vérifications que R17 |
+| R17 | `auth-no-credentials` | `@recherche` | — | chargement de `BASE_URL`, atteint dès qu'une réponse HTTP arrive ; une erreur de connexion rend le scénario non atteint | sans identifiants : au moins une réponse `401` de l'origine de `BASE_URL`, et le champ « Numéro » n'est pas affiché |
+| R18 | `auth-unknown-user` | `@recherche` | — | comme R17 | utilisateur inconnu (absent de `fixtures/users.json`) : mêmes vérifications que R17 |
 
 #### Fiche — `@fiche` (14 scénarios)
 

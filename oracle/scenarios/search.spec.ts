@@ -16,18 +16,22 @@ test("search-empty-form", { tag: "@recherche" }, async ({ page }) => {
 test.describe(() => {
   test.use({ identity: "no-credentials" });
 
-  // Aucune navigation : le chargement est la vérification.
+  // Navigation réduite au chargement de BASE_URL : atteint dès qu'une réponse
+  // HTTP arrive. Une erreur de connexion rend le scénario non atteint, pour ne
+  // pas la confondre avec un front qui accepte l'accès sans identifiants.
   test("auth-no-credentials", { tag: "@recherche" }, async ({ page, baseURL }) => {
+    const origin = new URL(baseURL ?? "").origin;
+    const statuses: number[] = [];
+    page.on("response", (response) => {
+      if (new URL(response.url()).origin === origin) statuses.push(response.status());
+    });
+
+    await test.step("navigation: load BASE_URL", async () => {
+      await page.goto("/");
+    });
     markReached();
 
     await test.step("verification: refused with 401, search not shown", async () => {
-      const origin = new URL(baseURL ?? "").origin;
-      const statuses: number[] = [];
-      page.on("response", (response) => {
-        if (new URL(response.url()).origin === origin) statuses.push(response.status());
-      });
-      await page.goto("/");
-
       expect(statuses).toContain(401);
       await expect(field(page, "Numéro")).toHaveCount(0);
     });
