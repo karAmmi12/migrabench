@@ -12,6 +12,7 @@
     "stack:up": "node scripts/stack-up.ts",
     "pretest": "node scripts/check-node-version.mjs",
     "test": "vitest run",
+    "preoracle": "node scripts/check-node-version.mjs",
     "oracle": "node oracle/cli.ts"
   },
   "devDependencies": {
