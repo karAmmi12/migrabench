@@ -53,8 +53,6 @@ réutilisent ce socle.
   données au démarrage : c'est la remise à zéro. —
   [Docker : docker compose up](https://docs.docker.com/reference/cli/docker/compose/up/)
 
-> À vérifier : les liens ci-dessus n'ont pas été ouverts pendant la session ; leurs ancres (`#browser-new-context`, `#recording-a-har-file`, `#json-reporter`, `#_porcelain_format_version_1`) sont à confirmer.
-
 ## Ce qui a été construit
 
 - **`oracle/execute.ts`** : `executeOracle({ baseUrl, salt? })`, le module
@@ -63,7 +61,8 @@ réutilisent ce socle.
     relever l'environnement (commit, état de l'arbre, Node, images, horloge
     figée).
   - Lancer : Playwright, avec `BASE_URL` et le sel dans son seul
-    environnement, traces et HAR dans le dossier temporaire du système.
+    environnement, traces et HAR dans `.oracle-artifacts/<identifiant de
+    l'exécution>/`, dossier du projet ignoré par Git.
   - Collecter : hacher HAR et traces, appeler la collecte, écrire
     `results/oracle/<horodatage>-<commit>.json`.
 - **`oracle/cli.ts`** : `npm run oracle`, commande mince sur
@@ -86,8 +85,10 @@ réutilisent ce socle.
 - **`scripts/users.ts`** : `UNKNOWN_USER` y devient la constante commune à
   l'oracle et au Seam A, vérifiée absente de `fixtures/users.json`.
 - **`tests/oracle/`** : tests Vitest de la collecte et de l'état de l'arbre.
-- **`results/oracle/20261121T160230Z-7b91b86.json`** : le premier résultat
-  versionné, obtenu au commit `7b91b86`, arbre propre.
+- **`.gitignore`** : `.oracle-artifacts/`, vérifié par
+  `tests/oracle/artifacts-ignored.test.ts` (`git check-ignore`).
+- **`results/oracle/20261121T163457Z-886692d.json`** : le résultat
+  versionné, obtenu au commit `886692d`, arbre propre.
 - **`package.json`** : `@playwright/test` (1.65.1) et le script `oracle`.
 - **`README.md`** et **`docs/specs/02-oracle.md`** : section « Lancer
   l'oracle » ; dans la spec, `executeOracle` et la navigation de R17 et R18.
@@ -128,6 +129,15 @@ réutilisent ce socle.
   les champs de chemin à la racine, retire la racine des textes (messages,
   piles d'appels), et refuse d'écrire un résultat qui contient encore
   `/Users/` ou `/home/`.
+- **Bruts dans `.oracle-artifacts/<identifiant de l'exécution>/`**
+  (demande de l'humain) : traces et HAR sont écrits dans ce dossier du
+  projet, ignoré par Git. Le résultat le donne dans la métadonnée
+  `artifacts` et y cite chaque pièce jointe par un chemin relatif
+  (`search-search-empty-form-chromium/scenario.har`). La collecte refuse une
+  pièce jointe hors de ce dossier. Écarté : le dossier temporaire du
+  système, dont les chemins (`../../../../../../var/folders/…`) dévoilaient
+  la machine et auraient changé en CI. Le job de CI de #39 téléversera ce
+  dossier.
 - **`executeOracle` au lieu de `runOracle`** (demande de l'humain) :
   « run » est réservé par `PROTOCOL.md` à l'exécution complète d'un outil.
   La spec est renommée aussi.
@@ -160,6 +170,12 @@ réutilisent ce socle.
   `/Users/` dans le premier résultat versionné (`grep -c`). Cause : le reporter JSON
   écrit des chemins absolus. Résolution : conversion dans la collecte. Le
   commit de ce premier résultat, pas encore poussé, a été retiré.
+- **Chemins des bruts dépendants de la machine.** Symptôme : dans le
+  résultat de `7b91b86`, les pièces jointes étaient citées par
+  `../../../../../../var/folders/qf/…/T/migrabench-oracle/…`. Cause : les
+  bruts étaient écrits dans le dossier temporaire du système, hors du
+  dépôt. Résolution : `.oracle-artifacts/`, voir les choix ; ce résultat
+  est remplacé par celui de `886692d`.
 - **La garde des chemins s'est déclenchée sur une vraie exécution.**
   Symptôme : « The oracle result would contain a home directory path
   (/Users/) ». Cause : `config.argv[0]`, le binaire de Node sous `~/.nvm`,
@@ -187,13 +203,13 @@ pas être versionné.
 npx vitest run tests/oracle
 ```
 
-Attendu : `Tests  21 passed (21)`.
+Attendu : `Tests  25 passed (25)`.
 
 ```sh
 npm test && npm run typecheck
 ```
 
-Attendu : `Tests  103 passed (103)`, puis `tsc --noEmit` sans erreur.
+Attendu : `Tests  107 passed (107)`, puis `tsc --noEmit` sans erreur.
 
 ```sh
 npm run oracle; echo "exit=$?"
@@ -218,18 +234,36 @@ Attendu : `net::ERR_CONNECTION_REFUSED` pour les deux scénarios, puis
 Ancien résultat modifié : l'arbre devient « modifié ».
 
 ```sh
-echo " " >> results/oracle/20261121T160230Z-7b91b86.json
+echo " " >> results/oracle/20261121T163457Z-886692d.json
 npm run oracle >/dev/null 2>&1
 git ls-files --others results/oracle   # le nouveau résultat
 # lire config.metadata.worktree dans ce fichier
-git checkout -- results/oracle/20261121T160230Z-7b91b86.json
+git checkout -- results/oracle/20261121T163457Z-886692d.json
 ```
 
-Attendu : `dirty`. Sans la modification, deux exécutions enchaînées
-enregistrent toutes deux `clean`.
+Attendu : `dirty` (observé sur le résultat précédent, `…7b91b86.json`).
+Sans la modification, deux exécutions enchaînées enregistrent toutes deux
+`clean`.
+
+Pièces jointes citées relativement au dossier des bruts :
 
 ```sh
-grep -cE '/Users/|/home/' results/oracle/20261121T160230Z-7b91b86.json
+node -e 'const r=require("./results/oracle/20261121T163457Z-886692d.json");
+const walk=s=>[...s.specs,...(s.suites??[]).flatMap(walk)];
+console.log(r.config.metadata.artifacts);
+for (const s of r.suites.flatMap(walk)) console.log(s.title, s.tests[0].results[0].attachments.map(a=>a.path).join(" "))'
+```
+
+Attendu :
+
+```
+.oracle-artifacts/20261121T163457Z-15c5be91
+search-empty-form search-search-empty-form-chromium/scenario.har search-search-empty-form-chromium/trace.zip
+auth-no-credentials search-auth-no-credentials-chromium/scenario.har search-auth-no-credentials-chromium/trace.zip
+```
+
+```sh
+grep -cE '/Users/|/home/' results/oracle/20261121T163457Z-886692d.json
 ```
 
 Attendu : `0`.
@@ -241,5 +275,8 @@ Attendu : `0`.
 - #34 à #38 : les 36 autres scénarios, sur les outils de `oracle/support.ts`.
 - #39 : le job de CI de l'oracle et la preuve sur 5 exécutions consécutives,
   qui s'appuie sur la règle de l'arbre propre posée ici.
+- Limite connue : `config.argv[0]`, le binaire de Node, reste cité par un
+  chemin relatif hors du dépôt (`../../../../.nvm/versions/node/…` en
+  local) ; il dépend de la machine et changera en CI.
 - ADR 0005 (résultats JSON versionnés, bruts hors du dépôt) et ADR 0006
   (contrat de l'oracle envers le candidat).
