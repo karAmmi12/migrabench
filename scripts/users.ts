@@ -10,6 +10,13 @@ export interface User {
   role: Role;
 }
 
+// Tomcat bloque un nom d'utilisateur après 5 échecs consécutifs, 5 minutes par
+// défaut (LockOutRealm de server.xml, laissé en place). Les faux identifiants
+// (tests du Seam A, oracle) visent donc toujours ce nom, absent de
+// fixtures/users.json, jamais l'agent ni l'instructeur : ils ne peuvent pas
+// bloquer un compte dont dépendent les autres tests, l'oracle ou les portes.
+export const UNKNOWN_USER = { username: "inconnu", password: "inconnu-mb" } as const;
+
 const FIELDS = ["username", "password", "role"] as const satisfies readonly (keyof User)[];
 
 export function parseUsers(json: string): User[] {
@@ -27,4 +34,13 @@ export function parseUsers(json: string): User[] {
     }
     return user as User;
   });
+}
+
+// Lit le fichier des utilisateurs et vérifie que UNKNOWN_USER n'en fait pas partie.
+export function parseUsersWithoutUnknown(json: string): User[] {
+  const users = parseUsers(json);
+  if (users.some((user) => user.username === UNKNOWN_USER.username)) {
+    throw new Error(`${UNKNOWN_USER.username} must not be a user of the users file`);
+  }
+  return users;
 }

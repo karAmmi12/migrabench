@@ -2,7 +2,8 @@
 // Prérequis : `docker compose up -d --build --wait` (voir README).
 import { describe, expect, it } from "vitest";
 import { ROLES } from "../../scripts/users.ts";
-import { basicAuthHeader, LEGACY_URL, UNKNOWN_USER, userWithRole } from "./legacy-client.ts";
+import { UNKNOWN_USER } from "../../scripts/users.ts";
+import { basicAuthHeader, LEGACY_URL, userWithRole } from "./legacy-client.ts";
 
 describe("legacy page served behind Tomcat BASIC authentication", () => {
   it.each(ROLES)("answers the %s", async (role) => {

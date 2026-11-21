@@ -1,0 +1,311 @@
+// Collecte de l'oracle : JSON Playwright fabriqués, sans lancer Playwright.
+import type { JSONReport, JSONReportSpec } from "@playwright/test/reporter";
+import { describe, expect, it } from "vitest";
+import { artifactPaths, collect } from "../../oracle/collect.ts";
+
+const SALT = "a".repeat(64);
+const ROOT = "/home/runner/work/migrabench/migrabench";
+
+// failed-reached-in-result : mb:reach présent seulement dans les annotations du résultat.
+type Outcome = "passed" | "failed-reached" | "failed-reached-in-result" | "failed-unreached";
+
+interface ScenarioInput {
+  title: string;
+  outcome: Outcome;
+  tags?: string[];
+  har?: boolean;
+  trace?: boolean;
+}
+
+function spec({ title, outcome, tags = ["recherche"], har = true, trace = true }: ScenarioInput): JSONReportSpec {
+  const reach = [{ type: "mb:reach", description: "reached" }];
+  const annotations = outcome === "failed-unreached" || outcome === "failed-reached-in-result" ? [] : reach;
+  const resultAnnotations = outcome === "failed-reached-in-result" ? reach : annotations;
+  const attachments = [
+    ...(har ? [{ name: "har", path: `/out/${title}/scenario.har`, contentType: "application/json" }] : []),
+    ...(trace ? [{ name: "trace", path: `/out/${title}/trace.zip`, contentType: "application/zip" }] : []),
+  ];
+  return {
+    title,
+    tags,
+    ok: outcome === "passed",
+    id: title,
+    file: "search.spec.ts",
+    line: 1,
+    column: 1,
+    tests: [
+      {
+        timeout: 30_000,
+        annotations,
+        expectedStatus: "passed",
+        projectName: "chromium",
+        projectId: "chromium",
+        status: outcome === "passed" ? "expected" : "unexpected",
+        results: [
+          {
+            workerIndex: 0,
+            parallelIndex: 0,
+            status: outcome === "passed" ? "passed" : "failed",
+            duration: 10,
+            error: undefined,
+            errors: [],
+            stdout: [],
+            stderr: [],
+            retry: 0,
+            startTime: "2026-11-21T00:00:00.000Z",
+            attachments,
+            annotations: resultAnnotations,
+          },
+        ],
+      },
+    ],
+  };
+}
+
+function report(scenarios: ScenarioInput[]): JSONReport {
+  return {
+    config: { metadata: { benchCommit: "abc123", baseUrl: "http://localhost:8080" } },
+    suites: [{ title: "search.spec.ts", file: "search.spec.ts", line: 0, column: 0, specs: scenarios.map(spec) }],
+    errors: [],
+    stats: { startTime: "2026-11-21T00:00:00.000Z", duration: 10, expected: 0, unexpected: 0, flaky: 0, skipped: 0 },
+  } as unknown as JSONReport;
+}
+
+function hashesFor(input: JSONReport): Record<string, string> {
+  return Object.fromEntries(artifactPaths(input).map((path) => [path, fakeDigest(path)]));
+}
+
+// Empreinte factice, distincte par fichier : la collecte reçoit les empreintes, elle ne les calcule pas.
+function fakeDigest(path: string): string {
+  return Buffer.from(path).toString("hex");
+}
+
+function run(scenarios: ScenarioInput[]) {
+  const input = report(scenarios);
+  return collect(input, { hashes: hashesFor(input), salt: SALT, root: ROOT, artifactsDir: "/out" });
+}
+
+describe("oracle collection", () => {
+  it("classifies passed, failed (reached) and unreached scenarios", () => {
+    const { summary } = run([
+      { title: "a", outcome: "passed" },
+      { title: "b", outcome: "failed-reached" },
+      { title: "c", outcome: "failed-unreached" },
+    ]);
+
+    expect(summary).toMatchObject({ scenarios: 3, passed: 1, failed: 1, unreached: 1 });
+  });
+
+  it("reads mb:reach from the result annotations too", () => {
+    const { summary } = run([{ title: "a", outcome: "failed-reached-in-result" }]);
+
+    expect(summary).toMatchObject({ failed: 1, unreached: 0 });
+  });
+
+  it("computes both rates and the @clavier count", () => {
+    const { summary } = run([
+      { title: "a", outcome: "passed", tags: ["recherche", "clavier"] },
+      { title: "b", outcome: "passed" },
+      { title: "c", outcome: "failed-reached", tags: ["fiche", "clavier"] },
+      { title: "d", outcome: "failed-unreached" },
+    ]);
+
+    expect(summary).toEqual({
+      scenarios: 4,
+      passed: 2,
+      failed: 1,
+      unreached: 1,
+      passRate: 2 / 4,
+      reachedPassRate: 2 / 3,
+      keyboard: { passed: 1, total: 2 },
+    });
+  });
+
+  it("leaves the reached rate undefined when no scenario is reached", () => {
+    const { summary } = run([
+      { title: "a", outcome: "failed-unreached", tags: ["clavier"] },
+      { title: "b", outcome: "failed-unreached" },
+    ]);
+
+    expect(summary).toEqual({
+      scenarios: 2,
+      passed: 0,
+      failed: 0,
+      unreached: 2,
+      passRate: 0,
+      reachedPassRate: null,
+      keyboard: { passed: 0, total: 1 },
+    });
+  });
+
+  it("adds the HAR and trace digests to each scenario", () => {
+    const { report: result } = run([{ title: "a", outcome: "passed" }, { title: "bb", outcome: "failed-reached" }]);
+
+    const annotations = result.suites[0]?.specs.map((entry) => entry.tests[0]?.annotations);
+    expect(annotations).toEqual([
+      [
+        { type: "mb:reach", description: "reached" },
+        { type: "mb:har", description: `sha256:${fakeDigest("/out/a/scenario.har")}` },
+        { type: "mb:trace", description: `sha256:${fakeDigest("/out/a/trace.zip")}` },
+      ],
+      [
+        { type: "mb:reach", description: "reached" },
+        { type: "mb:har", description: `sha256:${fakeDigest("/out/bb/scenario.har")}` },
+        { type: "mb:trace", description: `sha256:${fakeDigest("/out/bb/trace.zip")}` },
+      ],
+    ]);
+  });
+
+  it("adds the salt and the summary to the execution metadata, after the environment", () => {
+    const { report: result, summary } = run([{ title: "a", outcome: "passed" }]);
+
+    expect(result.config.metadata).toEqual({
+      benchCommit: "abc123",
+      baseUrl: "http://localhost:8080",
+      salt: SALT,
+      summary,
+    });
+    expect(Object.keys(result.config.metadata).slice(-2)).toEqual(["salt", "summary"]);
+  });
+
+  it("does not modify the Playwright report it reads", () => {
+    const input = report([{ title: "a", outcome: "passed" }]);
+    const before = structuredClone(input);
+
+    collect(input, { hashes: hashesFor(input), salt: SALT, root: ROOT, artifactsDir: "/out" });
+
+    expect(input).toEqual(before);
+  });
+
+  it("fails instead of writing an incomplete result when a scenario has no HAR", () => {
+    const input = report([{ title: "a", outcome: "passed" }, { title: "b", outcome: "passed", har: false }]);
+
+    expect(() => collect(input, { hashes: hashesFor(input), salt: SALT, root: ROOT, artifactsDir: "/out" })).toThrow("b: no har attachment");
+  });
+
+  it("fails when a scenario has no trace", () => {
+    const input = report([{ title: "a", outcome: "passed", trace: false }]);
+
+    expect(() => collect(input, { hashes: hashesFor(input), salt: SALT, root: ROOT, artifactsDir: "/out" })).toThrow("a: no trace attachment");
+  });
+
+  it("fails when an artifact has no digest", () => {
+    const input = report([{ title: "a", outcome: "passed" }]);
+
+    expect(() => collect(input, { hashes: {}, salt: SALT, root: ROOT, artifactsDir: "/out" })).toThrow("a: no digest for /out/a/scenario.har");
+  });
+});
+
+describe("oracle collection of paths", () => {
+  const EXECUTION = "20261121T160230Z-ab12cd34";
+
+  // Rapport tel que Playwright l'écrit : chemins absolus de la machine qui l'a produit,
+  // bruts dans .oracle-artifacts/<identifiant de l'exécution>/.
+  function machineReport(root: string): JSONReport {
+    const artifacts = `${root}/.oracle-artifacts/${EXECUTION}`;
+    const input = report([{ title: "a", outcome: "failed-reached" }]);
+    const config = input.config as unknown as Record<string, unknown>;
+    config.configFile = `${root}/oracle/playwright.config.ts`;
+    config.rootDir = `${root}/oracle/scenarios`;
+    config.argv = [`${root.replace(/\/[^/]+$/, "")}/.nvm/versions/node/v22.23.5/bin/node`, `${root}/node_modules/.bin/playwright`, "test"];
+    config.projects = [{ outputDir: artifacts, testDir: `${root}/oracle/scenarios` }];
+    const result = input.suites[0]!.specs[0]!.tests[0]!.results[0]!;
+    result.attachments = [
+      { name: "har", path: `${artifacts}/search-a-chromium/scenario.har`, contentType: "application/json" },
+      { name: "trace", path: `${artifacts}/search-a-chromium/trace.zip`, contentType: "application/zip" },
+      { name: "error-context", path: `${artifacts}/search-a-chromium/error-context.md`, contentType: "text/markdown" },
+    ];
+    result.errors = [
+      { message: `Error: boom\n    at ${root}/oracle/scenarios/search.spec.ts:12:5`, location: { file: `${root}/oracle/scenarios/search.spec.ts`, line: 12, column: 5 } },
+    ];
+    return input;
+  }
+
+  function collectOn(root: string, input = machineReport(root)) {
+    return collect(input, {
+      hashes: hashesFor(input),
+      salt: SALT,
+      root,
+      artifactsDir: `${root}/.oracle-artifacts/${EXECUTION}`,
+    });
+  }
+
+  it.each(["/home/runner/work/migrabench/migrabench", "/Users/someone/migrabench"])(
+    "cites artifacts by paths relative to the execution's artifacts directory (%s)",
+    (root) => {
+      const { report: result } = collectOn(root);
+
+      const paths = result.suites[0]?.specs[0]?.tests[0]?.results[0]?.attachments.map((attachment) => attachment.path);
+      expect(paths).toEqual([
+        "search-a-chromium/scenario.har",
+        "search-a-chromium/trace.zip",
+        "search-a-chromium/error-context.md",
+      ]);
+      // Forme : relatif, sans remontée, sans rien de la machine.
+      for (const path of paths ?? []) {
+        expect(path).toMatch(/^[\w.-]+(\/[\w.-]+)*$/);
+        expect(path).not.toMatch(/(^|\/)\.\.(\/|$)/);
+      }
+    },
+  );
+
+  it.each(["/home/runner/work/migrabench/migrabench", "/Users/someone/migrabench"])(
+    "makes every other absolute path relative to the repository root (%s)",
+    (root) => {
+      const { report: result } = collectOn(root);
+
+      const serialized = JSON.stringify(result);
+      expect(serialized).not.toContain("/home/");
+      expect(serialized).not.toContain("/Users/");
+      expect(serialized).not.toContain("/var/folders/");
+      const config = result.config as unknown as Record<string, unknown>;
+      expect(config.configFile).toBe("oracle/playwright.config.ts");
+      expect(config.rootDir).toBe("oracle/scenarios");
+      expect(config.argv).toEqual(["node", "node_modules/.bin/playwright", "test"]);
+      expect(config.projects).toEqual([{ outputDir: `.oracle-artifacts/${EXECUTION}`, testDir: "oracle/scenarios" }]);
+      expect(result.suites[0]?.specs[0]?.tests[0]?.results[0]?.errors[0]).toEqual({
+        message: "Error: boom\n    at oracle/scenarios/search.spec.ts:12:5",
+        location: { file: "oracle/scenarios/search.spec.ts", line: 12, column: 5 },
+      });
+    },
+  );
+
+  it("replaces a path outside the repository with the file name alone", () => {
+    const input = machineReport(ROOT);
+    (input.config as unknown as Record<string, unknown>).argv = ["/opt/hostedtoolcache/node/22.23.5/x64/bin/node", "test"];
+
+    const { report: result } = collectOn(ROOT, input);
+
+    expect((result.config as unknown as Record<string, unknown>).argv).toEqual(["node", "test"]);
+  });
+
+  it("fails rather than write a path that climbs above the repository root", () => {
+    const input = machineReport(ROOT);
+    input.suites[0]!.specs[0]!.tests[0]!.results[0]!.stdout = [{ text: "read ../../shared/fixture.json\n" }];
+
+    expect(() => collectOn(ROOT, input)).toThrow("The oracle result would contain a path above the repository root");
+  });
+
+  it("still finds the digests of artifacts cited by absolute path", () => {
+    const { report: result } = collectOn(ROOT);
+
+    expect(result.suites[0]?.specs[0]?.tests[0]?.annotations).toContainEqual({
+      type: "mb:trace",
+      description: `sha256:${fakeDigest(`${ROOT}/.oracle-artifacts/${EXECUTION}/search-a-chromium/trace.zip`)}`,
+    });
+  });
+
+  it("fails when an artifact lies outside the execution's artifacts directory", () => {
+    const input = machineReport(ROOT);
+    input.suites[0]!.specs[0]!.tests[0]!.results[0]!.attachments[0]!.path = "/tmp/elsewhere/scenario.har";
+
+    expect(() => collectOn(ROOT, input)).toThrow("a: attachment har lies outside the artifacts directory");
+  });
+
+  it("fails rather than write a home directory path left outside the repository", () => {
+    const input = machineReport(ROOT);
+    input.suites[0]!.specs[0]!.tests[0]!.results[0]!.stdout = [{ text: "cache in /home/someone/.cache/ms-playwright\n" }];
+
+    expect(() => collectOn(ROOT, input)).toThrow("The oracle result would contain a home directory path");
+  });
+});
