@@ -3,8 +3,14 @@
 // jamais à un téléchargement. L'onglet est rendu pour être enregistré comme
 // variante (`receipt-tab`), pas pour juger.
 import type { Download, Locator, Page } from "@playwright/test";
+import type { Variants } from "./variants.ts";
 
-export type ReceiptTab = "same-tab" | "new-tab";
+export type ReceiptTab = Variants["receipt-tab"];
+
+// Lien « Accusé de remise » de l'écran de remise.
+export function receiptLink(page: Page): Locator {
+  return page.getByRole("link", { name: "Accusé de remise", exact: true });
+}
 
 export interface OpenedReceipt {
   page: Page;

@@ -2,7 +2,7 @@
 // par context.route : aucune pile Docker n'est nécessaire.
 import { type Browser, type BrowserContext, chromium, type Page } from "@playwright/test";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
-import { openReceipt } from "../../oracle/receipt.ts";
+import { openReceipt, receiptLink } from "../../oracle/receipt.ts";
 
 const ORIGIN = "http://mb.test";
 const RECEIPT_HTML = "<h1>Accusé de remise du dossier D-0007</h1>";
@@ -42,10 +42,6 @@ async function submissionPage({ newTab = false, attachment = false } = {}): Prom
   const page = await context.newPage();
   await page.goto(`${ORIGIN}/remise`);
   return page;
-}
-
-function receiptLink(page: Page) {
-  return page.getByRole("link", { name: "Accusé de remise", exact: true });
 }
 
 describe("openReceipt", () => {

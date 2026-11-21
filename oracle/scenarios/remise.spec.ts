@@ -4,16 +4,17 @@
 // Présence : au moins une occurrence exacte affichée (atLeastOne) ; absence :
 // aucune occurrence (toHaveCount(0)).
 import type { Page } from "@playwright/test";
-import { archiveReference } from "../archive-reference.ts";
 import {
   atLeastOne,
   button,
   editableFieldCount,
   exactText,
   expect,
+  expectedArchiveReference,
   markReached,
   openReceipt,
   openSubmission,
+  receiptLink,
   recordVariant,
   refuseDialogs,
   test,
@@ -21,10 +22,6 @@ import {
 
 function shown(page: Page, value: string) {
   return atLeastOne(exactText(page, value));
-}
-
-function receiptLink(page: Page) {
-  return page.getByRole("link", { name: "Accusé de remise", exact: true });
 }
 
 test("remise-summary", { tag: "@remise" }, async ({ page }) => {
@@ -87,18 +84,11 @@ test.describe(() => {
   });
 });
 
-// Sel de l'exécution, transmis au seul processus Playwright par `npm run oracle`.
-function executionSalt(): string {
-  const salt = process.env.ARCHIVE_SALT;
-  if (!salt) throw new Error("ARCHIVE_SALT is not set: the receipt scenarios run only through `npm run oracle`");
-  return salt;
-}
-
 // M5 et M6 : le clic mène à une page (même onglet ou nouvel onglet, enregistré
 // comme variante), qui porte le titre et la référence d'archivage attendue.
 async function checkReceipt(page: Page, number: string): Promise<void> {
   await test.step("verification: receipt page with its title and archive reference", async () => {
-    const expected = archiveReference(executionSalt(), number);
+    const expected = expectedArchiveReference(number);
     const receipt = await openReceipt(atLeastOne(receiptLink(page)));
     recordVariant("receipt-tab", receipt.tab);
     await expect(shown(receipt.page, `Accusé de remise du dossier ${number}`)).toBeVisible();
