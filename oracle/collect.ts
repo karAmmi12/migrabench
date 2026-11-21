@@ -7,6 +7,7 @@ import type { JSONReport, JSONReportSpec, JSONReportSuite, JSONReportTest } from
 
 export const REACH_ANNOTATION = "mb:reach";
 export const REREAD_ANNOTATION = "mb:reread-attempts";
+export const VARIANT_ANNOTATION = "mb:variant";
 export const KEYBOARD_TAG = "clavier";
 
 // Pièces jointes que chaque scénario doit porter, et annotation qui cite leur empreinte.
