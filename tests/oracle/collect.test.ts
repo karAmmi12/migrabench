@@ -82,7 +82,7 @@ function fakeDigest(path: string): string {
 
 function run(scenarios: ScenarioInput[]) {
   const input = report(scenarios);
-  return collect(input, { hashes: hashesFor(input), salt: SALT, root: ROOT, artifactsDir: "/out" });
+  return collect(input, { hashes: hashesFor(input), salt: SALT, saltImposed: false, root: ROOT, artifactsDir: "/out" });
 }
 
 describe("oracle collection", () => {
@@ -156,23 +156,34 @@ describe("oracle collection", () => {
     ]);
   });
 
-  it("adds the salt and the summary to the execution metadata, after the environment", () => {
-    const { report: result, summary } = run([{ title: "a", outcome: "passed" }]);
+  it.each([false, true])(
+    "adds the salt, whether it was imposed (%s), and the summary to the execution metadata, after the environment",
+    (saltImposed) => {
+      const input = report([{ title: "a", outcome: "passed" }]);
+      const { report: result, summary } = collect(input, {
+        hashes: hashesFor(input),
+        salt: SALT,
+        saltImposed,
+        root: ROOT,
+        artifactsDir: "/out",
+      });
 
-    expect(result.config.metadata).toEqual({
-      benchCommit: "abc123",
-      baseUrl: "http://localhost:8080",
-      salt: SALT,
-      summary,
-    });
-    expect(Object.keys(result.config.metadata).slice(-2)).toEqual(["salt", "summary"]);
-  });
+      expect(result.config.metadata).toEqual({
+        benchCommit: "abc123",
+        baseUrl: "http://localhost:8080",
+        salt: SALT,
+        saltImposed,
+        summary,
+      });
+      expect(Object.keys(result.config.metadata).slice(-3)).toEqual(["salt", "saltImposed", "summary"]);
+    },
+  );
 
   it("does not modify the Playwright report it reads", () => {
     const input = report([{ title: "a", outcome: "passed" }]);
     const before = structuredClone(input);
 
-    collect(input, { hashes: hashesFor(input), salt: SALT, root: ROOT, artifactsDir: "/out" });
+    collect(input, { hashes: hashesFor(input), salt: SALT, saltImposed: false, root: ROOT, artifactsDir: "/out" });
 
     expect(input).toEqual(before);
   });
@@ -180,19 +191,19 @@ describe("oracle collection", () => {
   it("fails instead of writing an incomplete result when a scenario has no HAR", () => {
     const input = report([{ title: "a", outcome: "passed" }, { title: "b", outcome: "passed", har: false }]);
 
-    expect(() => collect(input, { hashes: hashesFor(input), salt: SALT, root: ROOT, artifactsDir: "/out" })).toThrow("b: no har attachment");
+    expect(() => collect(input, { hashes: hashesFor(input), salt: SALT, saltImposed: false, root: ROOT, artifactsDir: "/out" })).toThrow("b: no har attachment");
   });
 
   it("fails when a scenario has no trace", () => {
     const input = report([{ title: "a", outcome: "passed", trace: false }]);
 
-    expect(() => collect(input, { hashes: hashesFor(input), salt: SALT, root: ROOT, artifactsDir: "/out" })).toThrow("a: no trace attachment");
+    expect(() => collect(input, { hashes: hashesFor(input), salt: SALT, saltImposed: false, root: ROOT, artifactsDir: "/out" })).toThrow("a: no trace attachment");
   });
 
   it("fails when an artifact has no digest", () => {
     const input = report([{ title: "a", outcome: "passed" }]);
 
-    expect(() => collect(input, { hashes: {}, salt: SALT, root: ROOT, artifactsDir: "/out" })).toThrow("a: no digest for /out/a/scenario.har");
+    expect(() => collect(input, { hashes: {}, salt: SALT, saltImposed: false, root: ROOT, artifactsDir: "/out" })).toThrow("a: no digest for /out/a/scenario.har");
   });
 });
 
@@ -225,6 +236,7 @@ describe("oracle collection of paths", () => {
     return collect(input, {
       hashes: hashesFor(input),
       salt: SALT,
+      saltImposed: false,
       root,
       artifactsDir: `${root}/.oracle-artifacts/${EXECUTION}`,
     });

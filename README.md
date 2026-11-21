@@ -101,7 +101,8 @@ son propre sel, relancer `npm run stack:up` avant `npm test`.
 écrit en clair sur le disque, lisible par tout ce qui tourne sur la machine,
 y compris un candidat en cours de migration. Une exécution mesurée tire
 toujours son propre sel (`npm run oracle`, sans `ORACLE_SALT`) ; ne jamais
-passer le contenu de `.dev-archive-salt` à `ORACLE_SALT`.
+passer le contenu de `.dev-archive-salt` à `ORACLE_SALT`. Un sel imposé se
+voit dans le résultat : `saltImposed: true` dans ses métadonnées.
 
 Le sel vient toujours du shell, jamais de `.env`, que lit aussi le legacy.
 Sans `ARCHIVE_SALT`, `docker compose up` démarre quand même la pile : le
@@ -145,5 +146,6 @@ résultat donne ce dossier (`artifacts`), y cite chaque fichier par un chemin
 relatif, et par son SHA-256 (ADR 0005). La
 commande rend un code non nul si un scénario n'a pas réussi.
 `ORACLE_SALT` impose le sel, pour rejouer une exécution en diagnostic
-seulement, jamais pour une mesure. Le format du résultat est décrit dans la
+seulement, jamais pour une mesure ; le résultat l'enregistre
+(`saltImposed: true`). Le format du résultat est décrit dans la
 spec de l'étape 2 (`docs/specs/02-oracle.md`, « Résultat JSON »).
