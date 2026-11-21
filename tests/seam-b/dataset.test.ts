@@ -91,6 +91,14 @@ describe("dataset", () => {
     }
   });
 
+  it("reserves D-0116, REMIS with a submission date, to scenario:sheet-ctrl-s-remis alone", () => {
+    const dossier = dataset.dossiers.find((entry) => entry.number === "D-0116");
+
+    expect(dossier?.status).toBe("REMIS");
+    expect(dossier?.submittedOn).toBeDefined();
+    expect(dataset.reservations["scenario:sheet-ctrl-s-remis"]).toEqual(["D-0116"]);
+  });
+
   it("reserves only dossiers that exist in the reserved range", () => {
     const reserved = new Set(dataset.dossiers.map((dossier) => dossier.number).filter(isReservedNumber));
 
