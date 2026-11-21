@@ -133,7 +133,7 @@ Un oracle Playwright (Chromium seul) qui tourne tel quel contre le legacy et con
 
 ### Référence d'archivage et sel
 
-- **Calcul** : `HMAC-SHA256(clé = sel, message = numéro du dossier)`, les 12 premiers caractères hexadécimaux en majuscules. L'accusé l'affiche dans une ligne « Référence d'archivage : `<référence>` », sous le titre existant.
+- **Calcul** : `HMAC-SHA256(clé = sel, message = numéro du dossier)`, les 12 premiers caractères hexadécimaux en majuscules. La clé est le sel pris comme texte (les octets UTF-8 de sa forme hexadécimale), comme `openssl dgst -sha256 -hmac <sel>`, pas ses octets décodés. L'accusé l'affiche dans une ligne « Référence d'archivage : `<référence>` », sous le titre existant.
 - **Transmission du sel** : variable `ARCHIVE_SALT`, passée par la composition Docker au seul service `archive`, depuis l'environnement du shell, jamais depuis `.env` (que lit aussi le legacy). Elle ne fait pas partie des variables transmises à la couche serveur du candidat (ADR 0004).
 - **Sans `ARCHIVE_SALT`** : le service d'archivage tire son propre sel au démarrage et ne le révèle pas. La pile reste utilisable par `docker compose up` et par `npm test` ; seuls les scénarios de l'accusé échouent hors de `npm run oracle`, ce qui est voulu.
 - **Le service ne renvoie jamais le sel** : ni dans l'accusé, ni dans un refus (`403`), ni dans un `404`, ni dans un en-tête.

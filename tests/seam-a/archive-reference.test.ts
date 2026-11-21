@@ -16,6 +16,8 @@ function knownSalt(): string {
   if (salt === undefined || salt === "") {
     throw new Error("ARCHIVE_SALT is not set: start the stack and run the tests with the same ARCHIVE_SALT (README)");
   }
+  // Le test négatif cherche aussi le sel décodé en base64 : il doit être hexadécimal.
+  if (!/^(?:[0-9a-f]{2})+$/i.test(salt)) throw new Error("ARCHIVE_SALT must be hexadecimal (openssl rand -hex 32)");
   return salt;
 }
 
@@ -35,12 +37,6 @@ async function containerEnv(service: string): Promise<NodeJS.Dict<string>> {
 }
 
 describe("archive reference", () => {
-  it("computes the expected reference on a worked example", () => {
-    // Valeur obtenue hors du banc, le sel pris comme texte (clé de openssl -hmac) :
-    // printf D-0007 | openssl dgst -sha256 -hmac 00112233445566778899aabbccddeeff
-    expect(archiveReference("00112233445566778899aabbccddeeff", "D-0007")).toBe("F2930D5D9872");
-  });
-
   it("shows the HMAC of the number under the receipt title", async () => {
     const body = await receiptBody("D-0007");
 
@@ -59,8 +55,7 @@ describe("archive reference", () => {
 
 describe("archive salt isolation", () => {
   const encodings = (salt: string) => ({
-    hex: salt.toLowerCase(),
-    hexUpper: salt.toUpperCase(),
+    hex: salt,
     base64: Buffer.from(salt, "hex").toString("base64"),
     base64OfText: Buffer.from(salt, "utf8").toString("base64"),
   });

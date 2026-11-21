@@ -51,7 +51,8 @@ function receipt(number: string): string {
 }
 
 // HMAC-SHA256 du numéro, le sel pris comme texte pour clé : 12 premiers
-// caractères hexadécimaux, en majuscules (spec de l'étape 2).
+// caractères hexadécimaux, en majuscules (spec de l'étape 2). L'oracle a son
+// propre calcul, écrit à part : oracle/archive-reference.ts.
 function archiveReference(number: string): string {
   return createHmac("sha256", ARCHIVE_SALT).update(number).digest("hex").slice(0, 12).toUpperCase();
 }
