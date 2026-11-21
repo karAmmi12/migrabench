@@ -146,7 +146,7 @@ Un oracle Playwright (Chromium seul) qui tourne tel quel contre le legacy et con
 - **Vers la fiche de `D-xxxx`** : recherche, saisir `D-xxxx` dans « Numéro », cliquer « Rechercher », cliquer le lien de nom `D-xxxx`. Atteint quand le champ « Objet » est visible.
 - **Chargement sans identifiants valides** (R17, R18) : ouvrir `BASE_URL`. Atteint dès qu'une réponse HTTP arrive, quel que soit son statut. Une erreur de connexion rend le scénario non atteint : elle ne doit pas se confondre avec un front qui accepte l'accès sans identifiants.
 - **Vers la remise de `D-xxxx`** : fiche, cliquer le lien « Remise ». Atteint quand l'objet du dossier est affiché en texte (récapitulatif).
-- **Relecture** : nouvelle navigation vers la fiche dans une nouvelle page du même contexte, avec une assertion réessayée un nombre fixe de fois (une seule constante, avec son intervalle). Le scénario enregistre combien d'essais ont été nécessaires (annotation `mb:reread-attempts`). Ce réessai n'est jamais une relance du scénario. Pas de `page.reload()` : l'ADR 0006 n'impose aucune route rechargeable.
+- **Relecture** : nouvelle navigation vers la fiche dans une nouvelle page du même contexte, avec une assertion réessayée un nombre fixe de fois (une seule constante, avec son intervalle). La constante `REREAD` vaut 5 essais de 500 ms : l'intervalle borne l'attente de l'assertion à chaque essai, il n'est pas une pause entre deux essais. L'attente des assertions vaut donc 5 × 500 ms au plus, en plus des navigations. Le scénario enregistre combien d'essais ont été nécessaires (annotation `mb:reread-attempts`). Ce réessai n'est jamais une relance du scénario. Pas de `page.reload()` : l'ADR 0006 n'impose aucune route rechargeable.
 - **Numéros affichés** : la suite des liens dont le nom est exactement un numéro (`D-` suivi de 4 chiffres), dans l'ordre du document. Un scénario de recherche filtre cette suite sur les dossiers partagés et la compare à la liste attendue : égalité exacte, donc ordre relatif et absence du complément vérifiés d'un coup.
 - **Refus d'une saisie de recherche** : le message est affiché et aucun numéro de dossier partagé n'est affiché.
 
@@ -193,7 +193,7 @@ Identifiant en anglais (titre du `test()` et nom du propriétaire `scenario:` po
 | F10 | `sheet-subject-maxlength` | `@fiche` | `D-0108` réservé | fiche | comme F8 avec 201 caractères dans Objet et « L'objet doit faire 200 caractères au plus. » |
 | F11 | `sheet-lock-en-instruction` | `@fiche` | `D-0109` réservé, `EN_INSTRUCTION` | fiche | « Demandeur » : libellé présent, valeur affichée, non modifiable ; une frappe ne le change pas ; « Objet » modifiable ; « Enregistrer » présent ; après « Enregistrer », relecture : Demandeur inchangé. Variante `lock` |
 | F12 | `sheet-lock-remis` | `@fiche` | `D-0110` réservé, `REMIS` | fiche | « Demandeur » et « Objet » : libellés présents, valeurs affichées, non modifiables ; aucun bouton « Enregistrer » ; relecture : valeurs inchangées. Variante `lock` |
-| F13 | `sheet-ctrl-s-remis` | `@fiche @clavier` | `D-0116` réservé (nouveau), `REMIS` | fiche | `Ctrl+S` → `defaultPrevented` vrai ; relecture : valeurs inchangées |
+| F13 | `sheet-ctrl-s-remis` | `@fiche @clavier` | `D-0116` réservé (nouveau), `REMIS` | fiche | `Ctrl+S` → `defaultPrevented` vrai ; relecture : valeurs inchangées. La mesure repose sur `defaultPrevented` : la relecture ne peut pas échouer, car l'API interne refuse (`409`) toute modification d'un dossier `REMIS` et la couche serveur du candidat passe par elle (ADR 0003) |
 | F14 | `sheet-remise-link` | `@fiche` | `D-0002` (`BROUILLON`), `D-0003` (`EN_INSTRUCTION`), `D-0001` (`REMIS`), partagés | fiche de chacun, en alternant navigation et vérification | lien « Remise » absent sur `D-0002`, présent sur `D-0003` et `D-0001` |
 
 #### Remise — `@remise` (6 scénarios)
@@ -256,7 +256,7 @@ Format du reporter JSON de Playwright, enrichi par la collecte. Un fichier par e
 
 - Chromium seul ; scénarios en parallèle (`fullyParallel`) ; aucune relance (`retries: 0`) ; trace et HAR pour chaque scénario.
 - HAR : un contexte par scénario, `recordHar` avec les corps inclus, sans filtre d'URL (toutes origines, service d'archivage compris).
-- `defaultPrevented` : écouteur `keydown` en phase de capture sur `window`, lecture différée après la fin de la propagation. Point à vérifier sur le legacy : la lecture doit survivre à la soumission du formulaire que déclenche `Ctrl+S` (F6).
+- `defaultPrevented` : écouteur `keydown` en phase de capture sur `window`, lecture différée après la fin de la propagation. Vérifié sur le legacy (#35) : la lecture survit à la soumission du formulaire que déclenche `Ctrl+S` (F6), car la page n'est quittée qu'à l'arrivée de la réponse. Si la page est quittée avant la lecture, la mesure échoue avec un message qui le dit, pas sur un délai dépassé : la navigation du cadre principal est guettée côté Node, car une page qui part ne remonte plus rien.
 - Faux identifiants : le nom inconnu est une seule constante, partagée avec les tests du Seam A, et vérifiée absente de `fixtures/users.json`.
 
 ## Décisions de test
