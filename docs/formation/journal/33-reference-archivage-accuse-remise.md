@@ -75,9 +75,15 @@ jamais ce sel : un faux accusé ne peut pas porter la bonne référence.
   - `tests/seam-a/archive-no-salt.test.ts` et `no-salt.compose.yml` : une
     seconde pile, démarrée sans `ARCHIVE_SALT`, délivre l'accusé avec une
     référence, et la variable n'est dans aucun des deux conteneurs.
+- `oracle/collect.ts` et `oracle/execute.ts` : la collecte ajoute
+  `saltImposed` aux métadonnées du résultat, juste après `salt`. Il vaut
+  `true` quand `ORACLE_SALT` a imposé le sel (exécution de diagnostic), et
+  `false` quand l'exécution l'a tiré. Testé dans `tests/oracle/collect.test.ts`
+  pour les deux valeurs.
 - Documentation : `README.md` (« Tests du banc » : `npm run stack:up`, la
-  règle du sel de développement), `docs/specs/02-oracle.md` (clé prise comme
-  texte, sel de développement).
+  règle du sel de développement ; « Lancer l'oracle » : `saltImposed`),
+  `docs/specs/02-oracle.md` (clé prise comme texte, sel de développement,
+  `saltImposed` dans les métadonnées et dans le critère de fin).
 
 ## Les choix faits et pourquoi
 
@@ -103,6 +109,13 @@ jamais ce sel : un faux accusé ne peut pas porter la bonne référence.
   sur le disque en clair, lisible par tout ce qui tourne sur la machine.
   `npm run oracle` tire toujours le sien et recrée la pile avec
   (`oracle/execute.ts`). Règle écrite dans le README et la spec.
+- **Le sel imposé se voit dans le résultat**, au lieu d'un ticket à part
+  pour refuser le sel de développement. Sans `saltImposed`, rien ne
+  distinguait un résultat de diagnostic d'une mesure : `ORACLE_SALT` aurait
+  pu recevoir le contenu de `.dev-archive-salt` sans laisser de trace. Une
+  mesure doit maintenant avoir `saltImposed: false`. C'est écrit dans le
+  critère de fin de la spec et dans un commentaire sur #39, le ticket des
+  5 exécutions de preuve. Choix de l'humain.
 - **Le fichier est écrit avant le démarrage de la pile**, pour qu'il donne
   toujours le dernier sel passé à la pile, même si `docker compose up` échoue
   ensuite.
@@ -206,6 +219,18 @@ mv .dev-archive-salt /tmp/ && npx vitest run tests/seam-a/archive-reference.test
 # Tests  6 failed | 2 passed (8)
 ```
 
+`saltImposed`, observé au commit `0d05d84` : le test, écrit d'abord, a
+échoué pour les deux valeurs (`Tests  2 failed | 18 passed (20)`), puis :
+
+```sh
+npx vitest run tests/oracle/collect.test.ts -t "whether it was imposed"
+# Tests  2 passed | 18 skipped (20)
+
+npm test   # pile de npm run stack:up, sans ARCHIVE_SALT dans le shell
+# Test Files  18 passed (18)
+#      Tests  129 passed (129)
+```
+
 En CI, sur la PR #42, commit `7f5d4b5` : « Tests du banc », exécution
 [44927732538](https://github.com/karAmmi12/migrabench/actions/runs/44927732538),
 `success` en 98 s (17:01:20Z → 17:02:58Z). Le sel tiré par le job apparaît
@@ -220,14 +245,13 @@ Test Files  18 passed (18)
 
 ## Pour aller plus loin
 
+- #39 : les 5 exécutions de preuve doivent toutes avoir `saltImposed: false`
+  ([commentaire](https://github.com/karAmmi12/migrabench/issues/39#issuecomment-7066260970)).
 - #38 : les scénarios M5 et M6 de l'oracle (`receipt-agent`,
   `receipt-instructeur`) vérifieront la référence avec
   `oracle/archive-reference.ts` et le sel de l'exécution.
 - ADR 0004 : le sel s'ajoute aux valeurs que le banc ne transmet pas à la
   couche serveur du candidat.
-- Limite connue : le sel de développement est lisible sur la machine. La
-  règle « jamais pour une exécution mesurée » est écrite, pas imposée par le
-  code : `ORACLE_SALT` accepterait encore son contenu.
 - Limite connue : le test sans sel suppose les images déjà construites sous
   les noms `migrabench-legacy` et `migrabench-archive`, ce que font
   `npm run stack:up` et la CI.
