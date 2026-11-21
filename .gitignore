@@ -9,5 +9,8 @@ target/
 !.env
 playwright-report/
 test-results/
+# Bruts de l'oracle (traces, HAR), un dossier par exécution : hors de Git,
+# cités par empreinte dans le résultat versionné (ADR 0005).
+.oracle-artifacts/
 *.har
 .DS_Store

@@ -5,7 +5,6 @@
 import { spawn } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseEnv } from "node:util";
@@ -20,6 +19,8 @@ export { DEFAULT_BASE_URL };
 const ROOT = fileURLToPath(new URL("..", import.meta.url)).replace(/\/$/, "");
 const RESULTS_DIR = join(ROOT, RESULTS_DIR_FROM_ROOT);
 const CONFIG = join(ROOT, "oracle", "playwright.config.ts");
+// Bruts (traces, HAR), un dossier par exécution, ignoré par Git (ADR 0005).
+const ARTIFACTS_DIR_FROM_ROOT = ".oracle-artifacts";
 // Services recréés à chaque exécution : le legacy recharge son jeu de données au démarrage.
 const SERVICES = ["legacy", "archive"] as const;
 
@@ -50,6 +51,9 @@ interface Environment {
   images: Record<string, string>;
   frozenDate: string | null;
   baseUrl: string;
+  // Dossier des bruts de l'exécution, depuis la racine du dépôt ; les pièces
+  // jointes du résultat sont citées relativement à lui.
+  artifacts: string;
 }
 
 // Ce que le premier temps transmet aux deux suivants.
@@ -73,13 +77,14 @@ async function prepare(baseUrl: string, salt: string): Promise<PreparedExecution
   const images: Record<string, string> = {};
   for (const service of SERVICES) images[service] = await imageOf(service);
   const env = parseEnv(await readFile(join(ROOT, ".env"), "utf8"));
-  const outputDir = join(tmpdir(), "migrabench-oracle", `${timestamp(startedAt)}-${randomBytes(4).toString("hex")}`);
+  const executionId = `${timestamp(startedAt)}-${randomBytes(4).toString("hex")}`;
+  const artifacts = `${ARTIFACTS_DIR_FROM_ROOT}/${executionId}`;
   return {
     baseUrl,
     salt,
-    metadata: { benchCommit, worktree, node: process.version, images, frozenDate: env.FROZEN_DATE ?? null, baseUrl },
-    outputDir,
-    reportFile: join(outputDir, "report.json"),
+    metadata: { benchCommit, worktree, node: process.version, images, frozenDate: env.FROZEN_DATE ?? null, baseUrl, artifacts },
+    outputDir: join(ROOT, artifacts),
+    reportFile: join(ROOT, artifacts, "report.json"),
     startedAt,
   };
 }
@@ -97,13 +102,13 @@ async function launch({ baseUrl, salt, metadata, outputDir, reportFile }: Prepar
   return readFile(reportFile, "utf8");
 }
 
-async function collectAndWrite({ salt, startedAt, metadata }: PreparedExecution, raw: string): Promise<ExecuteOracleResult> {
+async function collectAndWrite({ salt, startedAt, metadata, outputDir }: PreparedExecution, raw: string): Promise<ExecuteOracleResult> {
   // Le sel n'apparaît dans le résultat qu'une fois Playwright terminé.
   if (raw.includes(salt)) throw new Error("The Playwright report contains the salt before collection");
   const report = JSON.parse(raw) as JSONReport;
   const hashes: Record<string, string> = {};
   for (const path of artifactPaths(report)) hashes[path] = await sha256(path);
-  const { report: result, summary } = collect(report, { hashes, salt, root: ROOT });
+  const { report: result, summary } = collect(report, { hashes, salt, root: ROOT, artifactsDir: outputDir });
   await mkdir(RESULTS_DIR, { recursive: true });
   const resultFile = join(RESULTS_DIR, `${timestamp(startedAt)}-${metadata.benchCommit.slice(0, 7)}.json`);
   await writeFile(resultFile, `${JSON.stringify(result, null, 2)}\n`);

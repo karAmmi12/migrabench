@@ -118,8 +118,10 @@ Une exécution complète tire un sel, recrée les conteneurs `legacy` et
 `archive` à partir des images existantes (ce qui remet le jeu de données à
 zéro), lance les scénarios de `oracle/scenarios` sous Chromium, en parallèle
 et sans relance, puis écrit un résultat JSON versionné dans
-`results/oracle/`. Traces et HAR restent hors du dépôt, dans le dossier
-temporaire du système ; le résultat les cite par leur SHA-256 (ADR 0005). La
+`results/oracle/`. Traces et HAR sont écrits dans
+`.oracle-artifacts/<identifiant de l'exécution>/`, ignoré par Git ; le
+résultat donne ce dossier (`artifacts`), y cite chaque fichier par un chemin
+relatif, et par son SHA-256 (ADR 0005). La
 commande rend un code non nul si un scénario n'a pas réussi.
 `ORACLE_SALT` impose le sel, pour rejouer une exécution en diagnostic
 seulement, jamais pour une mesure. Le format du résultat est décrit dans la

@@ -43,8 +43,11 @@ export interface CollectInput {
   // Empreinte SHA-256 (hexadécimal) de chaque fichier cité par artifactPaths.
   hashes: Readonly<Record<string, string>>;
   salt: string;
-  // Racine du dépôt, à laquelle tous les chemins du résultat sont rapportés.
+  // Racine du dépôt, à laquelle les chemins du résultat sont rapportés.
   root: string;
+  // Dossier des bruts de l'exécution (.oracle-artifacts/<identifiant>), auquel
+  // les pièces jointes (traces, HAR) sont rapportées.
+  artifactsDir: string;
 }
 
 // Champs du JSON Playwright qui contiennent un chemin de fichier, ou une liste
@@ -65,7 +68,7 @@ export function artifactPaths(report: JSONReport): string[] {
   );
 }
 
-export function collect(report: JSONReport, { hashes, salt, root }: CollectInput): { report: JSONReport; summary: OracleSummary } {
+export function collect(report: JSONReport, { hashes, salt, root, artifactsDir }: CollectInput): { report: JSONReport; summary: OracleSummary } {
   const result = structuredClone(report);
   const statuses: ScenarioOutcome[] = [];
 
@@ -78,6 +81,16 @@ export function collect(report: JSONReport, { hashes, salt, root }: CollectInput
       test.annotations.push({ type: annotation, description: `sha256:${digest}` });
     }
     statuses.push({ status: statusOf(test), keyboard: spec.tags.includes(KEYBOARD_TAG) });
+    for (const testResult of test.results) {
+      for (const attachment of testResult.attachments) {
+        if (attachment.path === undefined) continue;
+        const cited = relative(artifactsDir, attachment.path);
+        if (cited === "" || cited.startsWith("..") || isAbsolute(cited)) {
+          throw new Error(`${spec.title}: attachment ${attachment.name} lies outside the artifacts directory`);
+        }
+        attachment.path = cited;
+      }
+    }
   }
 
   const summary = summarize(statuses);

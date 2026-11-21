@@ -122,7 +122,7 @@ Un oracle Playwright (Chromium seul) qui tourne tel quel contre le legacy et con
 
   En interne, trois temps :
   1. **préparer** : tirer le sel (32 octets aléatoires, en hexadécimal) sauf s'il est imposé ; recréer les conteneurs `legacy` et `archive` (ce qui remet le jeu de données à zéro) à partir des images existantes, sans les reconstruire, avec le sel passé au seul service d'archivage, et attendre qu'ils soient sains ; relever l'environnement.
-  2. **lancer** : Playwright avec `BASE_URL`, le sel dans l'environnement du seul processus Playwright, le reporter JSON, les traces et HAR écrits hors du dépôt.
+  2. **lancer** : Playwright avec `BASE_URL`, le sel dans l'environnement du seul processus Playwright, le reporter JSON, les traces et HAR écrits dans `.oracle-artifacts/<identifiant de l'exécution>/`, dossier du projet ignoré par Git, que le job de CI téléverse.
   3. **collecter** : calculer le SHA-256 de chaque HAR et de chaque trace, les ajouter au résultat comme annotations du scénario, classer chaque scénario, calculer les taux, ajouter le sel, écrire le résultat JSON versionné.
 - **`npm run oracle`** : commande mince sur `executeOracle`. Elle rend un code de sortie non nul si un scénario n'a pas réussi.
 - **Collecte (fonction pure)** : prend le JSON de Playwright et les empreintes, rend le résultat enrichi. C'est elle que testent les tests Vitest.
@@ -237,6 +237,7 @@ Format du reporter JSON de Playwright, enrichi par la collecte. Un fichier par e
   - `images` : empreinte des images Docker `legacy` et `archive` ;
   - `frozenDate` : horloge figée (`FROZEN_DATE`) ;
   - `baseUrl` ;
+  - `artifacts` : dossier des bruts de l'exécution, `.oracle-artifacts/<identifiant de l'exécution>`, depuis la racine du dépôt. Les pièces jointes des scénarios y sont citées par des chemins relatifs à ce dossier ; tout autre chemin du résultat est relatif à la racine du dépôt ;
   - `ciRun` : identifiant de l'exécution de CI et rang de l'exécution complète dans le job (1 à 5 pour le job de preuve), présent seulement en CI ;
   - `salt` : ajouté par la collecte, une fois Playwright terminé ;
   - `summary` : calculé par la collecte : nombre de scénarios, réussis, échoués, non atteints ; taux sur tous les scénarios ; taux sur les scénarios atteints ; scénarios `@clavier` réussis sur leur total.
