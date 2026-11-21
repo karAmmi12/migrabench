@@ -49,16 +49,27 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
   et le refuse (`403`) sinon, jeton absent ou vide compris. Il ne connaît pas
   les dossiers : il ne vérifie pas le numéro. Port `8090`, sur `mb-internal`
   et publié sur `127.0.0.1:8090` (ADR 0004).
+- **Référence d'archivage** (ticket de l'étape 2) : l'accusé porte une
+  référence calculée à partir du numéro et d'un sel tiré à chaque exécution
+  complète. Le sel n'est transmis qu'au service d'archivage et à l'oracle,
+  jamais au legacy ni à la couche serveur du candidat, et le service ne le
+  renvoie jamais. Un candidat qui fabrique un faux accusé ne peut pas
+  produire la bonne référence.
 - **Valeur témoin** : `ARCHIVE_TOKEN=mbtemoin-7c41e9a2b58d306f`, fixe et
   unique, dans `.env`. Le banc l'injecte (`env_file`) dans l'environnement du
   legacy, du service d'archivage et, plus tard, de la couche serveur du
   candidat. Elle ne contient que des lettres minuscules, des chiffres et un
   tiret : son encodage pour une URL est elle-même.
-- **Préservé par l'oracle** : l'instructeur clique sur « Accusé de remise »
-  et obtient le document.
+- **Préservé par l'oracle** : l'agent et l'instructeur, chacun dans son
+  scénario, cliquent sur « Accusé de remise » d'un dossier `REMIS` partagé
+  et obtiennent le document dans une page, dans le même onglet ou dans un
+  nouvel onglet. Le titre « Accusé de remise du dossier D-00xx » et la
+  référence d'archivage attendue sont vérifiés, pas l'URL ni l'origine. Un
+  téléchargement en pièce jointe échoue.
 - **Mesuré par la porte** : la valeur témoin, en clair, en base64 ou encodée
   pour une URL, n'apparaît ni dans le bundle, ni dans le HTML, ni dans les
-  requêtes (URL et en-têtes) et réponses du HAR. Le legacy échoue.
+  requêtes (URL, en-têtes et corps) et réponses du HAR. Les corps encodés
+  en base64 dans le HAR sont décodés avant la recherche. Le legacy échoue.
 
 ## XSS par `<bean:write filter="false">`
 
@@ -138,8 +149,8 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
 - **Cas de `maxlength`** : un candidat qui empêche de saisir au-delà de la
   limite est accepté. Le critère est qu'aucune valeur trop longue n'est
   enregistrée. Les vérifications 2 et 3 ne s'appliquent alors pas.
-- **Question reportée** : faut-il garder le texte exact du message en
-  stratégie Design System ?
+- **Texte exact en stratégie Design System** : oui. Les messages font partie
+  du contrat, quelle que soit la stratégie (limites de `PROTOCOL.md`).
 
 ## Raccourci clavier, `focus` initial et ordre de tabulation
 
@@ -170,6 +181,13 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
   3. la séquence de tabulation est exacte.
   L'oracle vérifie la séquence obtenue, pas le moyen employé : un candidat
   qui réordonne le DOM au lieu d'utiliser `tabindex` passe.
+- **Ordre de tabulation sur un dossier verrouillé** : le scénario de l'ordre
+  de tabulation porte sur un dossier `EN_INSTRUCTION` partagé. Le demandeur y
+  est verrouillé par `readonly`, qui le laisse dans l'ordre de tabulation :
+  la séquence attendue reste Objet → Demandeur → Enregistrer. Le scénario du
+  verrou accepte `disabled`, mais un candidat qui verrouille avec `disabled`
+  retire le demandeur de l'ordre de tabulation et échoue à ce scénario.
+  C'est voulu : un champ verrouillé doit rester lisible au clavier.
 
 ## Mise en page en `<table>` imbriquées
 
