@@ -1,17 +1,20 @@
 // Outils partagés des scénarios de l'oracle (spec de l'étape 2, « Modules ») :
 // fixture par rôle avec un HAR par scénario, navigation depuis BASE_URL (vers
 // la recherche, la fiche et la remise), relecture, lecture des numéros
-// affichés, dossiers partagés, statut atteint. La mesure de `defaultPrevented`
+// affichés, textes exacts, dossiers partagés, statut atteint. La mesure de `defaultPrevented`
 // est dans default-prevented.ts, le refus des boîtes de dialogue dans
-// dialogs.ts, le comptage des champs modifiables dans editable-fields.ts.
+// dialogs.ts, le comptage des champs modifiables dans editable-fields.ts, la
+// vérification de présence dans occurrences.ts.
 import { readFileSync } from "node:fs";
 import { test as base, expect, type Locator, type Page } from "@playwright/test";
 import { parseUsersWithoutUnknown, type Role, UNKNOWN_USER } from "../scripts/users.ts";
 import { REACH_ANNOTATION, REREAD_ANNOTATION } from "./collect.ts";
+import { atLeastOne } from "./occurrences.ts";
 
 export { pressAndReadDefaultPrevented } from "./default-prevented.ts";
 export { refuseDialogs } from "./dialogs.ts";
 export { editableFieldCount } from "./editable-fields.ts";
+export { atLeastOne } from "./occurrences.ts";
 
 export { expect } from "@playwright/test";
 
@@ -71,6 +74,12 @@ export function button(page: Page, name: string): Locator {
   return page.getByRole("button", { name, exact: true });
 }
 
+// Toutes les occurrences d'un texte exact. Une vérification de présence le
+// passe à atLeastOne ; une vérification d'absence le garde entier.
+export function exactText(page: Page, value: string): Locator {
+  return page.getByText(value, { exact: true });
+}
+
 // Vers la recherche : ouvrir BASE_URL ; atteint quand « Numéro » est visible.
 export async function openSearch(page: Page): Promise<void> {
   await test.step("navigation: search", async () => {
@@ -126,11 +135,11 @@ export function remiseLink(page: Page): Locator {
 
 // Vers la remise : fiche, clic sur le lien « Remise » ; atteint quand l'objet
 // du dossier est affiché en texte (récapitulatif).
-export async function openRemise(page: Page, number: string, subject: string): Promise<void> {
+export async function openSubmission(page: Page, number: string, subject: string): Promise<void> {
   await test.step(`navigation: remise ${number}`, async () => {
     await reachSheet(page, number);
     await remiseLink(page).click();
-    await page.getByText(subject, { exact: true }).waitFor({ state: "visible" });
+    await atLeastOne(exactText(page, subject)).waitFor({ state: "visible" });
   });
 }
 
