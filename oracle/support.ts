@@ -5,20 +5,24 @@
 // mesure de `defaultPrevented` est dans default-prevented.ts, le refus des
 // boîtes de dialogue dans dialogs.ts, le comptage des champs modifiables dans
 // editable-fields.ts, la vérification de présence dans occurrences.ts,
-// l'ouverture de l'accusé de remise dans receipt.ts, les variantes dans variants.ts.
+// l'ouverture de l'accusé de remise dans receipt.ts, les variantes dans
+// variants.ts, la lecture du verrou dans lock.ts, les messages de la fiche
+// dans messages.ts.
 import { readFileSync } from "node:fs";
 import { test as base, expect, type Locator, type Page } from "@playwright/test";
 import { parseUsersWithoutUnknown, type Role, UNKNOWN_USER } from "../scripts/users.ts";
 import { archiveReference } from "./archive-reference.ts";
 import { REACH_ANNOTATION, REREAD_ANNOTATION } from "./collect.ts";
 import { atLeastOne } from "./occurrences.ts";
-import { type VariantKey, type Variants, variantAnnotation } from "./variants.ts";
+import { skippedStepAnnotation, type VariantKey, type Variants, variantAnnotation } from "./variants.ts";
 
 export { pressAndReadDefaultPrevented } from "./default-prevented.ts";
 export { refuseDialogs } from "./dialogs.ts";
 export { editableFieldCount } from "./editable-fields.ts";
 export { openReceipt, receiptLink } from "./receipt.ts";
 export { atLeastOne } from "./occurrences.ts";
+export { lockVariant } from "./lock.ts";
+export { SHEET_MESSAGES } from "./messages.ts";
 
 export { expect } from "@playwright/test";
 
@@ -68,6 +72,12 @@ export function markReached(): void {
 // clés et valeurs de la spec sont acceptées (oracle/variants.ts).
 export function recordVariant<K extends VariantKey>(key: K, value: Variants[K]): void {
   test.info().annotations.push(variantAnnotation(key, value));
+}
+
+// Étape sautée à cause d'une variante : enregistrée comme telle, avec la
+// variante qui la justifie, pour ne pas passer pour une étape ignorée.
+export function recordSkippedStep<K extends VariantKey>(step: string, key: K, value: Variants[K]): void {
+  test.info().annotations.push(skippedStepAnnotation(step, key, value));
 }
 
 // Référence d'archivage attendue sur l'accusé de remise d'un dossier, calculée
