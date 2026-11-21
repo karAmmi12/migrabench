@@ -206,9 +206,17 @@ mv .dev-archive-salt /tmp/ && npx vitest run tests/seam-a/archive-reference.test
 # Tests  6 failed | 2 passed (8)
 ```
 
-> À vérifier après l'exécution de la CI de la PR : le lien de l'exécution du
-> workflow « Tests du banc », son head SHA, et le total de tests rapporté
-> (le sel tiré par le job et `archive-no-salt.test.ts` sur le runner).
+En CI, sur la PR #42, commit `7f5d4b5` : « Tests du banc », exécution
+[44927732538](https://github.com/karAmmi12/migrabench/actions/runs/44927732538),
+`success` en 98 s (17:01:20Z → 17:02:58Z). Le sel tiré par le job apparaît
+masqué dans le journal (`ARCHIVE_SALT: ***`), et le test sans sel passe sur le
+runner :
+
+```text
+✓ tests/seam-a/archive-no-salt.test.ts (3 tests) 14780ms
+Test Files  18 passed (18)
+     Tests  128 passed (128)
+```
 
 ## Pour aller plus loin
 
