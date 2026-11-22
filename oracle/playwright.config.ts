@@ -14,6 +14,11 @@ export default defineConfig({
   forbidOnly: true,
   reporter: [["list"], ["json", { outputFile: process.env[ORACLE_ENV.report] ?? `${outputDir}/report.json` }]],
   metadata: JSON.parse(process.env[ORACLE_ENV.metadata] ?? "{}") as Record<string, unknown>,
+  // En CI, Playwright ajoute par défaut aux métadonnées le commit (gitCommit) et
+  // le diff de la PR (gitDiff). Le commit est déjà dans benchCommit, et le diff
+  // n'a pas sa place dans un résultat versionné : ses chemins `../` font refuser
+  // le résultat par la collecte (#39, premier job de CI de l'oracle).
+  captureGitInfo: { commit: false, diff: false },
   use: {
     baseURL: process.env.BASE_URL ?? DEFAULT_BASE_URL,
     trace: "on",
