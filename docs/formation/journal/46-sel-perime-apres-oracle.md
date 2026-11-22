@@ -137,10 +137,15 @@ ARCHIVE_SALT=ffeeddccbbaa99887766554433221100 npx vitest run tests/seam-a/zz-mai
 rm tests/seam-a/zz-main.test.ts
 ```
 
-La CI de la PR lance `npm test` avec `ARCHIVE_SALT` défini.
+La CI de la PR lance `npm test` avec `ARCHIVE_SALT` défini. Exécution
+« Tests du banc »
+[45040072305](https://github.com/karAmmi12/migrabench/actions/runs/45040072305),
+sur le commit `56e7b6c`, en 2 min 11 s :
 
-> À vérifier après l'exécution de la CI de la PR : le lien de l'exécution, son
-> head SHA, et la ligne `Tests` de `npm test`.
+```text
+Test Files  27 passed (27)
+     Tests  173 passed (173)
+```
 
 ## Pour aller plus loin
 
