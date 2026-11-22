@@ -17,20 +17,25 @@ tenu.
   `actions/checkout` récupère par défaut `refs/pull/<N>/merge`, un commit de
   fusion temporaire créé par GitHub, qui n'entre jamais dans l'historique de
   la branche. L'entrée `ref` permet de récupérer le commit de la PR à la place
-  (`github.event.pull_request.head.sha`). —
+  (`github.event.pull_request.head.sha`). La page le dit : pour cet
+  événement, `GITHUB_SHA` est le dernier commit de fusion de la branche
+  `refs/pull/PULL_REQUEST_NUMBER/merge`, et le dernier commit de la branche
+  de la PR se lit dans `github.event.pull_request.head.sha` (page relue le
+  22/11/2026). —
   [GitHub Docs : Events that trigger workflows, pull_request](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#pull_request)
-  > À vérifier : ancre exacte de la page GitHub Docs.
 - **`GITHUB_RUN_ID` et `GITHUB_RUN_ATTEMPT`** : variables définies par GitHub
   Actions dans chaque job. L'identifiant reste le même quand on relance une
-  exécution ; la tentative augmente. —
-  [GitHub Docs : Default environment variables](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables)
-- **`actions/upload-artifact` et fichiers cachés** : depuis la v4.4, les
-  fichiers et dossiers dont le nom commence par un point sont exclus, sauf
-  avec `include-hidden-files: true`. Le dossier des bruts, `.oracle-artifacts/`,
+  exécution ; la tentative commence à 1 et augmente à chaque relance. —
+  [GitHub Docs : Variables reference, Default environment variables](https://docs.github.com/en/actions/reference/workflows-and-actions/variables#default-environment-variables)
+- **`actions/upload-artifact` et fichiers cachés** : depuis la v4.4.0
+  (publiée le 30/08/2024, changement cassant annoncé dans ses notes de
+  version), les fichiers dont le nom commence par un point, et ceux des
+  dossiers dont le nom commence par un point, sont exclus, sauf avec
+  `include-hidden-files: true`. Le dossier des bruts, `.oracle-artifacts/`,
   en est un. L'entrée est présente dans l'`action.yml` du SHA épinglé
   (`cf430e0…`, v7.0.2), relu pendant la session. —
-  [actions/upload-artifact : README](https://github.com/actions/upload-artifact#readme)
-  > À vérifier : version (v4.4) à partir de laquelle les fichiers cachés sont exclus.
+  [actions/upload-artifact : README, Uploading Hidden Files](https://github.com/actions/upload-artifact#uploading-hidden-files)
+  et [notes de version v4.4.0](https://github.com/actions/upload-artifact/releases/tag/v4.4.0)
 - **`bash -e` dans un `run:`** : GitHub lance les étapes `run` avec
   `bash --noprofile --norc -eo pipefail {0}`. Une commande qui échoue dans la
   boucle des 5 exécutions arrête donc l'étape, ce qui rend les exécutions
