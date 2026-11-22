@@ -7,14 +7,24 @@ import { readFileSync } from "node:fs";
 import { parseEnv, promisify } from "node:util";
 import { describe, expect, it } from "vitest";
 import { archiveReference } from "../../oracle/archive-reference.ts";
-import { readDevSalt, resolveArchiveSalt } from "../../scripts/dev-archive-salt.ts";
+import { checkStackSalt, readDevSalt, resolveArchiveSalt } from "../../scripts/dev-archive-salt.ts";
 import { ARCHIVE_TOKEN, ARCHIVE_URL, receiptUrl } from "./archive-client.ts";
 
 const execFileAsync = promisify(execFile);
 
-// ARCHIVE_SALT du shell (CI), sinon le sel de `npm run stack:up`.
-function knownSalt(): string {
-  return resolveArchiveSalt(process.env, readDevSalt());
+let checkedSalt: Promise<string> | undefined;
+
+// ARCHIVE_SALT du shell (CI), sinon le sel de `npm run stack:up`, vérifié une
+// fois contre celui de la pile : un sel périmé échoue avec un message qui dit
+// de relancer `npm run stack:up`, pas avec un écart de HMAC (#46). Cette
+// comparaison vérifie aussi que le service d'archivage reçoit le sel.
+function knownSalt(): Promise<string> {
+  checkedSalt ??= (async () => {
+    const salt = resolveArchiveSalt(process.env, readDevSalt());
+    checkStackSalt((await containerEnv("archive")).ARCHIVE_SALT, salt);
+    return salt;
+  })();
+  return checkedSalt;
 }
 
 function referenceIn(body: string): string | undefined {
@@ -36,7 +46,7 @@ describe("archive reference", () => {
   it("shows the HMAC of the number under the receipt title", async () => {
     const body = await receiptBody("D-0007");
 
-    expect(referenceIn(body)).toBe(archiveReference(knownSalt(), "D-0007"));
+    expect(referenceIn(body)).toBe(archiveReference(await knownSalt(), "D-0007"));
     expect(body.indexOf("Référence d'archivage")).toBeGreaterThan(body.indexOf("<h1>"));
   });
 
@@ -44,7 +54,7 @@ describe("archive reference", () => {
     const first = referenceIn(await receiptBody("D-0007"));
     const second = referenceIn(await receiptBody("D-0010"));
 
-    expect(second).toBe(archiveReference(knownSalt(), "D-0010"));
+    expect(second).toBe(archiveReference(await knownSalt(), "D-0010"));
     expect(second).not.toBe(first);
   });
 });
@@ -66,14 +76,10 @@ describe("archive salt isolation", () => {
     const headers = [...response.headers].map(([name, value]) => `${name}: ${value}`).join("\n");
     const body = await response.text();
 
-    for (const [encoding, value] of Object.entries(encodings(knownSalt()))) {
+    for (const [encoding, value] of Object.entries(encodings(await knownSalt()))) {
       expect(body.toLowerCase(), `body, ${encoding}`).not.toContain(value.toLowerCase());
       expect(headers.toLowerCase(), `headers, ${encoding}`).not.toContain(value.toLowerCase());
     }
-  });
-
-  it("passes the salt to the archive service", async () => {
-    expect((await containerEnv("archive")).ARCHIVE_SALT).toBe(knownSalt());
   });
 
   it("does not pass the salt to the legacy", async () => {

@@ -22,6 +22,22 @@ export function resolveArchiveSalt(env: NodeJS.Dict<string>, devSalt: string | u
   return salt;
 }
 
+/**
+ * Vérifie que la pile tourne avec le sel de `npm test`. Après `npm run oracle`,
+ * qui recrée la pile avec le sel de l'exécution, .dev-archive-salt garde
+ * l'ancien sel : sans ce message, l'écart ne se voit que dans un HMAC (#46).
+ * Le message ne cite aucun des deux sels.
+ */
+export function checkStackSalt(stackSalt: string | undefined, knownSalt: string): void {
+  if (stackSalt !== knownSalt) {
+    throw new Error(
+      "The stack does not run with the archive salt of npm test: rerun `npm run stack:up` " +
+        "(after `npm run oracle`, the stack keeps the salt of the oracle execution), " +
+        "or start the stack and the tests with the same ARCHIVE_SALT (README)",
+    );
+  }
+}
+
 /** Contenu du fichier du sel de développement, ou undefined s'il n'existe pas. */
 export function readDevSalt(): string | undefined {
   try {

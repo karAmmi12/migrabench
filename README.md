@@ -95,7 +95,10 @@ CI), sinon le sel de développement que `npm run stack:up` écrit dans
 `.dev-archive-salt`, fichier ignoré par Git. Sans l'un ni l'autre, ces tests
 échouent avec un message explicite, sans être sautés. La pile et `npm test`
 doivent voir le même sel : après un `npm run oracle`, qui recrée la pile avec
-son propre sel, relancer `npm run stack:up` avant `npm test`.
+son propre sel, relancer `npm run stack:up` avant `npm test`. Les tests
+comparent d'abord leur sel à celui du service d'archivage : s'ils diffèrent,
+ils échouent avec un message qui demande de relancer `npm run stack:up`,
+sans citer aucun des deux sels.
 
 **Le sel de développement ne sert jamais à une exécution mesurée.** Il est
 écrit en clair sur le disque, lisible par tout ce qui tourne sur la machine,
