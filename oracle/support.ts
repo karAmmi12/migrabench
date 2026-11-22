@@ -6,8 +6,8 @@
 // boîtes de dialogue dans dialogs.ts, le comptage des champs modifiables dans
 // editable-fields.ts, la vérification de présence dans occurrences.ts,
 // l'ouverture de l'accusé de remise dans receipt.ts, les variantes dans
-// variants.ts, la lecture du verrou dans lock.ts, les messages de la fiche
-// dans messages.ts.
+// variants.ts, la lecture du verrou dans lock.ts, les messages de la
+// recherche et de la fiche dans messages.ts.
 import { readFileSync } from "node:fs";
 import { test as base, expect, type Locator, type Page } from "@playwright/test";
 import { parseUsersWithoutUnknown, type Role, UNKNOWN_USER } from "../scripts/users.ts";
@@ -22,7 +22,7 @@ export { editableFieldCount } from "./editable-fields.ts";
 export { openReceipt, receiptLink } from "./receipt.ts";
 export { atLeastOne } from "./occurrences.ts";
 export { type Lock, lockVariant } from "./lock.ts";
-export { SHEET_MESSAGES } from "./messages.ts";
+export { SEARCH_MESSAGES, SHEET_MESSAGES } from "./messages.ts";
 
 export { expect } from "@playwright/test";
 
@@ -204,4 +204,18 @@ export async function reread(
     test.info().annotations.push({ type: REREAD_ANNOTATION, description: String(REREAD.attempts) });
     throw lastError;
   });
+}
+
+// Liste stable (scénarios @recherche) : `expect.poll` passe au premier relevé
+// conforme. Une fois la liste attendue relevée, l'oracle attend l'intervalle
+// de REREAD, sans rien faire, puis la relit : elle ne doit pas avoir changé.
+// Un candidat qui affiche la bonne liste puis la remplace échoue.
+export async function expectStableList(
+  page: Page,
+  read: (page: Page) => Promise<string[]>,
+  expected: string[],
+): Promise<void> {
+  await expect.poll(() => read(page)).toEqual(expected);
+  await page.waitForTimeout(REREAD.intervalMs);
+  expect(await read(page), `list changed within ${REREAD.intervalMs} ms of being correct`).toEqual(expected);
 }

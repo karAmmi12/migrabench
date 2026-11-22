@@ -1,8 +1,8 @@
-// Les messages attendus par les scénarios de la fiche sont le texte exact de
-// ApplicationResources.properties du legacy (spec de l'étape 2, F7 à F10).
+// Les messages attendus par les scénarios de la recherche et de la fiche sont le texte exact de
+// ApplicationResources.properties du legacy (spec de l'étape 2, R12 à R16 et F7 à F10).
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { SHEET_MESSAGES } from "../../oracle/messages.ts";
+import { SEARCH_MESSAGES, SHEET_MESSAGES } from "../../oracle/messages.ts";
 
 // Fichier .properties lu par Java 8 : une clé=valeur par ligne, \uXXXX décodés.
 function legacyMessages(): Map<string, string> {
@@ -32,5 +32,16 @@ describe("SHEET_MESSAGES", () => {
     ["subjectMaxlength", "errors.sheet.subject.maxlength"],
   ] as const)("%s is the exact text of %s", (name, key) => {
     expect(SHEET_MESSAGES[name]).toBe(LEGACY_MESSAGES.get(key));
+  });
+});
+
+describe("SEARCH_MESSAGES", () => {
+  it.each([
+    ["numberMask", "errors.search.number.mask"],
+    ["filedFromDate", "errors.search.filedFrom.date"],
+    ["filedToDate", "errors.search.filedTo.date"],
+    ["filedRangeOrder", "errors.search.filedTo.validwhen"],
+  ] as const)("%s is the exact text of %s", (name, key) => {
+    expect(SEARCH_MESSAGES[name]).toBe(LEGACY_MESSAGES.get(key));
   });
 });
