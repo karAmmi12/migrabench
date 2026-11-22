@@ -6,8 +6,8 @@
 // boîtes de dialogue dans dialogs.ts, le comptage des champs modifiables dans
 // editable-fields.ts, la vérification de présence dans occurrences.ts,
 // l'ouverture de l'accusé de remise dans receipt.ts, les variantes dans
-// variants.ts, la lecture du verrou dans lock.ts, les messages de la fiche
-// dans messages.ts.
+// variants.ts, la lecture du verrou dans lock.ts, les messages de la
+// recherche et de la fiche dans messages.ts.
 import { readFileSync } from "node:fs";
 import { test as base, expect, type Locator, type Page } from "@playwright/test";
 import { parseUsersWithoutUnknown, type Role, UNKNOWN_USER } from "../scripts/users.ts";

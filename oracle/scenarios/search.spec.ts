@@ -4,7 +4,8 @@
 // ne lit que les numéros partagés affichés (displayedSharedNumbers), comparés
 // à la liste attendue par égalité exacte : ordre relatif et absence du
 // complément vérifiés d'un coup, sans observer un dossier réservé ni le nombre
-// de lignes.
+// de lignes. Seule exception, R11 : « aucun numéro affiché » porte sur tous
+// les numéros, et `D-0999` ne peut désigner aucun dossier, réservé ou non.
 import type { Page } from "@playwright/test";
 import {
   atLeastOne,
@@ -21,18 +22,26 @@ import {
   test,
 } from "../support.ts";
 
-// Critères de la recherche, par libellé de champ. Le statut est choisi par le
+// Critères de la recherche. Les clés sont les libellés exacts des champs du
+// legacy (ADR 0006), pas des identifiants. Le statut est choisi par le
 // libellé de son option.
-interface Criteria {
+interface TextCriteria {
   Numéro?: string;
   Demandeur?: string;
-  Statut?: string;
   "Déposé du"?: string;
   "Déposé au"?: string;
 }
 
+interface Criteria extends TextCriteria {
+  Statut?: string;
+}
+
+function entriesOf<C extends Criteria>(criteria: C): [keyof C & string, string][] {
+  return Object.entries(criteria) as [keyof C & string, string][];
+}
+
 async function search(page: Page, criteria: Criteria): Promise<void> {
-  for (const [label, value] of Object.entries(criteria) as [keyof Criteria, string][]) {
+  for (const [label, value] of entriesOf(criteria)) {
     if (label === "Statut") await field(page, label).selectOption({ label: value });
     else await field(page, label).fill(value);
   }
@@ -55,8 +64,9 @@ function searchScenario(title: string, criteria: Criteria, expected: string[]): 
 // Saisie refusée (R12 à R16) : le message est affiché, aucun numéro partagé
 // n'est affiché, et les valeurs saisies sont gardées. Le message, qui n'existe
 // qu'après la réponse, est attendu en premier : l'absence de numéros n'est lue
-// qu'ensuite, sur la page de la réponse.
-function refusedScenario(title: string, criteria: Criteria, message: string): void {
+// qu'ensuite, sur la page de la réponse. Champs de texte seulement : la
+// valeur gardée est comparée au texte saisi.
+function refusedInputScenario(title: string, criteria: TextCriteria, message: string): void {
   test(title, { tag: "@recherche" }, async ({ page }) => {
     await openSearch(page);
     markReached();
@@ -67,7 +77,7 @@ function refusedScenario(title: string, criteria: Criteria, message: string): vo
       expect(await displayedSharedNumbers(page)).toEqual([]);
     });
     await test.step("verification: input kept", async () => {
-      for (const [label, value] of Object.entries(criteria) as [keyof Criteria, string][]) {
+      for (const [label, value] of entriesOf(criteria)) {
         await expect(field(page, label)).toHaveValue(value);
       }
     });
@@ -83,17 +93,12 @@ test("search-initial-focus", { tag: ["@recherche", "@clavier"] }, async ({ page 
   });
 });
 
-test("search-empty-form", { tag: "@recherche" }, async ({ page }) => {
-  await openSearch(page);
-  markReached();
-
-  await test.step("verification: every shared dossier, sorted by number", async () => {
-    await button(page, "Rechercher").click();
-    await expect
-      .poll(() => displayedSharedNumbers(page))
-      .toEqual(Array.from({ length: 30 }, (_, index) => `D-${String(index + 1).padStart(4, "0")}`));
-  });
-});
+// Sans critère : tous les dossiers partagés, D-0001 à D-0030, dans l'ordre.
+searchScenario(
+  "search-empty-form",
+  {},
+  Array.from({ length: 30 }, (_, index) => `D-${String(index + 1).padStart(4, "0")}`),
+);
 
 searchScenario("search-number-exact", { Numéro: "D-0007" }, ["D-0007"]);
 
@@ -141,16 +146,16 @@ test("search-no-result", { tag: "@recherche" }, async ({ page }) => {
   });
 });
 
-refusedScenario("search-number-mask", { Numéro: "D-1" }, SEARCH_MESSAGES.numberMask);
+refusedInputScenario("search-number-mask", { Numéro: "D-1" }, SEARCH_MESSAGES.numberMask);
 
-refusedScenario("search-number-spaces", { Numéro: "D-0001 " }, SEARCH_MESSAGES.numberMask);
+refusedInputScenario("search-number-spaces", { Numéro: "D-0001 " }, SEARCH_MESSAGES.numberMask);
 
-refusedScenario("search-filed-from-format", { "Déposé du": "2025-01-01" }, SEARCH_MESSAGES.filedFromDate);
+refusedInputScenario("search-filed-from-format", { "Déposé du": "2025-01-01" }, SEARCH_MESSAGES.filedFromDate);
 
 // Date impossible.
-refusedScenario("search-filed-to-format", { "Déposé au": "31/02/2025" }, SEARCH_MESSAGES.filedToDate);
+refusedInputScenario("search-filed-to-format", { "Déposé au": "31/02/2025" }, SEARCH_MESSAGES.filedToDate);
 
-refusedScenario(
+refusedInputScenario(
   "search-filed-range-order",
   { "Déposé du": "02/01/2025", "Déposé au": "01/01/2025" },
   SEARCH_MESSAGES.filedRangeOrder,
@@ -160,7 +165,7 @@ refusedScenario(
 // qu'une réponse HTTP arrive. Une erreur de connexion rend le scénario non
 // atteint, pour ne pas la confondre avec un front qui accepte l'accès sans
 // identifiants valides.
-function refusedAccessScenario(title: string, identity: Identity, description: string): void {
+function refusedAccessScenario(title: string, identity: Identity): void {
   test.describe(() => {
     test.use({ identity });
 
@@ -176,7 +181,7 @@ function refusedAccessScenario(title: string, identity: Identity, description: s
       });
       markReached();
 
-      await test.step(`verification: ${description} refused with 401, search not shown`, async () => {
+      await test.step(`verification: ${identity} refused with 401, search not shown`, async () => {
         expect(statuses).toContain(401);
         await expect(field(page, "Numéro")).toHaveCount(0);
       });
@@ -184,8 +189,8 @@ function refusedAccessScenario(title: string, identity: Identity, description: s
   });
 }
 
-refusedAccessScenario("auth-no-credentials", "no-credentials", "no credentials");
+refusedAccessScenario("auth-no-credentials", "no-credentials");
 
 // Le nom inconnu commun (UNKNOWN_USER), absent de fixtures/users.json : le
 // LockOutRealm de Tomcat ne bloque jamais l'agent ni l'instructeur.
-refusedAccessScenario("auth-unknown-user", "unknown-user", "unknown user");
+refusedAccessScenario("auth-unknown-user", "unknown-user");
