@@ -52,6 +52,8 @@ tenu.
   - `resultFileName` donne le nom du résultat :
     `<horodatage>-<commit court>.json` hors CI,
     `<horodatage>-<commit court>-ci<runId>.<attempt>-<rank>.json` en CI.
+- `oracle/playwright.config.ts` : `captureGitInfo` désactivé, pour que la
+  CI n'ajoute ni commit ni diff au résultat.
 - `oracle/execute.ts` : le temps « préparer » lit `ciRun` avant de recréer la
   pile, l'ajoute aux métadonnées et nomme le fichier avec `resultFileName`.
 - `oracle/proof.ts` : `checkProof(results)` rend la liste des manquements
@@ -111,6 +113,25 @@ tenu.
 
 ## Difficultés rencontrées
 
+- **Le premier job `oracle` de la CI échoue après 38 scénarios réussis.**
+  - Symptôme : exécution
+    [45041363621](https://github.com/karAmmi12/migrabench/actions/runs/45041363621),
+    commit `ac0e3e8` : `38 passed (36.7s)`, puis
+    `Error: The oracle result would contain a path above the repository root`
+    levée par la collecte.
+  - Cause : quand il détecte GitHub Actions, Playwright ajoute de lui-même aux
+    métadonnées `gitCommit` et `gitDiff`, le diff de la PR contre sa base
+    (option `captureGitInfo`, active par défaut en CI). Le `report.json` de
+    l'artefact montrait dans `gitDiff` des imports `../../oracle/proof.ts`, que
+    la collecte refuse à raison. En local, sans événement de PR, rien n'est
+    ajouté.
+  - Résolution : échec reproduit en local en donnant à `npm run oracle`
+    `GITHUB_ACTIONS=true` et un `GITHUB_EVENT_PATH` de PR factice, puis
+    `captureGitInfo: { commit: false, diff: false }` dans
+    `oracle/playwright.config.ts` (`7e4dc7c`). Relancé dans les mêmes
+    conditions : `Scenarios: 38, passed: 38, failed: 0, unreached: 0`.
+    Playwright garde la métadonnée `ci` (liens de la PR et de l'exécution),
+    conservée volontairement.
 - **`npm test` refusé au premier lancement.**
   - Symptôme : `npm test requires Node 22.23.5 (.nvmrc), found v24.12.0.`
   - Cause : le shell de la session n'avait pas le Node de `.nvmrc`.
