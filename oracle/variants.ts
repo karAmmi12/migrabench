@@ -4,7 +4,9 @@
 import { SKIPPED_STEP_ANNOTATION, VARIANT_ANNOTATION } from "./collect.ts";
 
 export interface Variants {
-  lock: "readonly" | "disabled" | "aria-readonly";
+  // Seuls verrous valides d'un champ de formulaire natif : aria-readonly seul
+  // le laisse modifiable, c'est un faux verrou (F11 et F12 échouent).
+  lock: "readonly" | "disabled";
   maxlength: "input-blocked" | "message";
   "receipt-tab": "same-tab" | "new-tab";
 }

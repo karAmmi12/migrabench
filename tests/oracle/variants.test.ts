@@ -8,7 +8,6 @@ describe("variantAnnotation", () => {
   it.each([
     ["lock", "readonly", "lock=readonly"],
     ["lock", "disabled", "lock=disabled"],
-    ["lock", "aria-readonly", "lock=aria-readonly"],
     ["maxlength", "input-blocked", "maxlength=input-blocked"],
     ["maxlength", "message", "maxlength=message"],
     ["receipt-tab", "same-tab", "receipt-tab=same-tab"],
@@ -24,6 +23,8 @@ describe("variantAnnotation", () => {
     variantAnnotation("receipt-tab", "readonly");
     // @ts-expect-error valeur absente de la spec
     variantAnnotation("lock", "hidden");
+    // @ts-expect-error aria-readonly seul sur un champ natif est un faux verrou
+    variantAnnotation("lock", "aria-readonly");
     expect(variantAnnotation("receipt-tab", "same-tab").description).toBe("receipt-tab=same-tab");
   });
 });

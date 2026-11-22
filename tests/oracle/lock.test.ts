@@ -28,10 +28,16 @@ describe("lockVariant", () => {
     ["readonly", `<label for="a">Demandeur</label><input id="a" value="d" readonly>`],
     ["disabled", `<label for="a">Demandeur</label><input id="a" value="d" disabled>`],
     ["disabled", `<fieldset disabled><label for="a">Demandeur</label><input id="a" value="d"></fieldset>`],
-    ["aria-readonly", `<label for="a">Demandeur</label><input id="a" value="d" aria-readonly="true">`],
     ["readonly", `<label for="a">Demandeur</label><textarea id="a" readonly>d</textarea>`],
   ])("reads %s", async (expected, html) => {
     expect(await variantOf(html)).toBe(expected);
+  });
+
+  // Faux verrou : aria-readonly seul laisse un champ natif modifiable.
+  it("reads no variant from aria-readonly alone on a native field", async () => {
+    expect(await variantOf(`<label for="a">Demandeur</label><input id="a" value="d" aria-readonly="true">`)).toBe(
+      undefined,
+    );
   });
 
   it("reads no variant from a modifiable field", async () => {
