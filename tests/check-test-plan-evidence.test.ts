@@ -1,0 +1,44 @@
+// Le script du job « Fiche de formation » (#54) : lit le corps de la PR dans
+// PR_BODY, recopie chaque ligne en défaut dans une annotation ::error:: et
+// sort en échec.
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { describe, expect, it } from "vitest";
+
+const execFileAsync = promisify(execFile);
+const script = new URL("../scripts/check-test-plan-evidence.ts", import.meta.url).pathname;
+
+async function check(body: string): Promise<{ code: number; stdout: string }> {
+  try {
+    const { stdout } = await execFileAsync(process.execPath, [script], { env: { ...process.env, PR_BODY: body } });
+    return { code: 0, stdout };
+  } catch (error) {
+    const failure = error as { code: number; stdout: string };
+    return { code: failure.code, stdout: failure.stdout };
+  }
+}
+
+describe("check-test-plan-evidence script", () => {
+  it("fails with one ::error:: annotation per uncited line, copying the line", async () => {
+    const outcome = await check(["- [x] `npm test` : 143 tests", "- [x] 100% des scénarios", "- [x] `npm test` : 143 tests, commit `62bd7cd`"].join("\n"));
+    expect(outcome).toEqual({
+      code: 1,
+      stdout: [
+        "::error::Checked test plan line with a number but no state (commit SHA or actions/runs/<id> link): - [x] `npm test` : 143 tests",
+        "::error::Checked test plan line with a number but no state (commit SHA or actions/runs/<id> link): - [x] 100%25 des scénarios",
+        "",
+      ].join("\n"),
+    });
+  });
+
+  it("passes when every checked line with a number cites a state", async () => {
+    expect(await check("- [x] `npm test` : 143 tests, commit `62bd7cd`\n- [ ] 12 tests")).toEqual({
+      code: 0,
+      stdout: "Every checked test plan line with a number cites a state.\n",
+    });
+  });
+
+  it("passes on an empty body", async () => {
+    expect((await check("")).code).toBe(0);
+  });
+});
