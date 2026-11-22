@@ -59,11 +59,46 @@ export interface CollectInput {
 // de chemins (argv : binaire de Node et de Playwright).
 const PATH_KEYS = new Set(["path", "file", "configFile", "rootDir", "outputDir", "testDir", "snapshotDir", "argv"]);
 
-// Débuts de chemin qui trahiraient un répertoire personnel (macOS, Linux).
-const HOME_PREFIXES = ["/Users/", "/home/"];
+// Débuts de chemin qui trahiraient la machine : répertoire personnel (macOS,
+// Linux), dossier temporaire de macOS.
+const MACHINE_PREFIXES = ["/Users/", "/home/", "/var/folders/"];
 
 // Un segment `..` : un chemin qui remonte au-dessus de la racine du dépôt.
 const PARENT_SEGMENT = /(^|[^\w.])\.\.[/\\]/;
+
+// Chemin machine trouvé dans un résultat : un début de chemin de la machine,
+// n'importe où dans le fichier, ou un champ de chemin qui remonte au-dessus de
+// la racine du dépôt.
+export type MachinePath = { kind: "prefix"; prefix: string } | { kind: "parent"; path: string };
+
+// Chemins machine contenus dans un résultat, tous, vide s'il n'y en a aucun.
+// Règle partagée par la collecte, qui refuse d'écrire un tel résultat, et par
+// le contrôle des résultats versionnés (result-check.ts). `..` n'est cherché
+// que dans les champs de chemin : une sortie de test peut citer `../` sans
+// trahir la machine.
+export function machinePathsIn(result: unknown): MachinePath[] {
+  const serialized = JSON.stringify(result);
+  return [
+    ...MACHINE_PREFIXES.filter((prefix) => serialized.includes(prefix)).map((prefix) => ({ kind: "prefix", prefix }) as const),
+    ...parentPaths(result).map((path) => ({ kind: "parent", path }) as const),
+  ];
+}
+
+// Description d'un chemin machine, reprise par les messages d'échec.
+export function describeMachinePath(machinePath: MachinePath): string {
+  return machinePath.kind === "prefix" ? machinePath.prefix : `a path above the repository root: ${machinePath.path}`;
+}
+
+// Valeurs des champs de chemin qui remontent au-dessus de la racine.
+function parentPaths(value: unknown, key?: string): string[] {
+  if (typeof value === "string") return key !== undefined && PATH_KEYS.has(key) && PARENT_SEGMENT.test(value) ? [value] : [];
+  // Les éléments d'une liste héritent de son champ.
+  if (Array.isArray(value)) return value.flatMap((item) => parentPaths(item, key));
+  if (value !== null && typeof value === "object") {
+    return Object.entries(value).flatMap(([entryKey, entry]) => parentPaths(entry, entryKey));
+  }
+  return [];
+}
 
 // Fichiers à hacher avant la collecte : HAR et trace de chaque scénario.
 export function artifactPaths(report: JSONReport): string[] {
@@ -104,10 +139,10 @@ export function collect(report: JSONReport, { hashes, salt, saltImposed, root, a
   const summary = summarize(statuses);
   result.config.metadata = { ...result.config.metadata, salt, saltImposed, summary };
   const relativeResult = relativizePaths(result, root) as JSONReport;
-  const serialized = JSON.stringify(relativeResult);
-  const home = HOME_PREFIXES.find((prefix) => serialized.includes(prefix));
-  if (home !== undefined) throw new Error(`The oracle result would contain a home directory path (${home})`);
-  if (PARENT_SEGMENT.test(serialized)) throw new Error("The oracle result would contain a path above the repository root");
+  const machinePaths = machinePathsIn(relativeResult);
+  if (machinePaths.length > 0) {
+    throw new Error(`The oracle result would contain a machine path: ${machinePaths.map(describeMachinePath).join(", ")}`);
+  }
   return { report: relativeResult, summary };
 }
 

@@ -1,0 +1,25 @@
+{
+  "config": {
+    "metadata": {
+      "benchCommit": "b2ec9d805391a7d38c43306fa3dea19a586d3e91",
+      "worktree": "dirty",
+      "node": "v24.12.0",
+      "saltImposed": false
+    },
+    "argv": [
+      "../../../../.nvm/versions/node/v24.12.0/bin/node",
+      "test"
+    ]
+  },
+  "suites": [
+    {
+      "file": "/Users/someone/migrabench/oracle/scenarios/search.spec.ts",
+      "specs": [],
+      "stdout": [
+        {
+          "text": "trace in /var/folders/xy/T/playwright-artifacts\n"
+        }
+      ]
+    }
+  ]
+}

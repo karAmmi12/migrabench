@@ -4,9 +4,13 @@
 // non nul si la preuve ne tient pas.
 import { readFileSync } from "node:fs";
 import { checkProof, type ProofResult } from "../oracle/proof.ts";
+import { repositoryEnvironment } from "../oracle/repository.ts";
 
 const files = process.argv.slice(2);
-const problems = checkProof(files.map((file) => JSON.parse(readFileSync(file, "utf8")) as ProofResult));
+const problems = checkProof(
+  files.map((file) => ({ file, result: JSON.parse(readFileSync(file, "utf8")) as ProofResult })),
+  repositoryEnvironment(new URL("../", import.meta.url)),
+);
 for (const problem of problems) console.error(problem);
 if (problems.length > 0) process.exit(1);
 console.log(`Proof holds on ${files.length} results.`);

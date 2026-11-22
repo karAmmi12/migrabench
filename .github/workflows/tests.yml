@@ -15,7 +15,13 @@ jobs:
     # Borne un blocage hors healthcheck (défaut GitHub : 360 min).
     timeout-minutes: 30
     steps:
+      # Le contrôle des résultats d'oracle versionnés (#53) exige que le commit
+      # du banc de chaque résultat soit un objet du dépôt. Les PR étant fusionnées
+      # en squash, ce commit n'est joignable que par la tête de sa PR : historique
+      # complet, puis récupération des têtes de PR (refs/pull/*/head).
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -24,6 +30,10 @@ jobs:
 
       - name: Installation des dépendances
         run: npm ci
+
+      # Commande dans package.json : c'est elle que rappelle un échec en local.
+      - name: Récupération des têtes de PR
+        run: npm run fetch:pull-heads
 
       # Le test de la mesure de defaultPrevented (#35) lance un vrai Chromium.
       - name: Installation de Chromium pour Playwright
