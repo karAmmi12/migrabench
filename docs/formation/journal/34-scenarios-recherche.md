@@ -18,7 +18,8 @@ débloque la preuve du critère de fin de l'étape 2 (#39).
 - **`expect.poll`** : rappelle une fonction jusqu'à ce que l'assertion passe
   ou que le délai expire. Les scénarios de recherche lisent ainsi les numéros
   affichés, qui n'existent qu'une fois la réponse arrivée. Il passe dès le
-  premier relevé conforme : il ne vérifie pas que la liste reste stable. —
+  premier relevé conforme : il ne vérifie pas que la liste reste stable, d'où
+  la relecture de `expectStableList`. —
   [Playwright : Assertions, expect.poll](https://playwright.dev/docs/test-assertions)
 - **`selectOption({ label })`** : choisit une option d'une liste par son texte
   affiché, pas par sa valeur technique. Le statut « Remis » est choisi par ce
@@ -53,9 +54,15 @@ débloque la preuve du critère de fin de l'étape 2 (#39).
   recherche, à côté de `SHEET_MESSAGES` (#36).
 - **`tests/oracle/messages.test.ts`** : compare aussi `SEARCH_MESSAGES` au
   texte exact de `ApplicationResources.properties`.
-- **`oracle/support.ts`** : réexporte `SEARCH_MESSAGES`.
-- **`results/oracle/20261122T003802Z-9e264ca.json`** : l'exécution complète
-  versionnée, depuis un arbre propre, avec 38 scénarios.
+- **`oracle/support.ts`** : réexporte `SEARCH_MESSAGES`, et ajoute
+  `expectStableList` : `expect.poll` jusqu'à la liste attendue, puis une
+  attente de l'intervalle de `REREAD` (500 ms) et une seconde lecture, qui
+  doit rendre la même liste. Les listes de R2 à R16 passent par elle.
+- **`docs/specs/02-oracle.md`** : la règle de stabilité dans « Numéros
+  affichés » et « Refus d'une saisie de recherche », et sa limite connue.
+- **`results/oracle/20261122T144456Z-f89e6d0.json`** : l'exécution complète
+  versionnée, depuis un arbre propre, avec 38 scénarios. Elle remplace celle
+  de `9e264ca`, antérieure à la vérification de stabilité.
 
 ## Les choix faits et pourquoi
 
@@ -78,9 +85,16 @@ débloque la preuve du critère de fin de l'étape 2 (#39).
   dit « aucun numéro affiché », et `D-0999` ne peut désigner aucun dossier,
   réservé ou non. Le commentaire d'en-tête nomme cette exception (relevé par
   la revue Spec).
-- **Pas de sondage « jusqu'à stabilité » des listes.** La revue Spec a noté
-  qu'`expect.poll` passe au premier relevé conforme. La spec ne demande que
-  l'égalité exacte ; c'est laissé tel quel.
+- **Une liste correcte est relue une fois, après l'intervalle de `REREAD`.**
+  La revue Spec a noté qu'`expect.poll` passe au premier relevé conforme ; la
+  première version l'avait laissé en limite connue. L'humain a demandé de la
+  fermer dans cette PR : attendre l'intervalle de `REREAD`, puis vérifier que
+  la liste n'a pas changé. Un sondage « jusqu'à stabilité » n'a pas été
+  retenu : la constante existante borne déjà l'attente, et l'oracle n'en
+  introduit pas une seconde.
+- **La relecture s'applique aussi aux listes vides de R11 à R16.** Après le
+  message, un candidat pourrait afficher des numéros : c'est le même trou que
+  pour une liste non vide, fermé par la même fonction.
 - **Le message de R11 reste dans le scénario**, pas dans `SEARCH_MESSAGES` :
   il vient de `recherche.jsp`, pas de `ApplicationResources.properties`.
 
@@ -96,8 +110,8 @@ débloque la preuve du critère de fin de l'étape 2 (#39).
 
 ## Vérifier soi-même
 
-Sorties observées au commit `9e264ca` (puis `65a647b`, qui ajoute seulement le
-résultat), Node v22.23.5, Docker Compose 2.40.3-desktop.1, Playwright 1.65.1,
+Sorties observées au commit `f89e6d0` (puis `ac5058b`, qui remplace seulement
+le résultat), Node v22.23.5, Docker Compose 2.40.3-desktop.1, Playwright 1.65.1,
 Chromium 159.0.8154.6.
 
 ```sh
@@ -109,11 +123,11 @@ npm run typecheck
 # > tsc --noEmit        (aucune erreur)
 
 npm run oracle
-# Result: results/oracle/20261122T003802Z-9e264ca.json
+# Result: results/oracle/20261122T144456Z-f89e6d0.json
 # Scenarios: 38, passed: 38, failed: 0, unreached: 0
 ```
 
-Le résultat versionné porte `benchCommit` `9e264ca…`, `worktree: clean`,
+Le résultat versionné porte `benchCommit` `f89e6d0…`, `worktree: clean`,
 `saltImposed: false`, et `keyboard` : 5 réussis sur 5.
 
 ```sh
@@ -156,6 +170,26 @@ modification, les 18 scénarios passent.
 | R17 et R18 `401` (`403` attendu) | `Expected value: 403`, `Received array: [401]`, `2 failed` |
 | R17 et R18 recherche absente (`toHaveCount(1)`) | `Expected: 1`, `Received: 0`, `2 failed` |
 
+**La stabilité vue échouer sur un candidat factice.** Un proxy `node:http`
+devant le legacy (port 8092 vers 8080) ajoute aux pages qui contiennent
+« Rechercher » un script qui, 200 ms après le chargement, retire la ligne du
+premier numéro affiché, ou, sans numéro et avec un champ rempli, ajoute un
+lien `D-0001`. Depuis `oracle/` :
+
+```sh
+BASE_URL=http://127.0.0.1:8092 npx playwright test -c playwright.config.ts scenarios/search.spec.ts
+```
+
+| État | Résultat observé |
+|---|---|
+| Arbre à `7c49e28`, sans la relecture | `18 passed` |
+| Futur `f89e6d0` non commité | `15 failed`, `3 passed` : R2 à R16 échouent sur `Error: list changed within 500 ms of being correct` ; R1, R17 et R18, sans liste, passent |
+| Le même, sur le legacy (`BASE_URL=http://localhost:8080`) | `18 passed` |
+
+Sur R4, par exemple : `Expected` `["D-0016"]`, `Received` `[]`. Sur R11 à
+R16, relancés seuls à `ac5058b` (`6 failed`) : `Expected` `[]`, `Received`
+`["D-0001"]`.
+
 ## Pour aller plus loin
 
 - **#39** : le critère de fin de l'étape 2, cinq exécutions vertes de
@@ -164,6 +198,6 @@ modification, les 18 scénarios passent.
   échouent jusqu'à `npm run stack:up`.
 - **ADR 0006** : le contrat de l'oracle envers le candidat, qui fixe la
   désignation des champs par leur libellé.
-- **Limite connue des listes** : `expect.poll` passe au premier relevé
-  conforme ; un candidat qui afficherait la bonne liste puis la compléterait
-  ne serait pas vu.
+- **Limite connue des listes** : la liste n'est relue qu'une fois, 500 ms
+  après le relevé conforme ; un candidat qui la remplacerait plus tard ne
+  serait pas vu.
