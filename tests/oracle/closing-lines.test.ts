@@ -11,7 +11,7 @@ describe("closingLines", () => {
     const lines = closingLines({ resultFile: "results/oracle.json", summary, saltImposed: false });
 
     expect(lines.at(-1)).toBe(
-      "The stack now runs with this run's salt: run `npm run stack:up` before `npm test`.",
+      "The stack now runs with this oracle execution's salt: run `npm run stack:up` before `npm test`.",
     );
   });
 
@@ -28,7 +28,7 @@ describe("closingLines", () => {
     const lines = closingLines({ resultFile: "results/oracle.json", summary, saltImposed: false });
 
     expect(lines.slice(0, -1)).toEqual([
-      "\nResult: results/oracle.json",
+      "Result: results/oracle.json",
       "Scenarios: 12, passed: 11, failed: 1, unreached: 0",
     ]);
   });

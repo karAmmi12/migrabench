@@ -12,9 +12,9 @@ export interface ClosingLinesInput {
 
 export function closingLines({ resultFile, summary, saltImposed }: ClosingLinesInput): string[] {
   return [
-    `\nResult: ${resultFile}`,
+    `Result: ${resultFile}`,
     `Scenarios: ${summary.scenarios}, passed: ${summary.passed}, failed: ${summary.failed}, unreached: ${summary.unreached}`,
     ...(saltImposed ? ["Salt imposed: diagnostic run, not a measurement."] : []),
-    "The stack now runs with this run's salt: run `npm run stack:up` before `npm test`.",
+    "The stack now runs with this oracle execution's salt: run `npm run stack:up` before `npm test`.",
   ];
 }

@@ -11,6 +11,7 @@ const { resultFile, summary, errors } = await executeOracle({
   ...(salt === undefined ? {} : { salt }),
 });
 
+console.log();
 for (const line of closingLines({
   resultFile: relative(process.cwd(), resultFile),
   summary,
