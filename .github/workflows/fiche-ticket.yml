@@ -2,6 +2,8 @@
 # closed, fix, fixes, fixed, resolve, resolves, resolved, en toute casse)
 # apporte sa fiche de formation docs/formation/journal/N-*.md, rédigée avec
 # /fiche-ticket.
+# Chaque case cochée du plan de test qui contient un nombre cite l'état où il
+# a été obtenu, un SHA ou une exécution de CI (#54).
 name: Fiche de formation
 
 on:
@@ -43,3 +45,16 @@ jobs:
             fi
           done
           exit "$missing"
+
+      # Node de .nvmrc : le script est en TypeScript, lancé sans compilation.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: ${{ !cancelled() }}
+        with:
+          node-version-file: .nvmrc
+
+      # Lancée même si la fiche manque : les deux manquements sont signalés ensemble.
+      - name: Chaque case cochée chiffrée cite un état
+        if: ${{ !cancelled() }}
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: node scripts/check-test-plan-evidence.ts
