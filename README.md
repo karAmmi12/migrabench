@@ -154,7 +154,7 @@ seulement, jamais pour une mesure ; le résultat l'enregistre
 spec de l'étape 2 (`docs/specs/02-oracle.md`, « Résultat JSON »).
 
 Le workflow « Oracle » (`.github/workflows/oracle.yml`) lance l'oracle sur
-chaque PR, en deux jobs : `oracle`, une exécution complète, et `preuve`, le
+chaque PR, en deux jobs : `oracle`, une exécution complète, et `proof`, le
 critère de fin de l'étape 2 : images construites une seule fois, puis 5
 exécutions complètes consécutives sur ces images. En CI, le résultat
 enregistre `ciRun` (identifiant et tentative de l'exécution de CI, rang de
@@ -169,5 +169,5 @@ npm run oracle:proof -- results/oracle/*-ci<identifiant>.<tentative>-*.json
 vérifie que 5 résultats font la preuve : rangs 1 à 5 d'une même exécution de
 CI, `worktree: clean`, `saltImposed: false`, 38 scénarios réussis sur 38,
 mêmes commit, Node, Chromium, `@playwright/test`, horloge figée et images
-`legacy` et `archive`, 5 sels différents. Le job `preuve` la lance avant de
+`legacy` et `archive`, 5 sels différents. Le job `proof` la lance avant de
 publier.
