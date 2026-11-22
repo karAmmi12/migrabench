@@ -50,7 +50,7 @@ Un oracle Playwright (Chromium seul) qui tourne tel quel contre le legacy et con
 21. En tant que rédacteur de l'oracle, je veux que les scénarios de lecture n'observent que les dossiers partagés, jamais le contenu d'un dossier réservé ni le nombre total de lignes, pour qu'ils restent justes pendant que d'autres scénarios écrivent en parallèle.
 22. En tant que rédacteur de l'oracle, je veux qu'une recherche sans résultat utilise un numéro ou une plage de dates, pour qu'aucun dossier réservé modifié ne puisse la satisfaire.
 23. En tant que rédacteur de l'oracle, je veux vérifier un raccourci par `defaultPrevented`, lu une fois la propagation terminée, pour ne jamais juger à l'œil une boîte de dialogue qu'un navigateur headless n'affiche pas.
-24. En tant que rédacteur de l'oracle, je veux vérifier le verrou par le comportement (libellé présent, valeur affichée, champ non modifiable, valeur inchangée à la relecture), pour accepter `readonly`, `disabled` et `aria-readonly`.
+24. En tant que rédacteur de l'oracle, je veux vérifier le verrou par le comportement (libellé présent, valeur affichée, champ non modifiable, valeur inchangée à la relecture), pour accepter `readonly` et `disabled`, les seuls verrous valides d'un champ de formulaire natif.
 25. En tant que rédacteur de l'oracle, je veux enregistrer la variante observée quand le moyen est libre (verrou, `maxlength`, onglet de l'accusé), pour que le rapport montre le moyen choisi par chaque candidat.
 26. En tant que rédacteur de l'oracle, je veux qu'une étape sautée à cause d'une variante soit enregistrée comme telle, pour qu'elle ne passe pas pour une étape ignorée.
 27. En tant que rédacteur de l'oracle, je veux passer les identifiants par `httpCredentials`, depuis `fixtures/users.json`, pour authentifier le legacy et le candidat de la même façon.
@@ -193,7 +193,7 @@ Identifiant en anglais (titre du `test()` et nom du propriétaire `scenario:` po
 | F9 | `sheet-subject-required` | `@fiche` | `D-0107` réservé | fiche | Objet vidé, « Enregistrer » → « L'objet est obligatoire. » ; saisie gardée ; relecture : rien n'a changé |
 | F10 | `sheet-subject-maxlength` | `@fiche` | `D-0108` réservé | fiche | comme F8 avec 201 caractères dans Objet et « L'objet doit faire 200 caractères au plus. » |
 | F11 | `sheet-lock-en-instruction` | `@fiche` | `D-0109` réservé, `EN_INSTRUCTION` | fiche | « Demandeur » : libellé présent, valeur affichée, non modifiable ; une frappe ne le change pas ; « Objet » modifiable ; « Enregistrer » présent ; après « Enregistrer », relecture : Demandeur inchangé. Variante `lock` |
-| F12 | `sheet-lock-remis` | `@fiche` | `D-0110` réservé, `REMIS` | fiche | « Demandeur » et « Objet » : libellés présents, valeurs affichées, non modifiables ; aucun bouton « Enregistrer » ; relecture : valeurs inchangées. Variante `lock` |
+| F12 | `sheet-lock-remis` | `@fiche` | `D-0110` réservé, `REMIS` | fiche | « Demandeur » et « Objet » : libellés présents, valeurs affichées, non modifiables ; une frappe ne change aucun des deux ; aucun bouton « Enregistrer » ; relecture : valeurs inchangées. Variante `lock` |
 | F13 | `sheet-ctrl-s-remis` | `@fiche @clavier` | `D-0116` réservé (nouveau), `REMIS` | fiche | `Ctrl+S` → `defaultPrevented` vrai ; relecture : valeurs inchangées. La mesure repose sur `defaultPrevented` : la relecture ne peut pas échouer, car l'API interne refuse (`409`) toute modification d'un dossier `REMIS` et la couche serveur du candidat passe par elle (ADR 0003) |
 | F14 | `sheet-remise-link` | `@fiche` | `D-0002` (`BROUILLON`), `D-0003` (`EN_INSTRUCTION`), `D-0001` (`REMIS`), partagés | fiche de chacun, en alternant navigation et vérification | lien « Remise » absent sur `D-0002`, présent sur `D-0003` et `D-0001` |
 
@@ -223,16 +223,17 @@ Valeurs relevées sur le legacy (voir l'en-tête) : R2 à R11, les messages et v
 - **M4 ne reconnaît que les boîtes de dialogue du navigateur** (`alert`, `confirm`, `prompt`). Elles sont toutes refusées, et toute boîte refusée fait échouer M4 en la nommant (`Dialog refused: …`) : demander une confirmation, ou afficher une boîte même de simple information, est un changement d'usage. Une confirmation affichée dans la page (une fenêtre modale en HTML, un second bouton à cliquer) n'est pas reconnue comme une boîte de dialogue : M4 échoue alors aussi, puisque « Dossier remis le 15/11/2025 » n'apparaît pas, mais avec un message générique (texte attendu absent), qui ne dit pas qu'une confirmation a été demandée.
 - **M5 et M6 ne guettent un téléchargement que jusqu'au chargement de l'accusé.** Un téléchargement lancé après l'événement `load` de la page (par un script, par exemple) n'est pas reconnu comme tel. Le scénario échoue quand même si l'accusé n'est pas affiché comme une page, mais avec un message générique (texte attendu absent) au lieu de `Receipt downloaded as an attachment (…)`.
 - **Pièce jointe ouverte dans un nouvel onglet : le message dépend de l'ordre des événements.** Chromium ouvre l'onglet puis le ferme, et signale le téléchargement sur la page du lien. Si l'ouverture de l'onglet arrive avant le téléchargement et que l'onglet se ferme avant lui, M5 et M6 échouent sur l'onglet fermé (« Target closed ») au lieu de nommer le téléchargement. Le scénario échoue quand même, seul le message est moins précis.
+- **Un composant non natif avec `aria-readonly` n'est pas pris en charge par l'oracle.** Un `role="textbox"` marqué `aria-readonly="true"` est non éditable pour Playwright, mais F11 et F12 lisent la valeur affichée par `toHaveValue`, qui exige un champ de formulaire : le scénario échoue sur cette lecture, pas sur le verrou.
 
 ### Variantes observées
 
 | Clé | Valeurs | Scénarios |
 |---|---|---|
-| `lock` | `readonly`, `disabled`, `aria-readonly` | F11, F12 |
+| `lock` | `readonly`, `disabled` | F11, F12 |
 | `maxlength` | `input-blocked`, `message` | F8, F10 |
 | `receipt-tab` | `same-tab`, `new-tab` | M5, M6 |
 
-La variante est lue (attribut, onglet) pour être enregistrée, jamais pour juger : le jugement reste sur le comportement. Le non-modifiable s'appuie sur l'état « éditable » de Playwright, qui couvre les trois moyens du verrou.
+La variante est lue (attribut, onglet) pour être enregistrée, jamais pour juger : le jugement reste sur le comportement. Le non-modifiable s'appuie sur l'état « éditable » de Playwright et, pour F11 et F12, sur une frappe qui ne doit pas changer la valeur affichée : un verrou qui ne tient pas au clavier échoue, quel que soit son moyen. Sur un champ de formulaire natif, seuls `readonly` et `disabled` sont des verrous valides. `aria-readonly` seul y laisse le champ modifiable : c'est un faux verrou, et l'échec de F11 et F12 est voulu (constaté sur un candidat factice, #36).
 
 ### Résultat JSON
 

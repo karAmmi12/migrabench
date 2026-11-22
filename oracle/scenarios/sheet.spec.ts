@@ -1,16 +1,24 @@
 // Scénarios @fiche de l'oracle (spec de l'étape 2, tableau « Fiche ») :
-// lecture, enregistrement et Ctrl+S. Valeurs attendues relevées sur le legacy.
+// lecture, enregistrement, Ctrl+S, règles de saisie et verrou. Valeurs
+// attendues relevées sur le legacy ; messages au texte exact de
+// ApplicationResources.properties (SHEET_MESSAGES).
+import type { Locator, Page } from "@playwright/test";
 import {
   atLeastOne,
   button,
   exactText,
   expect,
   field,
+  type Lock,
+  lockVariant,
   markReached,
   openSheet,
   pressAndReadDefaultPrevented,
+  recordSkippedStep,
+  recordVariant,
   remiseLink,
   reread,
+  SHEET_MESSAGES,
   test,
 } from "../support.ts";
 
@@ -126,5 +134,179 @@ test("sheet-remise-link", { tag: "@fiche" }, async ({ page }) => {
   markReached();
   await test.step("verification: Remise link on a REMIS (D-0001)", async () => {
     await expect(remiseLink(page)).toBeVisible();
+  });
+});
+
+// Règles de saisie (F7 à F10) : le legacy refuse l'enregistrement, affiche le
+// message et garde la saisie ; la relecture montre le dossier inchangé.
+
+test("sheet-applicant-required", { tag: "@fiche" }, async ({ page }) => {
+  const subject = "Inscription à la cantine et au périscolaire du mercredi";
+  await openSheet(page, "D-0105");
+  markReached();
+
+  await test.step("verification: blank applicant refused with its message", async () => {
+    await field(page, "Demandeur").fill("   ");
+    await field(page, "Objet").fill(subject);
+    await button(page, "Enregistrer").click();
+    await expect(atLeastOne(exactText(page, SHEET_MESSAGES.applicantRequired))).toBeVisible();
+  });
+  await test.step("verification: both inputs kept", async () => {
+    await expect(field(page, "Demandeur")).toHaveValue("   ");
+    await expect(field(page, "Objet")).toHaveValue(subject);
+  });
+  await reread(page, "D-0105", async (sheet, expectOnce) => {
+    await expectOnce(field(sheet, "Demandeur")).toHaveValue("Mathéo Garnier");
+    await expectOnce(field(sheet, "Objet")).toHaveValue("Inscription au périscolaire");
+  });
+});
+
+test("sheet-subject-required", { tag: "@fiche" }, async ({ page }) => {
+  await openSheet(page, "D-0107");
+  markReached();
+
+  await test.step("verification: empty subject refused with its message", async () => {
+    await field(page, "Objet").fill("");
+    await button(page, "Enregistrer").click();
+    await expect(atLeastOne(exactText(page, SHEET_MESSAGES.subjectRequired))).toBeVisible();
+  });
+  await test.step("verification: input kept", async () => {
+    await expect(field(page, "Objet")).toHaveValue("");
+  });
+  await reread(page, "D-0107", async (sheet, expectOnce) => {
+    await expectOnce(field(sheet, "Demandeur")).toHaveValue("Pierre-Étienne Duval");
+    await expectOnce(field(sheet, "Objet")).toHaveValue("Demande d'arrêté de circulation");
+  });
+});
+
+// Texte de `length` caractères, accentué, tapé touche par touche. Il ne
+// commence ni ne finit par une espace : un candidat qui retire les espaces
+// des bords doit quand même recevoir `length` caractères.
+function tooLong(length: number): string {
+  const seed = "Société d'aménagement de la Vallée de l'Ève ";
+  return `${seed.repeat(Math.ceil(length / seed.length)).slice(0, length - 1)}é`;
+}
+
+// F8 et F10 : `limit` + 1 caractères tapés. Variante `maxlength` : saisie
+// bloquée (valeur ≤ limit, les vérifications du message et de la saisie gardée
+// sont sautées et enregistrées) ou message. Dans les deux cas, la relecture ne
+// montre aucune valeur de plus de `limit` caractères.
+async function checkMaxlength(
+  page: Page,
+  number: string,
+  options: { label: "Demandeur" | "Objet"; limit: number; message: string },
+): Promise<void> {
+  const typed = tooLong(options.limit + 1);
+  const input = field(page, options.label);
+  const blocked = await test.step(`verification: type ${options.limit + 1} characters in ${options.label}`, async () => {
+    await input.fill("");
+    await input.pressSequentially(typed);
+    return (await input.inputValue()).length <= options.limit;
+  });
+
+  const messageStep = "verification: maxlength message shown";
+  const keptStep = "verification: input kept";
+  if (blocked) {
+    recordVariant("maxlength", "input-blocked");
+    recordSkippedStep(messageStep, "maxlength", "input-blocked");
+    recordSkippedStep(keptStep, "maxlength", "input-blocked");
+  } else {
+    recordVariant("maxlength", "message");
+    await test.step(messageStep, async () => {
+      await button(page, "Enregistrer").click();
+      await expect(atLeastOne(exactText(page, options.message))).toBeVisible();
+    });
+    await test.step(keptStep, async () => {
+      await expect(field(page, options.label)).toHaveValue(typed);
+    });
+  }
+  await reread(page, number, async (sheet, expectOnce) => {
+    await expectOnce(field(sheet, options.label)).toHaveValue(new RegExp(`^[\\s\\S]{0,${options.limit}}$`));
+  });
+}
+
+test("sheet-applicant-maxlength", { tag: "@fiche" }, async ({ page }) => {
+  await openSheet(page, "D-0106");
+  markReached();
+  await checkMaxlength(page, "D-0106", { label: "Demandeur", limit: 80, message: SHEET_MESSAGES.applicantMaxlength });
+});
+
+test("sheet-subject-maxlength", { tag: "@fiche" }, async ({ page }) => {
+  await openSheet(page, "D-0108");
+  markReached();
+  await checkMaxlength(page, "D-0108", { label: "Objet", limit: 200, message: SHEET_MESSAGES.subjectMaxlength });
+});
+
+// Verrou (F11, F12) : vérifié par le comportement, libellé présent (le champ
+// est trouvé par son libellé), valeur affichée, non modifiable selon l'état
+// « éditable » de Playwright. Le moyen est lu ensuite, pour être enregistré.
+async function expectLocked(input: Locator, value: string): Promise<void> {
+  await expect(input).toBeVisible();
+  await expect(input).toHaveValue(value);
+  await expect(input).not.toBeEditable();
+}
+
+// Une frappe sur le champ verrouillé ne change pas la valeur affichée : le
+// verrou doit tenir au clavier, pas seulement selon l'état « éditable » de
+// Playwright (un script qui modifie la valeur d'un champ `readonly` échoue ici).
+async function expectKeystrokeIgnored(page: Page, input: Locator, value: string): Promise<void> {
+  // Un champ `disabled` ne prend pas le focus : sans ce blur, la frappe irait
+  // au champ qui l'a (« Objet » sur F11), puis serait enregistrée.
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  await input.press("x");
+  await expect(input).toHaveValue(value);
+}
+
+async function recordLocks(inputs: Locator[]): Promise<void> {
+  const locks = new Set<Lock>();
+  for (const input of inputs) {
+    const lock = await lockVariant(input);
+    if (lock !== undefined) locks.add(lock);
+  }
+  for (const lock of locks) recordVariant("lock", lock);
+}
+
+test("sheet-lock-en-instruction", { tag: "@fiche" }, async ({ page }) => {
+  const applicant = "Yannick Le Gall";
+  await openSheet(page, "D-0109");
+  markReached();
+
+  await test.step("verification: Demandeur locked, a keystroke does not change it", async () => {
+    const input = field(page, "Demandeur");
+    await expectLocked(input, applicant);
+    await expectKeystrokeIgnored(page, input, applicant);
+  });
+  await test.step("verification: Objet editable, Enregistrer present", async () => {
+    await expect(field(page, "Objet")).toBeEditable();
+    await expect(button(page, "Enregistrer")).toBeVisible();
+  });
+  await recordLocks([field(page, "Demandeur")]);
+  await test.step("verification: save with Enregistrer", async () => {
+    await button(page, "Enregistrer").click();
+  });
+  await reread(page, "D-0109", async (sheet, expectOnce) => {
+    await expectOnce(field(sheet, "Demandeur")).toHaveValue(applicant);
+  });
+});
+
+test("sheet-lock-remis", { tag: "@fiche" }, async ({ page }) => {
+  const applicant = "Margaux Delacroix";
+  const subject = "Autorisation de terrasse « Le Petit Zinc »";
+  await openSheet(page, "D-0110");
+  markReached();
+
+  await test.step("verification: Demandeur and Objet locked, no Enregistrer", async () => {
+    await expectLocked(field(page, "Demandeur"), applicant);
+    await expectLocked(field(page, "Objet"), subject);
+    await expect(button(page, "Enregistrer")).toHaveCount(0);
+  });
+  await test.step("verification: a keystroke changes neither Demandeur nor Objet", async () => {
+    await expectKeystrokeIgnored(page, field(page, "Demandeur"), applicant);
+    await expectKeystrokeIgnored(page, field(page, "Objet"), subject);
+  });
+  await recordLocks([field(page, "Demandeur"), field(page, "Objet")]);
+  await reread(page, "D-0110", async (sheet, expectOnce) => {
+    await expectOnce(field(sheet, "Demandeur")).toHaveValue(applicant);
+    await expectOnce(field(sheet, "Objet")).toHaveValue(subject);
   });
 });
