@@ -16,22 +16,31 @@ quatre, sans toucher au legacy ni à la mesure.
   commande à l'ouverture de chaque session. Cette commande peut écrire du code
   shell dans le fichier désigné par `$CLAUDE_ENV_FILE`. La documentation dit :
   « Each Bash command runs the file's contents as shell code before the
-  command itself ». Un réglage d'environnement écrit là s'applique donc à
-  toutes les commandes Bash de la session. —
-  [Claude Code : Hooks reference, « Persist environment variables »](https://code.claude.com/docs/en/hooks)
-  > À vérifier : la citation vient d'un résumé de la page, pas de son texte lu mot à mot.
+  command itself, so a line there can use anything Bash evaluates, such as
+  the `$PATH` reference in `export PATH="$PATH:./node_modules/.bin"`. » Un
+  réglage d'environnement écrit là s'applique donc à toutes les commandes Bash
+  de la session, et son contenu est rejoué à **chaque** commande : son coût
+  aussi. —
+  [Claude Code : Hooks reference, « Persist environment variables »](https://code.claude.com/docs/en/hooks#persist-environment-variables)
+- **`systemMessage`** : un hook peut écrire sur sa sortie standard un objet
+  JSON. Son champ `systemMessage` est décrit ainsi : « Warning message shown
+  to the user ». C'est le canal de l'avertissement du hook. —
+  [Claude Code : Hooks reference, « JSON output »](https://code.claude.com/docs/en/hooks#json-output)
 - **`nvm` et `.nvmrc`** : `nvm` installe plusieurs versions de Node et passe
   de l'une à l'autre dans le shell courant (`nvm use <version>`). `.nvmrc`
   fixe la version du dépôt : `22.23.5`. `nvm` est une fonction shell, pas un
-  exécutable. Il faut donc charger `nvm.sh` dans chaque shell avant de
-  l'appeler. — [nvm : README, section .nvmrc](https://github.com/nvm-sh/nvm#nvmrc)
-  > À vérifier : l'ancre `#nvmrc` n'a pas été ouverte.
+  exécutable : il faut charger `nvm.sh` dans chaque shell avant de l'appeler,
+  et ce chargement coûte cher (environ 218 ms mesurés ici). Chaque version
+  installée vit dans `$NVM_DIR/versions/node/v<version>/bin` : mettre ce
+  dossier en tête du `PATH` suffit à la rendre active, sans charger `nvm`. —
+  [nvm : README, section .nvmrc](https://github.com/nvm-sh/nvm#nvmrc)
 - **Résolution des paquets par Node** : un `import "@playwright/test"`
   cherche le paquet dans `node_modules`, en remontant les dossiers parents à
   partir du fichier qui importe. Un script placé dans un dossier temporaire
   ne voit pas le `node_modules` du dépôt, d'où `ERR_MODULE_NOT_FOUND` dans
-  #38. — [Node.js 22 : ESM, algorithme de résolution](https://nodejs.org/docs/latest-v22.x/api/esm.html#resolution-algorithm)
-  > À vérifier : l'ancre `#resolution-algorithm` n'a pas été ouverte.
+  #38. La spécification le dit pas à pas : « While parentURL is not the file
+  system root, … Set parentURL to the parent folder URL of parentURL. » —
+  [Node.js 22 : ESM, algorithme de résolution](https://nodejs.org/docs/latest-v22.x/api/esm.html#resolution-algorithm)
 - **Couture (seam) testable** : `oracle/cli.ts` lance Docker et Playwright dès
   son import. On ne peut donc pas le tester sans la pile. Les lignes de fin
   sortent dans une fonction pure, `closingLines`, testable seule ; `cli.ts`
@@ -41,10 +50,18 @@ quatre, sans toucher au legacy ni à la mesure.
 
 - **`.claude/settings.json`** (versionné) : déclare le hook `SessionStart`,
   qui lance `.claude/hooks/use-nvmrc-node.sh`.
-- **`.claude/hooks/use-nvmrc-node.sh`** : lit la version dans `.nvmrc` et
-  écrit dans `$CLAUDE_ENV_FILE` trois lignes : `export NVM_DIR`,
-  `. "$NVM_DIR/nvm.sh" --no-use`, puis `nvm use --silent "22.23.5"`. Il sort
-  en 0 sans rien écrire hors de Claude Code, sans `.nvmrc`, ou sans `nvm`.
+- **`.claude/hooks/use-nvmrc-node.sh`** : lit la version dans `.nvmrc`, puis
+  vérifie que `$NVM_DIR/versions/node/v22.23.5/bin` existe (`NVM_DIR` vaut
+  `~/.nvm` par défaut). S'il existe, il écrit une seule ligne dans
+  `$CLAUDE_ENV_FILE` : `export PATH="<ce dossier>:$PATH"`. Sinon, il n'écrit
+  rien et affiche un avertissement par `systemMessage` : « Node 22.23.5
+  (.nvmrc) is not installed in <dossier>: Bash commands keep the shell's Node.
+  Run nvm install 22.23.5. » Hors de Claude Code ou sans `.nvmrc`, il ne fait
+  rien. Il sort toujours en 0.
+- **`tests/session-node-hook.test.ts`** : deux tests du script, avec un dépôt
+  et un `NVM_DIR` temporaires. Version installée : la ligne `PATH` exacte, et
+  rien sur la sortie. Version absente : aucun fichier écrit, et un
+  `systemMessage` qui cite la version et `nvm install 22.23.5`.
 - **`.claude/skills/fiche-ticket/SKILL.md`** : à l'étape 1, la commande devient
   `gh issue view <N> --json number,title,body,comments`, et une phrase précise
   qu'un commentaire qui modifie la spec l'emporte sur le corps de l'issue.
@@ -62,23 +79,29 @@ quatre, sans toucher au legacy ni à la mesure.
   « Une sonde Playwright jetable s'écrit dans `.probes/` (ignoré par Git),
   jamais hors du dépôt. »
 - **`results/oracle/20261122T203840Z-3701e18.json`** : le résultat de
-  l'exécution de l'oracle sur l'état final du code (`3701e18`).
+  l'exécution de l'oracle au commit `3701e18`, le dernier qui touche au code
+  de l'oracle. Les commits suivants ne changent que le hook, son test et la
+  fiche.
 
 ## Les choix faits et pourquoi
 
-- **La version passée à `nvm use` explicitement.** L'option écartée est un
-  `nvm use` sans argument, qui lit `.nvmrc` dans le dossier courant. Or une
-  commande Bash peut tourner ailleurs que dans le dépôt. Le hook lit donc
-  `.nvmrc` à l'ouverture de session et écrit la version en clair.
-- **Charger `nvm`, comme le demande l'issue, plutôt que préfixer le `PATH`.**
-  Préfixer le `PATH` par le dossier de Node 22.23.5 serait plus rapide, mais
-  l'issue demande « le chargement de `nvm` et `nvm use` ». Le coût a été
-  mesuré : environ 218 ms par commande (voir « Vérifier soi-même »). L'humain
-  l'a accepté.
-- **Échec silencieux de `nvm use` accepté.** Si la version de `.nvmrc` n'est
-  pas installée, `nvm use` échoue sans bruit, et l'ancien Node reste actif.
-  Les gardes `pretest` et `preoracle` arrêtent quand même `npm test` et
-  `npm run oracle`. Relevé par la revue de code, accepté par l'humain.
+- **Un ajout direct au `PATH`, plutôt que le chargement de `nvm`.** La
+  première version suivait l'issue à la lettre : charger `nvm.sh` puis
+  `nvm use`. Mesurée, elle coûtait environ 218 ms par commande Bash (médiane
+  231 ms avec, 13 ms sans). Pour une session de plusieurs centaines de
+  commandes, l'humain a jugé ce coût trop élevé et demandé l'ajout direct au
+  `PATH`. Mesuré à son tour : médiane 14 ms avec, 13 ms sans (`8a945e8`).
+- **Le chemin écrit en clair, et la version lue à l'ouverture.** L'option
+  écartée est `export PATH="$NVM_DIR/versions/…"` avec `$NVM_DIR` développé à
+  chaque commande : si `NVM_DIR` n'est pas défini dans le shell de la
+  commande, le chemin devient faux. Le hook développe donc le chemin à
+  l'ouverture de session ; seul `$PATH` reste développé à chaque commande.
+  `.nvmrc` est lu au même moment, et non dans le dossier courant de la
+  commande, qui peut être hors du dépôt.
+- **Un avertissement, et non plus un échec silencieux.** Avec `nvm`, un
+  `nvm use` raté ne disait rien. Désormais, une version absente produit un
+  `systemMessage`. Les gardes `pretest` et `preoracle` restent la protection
+  de `npm test` et de `npm run oracle`.
 - **Vérifier le hook dans une vraie session, avec une session témoin.**
   `claude -p` est lancé depuis un shell sous Node `v24.12.0` : une session
   sans les réglages du projet (`--setting-sources user`), puis une avec. Sans
@@ -113,8 +136,7 @@ quatre, sans toucher au legacy ni à la mesure.
     archive salt of npm test: rerun `npm run stack:up` … ». La pile tournait
     depuis 5 heures (`docker compose ps`) avec un autre sel que celui de
     `.dev-archive-salt`.
-    > À vérifier : l'origine de ce sel, sans doute une exécution de l'oracle d'une session antérieure.
-  - Cause : la difficulté n° 3 de l'issue elle-même.
+    - Cause : la difficulté n° 3 de l'issue elle-même.
   - Résolution : `npm run oracle` (qui affiche désormais le rappel), puis
     `npm run stack:up`, puis `npm test` : `193 passed`.
 - **Le résultat d'oracle gardé citait un commit disparu.**
@@ -126,11 +148,25 @@ quatre, sans toucher au legacy ni à la mesure.
   - Résolution : ce résultat est retiré, et l'oracle relancé sur `3701e18`.
     Le nouveau résultat cite ce commit (`benchCommit`). Une preuve cite l'état
     exact (`CLAUDE.md`).
+- **Le chargement de `nvm` coûtait 218 ms par commande.**
+  - Symptôme : mesuré à la demande de l'humain, médiane 231 ms par
+    `node --version` avec le fichier du hook, 13 ms sans.
+  - Cause : la documentation des hooks le dit, le fichier est rejoué avant
+    chaque commande, et charger `nvm.sh` est lent.
+  - Résolution : un ajout direct au `PATH` (`8a945e8`), médiane 14 ms.
+- **L'avertissement n'apparaît pas tel quel en mode `-p`.**
+  - Symptôme : avec un `NVM_DIR` absent, `claude -p` rend `v24.12.0` sans
+    afficher le message. Il n'est visible qu'avec
+    `--output-format stream-json --verbose`, dans un événement
+    `"subtype":"hook_response"`, `"hook_event":"SessionStart"`, champ `output`.
+  - Cause : non établie. Le rendu en session interactive n'a pas été observé.
+    > À vérifier : l'affichage de l'avertissement à l'ouverture d'une session interactive avec un `NVM_DIR` sans Node 22.23.5.
 
 ## Vérifier soi-même
 
-Sorties observées au commit `3701e18` (code) et `c9f257e` (avec le résultat),
-Claude Code 2.1.330, Node v22.23.5, nvm 0.40.3, zsh 5.9, Apple M4 Pro.
+Sorties du hook observées au commit `8a945e8`, celles de l'oracle au commit
+`3701e18`. Claude Code 2.1.330, Node v22.23.5, nvm 0.40.3, zsh 5.9,
+Apple M4 Pro.
 
 Le hook dans une vraie session, lancée depuis un shell sous un autre Node :
 
@@ -141,23 +177,26 @@ claude -p "$P" --setting-sources user --allowedTools "Bash(node --version)"   # 
 # v24.12.0
 claude -p "$P" --allowedTools "Bash(node --version)"                          # avec le hook
 # v22.23.5
-NVM_DIR=$(mktemp -d)/absent claude -p "$P" --allowedTools "Bash(node --version)"; echo "exit=$?"   # sans nvm
-# v24.12.0
+A=$(mktemp -d)/absent    # NVM_DIR sans Node 22.23.5
+NVM_DIR=$A claude -p "$P" --allowedTools "Bash(node --version)" --output-format stream-json --verbose > absent.jsonl; echo "exit=$?"
 # exit=0
+grep -o '"result":"[^"]*"' absent.jsonl
+# "result":"v24.12.0"
+grep -o '"subtype":"hook_response"[^}]*' absent.jsonl | head -1
+# "subtype":"hook_response",…,"hook_event":"SessionStart","output":"{\"systemMessage\": \"Node 22.23.5 (.nvmrc) is not installed in …/absent/versions/node/v22.23.5/bin: Bash commands keep the shell's Node. Run nvm install 22.23.5.\"}\n",…
 ```
 
-Le script du hook seul, avec et sans `nvm` :
+Le script du hook seul, et ses tests :
 
 ```sh
 d=$(mktemp -d); CLAUDE_ENV_FILE=$d/env CLAUDE_PROJECT_DIR=$PWD sh .claude/hooks/use-nvmrc-node.sh; echo "exit=$?"; cat $d/env
 # exit=0
-# export NVM_DIR="/Users/<vous>/.nvm"
-# . "$NVM_DIR/nvm.sh" --no-use
-# nvm use --silent "22.23.5" >/dev/null 2>&1 || true
-e=$(mktemp -d); CLAUDE_ENV_FILE=$e/env CLAUDE_PROJECT_DIR=$PWD NVM_DIR=$e/absent sh .claude/hooks/use-nvmrc-node.sh; echo "exit=$?"; ls $e | wc -l
-# exit=0
-#        0
+# export PATH="/Users/<vous>/.nvm/versions/node/v22.23.5/bin:$PATH"
+npx vitest run tests/session-node-hook.test.ts
+#      Tests  2 passed (2)
 ```
+
+Avant le script, les deux tests étaient rouges : `Tests  2 failed (2)`.
 
 Le coût du hook sur une commande (20 commandes `node --version`, avec le
 fichier `$d/env` écrit ci-dessus) :
@@ -165,14 +204,19 @@ fichier `$d/env` écrit ci-dessus) :
 ```sh
 P="$HOME/.nvm/versions/node/v24.12.0/bin:/usr/bin:/bin"
 time (for i in {1..20}; do env PATH="$P" zsh -f -c 'node --version' >/dev/null; done)
-# … 0,331 total          (≈ 17 ms par commande)
+# … 0,298 total
 time (for i in {1..20}; do env PATH="$P" zsh -f -c ". '$d/env'; node --version" >/dev/null; done)
-# … 4,741 total          (≈ 237 ms par commande)
+# … 0,303 total
 ```
 
 Une mesure plus fine, faite pendant la session avec un script Node hors du
-dépôt (30 alternances, médiane) : 13 ms sans hook, 230 ms avec, soit un
-écart de 218 ms par commande.
+dépôt (30 alternances de `zsh -f -c`, médiane), dans la même session pour
+les deux versions du hook :
+
+| Fichier d'environnement | Sans hook | Avec hook | Écart des médianes |
+| --- | --- | --- | --- |
+| Chargement de `nvm` (`c4721db`) | 13 ms | 231 ms | 218 ms |
+| Ajout direct au `PATH` (`8a945e8`) | 13 ms | 14 ms | moins de 1 ms |
 
 La sonde dans `.probes/` :
 
@@ -194,9 +238,9 @@ npm run oracle
 # Result: results/oracle/20261122T203840Z-3701e18.json
 # Scenarios: 38, passed: 38, failed: 0, unreached: 0
 # The stack now runs with this oracle execution's salt: run `npm run stack:up` before `npm test`.
-npm run stack:up && npm test
-# Test Files  30 passed (30)
-#      Tests  193 passed (193)
+npm run stack:up && npm test      # au commit 8a945e8
+# Test Files  31 passed (31)
+#      Tests  195 passed (195)
 ```
 
 Le test a d'abord échoué, avant que `oracle/closing-lines.ts` existe :
@@ -207,9 +251,9 @@ Le test a d'abord échoué, avant que `oracle/closing-lines.ts` existe :
 
 ## Pour aller plus loin
 
-- Le coût de 218 ms par commande vient du chargement de `nvm.sh`. Si ce coût
-  gêne, il existe une option plus rapide : écrire dans `$CLAUDE_ENV_FILE` un
-  `PATH` préfixé par le dossier de la version installée, sans charger `nvm`.
+- Le hook ne connaît que `nvm`. Un Node installé autrement (Volta, fnm,
+  paquet système) ne sera pas trouvé : l'avertissement s'affiche, et les
+  gardes `pretest` et `preoracle` prennent le relais.
 - `closingLines` n'est pas appelée si `executeOracle` lève une erreur. Le
   rappel n'apparaît alors pas, alors que la pile a peut-être déjà été recréée
   avec le sel de l'exécution.
