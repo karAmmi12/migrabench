@@ -14,7 +14,8 @@
     "test": "vitest run",
     "preoracle": "node scripts/check-node-version.mjs",
     "oracle": "node oracle/cli.ts",
-    "oracle:proof": "node scripts/check-oracle-proof.ts"
+    "oracle:proof": "node scripts/check-oracle-proof.ts",
+    "fetch:pull-heads": "git fetch --no-tags origin '+refs/pull/*/head:refs/remotes/origin/pull/*'"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",

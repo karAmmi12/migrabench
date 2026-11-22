@@ -66,12 +66,22 @@ const MACHINE_PREFIXES = ["/Users/", "/home/", "/var/folders/"];
 // Un segment `..` : un chemin qui remonte au-dessus de la racine du dépôt.
 const PARENT_SEGMENT = /(^|[^\w.])\.\.[/\\]/;
 
-// Chemin machine contenu dans un résultat sérialisé : le début de chemin
-// trouvé, `../` pour un chemin qui remonte au-dessus de la racine, undefined
-// s'il n'y en a aucun. Règle partagée par la collecte, qui refuse d'écrire un
-// tel résultat, et par le contrôle des résultats versionnés (result-check.ts).
-export function machinePathIn(serialized: string): string | undefined {
-  return MACHINE_PREFIXES.find((prefix) => serialized.includes(prefix)) ?? (PARENT_SEGMENT.test(serialized) ? "../" : undefined);
+// Chemin machine trouvé dans un résultat : un début de chemin de la machine,
+// ou un chemin qui remonte au-dessus de la racine du dépôt.
+export type MachinePath = { kind: "prefix"; prefix: string } | { kind: "parent" };
+
+// Chemin machine contenu dans un résultat sérialisé, undefined s'il n'y en a
+// aucun. Règle partagée par la collecte, qui refuse d'écrire un tel résultat,
+// et par le contrôle des résultats versionnés (result-check.ts).
+export function machinePathIn(serialized: string): MachinePath | undefined {
+  const prefix = MACHINE_PREFIXES.find((candidate) => serialized.includes(candidate));
+  if (prefix !== undefined) return { kind: "prefix", prefix };
+  return PARENT_SEGMENT.test(serialized) ? { kind: "parent" } : undefined;
+}
+
+// Description d'un chemin machine, reprise par les messages d'échec.
+export function describeMachinePath(machinePath: MachinePath): string {
+  return machinePath.kind === "prefix" ? machinePath.prefix : "a path above the repository root (../)";
 }
 
 // Fichiers à hacher avant la collecte : HAR et trace de chaque scénario.
@@ -115,8 +125,7 @@ export function collect(report: JSONReport, { hashes, salt, saltImposed, root, a
   const relativeResult = relativizePaths(result, root) as JSONReport;
   const serialized = JSON.stringify(relativeResult);
   const machinePath = machinePathIn(serialized);
-  if (machinePath === "../") throw new Error("The oracle result would contain a path above the repository root");
-  if (machinePath !== undefined) throw new Error(`The oracle result would contain a machine path (${machinePath})`);
+  if (machinePath !== undefined) throw new Error(`The oracle result would contain a machine path: ${describeMachinePath(machinePath)}`);
   return { report: relativeResult, summary };
 }
 

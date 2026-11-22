@@ -1,10 +1,10 @@
 // Contrôle d'un résultat de l'oracle déjà écrit (#53) : la collecte refuse un
 // résultat invalide au moment de l'écrire, ce contrôle refuse un résultat
 // versionné écrit par une version antérieure de la collecte, modifié à la
-// main ou produit sous un mauvais Node. Rend la liste des manquements, vide si
-// le résultat est valide ; chacun nomme le fichier et la règle violée.
+// main ou produit sous un mauvais Node. C'est l'unique définition d'un
+// résultat valide : la vérification de la preuve (proof.ts) la reprend.
 
-import { machinePathIn } from "./collect.ts";
+import { describeMachinePath, machinePathIn } from "./collect.ts";
 
 // Ce que le contrôle lit d'un résultat de l'oracle.
 export interface CheckedResult {
@@ -18,12 +18,20 @@ export interface ResultEnvironment {
   commitExists: (sha: string) => boolean;
 }
 
+export type ResultRule = "worktree" | "node" | "saltImposed" | "benchCommit" | "machine-path";
+
+export interface Violation {
+  rule: ResultRule;
+  detail: string;
+}
+
 const FULL_SHA = /^[0-9a-f]{40}$/;
 
-export function checkResult(file: string, result: CheckedResult, environment: ResultEnvironment): string[] {
+// Manquements d'un résultat, vide s'il est valide.
+export function checkResult(result: CheckedResult, environment: ResultEnvironment): Violation[] {
   const metadata = result.config?.metadata ?? {};
-  const problems: string[] = [];
-  const violate = (rule: string, detail: string) => problems.push(`${file}: rule ${rule}: ${detail}`);
+  const violations: Violation[] = [];
+  const violate = (rule: ResultRule, detail: string) => violations.push({ rule, detail });
 
   if (metadata.worktree !== "clean") violate("worktree", `${JSON.stringify(metadata.worktree)}, expected "clean"`);
   const node = `v${environment.node.replace(/^v/, "")}`;
@@ -38,7 +46,11 @@ export function checkResult(file: string, result: CheckedResult, environment: Re
     violate("benchCommit", `${benchCommit} is not a commit of this repository`);
   }
   const machinePath = machinePathIn(JSON.stringify(result));
-  if (machinePath === "../") violate("machine-path", "contains a path above the repository root (../)");
-  else if (machinePath !== undefined) violate("machine-path", `contains ${machinePath}`);
-  return problems;
+  if (machinePath !== undefined) violate("machine-path", `contains ${describeMachinePath(machinePath)}`);
+  return violations;
+}
+
+// Message d'échec : le fichier et la règle violée.
+export function formatViolation(file: string, { rule, detail }: Violation): string {
+  return `${file}: rule ${rule}: ${detail}`;
 }

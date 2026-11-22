@@ -2,7 +2,7 @@
 // factices : un résultat valide, puis un par règle violée.
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { checkResult, type ResultEnvironment } from "../../oracle/result-check.ts";
+import { checkResult, formatViolation, type ResultEnvironment } from "../../oracle/result-check.ts";
 
 const ENVIRONMENT: ResultEnvironment = {
   node: "22.23.5",
@@ -11,7 +11,8 @@ const ENVIRONMENT: ResultEnvironment = {
 
 function check(name: string): string[] {
   const file = `tests/oracle/fixtures/results/${name}.json`;
-  return checkResult(file, JSON.parse(readFileSync(new URL(`fixtures/results/${name}.json`, import.meta.url), "utf8")), ENVIRONMENT);
+  const result = JSON.parse(readFileSync(new URL(`fixtures/results/${name}.json`, import.meta.url), "utf8"));
+  return checkResult(result, ENVIRONMENT).map((violation) => formatViolation(file, violation));
 }
 
 describe("oracle result check", () => {

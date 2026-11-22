@@ -295,7 +295,7 @@ describe("oracle collection of paths", () => {
     const input = machineReport(ROOT);
     input.suites[0]!.specs[0]!.tests[0]!.results[0]!.stdout = [{ text: "read ../../shared/fixture.json\n" }];
 
-    expect(() => collectOn(ROOT, input)).toThrow("The oracle result would contain a path above the repository root");
+    expect(() => collectOn(ROOT, input)).toThrow("The oracle result would contain a machine path: a path above the repository root (../)");
   });
 
   it("still finds the digests of artifacts cited by absolute path", () => {
@@ -318,6 +318,6 @@ describe("oracle collection of paths", () => {
     const input = machineReport(ROOT);
     input.suites[0]!.specs[0]!.tests[0]!.results[0]!.stdout = [{ text: "cache in /home/someone/.cache/ms-playwright\n" }];
 
-    expect(() => collectOn(ROOT, input)).toThrow("The oracle result would contain a machine path (/home/)");
+    expect(() => collectOn(ROOT, input)).toThrow("The oracle result would contain a machine path: /home/");
   });
 });

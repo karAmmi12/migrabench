@@ -23,9 +23,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Récupération des têtes de PR
-        run: git fetch --no-tags origin '+refs/pull/*/head:refs/remotes/origin/pull/*'
-
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
@@ -33,6 +30,10 @@ jobs:
 
       - name: Installation des dépendances
         run: npm ci
+
+      # Commande dans package.json : c'est elle que rappelle un échec en local.
+      - name: Récupération des têtes de PR
+        run: npm run fetch:pull-heads
 
       # Le test de la mesure de defaultPrevented (#35) lance un vrai Chromium.
       - name: Installation de Chromium pour Playwright
