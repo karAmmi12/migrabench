@@ -237,9 +237,14 @@ npm test
 Attendu (observé sur `e9efd93`, pile Docker démarrée) :
 `Test Files  33 passed (33)`, `Tests  229 passed (229)`.
 
-> À vérifier après l'exécution de la CI de la PR : le lien de l'exécution
-> « Tests du banc », son head SHA, le résultat de l'étape « Récupération des
-> têtes de PR » et la ligne `Tests` de l'étape « Tests ».
+CI « Tests du banc » de la PR #57 :
+[exécution 45076617582](https://github.com/karAmmi12/migrabench/actions/runs/45076617582),
+verte, sur le head SHA `03fe36b`, de 22:14:43Z à 22:16:58Z
+(`gh run view 45076617582 --json startedAt,updatedAt`). L'étape
+« Récupération des têtes de PR » a récupéré 32 refs
+(`* [new ref]  refs/pull/1/head -> origin/pull/1`, …). L'étape « Tests » a
+donné `✓ tests/oracle/versioned-results.test.ts (16 tests)`,
+`Test Files  33 passed (33)` et `Tests  229 passed (229)`.
 
 ## Pour aller plus loin
 
