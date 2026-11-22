@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import { parseEnv } from "node:util";
 import type { JSONReport } from "@playwright/test/reporter";
 import { browserVersions } from "./browser-versions.ts";
+import { type CiRun, ciRunOf, resultFileName, timestamp } from "./ci-run.ts";
 import { artifactPaths, collect, type OracleSummary } from "./collect.ts";
 import { DEFAULT_BASE_URL, ORACLE_ENV } from "./env.ts";
 import { GIT_STATUS_ARGS, RESULTS_DIR_FROM_ROOT, worktreeState, type WorktreeState } from "./worktree.ts";
@@ -58,6 +59,8 @@ interface Environment {
   // Dossier des bruts de l'exécution, depuis la racine du dépôt ; les pièces
   // jointes du résultat sont citées relativement à lui.
   artifacts: string;
+  // Exécution de CI et rang de l'exécution complète dans le job, en CI seulement.
+  ciRun?: CiRun;
 }
 
 // Ce que le premier temps transmet aux deux suivants.
@@ -73,6 +76,8 @@ interface PreparedExecution {
 
 async function prepare(baseUrl: string, salt: string, saltImposed: boolean): Promise<PreparedExecution> {
   const startedAt = new Date();
+  // Lu avant la pile : un rang invalide arrête l'exécution avant toute mesure.
+  const ciRun = ciRunOf(process.env);
   // Le sel passe par l'environnement du shell, jamais par .env (que lit aussi le legacy).
   await spawnProcess("docker", ["compose", "up", "--detach", "--force-recreate", "--no-build", "--wait", ...SERVICES], {
     ARCHIVE_SALT: salt,
@@ -89,7 +94,7 @@ async function prepare(baseUrl: string, salt: string, saltImposed: boolean): Pro
     baseUrl,
     salt,
     saltImposed,
-    metadata: { benchCommit, worktree, node: process.version, chromium, playwright, images, frozenDate: env.FROZEN_DATE ?? null, baseUrl, artifacts },
+    metadata: { benchCommit, worktree, node: process.version, chromium, playwright, images, frozenDate: env.FROZEN_DATE ?? null, baseUrl, artifacts, ...(ciRun === undefined ? {} : { ciRun }) },
     outputDir: join(ROOT, artifacts),
     reportFile: join(ROOT, artifacts, "report.json"),
     startedAt,
@@ -117,7 +122,7 @@ async function collectAndWrite({ salt, saltImposed, startedAt, metadata, outputD
   for (const path of artifactPaths(report)) hashes[path] = await sha256(path);
   const { report: result, summary } = collect(report, { hashes, salt, saltImposed, root: ROOT, artifactsDir: outputDir });
   await mkdir(RESULTS_DIR, { recursive: true });
-  const resultFile = join(RESULTS_DIR, `${timestamp(startedAt)}-${metadata.benchCommit.slice(0, 7)}.json`);
+  const resultFile = join(RESULTS_DIR, resultFileName(startedAt, metadata.benchCommit, metadata.ciRun));
   await writeFile(resultFile, `${JSON.stringify(result, null, 2)}\n`);
   return { resultFile, summary, errors: report.errors.length };
 }
@@ -130,11 +135,6 @@ async function imageOf(service: string): Promise<string> {
 
 async function sha256(path: string): Promise<string> {
   return createHash("sha256").update(await readFile(path)).digest("hex");
-}
-
-// 2026-11-21T15:40:12.345Z → 20261121T154012Z
-function timestamp(date: Date): string {
-  return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 }
 
 function captureStdout(command: string, args: string[]): Promise<string> {

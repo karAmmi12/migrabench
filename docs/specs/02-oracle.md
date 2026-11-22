@@ -250,7 +250,7 @@ Format du reporter JSON de Playwright, enrichi par la collecte. Un fichier par e
   - `frozenDate` : horloge figée (`FROZEN_DATE`) ;
   - `baseUrl` ;
   - `artifacts` : dossier des bruts de l'exécution, `.oracle-artifacts/<identifiant de l'exécution>`, depuis la racine du dépôt. Les pièces jointes des scénarios y sont citées par des chemins relatifs à ce dossier ; tout autre chemin du résultat est relatif à la racine du dépôt ;
-  - `ciRun` : identifiant de l'exécution de CI et rang de l'exécution complète dans le job (1 à 5 pour le job de preuve), présent seulement en CI ;
+  - `ciRun` : identifiant de l'exécution de CI et rang de l'exécution complète dans le job (1 à 5 pour le job de preuve), présent seulement en CI. S'écrit `{"runId", "attempt", "rank"}` : `attempt` est la tentative de l'exécution de CI, car une relance garde le même identifiant. Le nom du fichier le reprend : `<horodatage>-<commit court>-ci<runId>.<attempt>-<rank>.json` ;
   - `salt` : ajouté par la collecte, une fois Playwright terminé ;
   - `saltImposed` : ajouté par la collecte avec le sel ; `true` si le sel a été imposé (`ORACLE_SALT`), donc exécution de diagnostic, `false` s'il a été tiré par l'exécution. Une mesure a toujours `saltImposed: false` ;
   - `summary` : calculé par la collecte : nombre de scénarios, réussis, échoués, non atteints ; taux sur tous les scénarios ; taux sur les scénarios atteints ; scénarios `@clavier` réussis sur leur total.
