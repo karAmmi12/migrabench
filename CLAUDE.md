@@ -33,6 +33,7 @@ Lire `PROTOCOL.md` (le pourquoi) et `docs/PLAN.md` (le comment) avant toute tâc
 - **Chaque porte a un test négatif** : un candidat défectueux qui doit la faire échouer.
 - Les sélecteurs de l'oracle sont sémantiques (rôle, label), pas des id ou des classes.
 - Le legacy est volontairement ancien : ne pas le moderniser, ne pas monter ses versions.
+- Une sonde Playwright jetable s'écrit dans `.probes/` (ignoré par Git), jamais hors du dépôt.
 
 ## Vocabulaire
 
