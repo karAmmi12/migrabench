@@ -22,17 +22,18 @@ d'échec nomme le fichier et la règle violée.
   GitHub garde, les rend joignables. —
   [GitHub Docs : About merge methods on GitHub](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/about-merge-methods-on-github) ;
   [GitHub Docs : Checking out pull requests locally](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/checking-out-pull-requests-locally)
-
-  > À vérifier : les deux liens GitHub Docs n'ont pas été ouverts pendant la session.
+  (liens vérifiés par Karim Ammi le 2026-11-23)
 - **`git cat-file -e <sha>^{commit}`** : réussit si l'objet existe dans le
   dépôt local et si c'est un commit, sans rien afficher. C'est le test
   « commit connu ». — [Git : git-cat-file](https://git-scm.com/docs/git-cat-file)
 - **`fetch-depth` de `actions/checkout`** : par défaut, le checkout ne
-  récupère qu'un commit. `fetch-depth: 0` récupère tout l'historique des
-  branches et des tags, mais pas `refs/pull/*`. —
+  récupère qu'un commit. Le README dit : « Set `fetch-depth: 0` to fetch all
+  history for all branches and tags. » Il ne parle que des branches et des
+  tags, pas de `refs/pull/*`. La CI de la PR le confirme : après le checkout
+  avec `fetch-depth: 0`, `npm run fetch:pull-heads` a créé 32 refs
+  `[new ref]  refs/pull/<N>/head`, qui n'étaient donc pas encore là. —
   [actions/checkout : README](https://github.com/actions/checkout#usage)
-
-  > À vérifier : le README n'a pas été ouvert pendant la session. Que `fetch-depth: 0` ne récupère pas `refs/pull/*` n'a pas été vérifié. L'essai sur clone neuf (`git clone`, toutes les branches) montre seulement que les branches ne suffisent pas.
+  (passage relevé par Karim Ammi le 2026-11-23)
 - **Union discriminée en TypeScript** : un type comme
   `{ kind: "prefix"; prefix } | { kind: "parent"; path }`. Le champ `kind`
   permet au compilateur de savoir quel cas il traite. C'est la forme de
