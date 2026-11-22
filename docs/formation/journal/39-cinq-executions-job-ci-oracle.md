@@ -96,7 +96,12 @@ tenu.
   exécution complète a duré 4,2 s pour les 38 scénarios en local (sortie de
   `npm run oracle`, voir plus bas). Option écartée : un label ou un
   déclenchement manuel, qui ajoute une mécanique pour un gain faible.
-  > À vérifier après l'exécution de la CI de la PR : durée réelle des jobs `oracle` et `proof`.
+  En CI (exécution
+  [45041781224](https://github.com/karAmmi12/migrabench/actions/runs/45041781224),
+  commit `a664b7b`), le job `oracle` a duré de 16:04:37 à 16:06:44 UTC et le
+  job `proof` de 16:06:46 à 16:12:29 UTC (`gh run view`). Chaque exécution y
+  affiche environ 35 s pour les 38 scénarios (`38 passed (35.8s)` au rang 1),
+  sur 1 worker contre plusieurs en local.
 - **Checkout du commit de la PR.** Relevé par la relecture « spec » : sans
   `ref`, les 5 résultats citeraient le commit de fusion temporaire de GitHub,
   introuvable une fois la PR fusionnée. Corrigé dans `d76e437`.
@@ -196,7 +201,29 @@ rank ?: no ciRun
 
 (code de sortie 1)
 
-> À vérifier après l'exécution de la CI de la PR : lien de l'exécution, head SHA, et sortie de `npm run oracle:proof` dans le job `proof` sur les 5 résultats versionnés.
+La preuve en CI : exécution
+[45041781224](https://github.com/karAmmi12/migrabench/actions/runs/45041781224),
+head SHA `a664b7b`, job
+[`proof`](https://github.com/karAmmi12/migrabench/actions/runs/45041781224/job/137268233860).
+Chacun des 5 rangs affiche `Scenarios: 38, passed: 38, failed: 0, unreached: 0`,
+puis l'étape « Vérification de la preuve » affiche `Proof holds on 5 results.`
+
+Les 5 résultats, récupérés de l'artefact `oracle-proof` et versionnés par
+`cc27981` :
+
+```sh
+npm run oracle:proof -- results/oracle/*-ci45041781224.1-*.json
+```
+
+```
+Proof holds on 5 results.
+```
+
+Relevé sur ces 5 fichiers : commit `a664b7b`, `worktree: clean`,
+`saltImposed: false`, Node `v22.23.5`, Chromium `159.0.8154.6`,
+`@playwright/test` `1.65.1`, horloge `2025-11-15`, images `legacy`
+`sha256:73e4a751bdfb…` et `archive` `sha256:239a944d837a…` identiques,
+5 sels différents, 38 réussis sur 38 et 0 non atteint, sans `gitDiff`.
 
 ## Pour aller plus loin
 
