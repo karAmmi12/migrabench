@@ -2,7 +2,7 @@
 // pile, sans démarrer la pile.
 import { execFileSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
-import { DEV_SALT_FILE_FROM_ROOT, resolveArchiveSalt } from "../scripts/dev-archive-salt.ts";
+import { checkStackSalt, DEV_SALT_FILE_FROM_ROOT, resolveArchiveSalt } from "../scripts/dev-archive-salt.ts";
 
 const SALT = "00112233445566778899aabbccddeeff";
 const OTHER_SALT = "ffeeddccbbaa99887766554433221100";
@@ -32,5 +32,32 @@ describe("archive salt for npm test", () => {
     const ignored = execFileSync("git", ["check-ignore", DEV_SALT_FILE_FROM_ROOT], { encoding: "utf8" });
 
     expect(ignored.trim()).toBe(DEV_SALT_FILE_FROM_ROOT);
+  });
+});
+
+describe("stack salt check", () => {
+  it("accepts a stack that runs with the salt of npm test", () => {
+    expect(() => checkStackSalt(SALT, SALT)).not.toThrow();
+  });
+
+  it.each([
+    { name: "another salt, as after npm run oracle", stackSalt: OTHER_SALT },
+    { name: "no salt", stackSalt: undefined },
+  ])("asks to rerun npm run stack:up when the stack runs with $name", ({ stackSalt }) => {
+    expect(() => checkStackSalt(stackSalt, SALT)).toThrow(
+      "The stack does not run with the archive salt of npm test: rerun `npm run stack:up`",
+    );
+  });
+
+  it("never shows either salt in the message", () => {
+    let message = "";
+    try {
+      checkStackSalt(OTHER_SALT, SALT);
+    } catch (error) {
+      message = (error as Error).message;
+    }
+
+    expect(message).not.toContain(SALT);
+    expect(message).not.toContain(OTHER_SALT);
   });
 });
