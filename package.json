@@ -13,7 +13,8 @@
     "pretest": "node scripts/check-node-version.mjs",
     "test": "vitest run",
     "preoracle": "node scripts/check-node-version.mjs",
-    "oracle": "node oracle/cli.ts"
+    "oracle": "node oracle/cli.ts",
+    "oracle:proof": "node scripts/check-oracle-proof.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",
