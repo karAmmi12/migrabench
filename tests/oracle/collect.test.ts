@@ -291,11 +291,22 @@ describe("oracle collection of paths", () => {
     expect((result.config as unknown as Record<string, unknown>).argv).toEqual(["node", "test"]);
   });
 
-  it("fails rather than write a path that climbs above the repository root", () => {
+  it("fails rather than write a path field that climbs above the repository root", () => {
+    const input = machineReport(ROOT);
+    input.suites[0]!.specs[0]!.file = "../../shared/search.spec.ts";
+
+    expect(() => collectOn(ROOT, input)).toThrow(
+      "The oracle result would contain a machine path: a path above the repository root: ../../shared/search.spec.ts",
+    );
+  });
+
+  it("keeps ../ in a text that is not a path field (test output)", () => {
     const input = machineReport(ROOT);
     input.suites[0]!.specs[0]!.tests[0]!.results[0]!.stdout = [{ text: "read ../../shared/fixture.json\n" }];
 
-    expect(() => collectOn(ROOT, input)).toThrow("The oracle result would contain a machine path: a path above the repository root (../)");
+    const { report: result } = collectOn(ROOT, input);
+
+    expect(result.suites[0]?.specs[0]?.tests[0]?.results[0]?.stdout).toEqual([{ text: "read ../../shared/fixture.json\n" }]);
   });
 
   it("still finds the digests of artifacts cited by absolute path", () => {

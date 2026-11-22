@@ -67,21 +67,37 @@ const MACHINE_PREFIXES = ["/Users/", "/home/", "/var/folders/"];
 const PARENT_SEGMENT = /(^|[^\w.])\.\.[/\\]/;
 
 // Chemin machine trouvé dans un résultat : un début de chemin de la machine,
-// ou un chemin qui remonte au-dessus de la racine du dépôt.
-export type MachinePath = { kind: "prefix"; prefix: string } | { kind: "parent" };
+// n'importe où dans le fichier, ou un champ de chemin qui remonte au-dessus de
+// la racine du dépôt.
+export type MachinePath = { kind: "prefix"; prefix: string } | { kind: "parent"; path: string };
 
-// Chemin machine contenu dans un résultat sérialisé, undefined s'il n'y en a
-// aucun. Règle partagée par la collecte, qui refuse d'écrire un tel résultat,
-// et par le contrôle des résultats versionnés (result-check.ts).
-export function machinePathIn(serialized: string): MachinePath | undefined {
+// Chemin machine contenu dans un résultat, undefined s'il n'y en a aucun.
+// Règle partagée par la collecte, qui refuse d'écrire un tel résultat, et par
+// le contrôle des résultats versionnés (result-check.ts). `..` n'est cherché
+// que dans les champs de chemin : une sortie de test peut citer `../` sans
+// trahir la machine.
+export function machinePathIn(result: unknown): MachinePath | undefined {
+  const serialized = JSON.stringify(result);
   const prefix = MACHINE_PREFIXES.find((candidate) => serialized.includes(candidate));
   if (prefix !== undefined) return { kind: "prefix", prefix };
-  return PARENT_SEGMENT.test(serialized) ? { kind: "parent" } : undefined;
+  const path = parentPaths(result)[0];
+  return path === undefined ? undefined : { kind: "parent", path };
 }
 
 // Description d'un chemin machine, reprise par les messages d'échec.
 export function describeMachinePath(machinePath: MachinePath): string {
-  return machinePath.kind === "prefix" ? machinePath.prefix : "a path above the repository root (../)";
+  return machinePath.kind === "prefix" ? machinePath.prefix : `a path above the repository root: ${machinePath.path}`;
+}
+
+// Valeurs des champs de chemin qui remontent au-dessus de la racine.
+function parentPaths(value: unknown, key?: string): string[] {
+  if (typeof value === "string") return key !== undefined && PATH_KEYS.has(key) && PARENT_SEGMENT.test(value) ? [value] : [];
+  // Les éléments d'une liste héritent de son champ.
+  if (Array.isArray(value)) return value.flatMap((item) => parentPaths(item, key));
+  if (value !== null && typeof value === "object") {
+    return Object.entries(value).flatMap(([entryKey, entry]) => parentPaths(entry, entryKey));
+  }
+  return [];
 }
 
 // Fichiers à hacher avant la collecte : HAR et trace de chaque scénario.
@@ -123,8 +139,7 @@ export function collect(report: JSONReport, { hashes, salt, saltImposed, root, a
   const summary = summarize(statuses);
   result.config.metadata = { ...result.config.metadata, salt, saltImposed, summary };
   const relativeResult = relativizePaths(result, root) as JSONReport;
-  const serialized = JSON.stringify(relativeResult);
-  const machinePath = machinePathIn(serialized);
+  const machinePath = machinePathIn(relativeResult);
   if (machinePath !== undefined) throw new Error(`The oracle result would contain a machine path: ${describeMachinePath(machinePath)}`);
   return { report: relativeResult, summary };
 }

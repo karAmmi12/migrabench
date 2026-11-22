@@ -64,9 +64,13 @@ describe("oracle result check", () => {
     expect(check(name)).toEqual([`tests/oracle/fixtures/results/${name}.json: rule machine-path: contains ${prefix}`]);
   });
 
-  it("refuses a path that climbs above the repository root", () => {
+  it("refuses a path field that climbs above the repository root", () => {
     expect(check("parent-path")).toEqual([
-      "tests/oracle/fixtures/results/parent-path.json: rule machine-path: contains a path above the repository root (../)",
+      "tests/oracle/fixtures/results/parent-path.json: rule machine-path: contains a path above the repository root: ../../../../.nvm/versions/node/v22.23.5/bin/node",
     ]);
+  });
+
+  it("accepts ../ in a text that is not a path field (test output)", () => {
+    expect(check("parent-in-text")).toEqual([]);
   });
 });

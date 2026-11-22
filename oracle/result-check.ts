@@ -45,7 +45,7 @@ export function checkResult(result: CheckedResult, environment: ResultEnvironmen
   } else if (!environment.commitExists(benchCommit)) {
     violate("benchCommit", `${benchCommit} is not a commit of this repository`);
   }
-  const machinePath = machinePathIn(JSON.stringify(result));
+  const machinePath = machinePathIn(result);
   if (machinePath !== undefined) violate("machine-path", `contains ${describeMachinePath(machinePath)}`);
   return violations;
 }
