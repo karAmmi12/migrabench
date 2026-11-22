@@ -19,16 +19,19 @@ enregistre la variante observée sans juger avec elle.
   [Java 8 : java.util.Properties](https://docs.oracle.com/javase/8/docs/api/java/util/Properties.html)
 - **Règle `required` de Commons Validator** : un champ fait d'espaces est
   refusé comme un champ vide. Observé sur le legacy : trois espaces dans
-  « Demandeur » affichent « Le demandeur est obligatoire. ». —
+  « Demandeur » affichent « Le demandeur est obligatoire. ». Le mécanisme est
+  établi par la fiche de #5 ([`5-fiche-dossier.md`](5-fiche-dossier.md),
+  « Notions à connaître ») : `FieldChecks.validateRequired` appelle
+  `GenericValidator.isBlankOrNull`, vérifié avec `javap` sur le jar du
+  legacy. —
   [Commons Validator : GenericValidator](https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/GenericValidator.html)
   (version documentée : la plus récente, pas celle de Struts 1.3.10)
-
-  > À vérifier : le mécanisme (le blanc retiré par `isBlankOrNull`) n'a pas
-  > été lu dans la session ; seul le comportement a été observé.
-- **`readonly`, `disabled`, `aria-readonly`** : les trois moyens de verrou que
-  la spec accepte. `readonly` laisse le champ focalisable et envoyé avec le
-  formulaire ; `disabled` le retire du focus et de l'envoi ; `aria-readonly`
-  ne fait que l'annoncer aux technologies d'assistance. —
+- **`readonly`, `disabled` et le faux verrou `aria-readonly`** : sur un champ
+  de formulaire natif, seuls `readonly` et `disabled` sont des verrous
+  valides. `readonly` laisse le champ focalisable et envoyé avec le
+  formulaire ; `disabled` le retire du focus et de l'envoi. `aria-readonly`
+  ne fait que l'annoncer aux technologies d'assistance : seul, il laisse le
+  champ modifiable, et F11 et F12 échouent, ce qui est voulu. —
   [MDN : readonly](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/readonly),
   [MDN : disabled](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/disabled),
   [MDN : aria-readonly](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-readonly)
@@ -68,26 +71,31 @@ enregistre la variante observée sans juger avec elle.
 - **`oracle/messages.ts`** : `SHEET_MESSAGES`, les quatre messages de la fiche.
   **`tests/oracle/messages.test.ts`** les compare au texte exact de
   `ApplicationResources.properties`, `\uXXXX` décodés.
-- **`oracle/lock.ts`** : `lockVariant` lit le moyen du verrou (`disabled`,
-  `readonly`, `aria-readonly`) pour l'enregistrer. **`tests/oracle/lock.test.ts`**
+- **`oracle/lock.ts`** : `lockVariant` lit le moyen du verrou (`disabled` ou
+  `readonly`) pour l'enregistrer ; un `aria-readonly` seul n'est pas un
+  verrou, rien n'est enregistré. **`tests/oracle/lock.test.ts`**
   le vérifie dans un vrai Chromium, sur des contenus posés par `setContent`.
 - **`oracle/variants.ts`** : `skippedStepAnnotation` rend l'annotation
   `mb:skipped-step` = `<étape> (<clé>=<valeur>)`, typée sur `Variants`.
   **`oracle/collect.ts`** : la constante `SKIPPED_STEP_ANNOTATION`.
 - **`oracle/support.ts`** : `recordSkippedStep`, et la réexportation de
   `lockVariant`, `Lock` et `SHEET_MESSAGES`.
-- **`docs/specs/02-oracle.md`** : la frappe ajoutée à F12, et la phrase sur
-  l'état « éditable » de Playwright corrigée pour les champs natifs.
-- **`results/oracle/20261121T230351Z-3844327.json`** et
-  **`results/oracle/20261121T233940Z-a3cde35.json`** : deux exécutions
-  complètes depuis un arbre propre, avant et après l'ajout de la frappe à F12.
+- **`docs/specs/02-oracle.md`** : la frappe ajoutée à F12 ; `aria-readonly`
+  retiré des valeurs de `lock`, désigné comme faux verrou sur un champ natif ;
+  une limite connue pour les composants non natifs avec `aria-readonly`.
+- **`results/oracle/20261121T230351Z-3844327.json`**,
+  **`results/oracle/20261121T233940Z-a3cde35.json`** et
+  **`results/oracle/20261122T001624Z-41fce78.json`** : trois exécutions
+  complètes depuis un arbre propre, avant puis après l'ajout de la frappe à
+  F12, puis après le retrait d'`aria-readonly`.
 
 ## Les choix faits et pourquoi
 
 - **Reprendre le `recordVariant` typé de `main` (#38), sans second outil.**
   Le commentaire de l'issue le demande
   ([#36, commentaire](https://github.com/karAmmi12/migrabench/issues/36#issuecomment-7070282518)).
-  `lock` et `maxlength` étaient déjà dans `Variants`. `skippedStepAnnotation`
+  `lock` et `maxlength` étaient déjà dans `Variants` ; seule la valeur
+  `aria-readonly` de `lock` en a été retirée (choix suivant). `skippedStepAnnotation`
   ne réenregistre pas une variante : il pose `mb:skipped-step` et reprend le
   même type `Variants` pour la variante qui justifie l'étape sautée.
 - **Messages écrits en constantes, gardés par un test Vitest**, plutôt que lus
@@ -104,6 +112,12 @@ enregistre la variante observée sans juger avec elle.
   dépasse la limite (`/^[\s\S]{0,N}$/`), comme le dit la spec. La revue de
   code a noté que cette relecture est plus faible que celle de F7 et F9 ; elle
   est gardée telle quelle parce que la spec la fixe.
+- **`aria-readonly` retiré des valeurs de `lock`.** L'humain a tranché, sans
+  issue : sur un champ de formulaire natif, `aria-readonly` seul est un faux
+  verrou, et l'échec de F11 et F12 est voulu. La spec l'écrit, et le type
+  `Variants` refuse désormais `lock=aria-readonly` à la compilation. Un
+  composant non natif (`role="textbox"`) avec `aria-readonly` n'est pas pris
+  en charge : c'est une limite connue de la spec.
 - **F12 fait la même frappe que F11.** Demandé par l'humain après la revue :
   un verrou qui ne tient pas au clavier doit échouer. La spec est mise à jour
   dans le même commit (`a3cde35`).
@@ -143,8 +157,9 @@ enregistre la variante observée sans juger avec elle.
     natif.
   - Résolution : un second candidat factice, `readonly` gardé et un script
     qui recopie la touche tapée dans la valeur. Il passe l'ancienne F12
-    (`1 passed`) et échoue sur la nouvelle, à la frappe. La spec dit
-    maintenant ce que fait Playwright sur un champ natif.
+    (`1 passed`) et échoue sur la nouvelle, à la frappe. L'humain a ensuite
+    tranché : `aria-readonly` seul est un faux verrou, retiré des valeurs de
+    `lock`.
 - **Deux mutations n'ont pas échoué du premier coup.**
   - Relecture « aucune valeur trop longue » : la mutation `limit - 30` passait,
     car les valeurs d'origine sont courtes (`Inès Vallée`). Avec `{0,5}`, elle
@@ -174,8 +189,7 @@ enregistre la variante observée sans juger avec elle.
 
 ## Vérifier soi-même
 
-Sorties observées au commit `a3cde35` (puis `34e703a`, qui ajoute seulement le
-résultat), Node v22.23.5, Docker Compose 2.40.3-desktop.1, Playwright 1.65.1,
+Sorties observées au commit `41fce78`, Node v22.23.5, Docker Compose 2.40.3-desktop.1, Playwright 1.65.1,
 Chromium 159.0.8154.6.
 
 ```sh
@@ -184,11 +198,11 @@ npm run typecheck
 # > tsc --noEmit        (aucune erreur)
 
 npm run oracle
-# Result: results/oracle/20261121T233940Z-a3cde35.json
+# Result: results/oracle/20261122T001624Z-41fce78.json
 # Scenarios: 22, passed: 22, failed: 0, unreached: 0
 ```
 
-Le résultat versionné porte `benchCommit` `a3cde35…`, `worktree: clean`,
+Le résultat versionné porte `benchCommit` `41fce78…`, `worktree: clean`,
 `saltImposed: false`. Variantes enregistrées : `maxlength=message` pour F8 et
 F10, `lock=readonly` pour F11 et F12.
 
@@ -196,8 +210,17 @@ F10, `lock=readonly` pour F11 et F12.
 npm run stack:up   # npm run oracle a recréé la pile avec un autre sel (#46)
 npm test
 #  Test Files  27 passed (27)
-#       Tests  167 passed (167)
+#       Tests  166 passed (166)
+
+npx vitest run tests/oracle/lock.test.ts tests/oracle/variants.test.ts
+#  Test Files  2 passed (2)
+#       Tests  15 passed (15)
 ```
+
+Avant le retrait d'`aria-readonly`, ces deux tests étaient rouges : `TS2578:
+Unused '@ts-expect-error' directive` sur `variantAnnotation("lock",
+"aria-readonly")`, et `× reads no variant from aria-readonly alone on a
+native field`.
 
 **Chaque vérification vue échouer une fois.** Une valeur attendue faussée à
 la fois, puis `npx playwright test -c playwright.config.ts
@@ -255,11 +278,11 @@ par `setContent`) a donné : `disabled d xo`, `readonly d o`,
 
 ## Pour aller plus loin
 
-- **La variante `aria-readonly` ne peut passer ni F11 ni F12 en l'état.** Sur
-  un `<input>` natif, Playwright le juge éditable ; sur un `role="textbox"`,
-  `toHaveValue` échoue, car ce n'est pas un champ de formulaire. La spec
-  accepte pourtant ce moyen : la lecture de la valeur affichée est à revoir
-  pour les widgets ARIA.
+- **Limite connue : un composant non natif avec `aria-readonly`.** Un
+  `role="textbox"` est non éditable pour Playwright, mais `toHaveValue` exige
+  un champ de formulaire : F11 et F12 échouent sur la lecture de la valeur.
+  L'oracle ne prend pas en charge ce cas (spec, « Limites connues des
+  scénarios »).
 - **#46** : un message explicite, ou une pile de développement remise en
   place, après `npm run oracle`.
 - **#39** : le critère de fin de l'étape 2 (5 exécutions vertes et job de CI
