@@ -1,8 +1,10 @@
 // Preuve du critère de fin de l'étape 2 (spec, « Critère de fin ») : les
 // résultats d'un job de preuve, lus tels qu'ils sont versionnés. Rend la liste
-// des manquements, vide si la preuve tient.
+// des manquements, vide si la preuve tient. Chaque résultat doit d'abord être
+// valide (result-check.ts) ; s'y ajoute ce qui est propre à une preuve.
 import type { CiRun } from "./ci-run.ts";
 import type { OracleSummary } from "./collect.ts";
+import { checkResult, formatViolation, type CheckedResult, type ResultEnvironment } from "./result-check.ts";
 
 // Scénarios de l'oracle (spec de l'étape 2, « Solution »).
 export const SCENARIOS = 38;
@@ -14,26 +16,31 @@ export const EXECUTIONS = 5;
 const SHARED = ["benchCommit", "node", "chromium", "playwright", "frozenDate", "images.legacy", "images.archive"] as const;
 
 // Ce que la vérification lit d'un résultat de l'oracle.
-export interface ProofResult {
+export interface ProofResult extends CheckedResult {
   config: { metadata: Record<string, unknown> & { ciRun?: CiRun; summary?: Partial<OracleSummary> } };
 }
 
-export function checkProof(results: readonly ProofResult[]): string[] {
+// Un résultat et le fichier qui le porte, que citent les manquements.
+export interface ProofInput {
+  file: string;
+  result: ProofResult;
+}
+
+export function checkProof(inputs: readonly ProofInput[], environment: ResultEnvironment): string[] {
   const problems: string[] = [];
-  if (results.length !== EXECUTIONS) problems.push(`expected ${EXECUTIONS} executions, got ${results.length}`);
-  for (const { config } of results) {
-    const { metadata } = config;
-    const label = `rank ${metadata.ciRun?.rank ?? "?"}`;
-    if (metadata.ciRun === undefined) problems.push(`${label}: no ciRun`);
-    if (metadata.saltImposed !== false) problems.push(`${label}: saltImposed is not false`);
-    if (metadata.worktree !== "clean") problems.push(`${label}: worktree is not clean`);
+  if (inputs.length !== EXECUTIONS) problems.push(`expected ${EXECUTIONS} executions, got ${inputs.length}`);
+  for (const { file, result } of inputs) {
+    problems.push(...checkResult(result, environment).map((violation) => formatViolation(file, violation)));
+    const { metadata } = result.config;
+    if (metadata.ciRun === undefined) problems.push(`${file}: no ciRun`);
     const { scenarios, passed, failed, unreached } = metadata.summary ?? {};
     if (scenarios !== SCENARIOS || passed !== SCENARIOS || unreached !== 0) {
       problems.push(
-        `${label}: ${passed} passed, ${failed} failed, ${unreached} unreached out of ${scenarios} scenarios, expected ${SCENARIOS} passed out of ${SCENARIOS}`,
+        `${file}: ${passed} passed, ${failed} failed, ${unreached} unreached out of ${scenarios} scenarios, expected ${SCENARIOS} passed out of ${SCENARIOS}`,
       );
     }
   }
+  const results = inputs.map(({ result }) => result);
   if (results.length === EXECUTIONS && !ranksOfOneCiRun(results)) problems.push(`ranks are not 1 to ${EXECUTIONS} of one CI run`);
   for (const key of SHARED) {
     const values = results.map(({ config }) => valueAt(config.metadata, key));
