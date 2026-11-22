@@ -57,6 +57,7 @@ describe("stack salt check", () => {
       message = (error as Error).message;
     }
 
+    expect(message).toContain("npm run stack:up");
     expect(message).not.toContain(SALT);
     expect(message).not.toContain(OTHER_SALT);
   });

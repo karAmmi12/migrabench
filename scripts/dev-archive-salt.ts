@@ -32,7 +32,7 @@ export function checkStackSalt(stackSalt: string | undefined, knownSalt: string)
   if (stackSalt !== knownSalt) {
     throw new Error(
       "The stack does not run with the archive salt of npm test: rerun `npm run stack:up` " +
-        "(after `npm run oracle`, the stack keeps the salt of the run), " +
+        "(after `npm run oracle`, the stack keeps the salt of the oracle execution), " +
         "or start the stack and the tests with the same ARCHIVE_SALT (README)",
     );
   }
