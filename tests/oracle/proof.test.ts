@@ -43,15 +43,15 @@ describe("oracle proof", () => {
     expect(checkProof(proof())).toEqual([]);
   });
 
-  it("refuses a run imposed by ORACLE_SALT", () => {
+  it("refuses an execution imposed by ORACLE_SALT", () => {
     expect(checkProof(withMetadata(2, { saltImposed: true }))).toEqual(["rank 2: saltImposed is not false"]);
   });
 
-  it("refuses a run from a dirty worktree", () => {
+  it("refuses an execution from a dirty worktree", () => {
     expect(checkProof(withMetadata(3, { worktree: "dirty" }))).toEqual(["rank 3: worktree is not clean"]);
   });
 
-  it("refuses a run that is not 38 passed scenarios out of 38", () => {
+  it("refuses an execution that is not 38 passed scenarios out of 38", () => {
     expect(checkProof(withMetadata(1, { summary: { scenarios: 38, passed: 37, failed: 0, unreached: 1 } }))).toEqual([
       "rank 1: 37 passed, 0 failed, 1 unreached out of 38 scenarios, expected 38 passed out of 38",
     ]);
@@ -60,7 +60,7 @@ describe("oracle proof", () => {
     ]);
   });
 
-  it("refuses runs from different environments", () => {
+  it("refuses executions from different environments", () => {
     for (const [key, value] of [
       ["benchCommit", "41fce78000000000000000000000000000000000"],
       ["node", "v22.23.4"],
@@ -68,26 +68,32 @@ describe("oracle proof", () => {
       ["playwright", "1.65.2"],
       ["frozenDate", "2025-11-16"],
     ] as const) {
-      expect(checkProof(withMetadata(5, { [key]: value })), key).toEqual([`${key} differs between runs`]);
+      expect(checkProof(withMetadata(5, { [key]: value })), key).toEqual([`${key} differs between executions`]);
     }
   });
 
-  it("refuses runs on different legacy or archive images", () => {
+  it("refuses executions on different legacy or archive images", () => {
     expect(checkProof(withMetadata(2, { images: { legacy: "sha256:9999", archive: "sha256:aed1" } }))).toEqual([
-      "images.legacy differs between runs",
+      "images.legacy differs between executions",
     ]);
-    expect(checkProof(withMetadata(2, { images: { legacy: "sha256:1716" } }))).toEqual(["images.archive differs between runs"]);
+    expect(checkProof(withMetadata(2, { images: { legacy: "sha256:1716" } }))).toEqual(["images.archive is missing"]);
   });
 
-  it("refuses two runs with the same salt", () => {
+  it("refuses an environment value missing from every execution", () => {
+    const results = proof();
+    for (const { config } of results) config.metadata = { ...config.metadata, chromium: undefined, images: {} };
+    expect(checkProof(results)).toEqual(["chromium is missing", "images.legacy is missing", "images.archive is missing"]);
+  });
+
+  it("refuses two executions with the same salt", () => {
     expect(checkProof(withMetadata(4, { salt: SALTS[0] }))).toEqual(["salts are not all different"]);
   });
 
-  it("refuses fewer than 5 runs", () => {
-    expect(checkProof(proof().slice(0, 4))).toEqual(["expected 5 runs, got 4"]);
+  it("refuses fewer than 5 executions", () => {
+    expect(checkProof(proof().slice(0, 4))).toEqual(["expected 5 executions, got 4"]);
   });
 
-  it("refuses runs that are not ranks 1 to 5 of one CI run", () => {
+  it("refuses executions that are not ranks 1 to 5 of one CI run", () => {
     expect(checkProof(withMetadata(3, { ciRun: undefined }))).toEqual(["rank ?: no ciRun", "ranks are not 1 to 5 of one CI run"]);
     expect(checkProof(withMetadata(3, { ciRun: { runId: "19876543211", attempt: 1, rank: 3 } }))).toEqual([
       "ranks are not 1 to 5 of one CI run",
