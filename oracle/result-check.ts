@@ -4,7 +4,7 @@
 // main ou produit sous un mauvais Node. C'est l'unique définition d'un
 // résultat valide : la vérification de la preuve (proof.ts) la reprend.
 
-import { describeMachinePath, machinePathIn } from "./collect.ts";
+import { describeMachinePath, machinePathsIn } from "./collect.ts";
 
 // Ce que le contrôle lit d'un résultat de l'oracle.
 export interface CheckedResult {
@@ -45,8 +45,7 @@ export function checkResult(result: CheckedResult, environment: ResultEnvironmen
   } else if (!environment.commitExists(benchCommit)) {
     violate("benchCommit", `${benchCommit} is not a commit of this repository`);
   }
-  const machinePath = machinePathIn(result);
-  if (machinePath !== undefined) violate("machine-path", `contains ${describeMachinePath(machinePath)}`);
+  for (const machinePath of machinePathsIn(result)) violate("machine-path", `contains ${describeMachinePath(machinePath)}`);
   return violations;
 }
 

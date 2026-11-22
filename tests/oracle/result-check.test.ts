@@ -73,4 +73,15 @@ describe("oracle result check", () => {
   it("accepts ../ in a text that is not a path field (test output)", () => {
     expect(check("parent-in-text")).toEqual([]);
   });
+
+  it("reports every violation of a result, not only the first", () => {
+    const file = "tests/oracle/fixtures/results/several-violations.json";
+    expect(check("several-violations")).toEqual([
+      `${file}: rule worktree: "dirty", expected "clean"`,
+      `${file}: rule node: "v24.12.0", expected "v22.23.5" (.nvmrc)`,
+      `${file}: rule machine-path: contains /Users/`,
+      `${file}: rule machine-path: contains /var/folders/`,
+      `${file}: rule machine-path: contains a path above the repository root: ../../../../.nvm/versions/node/v24.12.0/bin/node`,
+    ]);
+  });
 });

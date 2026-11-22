@@ -71,17 +71,17 @@ const PARENT_SEGMENT = /(^|[^\w.])\.\.[/\\]/;
 // la racine du dépôt.
 export type MachinePath = { kind: "prefix"; prefix: string } | { kind: "parent"; path: string };
 
-// Chemin machine contenu dans un résultat, undefined s'il n'y en a aucun.
+// Chemins machine contenus dans un résultat, tous, vide s'il n'y en a aucun.
 // Règle partagée par la collecte, qui refuse d'écrire un tel résultat, et par
 // le contrôle des résultats versionnés (result-check.ts). `..` n'est cherché
 // que dans les champs de chemin : une sortie de test peut citer `../` sans
 // trahir la machine.
-export function machinePathIn(result: unknown): MachinePath | undefined {
+export function machinePathsIn(result: unknown): MachinePath[] {
   const serialized = JSON.stringify(result);
-  const prefix = MACHINE_PREFIXES.find((candidate) => serialized.includes(candidate));
-  if (prefix !== undefined) return { kind: "prefix", prefix };
-  const path = parentPaths(result)[0];
-  return path === undefined ? undefined : { kind: "parent", path };
+  return [
+    ...MACHINE_PREFIXES.filter((prefix) => serialized.includes(prefix)).map((prefix) => ({ kind: "prefix", prefix }) as const),
+    ...parentPaths(result).map((path) => ({ kind: "parent", path }) as const),
+  ];
 }
 
 // Description d'un chemin machine, reprise par les messages d'échec.
@@ -139,8 +139,10 @@ export function collect(report: JSONReport, { hashes, salt, saltImposed, root, a
   const summary = summarize(statuses);
   result.config.metadata = { ...result.config.metadata, salt, saltImposed, summary };
   const relativeResult = relativizePaths(result, root) as JSONReport;
-  const machinePath = machinePathIn(relativeResult);
-  if (machinePath !== undefined) throw new Error(`The oracle result would contain a machine path: ${describeMachinePath(machinePath)}`);
+  const machinePaths = machinePathsIn(relativeResult);
+  if (machinePaths.length > 0) {
+    throw new Error(`The oracle result would contain a machine path: ${machinePaths.map(describeMachinePath).join(", ")}`);
+  }
   return { report: relativeResult, summary };
 }
 
