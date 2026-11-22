@@ -159,8 +159,17 @@ quatre, sans toucher au legacy ni à la mesure.
     afficher le message. Il n'est visible qu'avec
     `--output-format stream-json --verbose`, dans un événement
     `"subtype":"hook_response"`, `"hook_event":"SessionStart"`, champ `output`.
-  - Cause : non établie. Le rendu en session interactive n'a pas été observé.
-    > À vérifier : l'affichage de l'avertissement à l'ouverture d'une session interactive avec un `NVM_DIR` sans Node 22.23.5.
+  - Résolution : Karim Ammi a vérifié le rendu en session interactive, avec
+    `NVM_DIR=/tmp/nvm-vide`, sur la branche à `4c3d157`. Au démarrage, Claude
+    Code affiche : « SessionStart:startup says: Node 22.23.5 (.nvmrc) is not
+    installed in /tmp/nvm-vide/versions/node/v22.23.5/bin: Bash commands keep
+    the shell's Node. Run nvm install 22.23.5. » Dans cette session,
+    `node -v` rend `v22.23.5`. Ce n'est pas l'effet du hook, qui n'a rien
+    écrit : c'est le Node du shell de lancement. Le profil de ce shell met
+    déjà le Node 22.23.5 de `nvm` en tête du `PATH` : au début de la session
+    du ticket, avant que le hook existe, `which node` rendait
+    `~/.nvm/versions/node/v22.23.5/bin/node`. L'avertissement dit donc vrai :
+    les commandes gardent le Node du shell, qui se trouve être le bon.
 
 ## Vérifier soi-même
 
@@ -184,6 +193,16 @@ grep -o '"result":"[^"]*"' absent.jsonl
 # "result":"v24.12.0"
 grep -o '"subtype":"hook_response"[^}]*' absent.jsonl | head -1
 # "subtype":"hook_response",…,"hook_event":"SessionStart","output":"{\"systemMessage\": \"Node 22.23.5 (.nvmrc) is not installed in …/absent/versions/node/v22.23.5/bin: Bash commands keep the shell's Node. Run nvm install 22.23.5.\"}\n",…
+```
+
+En session interactive (vérifié par Karim Ammi, branche à `4c3d157`) :
+
+```sh
+NVM_DIR=/tmp/nvm-vide claude
+# au démarrage :
+# SessionStart:startup says: Node 22.23.5 (.nvmrc) is not installed in /tmp/nvm-vide/versions/node/v22.23.5/bin: Bash commands keep the shell's Node. Run nvm install 22.23.5.
+# puis, lancé par l'agent : node -v
+# v22.23.5      (le Node du shell de lancement, pas celui du hook)
 ```
 
 Le script du hook seul, et ses tests :
