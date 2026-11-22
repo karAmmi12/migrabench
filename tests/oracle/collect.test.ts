@@ -318,6 +318,6 @@ describe("oracle collection of paths", () => {
     const input = machineReport(ROOT);
     input.suites[0]!.specs[0]!.tests[0]!.results[0]!.stdout = [{ text: "cache in /home/someone/.cache/ms-playwright\n" }];
 
-    expect(() => collectOn(ROOT, input)).toThrow("The oracle result would contain a home directory path");
+    expect(() => collectOn(ROOT, input)).toThrow("The oracle result would contain a machine path (/home/)");
   });
 });

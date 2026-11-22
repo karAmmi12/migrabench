@@ -1,0 +1,21 @@
+{
+  "config": {
+    "metadata": {
+      "benchCommit": "b2ec9d805391a7d38c43306fa3dea19a586d3e91",
+      "worktree": "clean",
+      "node": "v22.23.5",
+      "saltImposed": false
+    }
+  },
+  "suites": [
+    {
+      "file": "search.spec.ts",
+      "specs": [],
+      "stdout": [
+        {
+          "text": "trace in /var/folders/xy/T/playwright-artifacts\n"
+        }
+      ]
+    }
+  ]
+}

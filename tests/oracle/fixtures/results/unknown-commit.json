@@ -1,0 +1,10 @@
+{
+  "config": {
+    "metadata": {
+      "benchCommit": "0123456789abcdef0123456789abcdef01234567",
+      "worktree": "clean",
+      "node": "v22.23.5",
+      "saltImposed": false
+    }
+  }
+}

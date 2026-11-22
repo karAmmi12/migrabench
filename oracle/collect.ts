@@ -59,11 +59,20 @@ export interface CollectInput {
 // de chemins (argv : binaire de Node et de Playwright).
 const PATH_KEYS = new Set(["path", "file", "configFile", "rootDir", "outputDir", "testDir", "snapshotDir", "argv"]);
 
-// Débuts de chemin qui trahiraient un répertoire personnel (macOS, Linux).
-const HOME_PREFIXES = ["/Users/", "/home/"];
+// Débuts de chemin qui trahiraient la machine : répertoire personnel (macOS,
+// Linux), dossier temporaire de macOS.
+const MACHINE_PREFIXES = ["/Users/", "/home/", "/var/folders/"];
 
 // Un segment `..` : un chemin qui remonte au-dessus de la racine du dépôt.
 const PARENT_SEGMENT = /(^|[^\w.])\.\.[/\\]/;
+
+// Chemin machine contenu dans un résultat sérialisé : le début de chemin
+// trouvé, `../` pour un chemin qui remonte au-dessus de la racine, undefined
+// s'il n'y en a aucun. Règle partagée par la collecte, qui refuse d'écrire un
+// tel résultat, et par le contrôle des résultats versionnés (result-check.ts).
+export function machinePathIn(serialized: string): string | undefined {
+  return MACHINE_PREFIXES.find((prefix) => serialized.includes(prefix)) ?? (PARENT_SEGMENT.test(serialized) ? "../" : undefined);
+}
 
 // Fichiers à hacher avant la collecte : HAR et trace de chaque scénario.
 export function artifactPaths(report: JSONReport): string[] {
@@ -105,9 +114,9 @@ export function collect(report: JSONReport, { hashes, salt, saltImposed, root, a
   result.config.metadata = { ...result.config.metadata, salt, saltImposed, summary };
   const relativeResult = relativizePaths(result, root) as JSONReport;
   const serialized = JSON.stringify(relativeResult);
-  const home = HOME_PREFIXES.find((prefix) => serialized.includes(prefix));
-  if (home !== undefined) throw new Error(`The oracle result would contain a home directory path (${home})`);
-  if (PARENT_SEGMENT.test(serialized)) throw new Error("The oracle result would contain a path above the repository root");
+  const machinePath = machinePathIn(serialized);
+  if (machinePath === "../") throw new Error("The oracle result would contain a path above the repository root");
+  if (machinePath !== undefined) throw new Error(`The oracle result would contain a machine path (${machinePath})`);
   return { report: relativeResult, summary };
 }
 
