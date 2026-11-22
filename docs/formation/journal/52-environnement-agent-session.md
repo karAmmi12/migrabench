@@ -265,8 +265,29 @@ npm run stack:up && npm test      # au commit 8a945e8
 Le test a d'abord échoué, avant que `oracle/closing-lines.ts` existe :
 `Test Files  1 failed (1)`, `Tests  no tests` : le module n'existait pas encore.
 
-> À vérifier après l'exécution de la CI de la PR : le lien des exécutions
-> « Tests du banc » et « Oracle », leur head SHA, leur durée et leur sortie.
+La CI de la PR, sur le commit `4c3d157` :
+
+- « Tests du banc »
+  [45068412244](https://github.com/karAmmi12/migrabench/actions/runs/45068412244),
+  en 2 min 22 s :
+
+  ```text
+  Test Files  31 passed (31)
+       Tests  195 passed (195)
+  ```
+
+- « Oracle »
+  [45068412266](https://github.com/karAmmi12/migrabench/actions/runs/45068412266),
+  en 6 min 51 s : le job `oracle` (une exécution complète) puis le job
+  `proof` (cinq exécutions). Chaque exécution se termine par le rappel :
+
+  ```text
+  Result: results/oracle/20261122T204847Z-4c3d157-ci45068412266.1-1.json
+  Scenarios: 38, passed: 38, failed: 0, unreached: 0
+  The stack now runs with this oracle execution's salt: run `npm run stack:up` before `npm test`.
+  …
+  Proof holds on 5 results.
+  ```
 
 ## Pour aller plus loin
 
