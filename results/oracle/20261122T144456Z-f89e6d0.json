@@ -19,20 +19,20 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "benchCommit": "9e264ca7a79730b8df2dd3d421695a561e66e6ae",
+      "benchCommit": "f89e6d0833ca0fc84c88f48281ce0fa2c16390bf",
       "worktree": "clean",
       "node": "v22.23.5",
       "chromium": "159.0.8154.6",
       "playwright": "1.65.1",
       "images": {
-        "legacy": "sha256:b0d3e2be018d52125b326ec1d538635c70287095ca6eec81913e82fafb0f35e7",
-        "archive": "sha256:2c4d41968f2e4cfc1271d70516d08b68547c6659db4f7acd5fe9cab242797a75"
+        "legacy": "sha256:17168d75558935c6c8465fa4b0f06800e8c0df0f7f94a2ad53190cbcad6b4af4",
+        "archive": "sha256:aed1720d6d0c79c70f419e839efd7c7e1963f5d167b344ffc5d47b66da65ac9f"
       },
       "frozenDate": "2025-11-15",
       "baseUrl": "http://localhost:8080",
-      "artifacts": ".oracle-artifacts/20261122T003802Z-b9fc8673",
+      "artifacts": ".oracle-artifacts/20261122T144456Z-da2846d7",
       "actualWorkers": 7,
-      "salt": "04ca18b50109a002c1307960daf4e5517be0e61dc3f0ef76666fa346ee8a52bd",
+      "salt": "21c109c4784727bdac6adc41145d52987d6de95eaa2ea117db3249f68f4f3d1b",
       "saltImposed": false,
       "summary": {
         "scenarios": 38,
@@ -50,22 +50,22 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": ".oracle-artifacts/20261122T003802Z-b9fc8673",
+        "outputDir": ".oracle-artifacts/20261122T144456Z-da2846d7",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "benchCommit": "9e264ca7a79730b8df2dd3d421695a561e66e6ae",
+          "benchCommit": "f89e6d0833ca0fc84c88f48281ce0fa2c16390bf",
           "worktree": "clean",
           "node": "v22.23.5",
           "chromium": "159.0.8154.6",
           "playwright": "1.65.1",
           "images": {
-            "legacy": "sha256:b0d3e2be018d52125b326ec1d538635c70287095ca6eec81913e82fafb0f35e7",
-            "archive": "sha256:2c4d41968f2e4cfc1271d70516d08b68547c6659db4f7acd5fe9cab242797a75"
+            "legacy": "sha256:17168d75558935c6c8465fa4b0f06800e8c0df0f7f94a2ad53190cbcad6b4af4",
+            "archive": "sha256:aed1720d6d0c79c70f419e839efd7c7e1963f5d167b344ffc5d47b66da65ac9f"
           },
           "frozenDate": "2025-11-15",
           "baseUrl": "http://localhost:8080",
-          "artifacts": ".oracle-artifacts/20261122T003802Z-b9fc8673",
+          "artifacts": ".oracle-artifacts/20261122T144456Z-da2846d7",
           "actualWorkers": 7
         },
         "id": "chromium",
@@ -82,22 +82,22 @@
       {
         "grep": {},
         "grepInvert": null,
-        "outputDir": ".oracle-artifacts/20261122T003802Z-b9fc8673",
+        "outputDir": ".oracle-artifacts/20261122T144456Z-da2846d7",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "benchCommit": "9e264ca7a79730b8df2dd3d421695a561e66e6ae",
+          "benchCommit": "f89e6d0833ca0fc84c88f48281ce0fa2c16390bf",
           "worktree": "clean",
           "node": "v22.23.5",
           "chromium": "159.0.8154.6",
           "playwright": "1.65.1",
           "images": {
-            "legacy": "sha256:b0d3e2be018d52125b326ec1d538635c70287095ca6eec81913e82fafb0f35e7",
-            "archive": "sha256:2c4d41968f2e4cfc1271d70516d08b68547c6659db4f7acd5fe9cab242797a75"
+            "legacy": "sha256:17168d75558935c6c8465fa4b0f06800e8c0df0f7f94a2ad53190cbcad6b4af4",
+            "archive": "sha256:aed1720d6d0c79c70f419e839efd7c7e1963f5d167b344ffc5d47b66da65ac9f"
           },
           "frozenDate": "2025-11-15",
           "baseUrl": "http://localhost:8080",
-          "artifacts": ".oracle-artifacts/20261122T003802Z-b9fc8673",
+          "artifacts": ".oracle-artifacts/20261122T144456Z-da2846d7",
           "actualWorkers": 7
         },
         "name": "chromium",
@@ -137,7 +137,7 @@
       [
         "json",
         {
-          "outputFile": ".oracle-artifacts/20261122T003802Z-b9fc8673/report.json"
+          "outputFile": ".oracle-artifacts/20261122T144456Z-da2846d7/report.json"
         }
       ]
     ],
@@ -176,11 +176,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:cce08ff3878cf6f6ab26b15c6aab338a41210f4ed5661e2ee27e7deca7e43471"
+                  "description": "sha256:b62875c69eb8443a1e9bb18912e0b946a77855d5d0ad0dd54c7982bc96b50e92"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:a48b663b0dfb6050f2a4dd5ec759fa9a527d5d752c9d14edad41827ac8679693"
+                  "description": "sha256:b1793e6575ef526255db2e1c1dd215c7d16d705aa2cb853ce11692c2a9421727"
                 }
               ],
               "expectedStatus": "passed",
@@ -191,7 +191,7 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1094,
+                  "duration": 1078,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -199,14 +199,14 @@
                   "steps": [
                     {
                       "title": "navigation: remise D-0001",
-                      "duration": 926
+                      "duration": 906
                     },
                     {
                       "title": "verification: number, applicant, subject, status, filing date; no editable field",
-                      "duration": 28
+                      "duration": 31
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:07.895Z",
+                  "startTime": "2026-11-22T14:45:01.192Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -251,11 +251,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:f5b264a17b16747e66d9e8f794e201a6962bf54c5f9034ce3e6eabfe6489cd19"
+                  "description": "sha256:231a5b7344f9845439a08ca119b847c6145bf8e12c759df641c391e792d1ad51"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:36415c44dd60f0111c3f9d5761bed76faa6c8c82f07fe9e9727adba3af71f941"
+                  "description": "sha256:5dd330eeee03ec76cb7e609b2a58ca9fdc577a0ab8da0f837efd5878dc3e1be5"
                 }
               ],
               "expectedStatus": "passed",
@@ -266,7 +266,7 @@
                   "workerIndex": 1,
                   "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 1097,
+                  "duration": 1037,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -274,14 +274,14 @@
                   "steps": [
                     {
                       "title": "navigation: remise D-0004",
-                      "duration": 944
+                      "duration": 930
                     },
                     {
                       "title": "verification: submission date, receipt link, no Remettre",
-                      "duration": 11
+                      "duration": 12
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:07.899Z",
+                  "startTime": "2026-11-22T14:45:01.190Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -326,11 +326,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:ee50fad90354618cc7fea2f5d791db67843451a512cf6372fe59e2b488e6f591"
+                  "description": "sha256:ef759e8226ed095f7b12913d3486351a0b1bcad50b081c84a75bd97181dc995b"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:e3f7de53e2647f36354e33c7b73911d8f32e9f4a3da09c1ded65cab1dbd4e526"
+                  "description": "sha256:512f6a4cd8a1f41fd99add6392e3da0b3354b3d19115e4aab9451747ab891dd2"
                 }
               ],
               "expectedStatus": "passed",
@@ -341,7 +341,7 @@
                   "workerIndex": 2,
                   "parallelIndex": 2,
                   "status": "passed",
-                  "duration": 1088,
+                  "duration": 1035,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -349,14 +349,14 @@
                   "steps": [
                     {
                       "title": "navigation: remise D-0003",
-                      "duration": 946
+                      "duration": 881
                     },
                     {
                       "title": "verification: reserved to instructeurs, no Remettre",
-                      "duration": 12
+                      "duration": 10
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:07.897Z",
+                  "startTime": "2026-11-22T14:45:01.193Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -405,11 +405,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:fbffda8a64ec82cbdf158da6ade9eeb5e8bd4fc1683c79cafe03d2dba7478918"
+                  "description": "sha256:2bbaee23ccab527e8d5e3063c0db19d3e9f47cc6b13e8f2ec8bc401e1d270a9b"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:d762c6159f53bfbd4e69c7a261796593168d2648d7e221c2e2b81220d6926128"
+                  "description": "sha256:4fb6a1ec65480d9565dfab854a6362c727fc48568467255db940fd630ca722c4"
                 }
               ],
               "expectedStatus": "passed",
@@ -420,7 +420,7 @@
                   "workerIndex": 4,
                   "parallelIndex": 4,
                   "status": "passed",
-                  "duration": 1164,
+                  "duration": 1095,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -432,10 +432,10 @@
                     },
                     {
                       "title": "verification: receipt page with its title and archive reference",
-                      "duration": 61
+                      "duration": 65
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:07.901Z",
+                  "startTime": "2026-11-22T14:45:01.191Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -492,11 +492,11 @@
                     },
                     {
                       "type": "mb:har",
-                      "description": "sha256:e220d6ab350651202ac1f4bd038a9cd296cddf4eb52426a3015acb433f59c178"
+                      "description": "sha256:2b691677f5a338217cd20c88c0257ebc1aaeb701b9498de6ffbf60e86d60b8c6"
                     },
                     {
                       "type": "mb:trace",
-                      "description": "sha256:62bc45fef68344c5c53d89a85f64b55e119d716f7fc7fae55bc1f526d96fa3bd"
+                      "description": "sha256:5e0c519d719e150b362e4942f637f3efd9260c8881fbdcdcfaae666b1be278de"
                     }
                   ],
                   "expectedStatus": "passed",
@@ -507,7 +507,7 @@
                       "workerIndex": 3,
                       "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 1185,
+                      "duration": 1116,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
@@ -515,14 +515,14 @@
                       "steps": [
                         {
                           "title": "navigation: remise D-0111",
-                          "duration": 941
+                          "duration": 877
                         },
                         {
                           "title": "verification: Remettre without confirmation, then submitted on the frozen date",
-                          "duration": 83
+                          "duration": 81
                         }
                       ],
-                      "startTime": "2026-11-22T00:38:07.892Z",
+                      "startTime": "2026-11-22T14:45:01.183Z",
                       "annotations": [
                         {
                           "type": "mb:reach",
@@ -579,11 +579,11 @@
                     },
                     {
                       "type": "mb:har",
-                      "description": "sha256:631313505013d2d54900d98335c3360e6af1d69f1d73f947815780fba440884f"
+                      "description": "sha256:a91f92df37000418bd34c2aa7845f52997b47d7b9be191a770b01997fdb269c1"
                     },
                     {
                       "type": "mb:trace",
-                      "description": "sha256:c4e1d6e70beff79405eb88a4255a480f58e2e60fb24a52ee4d3d14d89369a9e9"
+                      "description": "sha256:7e1089fe8b2ee20d86e0c9129ce017cb68bf55b83a0846eb6f29efe20700adaa"
                     }
                   ],
                   "expectedStatus": "passed",
@@ -594,7 +594,7 @@
                       "workerIndex": 5,
                       "parallelIndex": 5,
                       "status": "passed",
-                      "duration": 1145,
+                      "duration": 1101,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
@@ -602,14 +602,14 @@
                       "steps": [
                         {
                           "title": "navigation: remise D-0010",
-                          "duration": 927
+                          "duration": 879
                         },
                         {
                           "title": "verification: receipt page with its title and archive reference",
-                          "duration": 56
+                          "duration": 64
                         }
                       ],
-                      "startTime": "2026-11-22T00:38:07.894Z",
+                      "startTime": "2026-11-22T14:45:01.183Z",
                       "annotations": [
                         {
                           "type": "mb:reach",
@@ -669,11 +669,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:2e88c0d08003591ec4c7393ef0d220b70fe351a2be7b0d76709cc90165cb6576"
+                  "description": "sha256:fabaf5fe6ae81dc70848a011f4ffc68c02aab68cbd2c4837b87f44fa916060ec"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:1c9c52892bbe179f79fd25197eacc5b226a7c36562a7ee0f4f7ab87de9d74edd"
+                  "description": "sha256:e40981d781466f6766bc174c31bfacc7b3b2115982942355bf92f04badb61777"
                 }
               ],
               "expectedStatus": "passed",
@@ -684,7 +684,7 @@
                   "workerIndex": 6,
                   "parallelIndex": 6,
                   "status": "passed",
-                  "duration": 673,
+                  "duration": 658,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -692,14 +692,14 @@
                   "steps": [
                     {
                       "title": "navigation: search",
-                      "duration": 536
+                      "duration": 529
                     },
                     {
                       "title": "verification: focus on Numéro",
-                      "duration": 8
+                      "duration": 10
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:07.903Z",
+                  "startTime": "2026-11-22T14:45:01.187Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -725,7 +725,7 @@
           ],
           "id": "a088064de9fe351eef5f-bfb768823ac211a010c8",
           "file": "search.spec.ts",
-          "line": 87,
+          "line": 90,
           "column": 1
         },
         {
@@ -744,11 +744,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:65e690e68ee18fd00480a9da4895d06c44e927967ab6edf088c734d761193d5b"
+                  "description": "sha256:493b5416b3d1be1dd9d82822b5989cf57f98319312c5c354acaec3236c32fb31"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:12a2fc68cb51f38f767359625a0016b1a65c4dc735bc3cc53cdd38adf1dee102"
+                  "description": "sha256:87627f777ff7398e8ea3e66d47a2526b448e74125f7929f9128dd05794ba6ec9"
                 }
               ],
               "expectedStatus": "passed",
@@ -759,7 +759,7 @@
                   "workerIndex": 6,
                   "parallelIndex": 6,
                   "status": "passed",
-                  "duration": 228,
+                  "duration": 706,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -767,14 +767,14 @@
                   "steps": [
                     {
                       "title": "navigation: search",
-                      "duration": 50
+                      "duration": 59
                     },
                     {
                       "title": "verification: shared numbers D-0001, D-0002, D-0003, D-0004, D-0005, D-0006, D-0007, D-0008, D-0009, D-0010, D-0011, D-0012, D-0013, D-0014, D-0015, D-0016, D-0017, D-0018, D-0019, D-0020, D-0021, D-0022, D-0023, D-0024, D-0025, D-0026, D-0027, D-0028, D-0029, D-0030",
-                      "duration": 111
+                      "duration": 586
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:08.778Z",
+                  "startTime": "2026-11-22T14:45:02.019Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -800,7 +800,7 @@
           ],
           "id": "a088064de9fe351eef5f-6eabd18225983ea58f0c",
           "file": "search.spec.ts",
-          "line": 53,
+          "line": 56,
           "column": 3
         },
         {
@@ -819,11 +819,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:95e02ddb696e743b4b92f9b32107f214c30acd1db4c1d4b915932b309b4488a1"
+                  "description": "sha256:faaf0a9dce5954ef020c2a00563178ff61b4147e94a1c15325d43f94907d247e"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:25a1e221f2d21d37301145ca5eef47014937487657a52d4d353478dc8f232abb"
+                  "description": "sha256:f6dda5127b34317a355fedde8f93228ef7bd8d1ed6686c5872cca4e9ccfc96ab"
                 }
               ],
               "expectedStatus": "passed",
@@ -831,10 +831,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 6,
-                  "parallelIndex": 6,
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 195,
+                  "duration": 685,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -842,14 +842,14 @@
                   "steps": [
                     {
                       "title": "navigation: search",
-                      "duration": 44
+                      "duration": 34
                     },
                     {
                       "title": "verification: shared numbers D-0007",
-                      "duration": 81
+                      "duration": 598
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.023Z",
+                  "startTime": "2026-11-22T14:45:02.425Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -875,7 +875,7 @@
           ],
           "id": "a088064de9fe351eef5f-1cda7593e676a0d34891",
           "file": "search.spec.ts",
-          "line": 53,
+          "line": 56,
           "column": 3
         },
         {
@@ -894,11 +894,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:3936dc254fd2ec9bc457c214718605175deee495183c816f66ca17f1007add32"
+                  "description": "sha256:3c216076abcd729d0a82e31ed0c18349cc4ed0318a3124224a8d9e0102f7df56"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:b24ab26fe38b9b1f7fa028d0204bc6676176ac27ceb94a81d62a403c51d8a0ff"
+                  "description": "sha256:4867e51539b612d61c5de9341e5a404e9c02c2b440d304c2d8907cc3bfc4245c"
                 }
               ],
               "expectedStatus": "passed",
@@ -909,7 +909,7 @@
                   "workerIndex": 2,
                   "parallelIndex": 2,
                   "status": "passed",
-                  "duration": 185,
+                  "duration": 684,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -921,10 +921,10 @@
                     },
                     {
                       "title": "verification: shared numbers D-0016",
-                      "duration": 86
+                      "duration": 596
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.202Z",
+                  "startTime": "2026-11-22T14:45:02.425Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -950,7 +950,7 @@
           ],
           "id": "a088064de9fe351eef5f-dfaec5fab7e488156a9e",
           "file": "search.spec.ts",
-          "line": 53,
+          "line": 56,
           "column": 3
         },
         {
@@ -969,11 +969,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:73ad4c71a6953dd6775bf2d57027f0e9dd8d5458ac6c23d94ca1db3514411a2d"
+                  "description": "sha256:055639d2cc47c5021d648df2df25688d12fd31a1f377d93d9a5930f4251fd0eb"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:4b1e2b0fd9d7298ca627ed2456b17e32b4240f4af0b30b1fc5b562b62a85c855"
+                  "description": "sha256:2fa7f78f6589210639c6ee8a18b79e4e5e3191eb164aed335a738b0ac7113ea6"
                 }
               ],
               "expectedStatus": "passed",
@@ -984,7 +984,7 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 191,
+                  "duration": 694,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -992,14 +992,14 @@
                   "steps": [
                     {
                       "title": "navigation: search",
-                      "duration": 39
+                      "duration": 52
                     },
                     {
                       "title": "verification: shared numbers D-0004",
-                      "duration": 85
+                      "duration": 585
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.205Z",
+                  "startTime": "2026-11-22T14:45:02.460Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1025,7 +1025,7 @@
           ],
           "id": "a088064de9fe351eef5f-8c6e3aec0c7f6aaa4438",
           "file": "search.spec.ts",
-          "line": 53,
+          "line": 56,
           "column": 3
         },
         {
@@ -1044,11 +1044,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:bb2f71f6b699945c8bb1bfd4bf6b9d1a54f5f5f09ff9e74b97ff3ac0197ebf1c"
+                  "description": "sha256:96e7568efbe7d5fc70a3948dd8bef3d82bd8e8d6c8212c666449cb26d2b2234e"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:db8084998f321bf288c406cc196d65d45dd529306f21e65a24de042f30682bdb"
+                  "description": "sha256:3533f06962938e5fb0c8d69b46ba599d612abeaad2d3ccdb6019da93f33354d2"
                 }
               ],
               "expectedStatus": "passed",
@@ -1056,10 +1056,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 1,
-                  "parallelIndex": 1,
+                  "workerIndex": 5,
+                  "parallelIndex": 5,
                   "status": "passed",
-                  "duration": 203,
+                  "duration": 697,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -1067,14 +1067,14 @@
                   "steps": [
                     {
                       "title": "navigation: search",
-                      "duration": 48
+                      "duration": 41
                     },
                     {
                       "title": "verification: shared numbers D-0001, D-0004, D-0007, D-0010, D-0013, D-0016, D-0019, D-0022, D-0025, D-0028",
-                      "duration": 84
+                      "duration": 588
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.206Z",
+                  "startTime": "2026-11-22T14:45:02.470Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1100,7 +1100,7 @@
           ],
           "id": "a088064de9fe351eef5f-ad4197bf1b1f1d2616a5",
           "file": "search.spec.ts",
-          "line": 53,
+          "line": 56,
           "column": 3
         },
         {
@@ -1119,11 +1119,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:f517870e982b379aa7cbf82fe021803b384ab538d142a7bb2e06ede7c7c1b3a9"
+                  "description": "sha256:41f99a32e229091aac4c0a18ac1d6e187aaf72e17afb9fa6e7fd0505e4eb3e8e"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:0913206623007f51c4993b631575568441f1338ade4dcd31d03a3301fa122ca8"
+                  "description": "sha256:3ff3e3e290f38c85169f106c7c92694b855cdd9a5c7784fa699a5bae061a9e03"
                 }
               ],
               "expectedStatus": "passed",
@@ -1131,10 +1131,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 6,
-                  "parallelIndex": 6,
+                  "workerIndex": 4,
+                  "parallelIndex": 4,
                   "status": "passed",
-                  "duration": 194,
+                  "duration": 696,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -1142,14 +1142,14 @@
                   "steps": [
                     {
                       "title": "navigation: search",
-                      "duration": 38
+                      "duration": 39
                     },
                     {
                       "title": "verification: shared numbers D-0012, D-0019",
-                      "duration": 92
+                      "duration": 594
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.232Z",
+                  "startTime": "2026-11-22T14:45:02.486Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1175,7 +1175,7 @@
           ],
           "id": "a088064de9fe351eef5f-013f03927ccf904c6763",
           "file": "search.spec.ts",
-          "line": 53,
+          "line": 56,
           "column": 3
         },
         {
@@ -1194,11 +1194,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:47989c5f187035fb98290c51c4f5b2e7ed5eb1641316631191a97a41bc26e634"
+                  "description": "sha256:ea325694dd1ff253a0db54ad195700bea8e0a74f893efdd755b70c9be5623420"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:5148c700553a71f62820f31cd6d01217fba23c8cda46e5b865d9fa8724eec62d"
+                  "description": "sha256:feb8ec20ef9adabbb0d2dfe4c24f98bca95e2ffa6d4b76ddbd14a3272af8ff2a"
                 }
               ],
               "expectedStatus": "passed",
@@ -1206,10 +1206,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 5,
-                  "parallelIndex": 5,
+                  "workerIndex": 3,
+                  "parallelIndex": 3,
                   "status": "passed",
-                  "duration": 185,
+                  "duration": 689,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -1217,14 +1217,14 @@
                   "steps": [
                     {
                       "title": "navigation: search",
-                      "duration": 38
+                      "duration": 37
                     },
                     {
                       "title": "verification: shared numbers D-0030",
-                      "duration": 74
+                      "duration": 593
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.243Z",
+                  "startTime": "2026-11-22T14:45:02.493Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1250,7 +1250,7 @@
           ],
           "id": "a088064de9fe351eef5f-82075333a5a9a20ed1db",
           "file": "search.spec.ts",
-          "line": 53,
+          "line": 56,
           "column": 3
         },
         {
@@ -1269,11 +1269,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:dd51bfa4372e12f60d4bf08af34a1aa0630f4fdacf9603860ad7ab09b5c9923e"
+                  "description": "sha256:3c1e2fc3b49b31c9ea72307609e070016176fdf660fc80ecd671853bdcc9e9a0"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:aa75865065c25bbf16093b85e7eb4c646e76d70b017eeb485586e64cfc39bdfc"
+                  "description": "sha256:97355410fafe2e4cbf91621c4831616881fa5de0e578dd9d8a3dd2a1097da186"
                 }
               ],
               "expectedStatus": "passed",
@@ -1281,10 +1281,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 4,
-                  "parallelIndex": 4,
+                  "workerIndex": 6,
+                  "parallelIndex": 6,
                   "status": "passed",
-                  "duration": 190,
+                  "duration": 653,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -1292,14 +1292,14 @@
                   "steps": [
                     {
                       "title": "navigation: search",
-                      "duration": 38
+                      "duration": 28
                     },
                     {
                       "title": "verification: shared numbers D-0001",
-                      "duration": 87
+                      "duration": 577
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.269Z",
+                  "startTime": "2026-11-22T14:45:02.740Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1325,7 +1325,7 @@
           ],
           "id": "a088064de9fe351eef5f-ec278de6ec4833b7e16f",
           "file": "search.spec.ts",
-          "line": 53,
+          "line": 56,
           "column": 3
         },
         {
@@ -1344,11 +1344,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:1d8f45d35296ca357d3e0ff69fb0bfd8551869e2cf63cb8da9dc66c532f1f0c0"
+                  "description": "sha256:bc7b393094de8278028ba6a208c596913990f9141a2e5da32f20a58761d55d7b"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:68c1c071a21c5eca386950e96b5750807e8c85c654e65652985922d3aed37613"
+                  "description": "sha256:222f3f50efeb0a61874e72a8f4d5c177be0dd4095b4696e9c842f7a51f4b8efc"
                 }
               ],
               "expectedStatus": "passed",
@@ -1356,10 +1356,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 3,
-                  "parallelIndex": 3,
+                  "workerIndex": 2,
+                  "parallelIndex": 2,
                   "status": "passed",
-                  "duration": 184,
+                  "duration": 683,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -1367,14 +1367,14 @@
                   "steps": [
                     {
                       "title": "navigation: search",
-                      "duration": 38
+                      "duration": 37
                     },
                     {
                       "title": "verification: shared numbers D-0007, D-0019",
-                      "duration": 83
+                      "duration": 596
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.296Z",
+                  "startTime": "2026-11-22T14:45:03.122Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1400,7 +1400,7 @@
           ],
           "id": "a088064de9fe351eef5f-60a5d011efa4a8359f3b",
           "file": "search.spec.ts",
-          "line": 53,
+          "line": 56,
           "column": 3
         },
         {
@@ -1419,11 +1419,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:8a07e5ff85a9fc4e2eba817918b346d1dccc2ba717d39c1879886723d44350f7"
+                  "description": "sha256:19010881b3ebdcd3e2a1cdaf2fa511d70c7c866a503ab3ede41ecaac367594da"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:d138370e8b9c2b18308ca9b4769162c987c5ae2e3c01670d8eb2bc9bec6e4500"
+                  "description": "sha256:7bcfc360bc26b0c299b293c1ca53e32edeb0d8073d37f67c953c8fcdb991b7a5"
                 }
               ],
               "expectedStatus": "passed",
@@ -1431,10 +1431,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 2,
-                  "parallelIndex": 2,
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 192,
+                  "duration": 679,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -1446,10 +1446,10 @@
                     },
                     {
                       "title": "verification: no-result message, no number",
-                      "duration": 98
+                      "duration": 589
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.409Z",
+                  "startTime": "2026-11-22T14:45:03.122Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1475,7 +1475,7 @@
           ],
           "id": "a088064de9fe351eef5f-464844fe2d4d82dd3156",
           "file": "search.spec.ts",
-          "line": 138,
+          "line": 141,
           "column": 1
         },
         {
@@ -1494,11 +1494,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:d7454805d922fd2c0c0702234d000b36a80982f7cae0a3b17dddf95712de0302"
+                  "description": "sha256:3035bc12ea272d506d5a82985d3e0cfaa74d7a22e75efd12703113aa6c07ffe5"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:8c21cc652adbd571103e715b0bd7a0555141ba75db7621ef9948de95d9cb9628"
+                  "description": "sha256:9af8412ebdbeb9c0fea8146f8d6c1a7ae7ef033d1c8d104e81e1fafa66bfbc69"
                 }
               ],
               "expectedStatus": "passed",
@@ -1509,7 +1509,7 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 204,
+                  "duration": 695,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -1517,18 +1517,18 @@
                   "steps": [
                     {
                       "title": "navigation: search",
-                      "duration": 44
+                      "duration": 52
                     },
                     {
                       "title": "verification: refused with its message, no shared number",
-                      "duration": 99
+                      "duration": 584
                     },
                     {
                       "title": "verification: input kept",
-                      "duration": 3
+                      "duration": 4
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.411Z",
+                  "startTime": "2026-11-22T14:45:03.173Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1554,7 +1554,7 @@
           ],
           "id": "a088064de9fe351eef5f-1a1f053a48c7de8e1b10",
           "file": "search.spec.ts",
-          "line": 70,
+          "line": 73,
           "column": 3
         },
         {
@@ -1573,11 +1573,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:a4ed3dd04cebcff4705c6e204eaa4700b2e367e107ff7a76d05e34d567f6184a"
+                  "description": "sha256:afcb2a77e9a6715ec7d96366d04380e7c724155f4b2f84f33ebd8a588784ed4c"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:ef6da83e0e3514f1a4c8e23a2cf4603e85a2d9f8b55964491b07071f1d440e09"
+                  "description": "sha256:708b98c1d0a394e46ff0bf48cf1230424903edd21c3a727cbba66f06b9b70ba1"
                 }
               ],
               "expectedStatus": "passed",
@@ -1585,10 +1585,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 1,
-                  "parallelIndex": 1,
+                  "workerIndex": 5,
+                  "parallelIndex": 5,
                   "status": "passed",
-                  "duration": 197,
+                  "duration": 695,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -1596,18 +1596,18 @@
                   "steps": [
                     {
                       "title": "navigation: search",
-                      "duration": 43
+                      "duration": 37
                     },
                     {
                       "title": "verification: refused with its message, no shared number",
-                      "duration": 92
+                      "duration": 595
                     },
                     {
                       "title": "verification: input kept",
-                      "duration": 5
+                      "duration": 3
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.434Z",
+                  "startTime": "2026-11-22T14:45:03.188Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1633,7 +1633,7 @@
           ],
           "id": "a088064de9fe351eef5f-5285b23bcff59e963f6b",
           "file": "search.spec.ts",
-          "line": 70,
+          "line": 73,
           "column": 3
         },
         {
@@ -1652,11 +1652,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:9f67f8260344a90d35336b4d23ad5ac234b62c9db01796b49dcd4df2c5336d51"
+                  "description": "sha256:6b58137238dfd7cb050719d19f10f6143adea9315f5e3f3faba86ae79bbec4ce"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:5685ff20648083716d7729ce39fb0081b36a32b544b3cc86ab14b6764c59af0c"
+                  "description": "sha256:69ccb54b2901e7c6eb9de068daebb3eeb7f3989b9955571b2b63a10749517e6e"
                 }
               ],
               "expectedStatus": "passed",
@@ -1664,10 +1664,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 6,
-                  "parallelIndex": 6,
+                  "workerIndex": 3,
+                  "parallelIndex": 3,
                   "status": "passed",
-                  "duration": 183,
+                  "duration": 688,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -1675,18 +1675,18 @@
                   "steps": [
                     {
                       "title": "navigation: search",
-                      "duration": 32
+                      "duration": 34
                     },
                     {
                       "title": "verification: refused with its message, no shared number",
-                      "duration": 86
+                      "duration": 598
                     },
                     {
                       "title": "verification: input kept",
                       "duration": 3
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.447Z",
+                  "startTime": "2026-11-22T14:45:03.199Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1712,7 +1712,7 @@
           ],
           "id": "a088064de9fe351eef5f-8a31346eecea0e270740",
           "file": "search.spec.ts",
-          "line": 70,
+          "line": 73,
           "column": 3
         },
         {
@@ -1731,11 +1731,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:35d500c7801dbfa006199175649b16e430470dd6c9e89c3ae48a29d958f84098"
+                  "description": "sha256:416db5c227d87d0adda79ddc3cec68f7f8fa2582363191581cd299c55c700da4"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:f9c79b6918552c5a58ab2aa094522358f112b958c0437ab6ea7dd6e46bd2e711"
+                  "description": "sha256:390cfe711cd92709ebe3542e349243eab5e5e8b2d880e58205d255993905b14e"
                 }
               ],
               "expectedStatus": "passed",
@@ -1743,10 +1743,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 5,
-                  "parallelIndex": 5,
+                  "workerIndex": 4,
+                  "parallelIndex": 4,
                   "status": "passed",
-                  "duration": 180,
+                  "duration": 687,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -1754,18 +1754,18 @@
                   "steps": [
                     {
                       "title": "navigation: search",
-                      "duration": 32
+                      "duration": 37
                     },
                     {
                       "title": "verification: refused with its message, no shared number",
-                      "duration": 90
+                      "duration": 594
                     },
                     {
                       "title": "verification: input kept",
-                      "duration": 3
+                      "duration": 4
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.450Z",
+                  "startTime": "2026-11-22T14:45:03.201Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1791,7 +1791,7 @@
           ],
           "id": "a088064de9fe351eef5f-c4adc649ee4072b45bc4",
           "file": "search.spec.ts",
-          "line": 70,
+          "line": 73,
           "column": 3
         },
         {
@@ -1810,11 +1810,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:5f40888fdcfd6aefaf03d833dc5ef3486cf759c4e5720d73f8c7578c1d36449a"
+                  "description": "sha256:3408769e0b46cc864fc741fe053d81824aab9ef76246dc7876651bd1b5fd77b5"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:136c39a1c91e9f3f47aa76e620f329e204bd5f0331a2d3c24a96a9a53ba6d36a"
+                  "description": "sha256:b0811f3b35dfd0ff01b4022bd9b9c80f57b66f03fca7d1e63d1eedf24a81425f"
                 }
               ],
               "expectedStatus": "passed",
@@ -1822,10 +1822,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 4,
-                  "parallelIndex": 4,
+                  "workerIndex": 6,
+                  "parallelIndex": 6,
                   "status": "passed",
-                  "duration": 233,
+                  "duration": 684,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -1833,18 +1833,18 @@
                   "steps": [
                     {
                       "title": "navigation: search",
-                      "duration": 40
+                      "duration": 34
                     },
                     {
                       "title": "verification: refused with its message, no shared number",
-                      "duration": 109
+                      "duration": 594
                     },
                     {
                       "title": "verification: input kept",
                       "duration": 9
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.480Z",
+                  "startTime": "2026-11-22T14:45:03.401Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -1870,7 +1870,7 @@
           ],
           "id": "a088064de9fe351eef5f-40fa4aed9c0f1f012da0",
           "file": "search.spec.ts",
-          "line": 70,
+          "line": 73,
           "column": 3
         }
       ],
@@ -1878,7 +1878,7 @@
         {
           "title": "",
           "file": "search.spec.ts",
-          "line": 169,
+          "line": 172,
           "column": 8,
           "specs": [
             {
@@ -1897,11 +1897,11 @@
                     },
                     {
                       "type": "mb:har",
-                      "description": "sha256:492528879ba2d6c194b4d28d8a2f494233f4386131d99cbf416d6fd7f1b99784"
+                      "description": "sha256:97f667d3c35ef94ecf71fdad45bef6ff5aa48e441148faf305df26c6a33939a4"
                     },
                     {
                       "type": "mb:trace",
-                      "description": "sha256:157b40277ac8d98d4bfc835fdc71bf92c49407ca5b01a3181075e56dc5418ada"
+                      "description": "sha256:eb64bc6f95ba788b62902c03a29809f3d7d779cbfe64c6e1473fd662d16d5421"
                     }
                   ],
                   "expectedStatus": "passed",
@@ -1909,10 +1909,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 90,
+                      "duration": 78,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
@@ -1924,10 +1924,10 @@
                         },
                         {
                           "title": "verification: no-credentials refused with 401, search not shown",
-                          "duration": 13
+                          "duration": 12
                         }
                       ],
-                      "startTime": "2026-11-22T00:38:09.507Z",
+                      "startTime": "2026-11-22T14:45:03.814Z",
                       "annotations": [
                         {
                           "type": "mb:reach",
@@ -1953,7 +1953,7 @@
               ],
               "id": "a088064de9fe351eef5f-edb54c4d3ae98f72a907",
               "file": "search.spec.ts",
-              "line": 172,
+              "line": 175,
               "column": 5
             },
             {
@@ -1972,11 +1972,11 @@
                     },
                     {
                       "type": "mb:har",
-                      "description": "sha256:c298c12491026259bfef038a7eb5ee23a07c130f22d376be817af8d7d9aefe6e"
+                      "description": "sha256:bf3d176aaab511c9a069e810cc8ffedd2b4a9df5d93192b195f5121ec5131b1a"
                     },
                     {
                       "type": "mb:trace",
-                      "description": "sha256:72b9d92e9b1820f2543dd0da3cb494c42ffaaf1c3c06c14711bd0857b1924159"
+                      "description": "sha256:2bc6302c60c4e4f8868eff1864e58364bec1f9139aab8b25bf2d3031f14a7207"
                     }
                   ],
                   "expectedStatus": "passed",
@@ -1984,10 +1984,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 98,
+                      "duration": 79,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
@@ -1995,14 +1995,14 @@
                       "steps": [
                         {
                           "title": "navigation: load BASE_URL",
-                          "duration": 28
+                          "duration": 18
                         },
                         {
                           "title": "verification: unknown-user refused with 401, search not shown",
-                          "duration": 13
+                          "duration": 10
                         }
                       ],
-                      "startTime": "2026-11-22T00:38:09.613Z",
+                      "startTime": "2026-11-22T14:45:03.817Z",
                       "annotations": [
                         {
                           "type": "mb:reach",
@@ -2028,7 +2028,7 @@
               ],
               "id": "a088064de9fe351eef5f-848aa6a69812680506d8",
               "file": "search.spec.ts",
-              "line": 172,
+              "line": 175,
               "column": 5
             }
           ]
@@ -2058,11 +2058,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:b96bea860c2cb679eb47d1f1af5437449af553023529665c9e045378c33e850e"
+                  "description": "sha256:56dee6bf3914e633f8c1c06a4757a55ca0bf53378fdc319e736bbb3f7d048070"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:d15d4b1e80bb37be3f81fb99e8f2c1bbfcc37d45121830fe74690b204ee5b920"
+                  "description": "sha256:daf16aaf1264ba32ef963fcbd7e1ea5fb6067e1284768da8036e9fedb77fcaa4"
                 }
               ],
               "expectedStatus": "passed",
@@ -2070,10 +2070,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 2,
-                  "parallelIndex": 2,
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 230,
+                  "duration": 269,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -2081,14 +2081,14 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0002",
-                      "duration": 171
+                      "duration": 207
                     },
                     {
                       "title": "verification: focus on Objet",
-                      "duration": 2
+                      "duration": 3
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.620Z",
+                  "startTime": "2026-11-22T14:45:03.886Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -2134,11 +2134,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:1543ead2ffcd046b9481e77e0918ba0fd314560ebb1f63dd07e338c9ae79f1d6"
+                  "description": "sha256:716893e63698c23758e2babd9f47ff0d3cac492c3fea05f55625e06b9c30a0d0"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:3a4bf8a312ec2d15972166a6008e4fef3debd6ed0a623fae5998c5ab19275108"
+                  "description": "sha256:70468f3243baea308182858b12826e1f68c283f61f19fca032a2c3edfc73e63d"
                 }
               ],
               "expectedStatus": "passed",
@@ -2146,10 +2146,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
+                  "workerIndex": 5,
+                  "parallelIndex": 5,
                   "status": "passed",
-                  "duration": 313,
+                  "duration": 267,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -2157,14 +2157,14 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0003",
-                      "duration": 182
+                      "duration": 192
                     },
                     {
                       "title": "verification: Objet, Tab to Demandeur, Tab to Enregistrer",
-                      "duration": 25
+                      "duration": 21
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.631Z",
+                  "startTime": "2026-11-22T14:45:03.902Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -2209,11 +2209,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:0b55e80d9e634c8f3e5b36dbefa8a463c6486098376b4359ea7e31ce22954c74"
+                  "description": "sha256:f3cc9e2f15f5ef0af238e982566da8ba8702335485d56dff28066924fc67e32e"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:93213c9ed88a771468c9e1b4a3f63f6cd4853bd88d051344c924df5f996e7b48"
+                  "description": "sha256:de982ae078651153e62193701a1dc9fa8f241e392af8f4813014348eca33e54c"
                 }
               ],
               "expectedStatus": "passed",
@@ -2221,10 +2221,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 6,
-                  "parallelIndex": 6,
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 282,
+                  "duration": 273,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -2232,14 +2232,14 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0006",
-                      "duration": 171
+                      "duration": 192
                     },
                     {
                       "title": "verification: number, status, filing date, applicant, subject",
-                      "duration": 20
+                      "duration": 21
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.651Z",
+                  "startTime": "2026-11-22T14:45:03.905Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -2288,11 +2288,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:86867a24e699cd7e69aa30a205dc106c4b39fc388edd4aa3404cdd1f1c4e638e"
+                  "description": "sha256:2b8d957fd18d88a5fec621a453125cbae0db265265a113df60ecb3c15182847f"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:6d220e74c45f5bbb3db50aa3237ad70025509b7139c75c4b373d47116b7b01d0"
+                  "description": "sha256:cf6a893c46259b72429372cf4a609ad3241b228bd05c4a6ad9d99867c0d8c974"
                 }
               ],
               "expectedStatus": "passed",
@@ -2300,10 +2300,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 5,
-                  "parallelIndex": 5,
+                  "workerIndex": 4,
+                  "parallelIndex": 4,
                   "status": "passed",
-                  "duration": 524,
+                  "duration": 564,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -2311,18 +2311,18 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0102",
-                      "duration": 166
+                      "duration": 184
                     },
                     {
                       "title": "verification: save applicant and subject with Enregistrer",
-                      "duration": 74
+                      "duration": 77
                     },
                     {
                       "title": "verification: reread sheet D-0102",
-                      "duration": 219
+                      "duration": 234
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.650Z",
+                  "startTime": "2026-11-22T14:45:03.905Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -2375,11 +2375,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:a4960f2d492333afcc8a74812da715241f7fec3222d7db6a9bb0282383259f3b"
+                  "description": "sha256:09145cb591e2329149b8f84d7a4cd2d3f7ec907741d677626ade155e40d95284"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:2cc24c36dd7fbe66b553dcdd96ee9be65741b4cc9b642276f2273a97720b9ae6"
+                  "description": "sha256:a74643831376b346f3fa7973b15a07bcea1f6c2cd3048345067d21baab2261a7"
                 }
               ],
               "expectedStatus": "passed",
@@ -2387,10 +2387,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 1,
-                  "parallelIndex": 1,
+                  "workerIndex": 3,
+                  "parallelIndex": 3,
                   "status": "passed",
-                  "duration": 528,
+                  "duration": 555,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -2398,18 +2398,18 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0103",
-                      "duration": 173
+                      "duration": 187
                     },
                     {
                       "title": "verification: save subject with Enregistrer",
-                      "duration": 66
+                      "duration": 76
                     },
                     {
                       "title": "verification: reread sheet D-0103",
-                      "duration": 220
+                      "duration": 241
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.654Z",
+                  "startTime": "2026-11-22T14:45:03.905Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -2463,11 +2463,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:408a561aff1490ababedae7aa952f136c3d58b9e3738f795a05df31267849369"
+                  "description": "sha256:9bdfc4230cb2cab8c21f9b12cff2641c0d724b14fe63464eaee03c6d808bc46a"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:ee7522ca8dfd53c902eaa2905860a38e75dc414a2fc54d3a7d7a8f6d83aaade2"
+                  "description": "sha256:060df3c726089df8822f15f05acbd5e7f49ac4aee71ec4b76e0dd020e9b0cfc1"
                 }
               ],
               "expectedStatus": "passed",
@@ -2475,10 +2475,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 3,
-                  "parallelIndex": 3,
+                  "workerIndex": 2,
+                  "parallelIndex": 2,
                   "status": "passed",
-                  "duration": 501,
+                  "duration": 497,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -2486,18 +2486,18 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0104",
-                      "duration": 175
+                      "duration": 188
                     },
                     {
                       "title": "verification: Ctrl+S prevents the browser default",
-                      "duration": 19
+                      "duration": 22
                     },
                     {
                       "title": "verification: reread sheet D-0104",
-                      "duration": 238
+                      "duration": 216
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.737Z",
+                  "startTime": "2026-11-22T14:45:03.907Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -2551,11 +2551,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:80623cb645558f103a02806ce42bb410fd045c9e6ac54f8e6f41eb5966b539ab"
+                  "description": "sha256:73324cd1a858bf1a907f8c561d9fb008179904c1691c82994325221afb8ef4cc"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:b03c00df2d9f848ae702e1ebe4488c3e5461a1f86ad7adeebc1ec00d835390c2"
+                  "description": "sha256:235a979096bfc21ff808de4605334a03a6810ff77a054c8f6be5d1d313abb865"
                 }
               ],
               "expectedStatus": "passed",
@@ -2563,10 +2563,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 4,
-                  "parallelIndex": 4,
+                  "workerIndex": 6,
+                  "parallelIndex": 6,
                   "status": "passed",
-                  "duration": 493,
+                  "duration": 501,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -2574,18 +2574,18 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0116",
-                      "duration": 173
+                      "duration": 165
                     },
                     {
                       "title": "verification: Ctrl+S prevents the browser default",
-                      "duration": 20
+                      "duration": 11
                     },
                     {
                       "title": "verification: reread sheet D-0116",
-                      "duration": 242
+                      "duration": 230
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.744Z",
+                  "startTime": "2026-11-22T14:45:04.097Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -2634,11 +2634,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:b9f8ee4070bcc84dab0b160d8c06c5b3bee96555275b785de04005565618a2a3"
+                  "description": "sha256:66dbc75601c898e88ad29ba9ccf902ad07be47380fce889b3bfa56aa776d59de"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:999ff0fe30a8dc5d311cbb0908a98861c8f82f52a045318f881d0bc313f0e94d"
+                  "description": "sha256:4063b80daeaa5967282272821ab03265055a56a8aeabdf1496682e1ba3048aa5"
                 }
               ],
               "expectedStatus": "passed",
@@ -2646,10 +2646,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 2,
-                  "parallelIndex": 2,
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 572,
+                  "duration": 569,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -2657,30 +2657,30 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0002",
-                      "duration": 168
+                      "duration": 181
                     },
                     {
                       "title": "verification: no Remise link on a BROUILLON (D-0002)",
-                      "duration": 2
+                      "duration": 3
                     },
                     {
                       "title": "navigation: sheet D-0003",
-                      "duration": 138
+                      "duration": 146
                     },
                     {
                       "title": "verification: Remise link on an EN_INSTRUCTION (D-0003)",
-                      "duration": 5
+                      "duration": 7
                     },
                     {
                       "title": "navigation: sheet D-0001",
-                      "duration": 157
+                      "duration": 148
                     },
                     {
                       "title": "verification: Remise link on a REMIS (D-0001)",
-                      "duration": 4
+                      "duration": 3
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.873Z",
+                  "startTime": "2026-11-22T14:45:04.170Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -2729,11 +2729,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:06ee4a30b97fab64614ff21df4a2dfd216b87cbbd823b89b836904056cfe16bd"
+                  "description": "sha256:23e3cffa1e0bb67c978c16c97205f7851f05e7cdc77d828c92e8c6b26c357a02"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:20cb06b220002125ae58515b37a6c0368052e59f578c1f7f871436bc1ee04b7f"
+                  "description": "sha256:3adbeb4f061a4c73887c3dd41d0b2ae520c587d524b39428d2c03648621c7c3a"
                 }
               ],
               "expectedStatus": "passed",
@@ -2741,10 +2741,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 6,
-                  "parallelIndex": 6,
+                  "workerIndex": 5,
+                  "parallelIndex": 5,
                   "status": "passed",
-                  "duration": 566,
+                  "duration": 609,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -2752,22 +2752,22 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0105",
-                      "duration": 191
+                      "duration": 190
                     },
                     {
                       "title": "verification: blank applicant refused with its message",
-                      "duration": 73
+                      "duration": 85
                     },
                     {
                       "title": "verification: both inputs kept",
-                      "duration": 8
+                      "duration": 5
                     },
                     {
                       "title": "verification: reread sheet D-0105",
-                      "duration": 207
+                      "duration": 247
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.963Z",
+                  "startTime": "2026-11-22T14:45:04.187Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -2820,11 +2820,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:3bfb388a09535760fe08cbe6cc27e2b19f8c40a8524a94e6c883f1ffed959217"
+                  "description": "sha256:1da74e2a71fb88c79fe85f526ec5ad9d656d775d0793de2f136f7bc42708e0b5"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:6e37bbb334c05b34b37b3f6025df6e8ac3e75bca77391b5f6dce573849177e63"
+                  "description": "sha256:c9c1ac43aca342b2456b4aa6d92a65f8c95d9c241643caa5a441281e42e19e4e"
                 }
               ],
               "expectedStatus": "passed",
@@ -2832,10 +2832,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
                   "status": "passed",
-                  "duration": 547,
+                  "duration": 600,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -2843,22 +2843,22 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0107",
-                      "duration": 148
+                      "duration": 189
                     },
                     {
                       "title": "verification: empty subject refused with its message",
-                      "duration": 76
+                      "duration": 77
                     },
                     {
                       "title": "verification: input kept",
-                      "duration": 5
+                      "duration": 4
                     },
                     {
                       "title": "verification: reread sheet D-0107",
-                      "duration": 228
+                      "duration": 231
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:09.967Z",
+                  "startTime": "2026-11-22T14:45:04.189Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -2915,11 +2915,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:d9cad8295a0a0a4995ff666f6542ff14b21ebf780d7eb4341e3a84bfd497fc65"
+                  "description": "sha256:cc9c7ebcee47431fce6ac8409835eaa4a55db715ca2e1faf3f8b34d6c62ad25a"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:dea2e757ec1cd5ccba6ad9c32adbf54358a6f8132954d324a7332781bc3d0756"
+                  "description": "sha256:96d9137679534d2681e10c48aaf17c9e95174b4276f10fb1fd2d19d7a1f1eeca"
                 }
               ],
               "expectedStatus": "passed",
@@ -2927,10 +2927,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 5,
-                  "parallelIndex": 5,
+                  "workerIndex": 2,
+                  "parallelIndex": 2,
                   "status": "passed",
-                  "duration": 572,
+                  "duration": 583,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -2938,26 +2938,26 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0106",
-                      "duration": 167
+                      "duration": 170
                     },
                     {
                       "title": "verification: type 81 characters in Demandeur",
-                      "duration": 72
+                      "duration": 70
                     },
                     {
                       "title": "verification: maxlength message shown",
-                      "duration": 100
+                      "duration": 101
                     },
                     {
                       "title": "verification: input kept",
-                      "duration": 2
+                      "duration": 3
                     },
                     {
                       "title": "verification: reread sheet D-0106",
-                      "duration": 167
+                      "duration": 182
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:10.207Z",
+                  "startTime": "2026-11-22T14:45:04.442Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -3018,11 +3018,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:fde2df54775e9f198c5c2ba00209e1435896ba7bc04e3ce3f860b89bb7267b61"
+                  "description": "sha256:8b9c069e9f4c4c41907a97487d9127b2f002d92e6f72d6c33506f08fbb59f053"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:9b6574a35b798d2a93b9a7cdd5d873191878cc48d96672799acbaa1810892081"
+                  "description": "sha256:f35b8e7757704d98700ef90a2acab1dc735a9b4ef2467bff9f7e0c241918248a"
                 }
               ],
               "expectedStatus": "passed",
@@ -3030,10 +3030,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 1,
-                  "parallelIndex": 1,
+                  "workerIndex": 3,
+                  "parallelIndex": 3,
                   "status": "passed",
-                  "duration": 599,
+                  "duration": 669,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -3041,15 +3041,15 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0108",
-                      "duration": 155
+                      "duration": 210
                     },
                     {
                       "title": "verification: type 201 characters in Objet",
-                      "duration": 123
+                      "duration": 116
                     },
                     {
                       "title": "verification: maxlength message shown",
-                      "duration": 86
+                      "duration": 94
                     },
                     {
                       "title": "verification: input kept",
@@ -3057,10 +3057,10 @@
                     },
                     {
                       "title": "verification: reread sheet D-0108",
-                      "duration": 169
+                      "duration": 181
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:10.210Z",
+                  "startTime": "2026-11-22T14:45:04.477Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -3121,11 +3121,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:efcb247b0e8f99932c1fdbcec03cf351c957885822cc1f50e2ee246f7f1964c7"
+                  "description": "sha256:606a79d9e39b3c3c08f1b230403cf4ce4d869b97b7e340079762699989f07311"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:3c852debd2e8b8afeca7f3778e9cefdecf6187c1a6b73bff6fffa8accd7163c4"
+                  "description": "sha256:c74d23c705d2d3367700c511ff009e551fd64c74df909ed44e57eb14050bdaad"
                 }
               ],
               "expectedStatus": "passed",
@@ -3136,7 +3136,7 @@
                   "workerIndex": 4,
                   "parallelIndex": 4,
                   "status": "passed",
-                  "duration": 502,
+                  "duration": 538,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -3144,15 +3144,15 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0109",
-                      "duration": 173
+                      "duration": 185
                     },
                     {
                       "title": "verification: Demandeur locked, a keystroke does not change it",
-                      "duration": 22
+                      "duration": 40
                     },
                     {
                       "title": "verification: Objet editable, Enregistrer present",
-                      "duration": 7
+                      "duration": 5
                     },
                     {
                       "title": "verification: save with Enregistrer",
@@ -3160,10 +3160,10 @@
                     },
                     {
                       "title": "verification: reread sheet D-0109",
-                      "duration": 173
+                      "duration": 174
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:10.273Z",
+                  "startTime": "2026-11-22T14:45:04.504Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -3224,11 +3224,11 @@
                 },
                 {
                   "type": "mb:har",
-                  "description": "sha256:562d82da58d4031156243a573a8d2ee71ad5aa645bbac194b773eef012ad1fef"
+                  "description": "sha256:b178dfd58972d410ee1aad5892ea56d45d9c2bdef374fa94a942ab0039742ca4"
                 },
                 {
                   "type": "mb:trace",
-                  "description": "sha256:707fe7d1fc14ec2de361047b4c4e056632166ff6e21d5748b285b27b91c6863c"
+                  "description": "sha256:81f842c34231bce4d88f10be2fb5d6110862f9faee1c156e605d394e4df6b51f"
                 }
               ],
               "expectedStatus": "passed",
@@ -3236,10 +3236,10 @@
               "projectName": "chromium",
               "results": [
                 {
-                  "workerIndex": 3,
-                  "parallelIndex": 3,
+                  "workerIndex": 6,
+                  "parallelIndex": 6,
                   "status": "passed",
-                  "duration": 450,
+                  "duration": 457,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
@@ -3247,22 +3247,22 @@
                   "steps": [
                     {
                       "title": "navigation: sheet D-0110",
-                      "duration": 155
+                      "duration": 169
                     },
                     {
                       "title": "verification: Demandeur and Objet locked, no Enregistrer",
-                      "duration": 23
+                      "duration": 18
                     },
                     {
                       "title": "verification: a keystroke changes neither Demandeur nor Objet",
-                      "duration": 20
+                      "duration": 16
                     },
                     {
                       "title": "verification: reread sheet D-0110",
-                      "duration": 178
+                      "duration": 176
                     }
                   ],
-                  "startTime": "2026-11-22T00:38:10.277Z",
+                  "startTime": "2026-11-22T14:45:04.613Z",
                   "annotations": [
                     {
                       "type": "mb:reach",
@@ -3304,8 +3304,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-11-22T00:38:07.637Z",
-    "duration": 3212.969,
+    "startTime": "2026-11-22T14:45:00.971Z",
+    "duration": 4214.286,
     "expected": 38,
     "skipped": 0,
     "unexpected": 0,
