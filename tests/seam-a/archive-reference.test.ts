@@ -16,7 +16,8 @@ let checkedSalt: Promise<string> | undefined;
 
 // ARCHIVE_SALT du shell (CI), sinon le sel de `npm run stack:up`, vérifié une
 // fois contre celui de la pile : un sel périmé échoue avec un message qui dit
-// de relancer `npm run stack:up`, pas avec un écart de HMAC (#46).
+// de relancer `npm run stack:up`, pas avec un écart de HMAC (#46). Cette
+// comparaison vérifie aussi que le service d'archivage reçoit le sel.
 function knownSalt(): Promise<string> {
   checkedSalt ??= (async () => {
     const salt = resolveArchiveSalt(process.env, readDevSalt());
@@ -79,10 +80,6 @@ describe("archive salt isolation", () => {
       expect(body.toLowerCase(), `body, ${encoding}`).not.toContain(value.toLowerCase());
       expect(headers.toLowerCase(), `headers, ${encoding}`).not.toContain(value.toLowerCase());
     }
-  });
-
-  it("passes the salt to the archive service", async () => {
-    expect((await containerEnv("archive")).ARCHIVE_SALT).toBe(await knownSalt());
   });
 
   it("does not pass the salt to the legacy", async () => {
