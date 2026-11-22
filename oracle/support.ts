@@ -205,3 +205,17 @@ export async function reread(
     throw lastError;
   });
 }
+
+// Liste stable (scénarios @recherche) : `expect.poll` passe au premier relevé
+// conforme. Une fois la liste attendue relevée, l'oracle attend l'intervalle
+// de REREAD, sans rien faire, puis la relit : elle ne doit pas avoir changé.
+// Un candidat qui affiche la bonne liste puis la remplace échoue.
+export async function expectStableList(
+  page: Page,
+  read: (page: Page) => Promise<string[]>,
+  expected: string[],
+): Promise<void> {
+  await expect.poll(() => read(page)).toEqual(expected);
+  await page.waitForTimeout(REREAD.intervalMs);
+  expect(await read(page), `list changed within ${REREAD.intervalMs} ms of being correct`).toEqual(expected);
+}

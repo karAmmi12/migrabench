@@ -4,8 +4,10 @@
 // ne lit que les numéros partagés affichés (displayedSharedNumbers), comparés
 // à la liste attendue par égalité exacte : ordre relatif et absence du
 // complément vérifiés d'un coup, sans observer un dossier réservé ni le nombre
-// de lignes. Seule exception, R11 : « aucun numéro affiché » porte sur tous
-// les numéros, et `D-0999` ne peut désigner aucun dossier, réservé ou non.
+// de lignes. Chaque liste est relue après l'intervalle de REREAD et ne doit
+// pas avoir changé (expectStableList). Seule exception, R11 : « aucun numéro
+// affiché » porte sur tous les numéros, et `D-0999` ne peut désigner aucun
+// dossier, réservé ou non.
 import type { Page } from "@playwright/test";
 import {
   atLeastOne,
@@ -14,6 +16,7 @@ import {
   displayedSharedNumbers,
   exactText,
   expect,
+  expectStableList,
   field,
   type Identity,
   markReached,
@@ -56,7 +59,7 @@ function searchScenario(title: string, criteria: Criteria, expected: string[]): 
 
     await test.step(`verification: shared numbers ${expected.join(", ")}`, async () => {
       await search(page, criteria);
-      await expect.poll(() => displayedSharedNumbers(page)).toEqual(expected);
+      await expectStableList(page, displayedSharedNumbers, expected);
     });
   });
 }
@@ -74,7 +77,7 @@ function refusedInputScenario(title: string, criteria: TextCriteria, message: st
     await test.step("verification: refused with its message, no shared number", async () => {
       await search(page, criteria);
       await expect(atLeastOne(exactText(page, message))).toBeVisible();
-      expect(await displayedSharedNumbers(page)).toEqual([]);
+      await expectStableList(page, displayedSharedNumbers, []);
     });
     await test.step("verification: input kept", async () => {
       for (const [label, value] of entriesOf(criteria)) {
@@ -142,7 +145,7 @@ test("search-no-result", { tag: "@recherche" }, async ({ page }) => {
   await test.step("verification: no-result message, no number", async () => {
     await search(page, { Numéro: "D-0999" });
     await expect(atLeastOne(exactText(page, "Aucun dossier ne correspond à vos critères."))).toBeVisible();
-    expect(await displayedNumbers(page)).toEqual([]);
+    await expectStableList(page, displayedNumbers, []);
   });
 });
 
