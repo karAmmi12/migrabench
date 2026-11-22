@@ -16,3 +16,6 @@ test-results/
 .dev-archive-salt
 *.har
 .DS_Store
+# Sondes Playwright jetables (#52) : dans le dépôt pour que `@playwright/test`
+# se résolve depuis node_modules, hors de Git.
+.probes/

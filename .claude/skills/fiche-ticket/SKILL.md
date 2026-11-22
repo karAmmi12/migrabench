@@ -29,7 +29,8 @@ choix viennent des seuls commits, de l'issue et du diff.
 
 1. **Rassembler.** Numéro du ticket : l'argument, sinon le nom de la branche
    ou les commits ; s'il reste ambigu, demander. Lire :
-   - `gh issue view <N> --json number,title,body` ;
+   - `gh issue view <N> --json number,title,body,comments` ; un commentaire qui
+     modifie la spec l'emporte sur le corps de l'issue ;
    - `git log --oneline main..HEAD`, `git diff main...HEAD --stat`, puis le
      diff des fichiers qui portent le ticket ;
    - la session en cours : relever chaque difficulté (symptôme, cause,
