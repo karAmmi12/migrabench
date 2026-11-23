@@ -3,12 +3,13 @@
 // dossier de ses bruts et citée par empreinte (`environment.composeOverride`).
 // Écrite en JSON, que Docker Compose lit comme du YAML : aucune dépendance.
 // Les limites et le durcissement de l'isolation viennent avec leurs tickets.
+import { type ContainerUser, dockerUser } from "./container-user.ts";
 
 export interface CandidateComposeInput {
   // Image d'exécution du banc, par son nom local : construite par le banc, jamais tirée.
   image: string;
-  // Utilisateur `uid:gid` du conteneur, jamais root.
-  user: string;
+  // Utilisateur du conteneur (container-user.ts), jamais root.
+  user: ContainerUser;
   port: number;
   // Chemins absolus sur l'hôte : copie du candidat et fichier des utilisateurs.
   copyDir: string;
@@ -23,13 +24,12 @@ const WORKDIR = "/candidate";
 const USERS_FILE = "/run/migrabench/users.json";
 
 export function candidateCompose({ image, user, port, copyDir, usersFile, start, archiveToken }: CandidateComposeInput) {
-  if (user.split(":")[0] === "0") throw new Error("The candidate must not run as root");
   return {
     services: {
       candidate: {
         image,
         pull_policy: "never",
-        user,
+        user: dockerUser(user),
         working_dir: WORKDIR,
         command: ["sh", "-c", start],
         environment: {

@@ -2,7 +2,7 @@
 // la copie de la préparation emporte le dossier du candidat sans node_modules
 // ni artefacts de construction déjà présents ; contentDigest est l'empreinte
 // de ce même contenu, relevée avant la copie (`candidate.contentDigest`).
-import { createHash } from "node:crypto";
+import { cited, sha256 } from "../shared/digest.ts";
 
 // Dossiers d'artefacts de construction, à la racine du candidat seulement :
 // plus bas, un dossier `build` peut être du code source.
@@ -27,6 +27,6 @@ export interface CandidateFile {
 export function contentDigest(files: readonly CandidateFile[]): string {
   const lines = [...files]
     .sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0))
-    .map(({ path, sha256 }) => `${sha256}  ${path}\n`);
-  return `sha256:${createHash("sha256").update(lines.join("")).digest("hex")}`;
+    .map((file) => `${file.sha256}  ${file.path}\n`);
+  return cited(sha256(lines.join("")));
 }

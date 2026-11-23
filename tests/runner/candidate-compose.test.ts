@@ -5,7 +5,7 @@ import { candidateCompose } from "../../runner/candidate-compose.ts";
 
 const INPUT = {
   image: "migrabench-runtime",
-  user: "501:20",
+  user: { uid: 501, gid: 20 },
   port: 8100,
   copyDir: "/repo/.oracle-artifacts/20261123T090507Z-454fb76-reference-candidate/candidate",
   usersFile: "/repo/fixtures/users.json",
@@ -26,10 +26,6 @@ describe("candidateCompose", () => {
 
   it("runs as the given non-root user", () => {
     expect(service().user).toBe("501:20");
-  });
-
-  it("refuses the root user", () => {
-    expect(() => candidateCompose({ ...INPUT, user: "0:0" })).toThrow(/root/);
   });
 
   it("mounts the candidate copy read-only as the working directory, with a writable temporary directory", () => {

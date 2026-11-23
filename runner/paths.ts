@@ -1,11 +1,4 @@
-// Emplacements d'une mesure, depuis la racine du dépôt.
-import { fileURLToPath } from "node:url";
-
-// Racine du dépôt, sans barre finale.
-export const ROOT = fileURLToPath(new URL("..", import.meta.url)).replace(/\/$/, "");
-
-// Dossiers des mesures de diagnostic, un par mesure, ignorés par Git.
+// Emplacement des mesures de diagnostic, depuis la racine du dépôt : un
+// dossier par mesure, ignoré par Git. Les bruts d'une mesure vont sous
+// ARTIFACTS_DIR_FROM_ROOT (shared/root.ts), sous le même identifiant.
 export const DIAGNOSTIC_DIR_FROM_ROOT = "results/diagnostic";
-
-// Bruts d'une mesure (ADR 0005), sous le même identifiant que son dossier.
-export const ARTIFACTS_DIR_FROM_ROOT = ".oracle-artifacts";

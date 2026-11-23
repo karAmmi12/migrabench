@@ -6,18 +6,20 @@
 // Fil traceur (#62) : mesure de diagnostic seulement, contrat lu sans
 // validation, construction réduite à `npm ci`, sans verrou du banc, journal
 // d'accès, délais ni limites. Les tickets suivants de l'étape les ajoutent.
-import { createHash, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { copyFile, lstat, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
-import { parseEnv } from "node:util";
 import { executeOracle, type ExecuteOracleResult } from "../oracle/execute.ts";
 import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
-import { type CandidateFile, contentDigest, isCopied } from "./candidate-content.ts";
 import { candidateCompose } from "./candidate-compose.ts";
+import { type CandidateFile, contentDigest, isCopied } from "./candidate-content.ts";
 import { measureId as measureIdOf } from "./measure-id.ts";
 import { type CandidateRecord, measureRecord, type OracleRecord, type PhaseName, type PhaseRecord, type MeasureOutcome } from "./measure-record.ts";
-import { ARTIFACTS_DIR_FROM_ROOT, DIAGNOSTIC_DIR_FROM_ROOT, ROOT } from "./paths.ts";
-import { spawnCommand, stdoutOf } from "./process.ts";
+import { cited, fileSha256 } from "../shared/digest.ts";
+import { spawnCommand, stdoutOf } from "../shared/process.ts";
+import { ARTIFACTS_DIR_FROM_ROOT, readBenchEnv, ROOT } from "../shared/root.ts";
+import { containerUser, dockerUser } from "./container-user.ts";
+import { DIAGNOSTIC_DIR_FROM_ROOT } from "./paths.ts";
 
 export interface MeasureOptions {
   // Dossier du candidat, relatif à la racine du dépôt.
@@ -73,7 +75,7 @@ export async function measureCandidate({ candidate, counted = false, salt }: Mea
   }
   await spawnCommand("docker", ["build", "--quiet", "--tag", RUNTIME_IMAGE, RUNTIME_IMAGE_CONTEXT]);
   const runtimeImage = await stdoutOf("docker", ["image", "inspect", "--format", "{{.Id}}", RUNTIME_IMAGE]);
-  const user = containerUser();
+  const user = containerUser(process.getuid?.(), process.getgid?.());
   done();
 
   // 2. Contrat : lu sans validation, le schéma arrive avec #64.
@@ -89,11 +91,11 @@ export async function measureCandidate({ candidate, counted = false, salt }: Mea
   const npmLog = join(rawDir, "npm-ci.log");
   const build = await spawnCommand(
     "docker",
-    ["run", "--rm", "--user", user, "--network", "bridge", "--env", "HOME=/tmp", "--env", `npm_config_registry=${NPM_REGISTRY}`,
+    ["run", "--rm", "--user", dockerUser(user), "--network", "bridge", "--env", "HOME=/tmp", "--env", `npm_config_registry=${NPM_REGISTRY}`,
       "--env", "npm_config_update_notifier=false", "--volume", `${copyDir}:/candidate`, "--workdir", "/candidate", RUNTIME_IMAGE, "sh", "-c", "npm ci"],
     { logFile: npmLog, allowFailure: true },
   );
-  done(build.code === 0 ? "ok" : "build-failed", { "npm-ci.log": await sha256(npmLog) });
+  done(build.code === 0 ? "ok" : "build-failed", { "npm-ci.log": await digestOf(npmLog) });
 
   // 4 et 5. Pile et démarrage, puis oracle. L'exécution complète de l'étape 2
   // recrée le legacy et le service d'archivage, puis rappelle le runner, qui
@@ -102,12 +104,12 @@ export async function measureCandidate({ candidate, counted = false, salt }: Mea
   const compose = ["compose", "--file", COMPOSE_FILE, "--file", overrideFile];
   const startLog = join(rawDir, "start.log");
   const baseUrl = `http://127.0.0.1:${CANDIDATE_PORT}`;
-  const env = parseEnv(await readFile(join(ROOT, ".env"), "utf8"));
+  const env = await readBenchEnv();
   await writeFile(
     overrideFile,
     `${JSON.stringify(candidateCompose({ image: RUNTIME_IMAGE, user, port: CANDIDATE_PORT, copyDir, usersFile: join(ROOT, "fixtures", "users.json"), start: declared.start, archiveToken: env.ARCHIVE_TOKEN ?? "" }), null, 2)}\n`,
   );
-  const composeOverride = await sha256(overrideFile);
+  const composeOverride = await digestOf(overrideFile);
 
   let oracle: OracleRecord = { executed: false };
   let oracleMetadata: ExecuteOracleResult["metadata"] | undefined;
@@ -130,7 +132,7 @@ export async function measureCandidate({ candidate, counted = false, salt }: Mea
         },
       });
       oracleMetadata = result.metadata;
-      oracle = { executed: true, result: await sha256(result.resultFile), summary: result.summary };
+      oracle = { executed: true, result: await digestOf(result.resultFile), summary: result.summary };
       done(result.errors === 0 ? "ok" : "oracle-error");
       done = phase("gates");
       done();
@@ -148,7 +150,7 @@ export async function measureCandidate({ candidate, counted = false, salt }: Mea
   await stopCandidate(compose, startLog);
   done();
   const startPhase = phases.find(({ name }) => name === "start");
-  if (startPhase !== undefined) startPhase.raw["start.log"] = await sha256(startLog);
+  if (startPhase !== undefined) startPhase.raw["start.log"] = await digestOf(startLog);
 
   const record = measureRecord({
     measureId: id,
@@ -159,6 +161,7 @@ export async function measureCandidate({ candidate, counted = false, salt }: Mea
       node: process.version,
       ...oracleMetadata,
       runtimeImage,
+      containerUser: user,
       composeOverride,
       port: CANDIDATE_PORT,
     },
@@ -200,19 +203,11 @@ async function candidateFiles(candidateDir: string): Promise<CandidateFile[]> {
       if (!isCopied(path)) continue;
       if (entry.isSymbolicLink()) throw new Error(`The candidate contains a symbolic link: ${path}`);
       if (entry.isDirectory()) await walk(full);
-      else if (entry.isFile()) files.push({ path, sha256: (await sha256(full)).replace(/^sha256:/, "") });
+      else if (entry.isFile()) files.push({ path, sha256: await fileSha256(full) });
     }
   };
   await walk(candidateDir);
   return files;
-}
-
-// Utilisateur des conteneurs du candidat : celui du runner, pour que la copie
-// lui reste accessible, ou `node` (1000) si le runner tourne en root. Jamais root.
-function containerUser(): string {
-  const uid = process.getuid?.();
-  const gid = process.getgid?.();
-  return uid === undefined || gid === undefined || uid === 0 ? "1000:1000" : `${uid}:${gid}`;
 }
 
 // Disponible dès qu'une réponse HTTP arrive, quel que soit son statut.
@@ -238,6 +233,7 @@ async function stopCandidate(compose: readonly string[], startLog: string): Prom
   await spawnCommand("docker", [...compose, "rm", "--stop", "--force", "candidate"]);
 }
 
-async function sha256(path: string): Promise<string> {
-  return `sha256:${createHash("sha256").update(await readFile(path)).digest("hex")}`;
+// Empreinte d'un brut, sous sa forme citée.
+async function digestOf(path: string): Promise<string> {
+  return cited(await fileSha256(path));
 }
