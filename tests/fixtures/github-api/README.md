@@ -1,7 +1,7 @@
 # Réponses enregistrées de l'API GitHub
 
 Réponses réelles de l'API des exécutions de workflow, enregistrées le
-2026-11-23 depuis ce dépôt, pour tester l'adaptateur de `scripts/ci-scope.ts`
+2026-11-23 depuis ce dépôt, pour tester l'adaptateur `scripts/github-history.ts`
 (#76) sans appel réseau. Elles viennent de la PR #75
 (branche `feat/62-measure-tracer`), workflow « Oracle ».
 

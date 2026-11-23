@@ -6,14 +6,10 @@
 // Le reste vient de l'environnement des Actions : GITHUB_EVENT_NAME,
 // GITHUB_EVENT_PATH (commits de tête et de base de la PR), GITHUB_REPOSITORY,
 // GITHUB_HEAD_REF, GITHUB_WORKFLOW_REF (fichier du workflow). gh lit GH_TOKEN.
-import { execFile } from "node:child_process";
 import { appendFileSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
-import { promisify } from "node:util";
 import { HEAVY_JOBS, shouldRun, type Context, type HeavyJob, type History } from "./ci-scope.ts";
-import { githubHistory } from "./github-history.ts";
-
-const execFileAsync = promisify(execFile);
+import { changedFiles, githubHistory } from "./github-history.ts";
 
 function env(name: string): string {
   const value = process.env[name];
@@ -37,16 +33,16 @@ async function scope(event: string): Promise<{ context: Context; history: Histor
     const unread = () => Promise.reject(new Error(`historique lu hors pull_request (${event})`));
     return {
       context: { event, prFiles: [] },
-      history: { completedRuns: unread, jobs: unread, isAncestorOfHead: unread, changedSince: unread },
+      history: { completedWorkflowRuns: unread, jobs: unread, isAncestorOfHead: unread, changedSince: unread },
     };
   }
   const payload = JSON.parse(readFileSync(env("GITHUB_EVENT_PATH"), "utf8"));
   const headSha: string = payload.pull_request.head.sha;
   const baseSha: string = payload.pull_request.base.sha;
   // Trois points : depuis la base commune, comme l'onglet « Files changed ».
-  const { stdout } = await execFileAsync("git", ["diff", "--name-only", `${baseSha}...${headSha}`]);
+  const prFiles = await changedFiles(`${baseSha}...${headSha}`);
   return {
-    context: { event, prFiles: stdout.split("\n").filter((line) => line !== "") },
+    context: { event, prFiles },
     history: githubHistory({
       repository: env("GITHUB_REPOSITORY"),
       workflow: basename(env("GITHUB_WORKFLOW_REF").split("@")[0]!),

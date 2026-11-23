@@ -3,13 +3,13 @@
 export const HEAVY_JOBS = ["tests", "oracle", "proof"] as const;
 export type HeavyJob = (typeof HEAVY_JOBS)[number];
 
-export type Run = { id: number; headSha: string; createdAt: string };
+export type WorkflowRun = { id: number; headSha: string; createdAt: string };
 export type JobResult = { name: string; conclusion: string | null };
 
 // Historique de la PR : exécutions terminées du workflow, jobs d'une exécution,
 // et l'état Git de la tête.
 export interface History {
-  completedRuns(): Promise<Run[]>;
+  completedWorkflowRuns(): Promise<WorkflowRun[]>;
   jobs(runId: number): Promise<JobResult[]>;
   isAncestorOfHead(sha: string): Promise<boolean>;
   changedSince(sha: string): Promise<string[]>;
@@ -26,7 +26,7 @@ function touches(files: string[], paths: string[]): boolean {
 }
 
 async function lastSuccess(job: HeavyJob, history: History): Promise<string | null> {
-  const runs = (await history.completedRuns()).toSorted((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const runs = (await history.completedWorkflowRuns()).toSorted((a, b) => b.createdAt.localeCompare(a.createdAt));
   for (const run of runs) {
     const jobs = await history.jobs(run.id);
     const succeeded = jobs.some((result) => result.name === job && result.conclusion === "success");

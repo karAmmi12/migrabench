@@ -3,16 +3,16 @@ import { describe, expect, it } from "vitest";
 import { shouldRun, type History } from "../scripts/ci-scope.ts";
 
 // Exécution terminée de la PR : commit, date, conclusion de chaque job.
-type FakeRun = { sha: string; at: string; jobs: Record<string, string | null> };
+type FakeWorkflowRun = { sha: string; at: string; jobs: Record<string, string | null> };
 
 // Faux historique : les commits des exécutions sont des ancêtres de la tête sauf
 // ceux de notAncestors ; changed donne les fichiers changés depuis un commit.
 function history(
-  runs: FakeRun[] = [],
+  runs: FakeWorkflowRun[] = [],
   git: { changed?: Record<string, string[]>; notAncestors?: string[] } = {},
 ): History {
   return {
-    completedRuns: async () => runs.map((run, id) => ({ id, headSha: run.sha, createdAt: run.at })),
+    completedWorkflowRuns: async () => runs.map((run, id) => ({ id, headSha: run.sha, createdAt: run.at })),
     jobs: async (id) =>
       Object.entries(runs[id]!.jobs).map(([name, conclusion]) => ({ name, conclusion })),
     isAncestorOfHead: async (sha) => !(git.notAncestors ?? []).includes(sha),

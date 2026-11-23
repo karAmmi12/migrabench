@@ -3,7 +3,7 @@
 // réelles enregistrées : tests/fixtures/github-api/.
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import type { History, JobResult, Run } from "./ci-scope.ts";
+import type { History, JobResult, WorkflowRun } from "./ci-scope.ts";
 
 const execFileAsync = promisify(execFile);
 
@@ -13,7 +13,7 @@ function listOf(response: unknown, key: string): Record<string, unknown>[] {
   return list as Record<string, unknown>[];
 }
 
-export function parseRuns(response: unknown): Run[] {
+export function parseWorkflowRuns(response: unknown): WorkflowRun[] {
   return listOf(response, "workflow_runs").map((run) => ({
     id: run.id as number,
     headSha: run.head_sha as string,
@@ -26,6 +26,14 @@ export function parseJobs(response: unknown): JobResult[] {
     name: job.name as string,
     conclusion: job.conclusion as string | null,
   }));
+}
+
+// Fichiers changés sur une plage de git diff (a..b, ou a...b depuis la base
+// commune). --no-renames : un fichier déplacé donne ses deux chemins, sinon
+// déplacer du code sous docs/ passerait pour un changement de docs/** seul.
+export async function changedFiles(range: string, cwd = process.cwd()): Promise<string[]> {
+  const { stdout } = await execFileAsync("git", ["diff", "--name-only", "--no-renames", range], { cwd });
+  return stdout.split("\n").filter((line) => line !== "");
 }
 
 async function api(path: string): Promise<unknown> {
@@ -44,9 +52,9 @@ export type PullRequest = {
 // la plus ancienne manque et le job tourne, ce qui reste sûr.
 export function githubHistory(pr: PullRequest): History {
   return {
-    async completedRuns() {
+    async completedWorkflowRuns() {
       const query = new URLSearchParams({ event: "pull_request", branch: pr.headRef, status: "completed", per_page: "100" });
-      return parseRuns(await api(`repos/${pr.repository}/actions/workflows/${pr.workflow}/runs?${query}`));
+      return parseWorkflowRuns(await api(`repos/${pr.repository}/actions/workflows/${pr.workflow}/runs?${query}`));
     },
     // Par défaut, l'API rend la dernière tentative de chaque job.
     async jobs(runId) {
@@ -62,9 +70,6 @@ export function githubHistory(pr: PullRequest): History {
         return false;
       }
     },
-    async changedSince(sha) {
-      const { stdout } = await execFileAsync("git", ["diff", "--name-only", sha, pr.headSha]);
-      return stdout.split("\n").filter((line) => line !== "");
-    },
+    changedSince: (sha) => changedFiles(`${sha}..${pr.headSha}`),
   };
 }
