@@ -1,0 +1,7 @@
+{
+  "name": "build-fails",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Candidat défectueux 2 du banc : build sort avec un code non nul.",
+  "type": "module"
+}
