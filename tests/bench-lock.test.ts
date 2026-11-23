@@ -147,6 +147,31 @@ describe("bench lock", () => {
   });
 });
 
+describe("bench lock left mid-way by a crash", () => {
+  it("is taken despite a draft left by a crashed process that bore the same PID", () => {
+    const file = lockFile();
+    writeFileSync(`${file}.${process.pid}.draft`, "left by a crash");
+
+    const lock = acquireBenchLock({ file, tool: "oracle" });
+
+    expect(lock.ok).toBe(true);
+    if (lock.ok) lock.release();
+  });
+
+  it("refuses, without removing it, the takeover guard of a process that died while taking over", async () => {
+    const file = lockFile();
+    await killHard(await hold(file, "oracle"));
+    await killHard(await hold(`${file}.takeover`, "measure"));
+    const guard = readFileSync(`${file}.takeover`, "utf8");
+
+    const lock = acquireBenchLock({ file, tool: "stack-up" });
+
+    expect(lock.ok).toBe(false);
+    if (!lock.ok) expect(lock.message).toContain(`${file}.takeover`);
+    expect(readFileSync(`${file}.takeover`, "utf8")).toBe(guard);
+  });
+});
+
 // `pretest` vérifie le verrou du banc à la racine de son dépôt : le contrôle
 // et le module sont copiés dans un dépôt temporaire, dont le fichier du
 // verrou du banc est le cas.

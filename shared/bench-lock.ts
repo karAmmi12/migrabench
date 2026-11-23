@@ -82,13 +82,13 @@ export function acquireBenchLock({ tool, measureId, file = BENCH_LOCK_FILE }: Ac
       const { tool: orphanTool, pid, startedAt, command } = current;
       return taken({ tool: orphanTool, pid, startedAt, command });
     }
-    if (takeover !== "retry") return { ok: false, holder: takeover, message: `${heldMessage(takeover)} (taking over an orphan bench lock)` };
+    if (takeover !== "retry") return { ok: false, ...takeover };
   }
   throw new Error(`The bench lock ${file} keeps changing: try again`);
 }
 
 // Ligne affichée par un outil du banc qui a repris un verrou du banc orphelin.
-export function takenOverNotice({ tool, pid, startedAt, command }: TakenOver): string {
+function takenOverNotice({ tool, pid, startedAt, command }: TakenOver): string {
   return `Took over an orphan bench lock of ${tool} (PID ${pid}, started ${startedAt}: ${command}).`;
 }
 
@@ -132,18 +132,19 @@ function isOrphan(holder: BenchLockHolder): boolean {
 
 // Reprise d'un verrou du banc orphelin sous une garde exclusive : deux
 // repreneurs ne suppriment jamais l'un le verrou du banc que l'autre vient de
-// prendre. Rend "taken", "retry" (l'état a changé), ou le repreneur vivant qui
-// tient la garde.
-function takeOver(file: string, orphan: string, text: string): "taken" | "retry" | BenchLockHolder {
+// prendre. Rend "taken", "retry" (l'état a changé), ou le refus.
+//
+// Une garde dont le repreneur est mort pendant sa reprise n'est jamais
+// retirée ici : la retirer sans course exigerait une seconde garde. Le refus
+// demande de la retirer à la main ; un détenteur vivant n'est jamais dépossédé.
+function takeOver(file: string, orphan: string, text: string): "taken" | "retry" | { message: string; holder: BenchLockHolder } {
   const guard = `${file}.takeover`;
   if (!createExclusive(guard, text)) {
     const held = readText(guard);
     if (held === undefined) return "retry";
     const other = parseHolder(guard, held);
-    if (!isOrphan(other)) return other;
-    // Repreneur mort pendant sa reprise : sa garde est retirée.
-    if (readText(guard) === held) unlinkSync(guard);
-    return "retry";
+    if (!isOrphan(other)) return { holder: other, message: `${heldMessage(other)} (taking over an orphan bench lock)` };
+    return { holder: other, message: `${heldMessage(other)} (died while taking over an orphan bench lock): remove ${guard}, then try again` };
   }
   try {
     if (readText(file) !== orphan) return "retry";
@@ -173,7 +174,7 @@ function parseHolder(file: string, text: string): BenchLockHolder {
 
 // Identité d'un processus vivant, ou undefined si aucun processus ne porte ce
 // PID. `ps` en anglais et en UTC : la même valeur d'un appel à l'autre.
-export function processIdentity(pid: number): ProcessIdentity | undefined {
+function processIdentity(pid: number): ProcessIdentity | undefined {
   const ps = (column: string) =>
     spawnSync("ps", ["-ww", "-o", `${column}=`, "-p", String(pid)], { encoding: "utf8", env: { ...process.env, LC_ALL: "C", TZ: "UTC" } });
   const started = ps("lstart");
@@ -185,10 +186,11 @@ export function processIdentity(pid: number): ProcessIdentity | undefined {
 }
 
 // Création exclusive et atomique : le fichier apparaît complet, ou la création
-// échoue s'il existe déjà (false).
+// échoue s'il existe déjà (false). Le brouillon porte le PID : un brouillon
+// laissé par un processus mort de même PID est simplement réécrit.
 function createExclusive(file: string, text: string): boolean {
   const draft = `${file}.${process.pid}.draft`;
-  writeFileSync(draft, text, { flag: "wx" });
+  writeFileSync(draft, text);
   try {
     linkSync(draft, file);
     return true;

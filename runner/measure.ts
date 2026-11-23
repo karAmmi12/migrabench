@@ -115,7 +115,7 @@ interface MeasureContext {
 }
 
 // Phases 1 à 7, sous le verrou du banc.
-async function measure({ candidate, candidateDir, salt, limits, limitsRecord, startedAt, benchCommit, id, lockRecord: lock }: MeasureContext): Promise<MeasureResult> {
+async function measure({ candidate, candidateDir, salt, limits, limitsRecord, startedAt, benchCommit, id, lockRecord }: MeasureContext): Promise<MeasureResult> {
   const phases: PhaseRecord[] = [];
   const phase = startPhases(phases);
 
@@ -227,7 +227,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
       composeOverride,
       port: CANDIDATE_PORT,
       limits: limitsRecord,
-      lock,
+      lock: lockRecord,
     },
     salt: measureSalt,
     saltImposed: salt !== undefined,
