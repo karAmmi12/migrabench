@@ -17,12 +17,9 @@ limites sortent.
   cgroup. Ses fichiers donnent le pic de mémoire enregistré depuis sa
   création (`memory.peak`) et son temps CPU cumulé (`usage_usec` de
   `cpu.stat`), tous processus compris. —
-  [Linux Kernel Docs : Control Group v2](https://docs.kernel.org/admin-guide/cgroup-v2.html)
-  > À vérifier : la page a été lue en partie seulement. `memory.peak` y est
-  > décrit (« The max memory usage recorded for the cgroup and its
-  > descendants »), mais la ligne `usage_usec` n'a pas été lue telle quelle.
-  > Elle a été observée dans un conteneur (Docker Desktop, noyau
-  > 6.12.54-linuxkit) : `usage_usec 186719`.
+  [Linux Kernel Docs : Control Group v2](https://docs.kernel.org/admin-guide/cgroup-v2.html).
+  Les deux fichiers sont observés dans un conteneur de l'image d'exécution
+  (voir « Vérifier soi-même »).
 - **`docker run --cpus`** : fixe la part des CPU disponibles qu'un conteneur
   peut utiliser. Par exemple, `--cpus="1.5"` donne au plus un CPU et demi. —
   [Docker Docs : Resource constraints](https://docs.docker.com/engine/containers/resource_constraints/)
@@ -69,6 +66,8 @@ limites sortent.
   `--timeout-cap-ms` continue de s'appliquer dans les deux cas.
 - `runner/calibrate.ts` et `runner/cli.ts` : `migrabench calibrate
   [--readings n]`.
+  - Il valide d'abord le candidat d'étalonnage avec le même contrat qu'une
+    mesure (`runner/contract-phase.ts`, venu de #64).
   - Il construit le candidat avec le relevé des ressources de chaque étape,
     recrée la pile, démarre le candidat et relève ses ressources quand il
     devient disponible.
@@ -85,7 +84,11 @@ limites sortent.
   rend le code de sortie inchangé.
 - `oracle/execute.ts` : `recreateStack` et `stackImages`, exportés pour
   l'étalonnage.
-- `.github/workflows/calibration.yml` : le job `calibration`.
+- `.github/workflows/calibration.yml` : le job `calibration`, précédé d'un
+  job `changes`.
+- `scripts/ci-scope.ts` : `calibration` rejoint les jobs lourds, avec ses
+  propres chemins, comme `proof` (table `JOB_PATHS`). Tests dans
+  `tests/ci-scope.test.ts` et `tests/write-ci-scope.test.ts`.
 - `results/calibration/20261123T215140Z-344b70c-ci45273672040.1-1.json` : le
   premier résultat d'étalonnage de CI, versionné seul dans le commit
   `b44b257`.
@@ -142,9 +145,24 @@ limites sortent.
 - **Le vocabulaire « relevé » (`reading`), pas « run ».** La relecture a
   relevé que « run » est un mot du vocabulaire de `PROTOCOL.md`, avec un
   autre sens. `--runs` est devenu `--readings`.
-- **Déclencheur du job resserré.** Il était prévu sur tout `runner/**`.
-  Il ne vise plus que les fichiers qui font les relevés, pour ne pas lancer
-  5 constructions sur chaque PR du runner (#76).
+- **Déclenchement du job par la règle de `scripts/ci-scope.ts`.** C'est la
+  demande de l'humain, après la première CI de la PR.
+  - Option retenue : un job `changes`, comme pour les autres jobs lourds.
+    `calibration` ne tourne que sur une PR qui touche ses propres chemins :
+    le candidat d'étalonnage, l'image d'exécution, la construction, le
+    contrat, le relevé des ressources et le workflow. Il ne tourne pas si
+    seul `docs/**` a changé depuis son dernier succès sur la PR.
+    `workflow_dispatch` le lance toujours.
+  - Options écartées :
+    - le filtre `paths` sous `on:`, qui laissait le job tourner à chaque
+      push (voir « Difficultés ») ;
+    - tout `runner/**`, qui aurait lancé 5 constructions sur chaque PR du
+      runner (#76).
+  - `results/calibration/` n'est pas dans ses chemins : versionner un
+    résultat ne doit pas en produire un autre.
+- **Le candidat d'étalonnage passe par le contrat.** Une fois `main`
+  fusionnée, la mesure valide le contrat (#64). L'étalonnage le valide
+  aussi, au lieu de lire `candidate.json` sans contrôle.
 - **Ce qui a été laissé** :
   - le refus de `--counted` sans étalonnage revient à #73 ;
   - `lock` reste absent de l'environnement, car le verrou du banc n'existe
@@ -174,6 +192,37 @@ limites sortent.
   était attribuée à la fiche de #63. Elle est en fait dans
   `docs/formation/journal/76-ci-reduire-consommation-minutes.md`, et c'est
   cette fiche que cite le code.
+- **Le job `calibration` tournait à chaque push de la PR.**
+  - Symptôme : il a tourné sur `b44b257` (45274528723) et sur `f17a309`
+    (45276758945). Aucun de ces commits ne touchait un chemin du filtre
+    `paths`.
+  - Cause : pour `pull_request`, GitHub applique le filtre à tout le diff de
+    la PR. Or la PR touche ces chemins.
+  - Résolution : le filtre est retiré, et le job passe par la règle de
+    `scripts/ci-scope.ts`. Les tests ont été écrits rouges d'abord.
+- **398 tests en local, 402 en CI, au même commit `b44b257`.**
+  - Cause : le job `tests` ne teste pas la tête de la PR. Son checkout n'a
+    pas de `ref:` : il prend `refs/pull/87/merge`, le commit de fusion de la
+    PR avec `main`. Le journal de l'exécution 45274528965 montre
+    `e2f2be8… -> pull/87/merge`.
+  - Entre-temps, `main` avait reçu #84, #85 et #86. La comparaison des
+    rapports JUnit (CI : artefact `traces-tests`, local : même commit)
+    montre quatre tests présents en CI seulement, tous venus de #84 :
+    - `tests/ci-scope.test.ts` : « runs a job on a pull request with an
+      empty diff… », et les deux cas « skips oracle / tests on a pull
+      request touching only docs/**, even without reference » ;
+    - `tests/github-history.test.ts` : « lists only the pull request's
+      files when main moved on… ».
+  - Résolution : `main` a été fusionnée dans la branche (`3a518bc`), par une
+    fusion et non un rebase, pour que les commits cités restent joignables.
+    Sur ce commit fusionné, local et CI testent le même code.
+- **Conflit de fusion dans `runner/measure.ts`.** #64 y avait ajouté la
+  phase de contrat, pendant que ce ticket en extrayait l'exécution du
+  candidat vers `runner/candidate-runtime.ts`.
+  - Résolution : la structure de #64 (construction et démarrage seulement
+    après un contrat valide), avec les fonctions extraites.
+  - Il a aussi fallu `npm ci` : `ajv`, ajouté par #64, manquait pour le
+    typecheck.
 - **Un commit intermédiaire ne compile pas seul.** Dans `6f6deeb`,
   `runner/measure.ts` appelle encore l'ancienne signature de
   `measureLimits`. Il est adapté dans `e2751ab`. La PR se fusionne en squash.
@@ -183,6 +232,24 @@ limites sortent.
 Environnement local : Node 22.23.5 et Docker Engine 29.1.3 (Docker Desktop,
 noyau 6.12.54-linuxkit), sous macOS.
 
+Compteurs du cgroup v2 dans un conteneur de l'image d'exécution (empreinte
+`sha256:a6d76625baf3…`), sous Docker Desktop, noyau 6.12.54-linuxkit :
+
+```sh
+docker run --rm migrabench-runtime sh -c 'cat /sys/fs/cgroup/cpu.stat; echo ---; cat /sys/fs/cgroup/memory.peak'
+# usage_usec 12084
+# user_usec 4028
+# system_usec 8056
+# nice_usec 0
+# nr_periods 0
+# nr_throttled 0
+# throttled_usec 0
+# nr_bursts 0
+# burst_usec 0
+# ---
+# 4984832
+```
+
 Tests purs de l'étalonnage, au commit `b44b257` :
 
 ```sh
@@ -190,13 +257,17 @@ npx vitest run tests/runner/calibration.test.ts tests/runner/limits.test.ts test
 # Tests  17 passed (17)
 ```
 
-Suite complète, pile démarrée par `npm run stack:up`, au commit `b44b257` :
+Suite complète, pile démarrée par `npm run stack:up`, au commit `82cf7b7`
+(branche fusionnée avec `main`, règle de la CI comprise), arbre propre :
 
 ```sh
+npm run typecheck   # aucune erreur
 npm test
-# Test Files  54 passed (54)
-#      Tests  398 passed (398)
+# Test Files  56 passed (56)
+#      Tests  462 passed (462)
 ```
+
+Avant la fusion, au commit `b44b257` : 54 fichiers et 398 tests.
 
 Refus, sans Docker, au commit `b44b257`. Le plafond imposé ne peut plus
 dépasser le délai étalonné le plus long :
@@ -225,19 +296,33 @@ empreinte `sha256:0a411d5fe323e88f13cc6bc9de3e80145693f7300da9794daa07ba73b0f55d
 | CPU moyen, construction | 0,71 | 0,97 | 1,95 |
 
 Mesure du candidat de référence qui applique cet étalonnage, au commit
-`b44b257`, arbre propre :
+`82cf7b7`, arbre propre. Le dossier de la mesure est un diagnostic, ignoré
+par Git : seules les mesures prévues pour compter seront versionnées (#73).
+
+```sh
+npm run stack:up
+npm run migrabench -- measure --candidate fixtures/reference-candidate
+# Measure: results/diagnostic/20261123T222304Z-82cf7b7-reference-candidate
+# Outcome: completed (ok)
+# measure.json : 7 phases ok (preparation, contract, build, start, oracle,
+# gates, closing), 38 scénarios, 38 réussis, 0 non atteint ; environment.limits :
+# {"provisional":false,"source":"calibration",
+#  "calibration":{"file":"results/calibration/20261123T215140Z-344b70c-ci45273672040.1-1.json",
+#   "digest":"sha256:0a411d5fe323e88f13cc6bc9de3e80145693f7300da9794daa07ba73b0f55d0b"},
+#  "multiples":{"timeouts":5,"resources":2},
+#  "buildTimeoutMs":50550,"readyTimeoutMs":3595,"buildMemoryBytes":663748608,"buildCpus":1.95}
+shasum -a 256 results/calibration/20261123T215140Z-344b70c-ci45273672040.1-1.json
+# 0a411d5fe323e88f13cc6bc9de3e80145693f7300da9794daa07ba73b0f55d0b
+```
+
+La même mesure, avant la fusion de `main`, au commit `b44b257` :
 
 ```sh
 npm run stack:up
 npm run migrabench -- measure --candidate fixtures/reference-candidate
 # Measure: results/diagnostic/20261123T220608Z-b44b257-reference-candidate
 # Outcome: completed (ok)
-# measure.json : 38 scénarios, 38 réussis, 0 non atteint ; environment.limits :
-# {"provisional":false,"source":"calibration",
-#  "calibration":{"file":"results/calibration/20261123T215140Z-344b70c-ci45273672040.1-1.json",
-#   "digest":"sha256:0a411d5fe323e88f13cc6bc9de3e80145693f7300da9794daa07ba73b0f55d0b"},
-#  "multiples":{"timeouts":5,"resources":2},
-#  "buildTimeoutMs":50550,"readyTimeoutMs":3595,"buildMemoryBytes":663748608,"buildCpus":1.95}
+# measure.json : 38 scénarios, 38 réussis, même environment.limits
 ```
 
 Avant que l'étalonnage soit versionné, la même mesure au commit `c6daa19`
@@ -268,7 +353,14 @@ CI de la PR #87 :
   exécutions [45274528723](https://github.com/karAmmi12/migrabench/actions/runs/45274528723)
   sur `b44b257` et [45276758945](https://github.com/karAmmi12/migrabench/actions/runs/45276758945)
   sur `f17a309`, alors que ces commits ne touchent aucun chemin du filtre.
-  Leurs résultats ne sont pas versionnés.
+  Leurs résultats ne sont pas versionnés. C'est corrigé par `82cf7b7`.
+
+> À vérifier après l'exécution de la CI de la PR : sur le push qui porte
+> `82cf7b7`, le job `changes` du workflow « Étalonnage » doit lancer
+> `calibration` (raison relevée), puisque ses propres fichiers changent ; et
+> « Tests du banc » doit tourner sur le code fusionné avec `main` (lien, head
+> SHA, nombre de tests). Puis, sur le commit suivant, qui ne touche que
+> `docs/**` : `calibration` doit être ignoré (lien et raison relevée).
 
 ## Pour aller plus loin
 
@@ -279,12 +371,6 @@ CI de la PR #87 :
   construction sortent d'un candidat d'étalonnage léger. Un candidat d'agent
   avec plus de dépendances les approchera. L'étape 6 réétalonne avant sa
   première mesure comptée.
-- **Job `calibration` relancé à chaque push d'une PR qui touche ses
-  chemins** : c'est ce qu'a observé la CI de la PR #87, avec 4 min environ
-  par push. On peut le réserver à `workflow_dispatch` une fois sur `main`,
-  ou le faire passer par la règle de `scripts/ci-scope.ts` (#76).
-  > À vérifier : la cause supposée. Pour `pull_request`, GitHub évaluerait
-  > le filtre `paths` sur tout le diff de la PR, et pas sur le dernier push.
 - **Relevé du pic de CPU** : un échantillonnage de `cpu.stat` pendant
   l'étape donnerait un pic, au lieu de la moyenne actuelle.
 - **ADR 0007**, exécution du candidat : les limites étalonnées ne
