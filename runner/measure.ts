@@ -51,15 +51,14 @@ const READY_CAP_MS = 60_000;
 export async function measureCandidate({ candidate, counted = false, salt }: MeasureOptions): Promise<MeasureResult> {
   if (counted) throw new Error("A counted measure is not supported yet: run a diagnostic measure");
   // 0. Refus préalables, avant toute écriture.
+  const refused = (message: string): MeasureResult => ({ written: false, refusal: "refused-usage", message, exitCode: 4 });
   try {
     candidateName(candidate);
   } catch (error) {
-    return { written: false, refusal: "refused-usage", message: (error as Error).message, exitCode: 4 };
+    return refused((error as Error).message);
   }
   const candidateDir = join(ROOT, candidate);
-  if (!(await isDirectory(candidateDir))) {
-    return { written: false, refusal: "refused-usage", message: `The candidate directory does not exist: ${candidate}`, exitCode: 4 };
-  }
+  if (!(await isDirectory(candidateDir))) return refused(`The candidate directory does not exist: ${candidate}`);
   const phases: PhaseRecord[] = [];
   const phase = startPhases(phases);
 
@@ -197,21 +196,21 @@ class CandidateNotStarted extends Error {
 }
 
 // Chaque appel ouvre une phase et rend la fonction qui la ferme, avec son
-// issue (`ok` par défaut), les empreintes de ses bruts et, pour une issue qui
-// rend la mesure invalide, sa preuve.
-type ClosePhase<N extends PhaseName> = (outcome?: PhaseOutcome<N>, raw?: Record<string, string>, evidence?: string) => void;
+// issue (`ok` par défaut), les empreintes de ses bruts et son détail (pour une
+// issue qui rend la mesure invalide, sa preuve).
+type ClosePhase<N extends PhaseName> = (outcome?: PhaseOutcome<N>, raw?: Record<string, string>, detail?: string) => void;
 
 function startPhases(phases: PhaseRecord[]) {
   return <N extends PhaseName>(name: N): ClosePhase<N> => {
     const startedAt = new Date();
-    return (outcome = "ok", raw: Record<string, string> = {}, evidence?: string) => {
+    return (outcome = "ok", raw = {}, detail) => {
       phases.push({
         name,
         outcome,
         startedAt: startedAt.toISOString(),
         durationMs: Date.now() - startedAt.getTime(),
         raw,
-        ...(evidence === undefined ? {} : { evidence }),
+        ...(detail === undefined ? {} : { detail }),
       } as PhaseRecord);
     };
   };

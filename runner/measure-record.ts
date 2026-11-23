@@ -2,7 +2,7 @@
 // fonction pure qui assemble le résultat d'une mesure à partir de ce que le
 // runner a relevé, avec son verdict et le code de sortie qui en découle.
 import type { OracleSummary } from "../oracle/collect.ts";
-import { type ExitCode, PHASES, type PhaseRecord, verdict } from "./verdict.ts";
+import { PHASES, type PhaseRecord, verdict } from "./verdict.ts";
 
 export const MEASURE_FORMAT = 1;
 
@@ -47,5 +47,5 @@ export function measureRecord({ measureId, candidate, environment, salt, saltImp
     gates: [] as never[],
     verdict: measureVerdict,
   };
-  return { record, exitCode: exitCode satisfies ExitCode };
+  return { record, exitCode };
 }

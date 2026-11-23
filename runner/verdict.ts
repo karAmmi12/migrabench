@@ -59,10 +59,10 @@ void EVERY_FAILURE_HAS_A_PHASE;
 interface PhaseFields {
   startedAt: string;
   durationMs: number;
+  // Message, manquements du contrat, service tombé. Pour une issue qui rend la
+  // mesure invalide, c'est sa preuve (ligne du journal de npm, état du
+  // service, lignes du journal d'accès), reprise dans le verdict.
   detail?: string;
-  // Preuve d'une issue qui rend la mesure invalide : ligne du journal de npm,
-  // état du service, lignes du journal d'accès.
-  evidence?: string;
   // Empreinte de chaque brut de la phase, par son chemin dans le dossier des bruts.
   raw: Record<string, string>;
 }
@@ -72,7 +72,7 @@ export type PhaseRecord = { [N in PhaseName]: PhaseFields & { name: N; outcome: 
 export interface Verdict {
   category: Category;
   // L'issue de la phase qui a décidé, `ok` pour une mesure complète.
-  reason: string;
+  reason: Exclude<PhaseOutcome, "not-run">;
   // Pour une mesure invalide seulement.
   evidence?: string;
 }
@@ -90,13 +90,18 @@ export function verdict(phases: readonly PhaseRecord[]): { verdict: Verdict; exi
       throw new Error(`Outcome ${outcome} is not an outcome of phase ${name}`);
     }
   }
-  const decisive = phases.find(({ outcome }) => outcome !== "ok" && outcome !== "not-run");
+  // La première issue autre que `ok` décide, sauf une interruption, invalide
+  // quelle que soit la phase : un échec du candidat déjà relevé ne la masque pas.
+  const decisive =
+    phases.find(({ outcome }) => outcome === "interrupted") ?? phases.find(({ outcome }) => outcome !== "ok" && outcome !== "not-run");
   if (decisive === undefined) return { verdict: { category: "completed", reason: "ok" }, exitCode: 0 };
-  const category = CATEGORY_OF.get(decisive.outcome);
-  if (category === undefined) throw new Error(`Outcome ${decisive.outcome} has no category`);
-  if (category !== "invalid") return { verdict: { category, reason: decisive.outcome }, exitCode: 0 };
-  if (decisive.evidence === undefined || decisive.evidence === "") {
-    throw new Error(`Outcome ${decisive.outcome} of phase ${decisive.name} makes the measure invalid without evidence`);
+  // Ni `ok` ni `not-run` : une issue d'échec, vérifiée ci-dessus pour sa phase.
+  const reason = decisive.outcome as FailureOutcome;
+  const category = CATEGORY_OF.get(reason);
+  if (category === undefined) throw new Error(`Outcome ${reason} has no category`);
+  if (category !== "invalid") return { verdict: { category, reason }, exitCode: 0 };
+  if (decisive.detail === undefined || decisive.detail === "") {
+    throw new Error(`Outcome ${reason} of phase ${decisive.name} makes the measure invalid without evidence`);
   }
-  return { verdict: { category, reason: decisive.outcome, evidence: decisive.evidence }, exitCode: 3 };
+  return { verdict: { category, reason, evidence: decisive.detail }, exitCode: 3 };
 }

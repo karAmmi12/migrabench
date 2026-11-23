@@ -4,8 +4,8 @@ import { describe, expect, it } from "vitest";
 import { type MeasureRecordInput, measureRecord } from "../../runner/measure-record.ts";
 import type { PhaseRecord } from "../../runner/verdict.ts";
 
-function phase(name: PhaseRecord["name"], outcome = "ok", raw: Record<string, string> = {}, evidence?: string): PhaseRecord {
-  return { name, outcome, startedAt: "2026-11-23T09:05:07.123Z", durationMs: 10, raw, ...(evidence === undefined ? {} : { evidence }) } as PhaseRecord;
+function phase(name: PhaseRecord["name"], outcome = "ok", raw: Record<string, string> = {}, detail?: string): PhaseRecord {
+  return { name, outcome, startedAt: "2026-11-23T09:05:07.123Z", durationMs: 10, raw, ...(detail === undefined ? {} : { detail }) } as PhaseRecord;
 }
 
 const SUMMARY = {

@@ -3,8 +3,9 @@
 import { describe, expect, it } from "vitest";
 import { type PhaseRecord, verdict } from "../../runner/verdict.ts";
 
-function phase(name: PhaseRecord["name"], outcome: string = "ok", evidence?: string): PhaseRecord {
-  return { name, outcome, startedAt: "2026-11-23T09:05:07.123Z", durationMs: 10, raw: {}, ...(evidence === undefined ? {} : { evidence }) } as PhaseRecord;
+// Le détail d'une phase qui rend la mesure invalide porte sa preuve.
+function phase(name: PhaseRecord["name"], outcome: string = "ok", detail?: string): PhaseRecord {
+  return { name, outcome, startedAt: "2026-11-23T09:05:07.123Z", durationMs: 10, raw: {}, ...(detail === undefined ? {} : { detail }) } as PhaseRecord;
 }
 
 const ALL_OK = ["preparation", "contract", "build", "start", "oracle", "gates", "closing"].map((name) => phase(name as PhaseRecord["name"]));
@@ -28,7 +29,11 @@ describe("verdict", () => {
     ["build", "build-resource-limit", "candidate-failure"],
     ["start", "start-exited", "candidate-failure"],
     ["start", "start-not-ready", "candidate-failure"],
+    ["build", "stack-down-while-candidate", "stack-down-while-candidate"],
+    ["start", "stack-down-while-candidate", "stack-down-while-candidate"],
     ["oracle", "stack-down-while-candidate", "stack-down-while-candidate"],
+    ["gates", "stack-down-while-candidate", "stack-down-while-candidate"],
+    ["closing", "stack-down-while-candidate", "stack-down-while-candidate"],
   ] as const)("counts %s ending in %s as a valid measure of category %s, exit code 0", (name, outcome, category) => {
     expect(verdict(stoppedAt(name, outcome))).toEqual({ verdict: { category, reason: outcome }, exitCode: 0 });
   });
@@ -42,7 +47,7 @@ describe("verdict", () => {
     ["oracle", "oracle-error"],
     ["closing", "marker-out-of-place"],
     ["closing", "access-log-inactive"],
-    ["oracle", "interrupted"],
+    ...(["preparation", "contract", "build", "start", "oracle", "gates", "closing"] as const).map((name) => [name, "interrupted"] as const),
   ] as const)("counts %s ending in %s as an invalid measure with its evidence, exit code 3", (name, outcome) => {
     expect(verdict(stoppedAt(name, outcome, "proof line"))).toEqual({
       verdict: { category: "invalid", reason: outcome, evidence: "proof line" },
@@ -87,5 +92,11 @@ describe("verdict", () => {
     const phases = [...stoppedAt("start", "start-exited").slice(0, -1), phase("closing", "access-log-inactive", "no start marker")];
 
     expect(verdict(phases).verdict).toEqual({ category: "candidate-failure", reason: "start-exited" });
+  });
+
+  it("is invalid when interrupted, whatever the phase, even after a candidate failure", () => {
+    const phases = [...stoppedAt("start", "start-exited").slice(0, -1), phase("closing", "interrupted", "SIGINT")];
+
+    expect(verdict(phases)).toEqual({ verdict: { category: "invalid", reason: "interrupted", evidence: "SIGINT" }, exitCode: 3 });
   });
 });
