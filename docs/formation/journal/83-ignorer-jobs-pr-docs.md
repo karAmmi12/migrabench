@@ -116,7 +116,16 @@ encore aucune référence :
 - [« Oracle »](https://github.com/karAmmi12/migrabench/actions/runs/45266467630) : `oracle` tourne et réussit, et
   `proof : ignoré (la PR ne touche aucun de oracle/, fixtures/legacy-app/, docker-compose.yml, results/oracle/)`.
 
-> À vérifier après la fusion : la PR de documentation de #76, rebasée sur `main`, a `tests`, `oracle` et `proof` ignorés sur son premier commit, avec la raison « la PR ne touche que docs/** », et « Fiche de formation » tourne (liens, head SHA).
+Après la fusion, test réel sur la PR de documentation #85 (branche
+`docs/76-main-proof`, rebasée sur `main` `a7b8f49`). Son diff ne touche que
+`docs/**`, et son premier commit `ccd3a87` n'a aucune référence :
+
+- [« Tests du banc »](https://github.com/karAmmi12/migrabench/actions/runs/45269380341) : `tests` ignoré,
+  `tests : ignoré (la PR ne touche que docs/**)` ;
+- [« Oracle »](https://github.com/karAmmi12/migrabench/actions/runs/45269380500) : `oracle` et `proof` ignorés,
+  `oracle : ignoré (la PR ne touche que docs/**)`, puis
+  `proof : ignoré (la PR ne touche aucun de oracle/, fixtures/legacy-app/, docker-compose.yml, results/oracle/)` ;
+- [« Fiche de formation »](https://github.com/karAmmi12/migrabench/actions/runs/45269380385) tourne (`success`).
 
 ## Pour aller plus loin
 
