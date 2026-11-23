@@ -12,6 +12,9 @@ test-results/
 # Bruts de l'oracle (traces, HAR), un dossier par exécution : hors de Git,
 # cités par empreinte dans le résultat versionné (ADR 0005).
 .oracle-artifacts/
+# Mesures de diagnostic de `migrabench measure`, un dossier par mesure : hors
+# de Git, seules les mesures prévues pour compter sont versionnées (étape 3).
+results/diagnostic/
 # Sel de développement tiré par `npm run stack:up`, relu par `npm test` (#33).
 .dev-archive-salt
 *.har
