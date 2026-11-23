@@ -259,6 +259,32 @@ CI de la PR #77, sur le head SHA `c757c90` : tous les jobs sont verts.
 
 - « Tests du banc » ([job](https://github.com/karAmmi12/migrabench/actions/runs/45209282163/job/137813374418), 8 min 29 s) :
   `Test Files  45 passed (45)`, `Tests  326 passed (326)`.
+
+  Ces 8 min 29 s ne viennent pas des tests. La cause est le téléchargement
+  apt de l'étape « Installation de Chromium pour Playwright »
+  (`npx playwright install --with-deps chromium`). Le miroir Ubuntu du
+  runner (`azure.archive.ubuntu.com`) était lent pendant cette exécution.
+  Comparaison avec l'exécution citée par la fiche de #62
+  ([job](https://github.com/karAmmi12/migrabench/actions/runs/45201392587/job/137785524349),
+  2 min 12 s) :
+
+  | Étape | #62 | #77, `c757c90` |
+  |---|---|---|
+  | Installation de Chromium pour Playwright | 24 s | 6 min 25 s |
+  | dont téléchargement apt (mêmes 32,1 Mo) | `Fetched 32.1 MB in 1s (40.8 MB/s)` | `Fetched 32.1 MB in 6min 3s (88.4 kB/s)` |
+  | Tests | 56 s | 53 s |
+
+  Les durées par fichier de test sont proches d'une exécution à l'autre. Les
+  deux plus longues sont `tests/seam-a/internal-api.test.ts` (22 721 ms,
+  puis 19 469 ms) et `tests/seam-a/archive-no-salt.test.ts` (14 885 ms,
+  puis 14 509 ms). Aucun test n'attend le délai de disponibilité du
+  candidat.
+
+  L'exécution suivante, sur `cf2e01d`, ne change que cette fiche. Son job a
+  duré 2 min 59 s
+  ([job](https://github.com/karAmmi12/migrabench/actions/runs/45211301963/job/137820541278)),
+  avec `Fetched 32.1 MB in 32s (1017 kB/s)`. Ne plus dépendre de ce miroir
+  est une piste de #76.
 - « Oracle », job `oracle` ([job](https://github.com/karAmmi12/migrabench/actions/runs/45209281838/job/137813374932), 2 min 23 s) :
   `Scenarios: 38, passed: 38, failed: 0, unreached: 0`.
 - « Oracle », job `proof` ([job](https://github.com/karAmmi12/migrabench/actions/runs/45209281838/job/137814949001), 5 min 50 s) :
