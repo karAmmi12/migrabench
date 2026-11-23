@@ -172,6 +172,33 @@ répond `404`. Elle se trouve sous
   - Résolution : le cas « ignoré » est couvert par `tests/ci-scope.test.ts`
     et sera prouvé par les exécutions de CI ci-dessous.
 
+- **Les PR jetables ne déclenchaient plus aucune exécution.**
+  - Symptôme : après un push, `actions/runs?head_sha=<sha>` rendait
+    `total_count: 0`.
+  - Cause : `main` avait avancé (#77, puis #82, fusionnées par une autre
+    session) et touchait les fichiers des commits jetables (`runner/cli.ts`,
+    puis `shared/digest.ts`). La PR était en conflit (`mergeable_state: dirty`),
+    et GitHub ne lance aucun workflow `pull_request` sans commit de fusion.
+  - Résolution : les commits jetables visent des fichiers neufs, ou remettent
+    le fichier dans son état de la base commune (`6f52d3d`).
+- **Deux pushes à 2 s d'écart ne donnaient qu'une série d'exécutions.**
+  - Symptôme : `4491d74` n'a eu aucune exécution, `ef307ae` en a eu cinq.
+  - Cause : GitHub n'a émis qu'un événement `synchronize`, pour la tête finale.
+  - Résolution : un écart plus long. Avec 15 s, les trois workflows courts
+    avaient fini avant l'arrivée du second commit. Pousser le second dès la
+    première exécution visible n'en a fait annuler que deux sur cinq. Avec un
+    écart fixe de 5 s, les cinq sont annulées (`9ec640c`). Sur un commit docs,
+    une exécution dure 8 à 20 s, et GitHub met environ 6 s à créer les
+    exécutions d'un push.
+- **Une attente de CI bloquée** (script jetable de la session, hors dépôt).
+  - Symptôme : l'attente tournait encore 26 minutes après la fin des
+    exécutions. Relevé par l'humain.
+  - Cause : elle exigeait 5 exécutions par commit cité, et le premier commit
+    de la paire n'en a jamais eu. Sa borne était de 120 tours de 20 s, et sa
+    sortie était redirigée, donc sans progression visible.
+  - Résolution : une attente bornée, qui affiche l'état à chaque tour et rend
+    le code `1` à l'échéance.
+
 ## Vérifier soi-même
 
 Tests sans la pile, fichier par fichier (état : `94fff58`) :
@@ -203,19 +230,66 @@ GITHUB_OUTPUT=/tmp/out CI_JOBS=oracle,proof node scripts/write-ci-scope.ts
 # proof : tourne (rien n'a changé depuis 2f0f0349…, où proof a réussi : relance)
 ```
 
-Preuves en CI :
+Preuves en CI. Les PR #80 (avant, partie de `main`) et #81 (après, partie
+de cette branche) sont des PR jetables, fermées sans fusion. Elles portent les
+mêmes commits jetables : un commit de code dans `shared/digest.ts`, puis un
+commit docs seul dans `docs/mesure-76.md`.
 
-> À vérifier après l'exécution de la CI de la PR : sur cette PR, qui ne touche aucun chemin de `proof`, `proof` est ignoré (lien de l'exécution « Oracle », head SHA).
+- **`proof` ignoré sur une PR qui ne touche aucun de ses chemins** : PR #79,
+  head `d9473d6`, [exécution « Oracle »](https://github.com/karAmmi12/migrabench/actions/runs/45216443496). Journal du job
+  `changes` :
+  `proof : ignoré (la PR ne touche aucun de oracle/, fixtures/legacy-app/, docker-compose.yml, results/oracle/)`.
+- **`proof` tourne sur une PR qui touche `oracle/`** : PR #81, head `6f52d3d`
+  (ajoute `oracle/mesure-76.md`), [exécution « Oracle »](https://github.com/karAmmi12/migrabench/actions/runs/45228437761).
+  `proof : tourne (proof n'a réussi sur aucun commit de la PR ancêtre de la tête)`,
+  puis `Proof holds on 5 results.`
+- **Commit docs seul** : PR #81, head `9afa8b6`. Dans
+  [« Tests du banc »](https://github.com/karAmmi12/migrabench/actions/runs/45220169468), `tests` est ignoré. Dans
+  [« Oracle »](https://github.com/karAmmi12/migrabench/actions/runs/45220169471), `oracle` et `proof` sont ignorés.
+  [« Fiche de formation »](https://github.com/karAmmi12/migrabench/actions/runs/45220169503) tourne (`success`). Journal :
+  `tests : ignoré (seul docs/** a changé depuis ecd6c363…, où tests a réussi)`,
+  et de même pour `oracle`.
+- **Deux commits poussés coup sur coup, à 5 s d'écart** : PR #81. Les cinq
+  exécutions de `9ec640c` sont `cancelled` :
+  [« Oracle »](https://github.com/karAmmi12/migrabench/actions/runs/45230686491), [« Actions épinglées »](https://github.com/karAmmi12/migrabench/actions/runs/45230686215),
+  [« Fiche de formation »](https://github.com/karAmmi12/migrabench/actions/runs/45230685996),
+  [« Vérification des types »](https://github.com/karAmmi12/migrabench/actions/runs/45230685948),
+  [« Tests du banc »](https://github.com/karAmmi12/migrabench/actions/runs/45230685853). Celles de `2f5e785` sont `success`.
+- **Un commit de code annulé par un commit docs** : PR #81. Les exécutions de
+  `5604390` sont `cancelled` ([« Oracle »](https://github.com/karAmmi12/migrabench/actions/runs/45221736854),
+  [« Tests du banc »](https://github.com/karAmmi12/migrabench/actions/runs/45221736610)). Sur le commit docs `74ac074`, `tests`
+  et `oracle` tournent ([« Tests du banc »](https://github.com/karAmmi12/migrabench/actions/runs/45221787893),
+  [« Oracle »](https://github.com/karAmmi12/migrabench/actions/runs/45221788177)) :
+  `tests : tourne (des fichiers hors docs/** ont changé depuis ecd6c363…, où tests a réussi)`.
+- **Minutes, somme des durées des jobs** (`completedAt − startedAt`, jobs
+  ignorés à 0, via `gh run view <id> --json jobs`) :
 
-> À vérifier après l'exécution de la CI de la PR : sur une PR qui touche `oracle/`, `proof` tourne (lien, head SHA).
+  | PR type | commit de code | commit docs seul | total |
+  |---|---|---|---|
+  | avant, #80 | `7c3dd44` : 618 s | `9991fa9` : 615 s | 1233 s, soit 20,6 min |
+  | après, #81 | `ecd6c36` : 479 s | `9afa8b6` : 51 s | 530 s, soit 8,8 min |
 
-> À vérifier après l'exécution de la CI de la PR : sur un commit docs seul, `tests`, `oracle` et `proof` sont ignorés et « Fiche de formation » tourne (liens, head SHA).
+  Exécutions :
+  - avant, `7c3dd44` : [Oracle](https://github.com/karAmmi12/migrabench/actions/runs/45218587188), [Tests](https://github.com/karAmmi12/migrabench/actions/runs/45218587754),
+    [Types](https://github.com/karAmmi12/migrabench/actions/runs/45218587523), [Fiche](https://github.com/karAmmi12/migrabench/actions/runs/45218587870),
+    [Actions](https://github.com/karAmmi12/migrabench/actions/runs/45218587693) ;
+  - avant, `9991fa9` : [Oracle](https://github.com/karAmmi12/migrabench/actions/runs/45220167577), [Tests](https://github.com/karAmmi12/migrabench/actions/runs/45220167422),
+    [Types](https://github.com/karAmmi12/migrabench/actions/runs/45220167407), [Fiche](https://github.com/karAmmi12/migrabench/actions/runs/45220167429),
+    [Actions](https://github.com/karAmmi12/migrabench/actions/runs/45220167448) ;
+  - après, `ecd6c36` : [Oracle](https://github.com/karAmmi12/migrabench/actions/runs/45218594901), [Tests](https://github.com/karAmmi12/migrabench/actions/runs/45218595001),
+    [Types](https://github.com/karAmmi12/migrabench/actions/runs/45218594905), [Fiche](https://github.com/karAmmi12/migrabench/actions/runs/45218595392),
+    [Actions](https://github.com/karAmmi12/migrabench/actions/runs/45218594859) ;
+  - après, `9afa8b6` : voir « Commit docs seul » ci-dessus, avec
+    [Types](https://github.com/karAmmi12/migrabench/actions/runs/45220169453) et [Actions](https://github.com/karAmmi12/migrabench/actions/runs/45220169467).
 
-> À vérifier après l'exécution de la CI de la PR : deux commits poussés coup sur coup, l'exécution du premier est annulée dans chaque workflow (liens des exécutions annulées).
-
-> À vérifier après l'exécution de la CI de la PR : un commit de code annulé par un commit docs fait tourner `tests` et `oracle` sur le commit docs (liens, head SHA).
-
-> À vérifier après l'exécution de la CI de la PR : minutes avant et après sur une PR type, un commit de code hors `oracle/` puis un commit docs seul, en somme des durées de jobs (`gh run view <id> --json jobs`), chaque chiffre avec son exécution.
+  Sur le commit de code, l'écart vient de `proof` (338 s avant, ignoré
+  après). Le job `oracle` a duré 119 s avant et 273 s après, sans changement
+  de son code. Cette variation entre deux exécutions réduit l'écart mesuré.
+  Les jobs `changes` comptent 20 s après sur ce commit, et 25 s sur le commit
+  docs.
+- **`npm test` complet** dans « Tests du banc » sur la PR #79, head `d9473d6` :
+  [job `tests`](https://github.com/karAmmi12/migrabench/actions/runs/45216443911/job/137838951063), 48 fichiers, 325 tests
+  réussis.
 
 > À vérifier après la fusion : `proof` tourne sur `push` vers `main` et en `workflow_dispatch` (liens). « To trigger the workflow_dispatch event, your workflow must be in the default branch » ([GitHub Docs : Manually running a workflow](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow), lu le 2026-11-23).
 
