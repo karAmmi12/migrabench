@@ -40,6 +40,17 @@ Le code du candidat n'est pas fiable. Dans les deux phases, le conteneur
 tourne sans les droits root, sans accès au socket Docker, avec le seul dossier
 du candidat monté, et avec des limites de mémoire et de CPU.
 
+Le conteneur tourne sous l'uid et le gid de l'utilisateur qui lance le
+runner, pas sous l'utilisateur `node` de l'image (précisé par #62). Sous
+Linux, où tournent les mesures comptées, un dossier monté garde les
+propriétaires numériques de l'hôte : sous un autre uid, `npm ci` ne pourrait
+pas écrire dans la copie du candidat sans l'ouvrir en écriture à tous, et
+l'hôte ne pourrait plus supprimer ce que le conteneur y aurait créé. Une
+mesure lancée en root est donc refusée, pour que le candidat ne tourne jamais
+en root. L'uid et le gid utilisés sont enregistrés dans
+`environment.containerUser` du résultat. `USER node` reste l'utilisateur par
+défaut de l'image, pour tout usage hors du runner.
+
 ## Options écartées
 
 - **Dockerfile fourni par le candidat** : l'image de base et la version de
