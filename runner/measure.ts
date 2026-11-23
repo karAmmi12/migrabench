@@ -16,7 +16,7 @@ import { dirname, join } from "node:path";
 import { executeOracle, type ExecuteOracleResult, listOracle } from "../oracle/execute.ts";
 import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
 import { contentDigest } from "./candidate-content.ts";
-import { contractPhase } from "./contract-phase.ts";
+import { contractPhase, type ContractPhaseResult } from "./contract-phase.ts";
 import { candidateName, measureId as measureIdOf } from "./measure-id.ts";
 import { type CandidateRecord, measureRecord, type OracleRecord } from "./measure-record.ts";
 import type { ExitCode, PhaseName, PhaseOutcome, PhaseRecord, Verdict } from "./verdict.ts";
@@ -40,7 +40,7 @@ import {
   waitUntilReady,
 } from "./candidate-runtime.ts";
 import { containerUser } from "./container-user.ts";
-import { type Limits, measureLimits, SAFETY_CAP } from "./limits.ts";
+import { cpuShortfall, type Limits, measureLimits, SAFETY_CAP } from "./limits.ts";
 import { DIAGNOSTIC_DIR_FROM_ROOT } from "./paths.ts";
 
 export interface MeasureOptions {
@@ -112,21 +112,28 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
   await copyCandidate(candidateDir, files, copyDir);
   const runtimeImage = await buildRuntimeImage();
   const user = containerUser(process.getuid?.(), process.getgid?.());
-  closePreparation();
+  // Garde-fou : une limite de CPU que Docker refuserait sur cette machine
+  // arrête la mesure avant tout code du candidat (runner/limits.ts).
+  const shortfall = cpuShortfall(limits, Number(await stdoutOf("docker", ["info", "--format", "{{.NCPU}}"])));
+  if (shortfall === undefined) closePreparation();
+  else closePreparation("runner-error-before-candidate", {}, shortfall);
 
   // 2. Contrat : candidate.json, package.json et sources du package-lock.json,
   // lus dans la copie (runner/contract-phase.ts). Invalide, il arrête la
   // mesure avant tout code du candidat : ni construction, ni démarrage.
-  const closeContract = phase("contract");
-  const contract = await contractPhase(copyDir);
-  Object.assign(candidateRecord, contract.candidate);
-  if (contract.outcome === "ok") closeContract();
-  else closeContract(contract.outcome, {}, contract.detail);
+  let contract: ContractPhaseResult | undefined;
+  if (shortfall === undefined) {
+    const closeContract = phase("contract");
+    contract = await contractPhase(copyDir);
+    Object.assign(candidateRecord, contract.candidate);
+    if (contract.outcome === "ok") closeContract();
+    else closeContract(contract.outcome, {}, contract.detail);
+  }
 
   let service: CandidateService | undefined;
   let oracle: OracleRecord | undefined;
   let oracleMetadata: ExecuteOracleResult["metadata"] | undefined;
-  if (contract.outcome === "ok") {
+  if (contract?.outcome === "ok") {
     const { build: buildCommand, start } = contract.candidate;
     if (start === undefined) throw new Error("A valid contract declares start");
 
@@ -181,8 +188,9 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
   // Oracle non lancé : le compte des scénarios, tous non atteints.
   oracle ??= { executed: false, summary: await listOracle(`${ARTIFACTS_DIR_FROM_ROOT}/${id}/oracle`) };
 
-  // 7. Clôture : arrêt du candidat, measure.json écrit. Après un contrat
-  // invalide, aucun service `candidate` n'a été décrit : rien à arrêter.
+  // 7. Clôture : arrêt du candidat, measure.json écrit. Après un garde-fou ou
+  // un contrat invalide, aucun service `candidate` n'a été décrit : rien à
+  // arrêter.
   const closeClosing = phase("closing");
   if (service !== undefined) await stopCandidate(service);
   closeClosing();

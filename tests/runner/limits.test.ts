@@ -4,7 +4,7 @@
 // diagnostic des délais : une valeur imposée, qui ne peut que réduire les
 // délais, enregistrée comme telle.
 import { describe, expect, it } from "vitest";
-import { measureLimits } from "../../runner/limits.ts";
+import { cpuShortfall, measureLimits } from "../../runner/limits.ts";
 
 const CAP = { buildTimeoutMs: 600_000, readyTimeoutMs: 60_000, buildMemoryBytes: 4_294_967_296, buildCpus: 2 };
 const CALIBRATION = {
@@ -72,5 +72,22 @@ describe("measureLimits", () => {
     expect(() => measureLimits({ safetyCap: CAP, timeoutCapMs: 0 })).toThrow("--timeout-cap-ms must be a positive whole number of milliseconds");
     expect(() => measureLimits({ safetyCap: CAP, timeoutCapMs: 1.5 })).toThrow("--timeout-cap-ms must be a positive whole number of milliseconds");
     expect(() => measureLimits({ safetyCap: CAP, timeoutCapMs: Number.NaN })).toThrow("--timeout-cap-ms must be a positive whole number of milliseconds");
+  });
+});
+
+// Garde-fou d'une mesure : une limite de CPU que Docker refuserait sur la
+// machine qui mesure (code 125) n'est jamais comptée contre le candidat. La
+// mesure s'arrête avant `npm ci`, en runner-error-before-candidate, avec la
+// limite et le nombre de CPU pour preuve.
+describe("cpuShortfall", () => {
+  it("gives the evidence when the machine has fewer CPUs than the applied CPU limit", () => {
+    expect(cpuShortfall({ ...CAP, buildCpus: 2.26 }, 2)).toBe(
+      "The applied CPU limit (2.26) exceeds the 2 CPUs of the machine that measures: docker would refuse --cpus 2.26",
+    );
+  });
+
+  it("has nothing to report when the machine has as many CPUs as the limit, or more", () => {
+    expect(cpuShortfall({ ...CAP, buildCpus: 2 }, 2)).toBeUndefined();
+    expect(cpuShortfall({ ...CAP, buildCpus: 2.26 }, 14)).toBeUndefined();
   });
 });

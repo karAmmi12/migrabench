@@ -70,3 +70,13 @@ export function measureLimits({ safetyCap, calibration, timeoutCapMs }: MeasureL
   };
   return { limits, record: { ...source, ...limits, imposedTimeoutCapMs: timeoutCapMs } };
 }
+
+// Garde-fou d'une mesure : Docker refuse un `--cpus` supérieur au nombre de CPU
+// de sa machine (code 125). Une limite que la machine qui mesure ne peut pas
+// appliquer est une erreur du banc, jamais un échec du candidat : la mesure
+// s'arrête avant `npm ci`, en `runner-error-before-candidate`, avec cette
+// preuve. `machineCpus` : le nombre de CPU vu par Docker (`docker info`).
+export function cpuShortfall(limits: Limits, machineCpus: number): string | undefined {
+  if (limits.buildCpus <= machineCpus) return undefined;
+  return `The applied CPU limit (${limits.buildCpus}) exceeds the ${machineCpus} CPUs of the machine that measures: docker would refuse --cpus ${limits.buildCpus}`;
+}
