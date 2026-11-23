@@ -11,7 +11,7 @@ import { linkSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { hostname } from "node:os";
 import { fileURLToPath } from "node:url";
 
-export type BenchTool = "measure" | "oracle" | "stack-up";
+export type BenchTool = "measure" | "calibrate" | "oracle" | "stack-up";
 
 // Fichier du verrou du banc, à la racine du dépôt.
 export const BENCH_LOCK_FILE_FROM_ROOT = ".bench-lock";

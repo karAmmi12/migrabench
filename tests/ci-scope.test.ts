@@ -26,7 +26,7 @@ function history(
 
 describe("shouldRun", () => {
   it.each(["push", "workflow_dispatch"])("runs every heavy job outside a pull request (%s)", async (event) => {
-    for (const job of ["tests", "oracle", "proof"] as const) {
+    for (const job of ["tests", "oracle", "proof", "calibration"] as const) {
       expect((await shouldRun(job, { event, prFiles: [] }, history())).run).toBe(true);
     }
   });
@@ -43,6 +43,59 @@ describe("shouldRun", () => {
       expect((await shouldRun("proof", pr("runner/cli.ts", file), history())).run).toBe(true);
     },
   );
+
+  // #72 : l'étalonnage refait 5 constructions complètes ; il ne tourne que si
+  // la PR touche ce qui fait ses relevés.
+  it("skips calibration on a pull request touching none of its paths, such as a runner file that takes no reading", async () => {
+    const decision = await shouldRun("calibration", pr("runner/verdict.ts", "oracle/cli.ts", "results/calibration/x.json"), history());
+
+    expect(decision).toEqual({
+      run: false,
+      reason:
+        "la PR ne touche aucun de fixtures/calibration-candidate/, fixtures/runtime-image/, runner/build.ts, runner/calibrate.ts, runner/calibration.ts, runner/candidate-runtime.ts, runner/contract.ts, runner/contract-phase.ts, runner/resource-usage.ts, .github/workflows/calibration.yml",
+    });
+  });
+
+  it.each([
+    "fixtures/calibration-candidate/package.json",
+    "fixtures/runtime-image/Dockerfile",
+    "runner/build.ts",
+    "runner/calibrate.ts",
+    "runner/calibration.ts",
+    "runner/candidate-runtime.ts",
+    "runner/contract.ts",
+    "runner/contract-phase.ts",
+    "runner/resource-usage.ts",
+    ".github/workflows/calibration.yml",
+  ])("runs calibration on a pull request touching %s", async (file) => {
+    expect((await shouldRun("calibration", pr("runner/verdict.ts", file), history())).run).toBe(true);
+  });
+
+  it("skips calibration when only docs/** changed since it succeeded on the pull request", async () => {
+    const runs = [{ sha: "a1", at: "2026-11-23T10:00:00Z", jobs: { changes: "success", calibration: "success" } }];
+
+    expect(await shouldRun("calibration", pr("runner/calibrate.ts"), history(runs, { changed: { a1: ["docs/x.md"] } }))).toEqual({
+      run: false,
+      reason: "seul docs/** a changé depuis a1, où calibration a réussi",
+    });
+  });
+
+  // Versionner un résultat d'étalonnage ne doit pas en produire un autre.
+  it("skips calibration when none of its paths changed since it succeeded on the pull request", async () => {
+    const runs = [{ sha: "a1", at: "2026-11-23T10:00:00Z", jobs: { changes: "success", calibration: "success" } }];
+    const changed = { a1: ["results/calibration/x.json", "docs/formation/journal/72-x.md"] };
+
+    expect(await shouldRun("calibration", pr("runner/calibrate.ts"), history(runs, { changed }))).toEqual({
+      run: false,
+      reason: "aucun de ses chemins n'a changé depuis a1, où calibration a réussi",
+    });
+  });
+
+  it("runs calibration when one of its paths changed since it succeeded on the pull request", async () => {
+    const runs = [{ sha: "a1", at: "2026-11-23T10:00:00Z", jobs: { changes: "success", calibration: "success" } }];
+
+    expect((await shouldRun("calibration", pr("runner/calibrate.ts"), history(runs, { changed: { a1: ["runner/calibration.ts"] } }))).run).toBe(true);
+  });
 
   // #83 : une PR neuve n'a aucune référence, mais son code est celui de la base.
   it.each(["tests", "oracle"] as const)(

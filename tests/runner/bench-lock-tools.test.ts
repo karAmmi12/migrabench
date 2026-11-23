@@ -1,6 +1,7 @@
 // Verrou du banc pris par les outils du banc (spec de l'étape 3, « Verrou du
-// banc ») : `migrabench measure`, `npm run oracle` et `npm run stack:up` se
-// refusent l'un l'autre, et une mesure qui échoue libère le verrou du banc.
+// banc ») : `migrabench measure`, `migrabench calibrate` (#72), `npm run
+// oracle` et `npm run stack:up` se refusent l'un l'autre, et une mesure qui
+// échoue libère le verrou du banc.
 //
 // Sans la pile : un faux `docker`, placé en tête du PATH, remplace Docker. En
 // mode `block`, il ne rend la main qu'à la mort de l'outil qui l'a lancé, qui
@@ -56,6 +57,7 @@ function run(script: string, args: readonly string[], mode: "block" | "fail") {
 
 type Tool = readonly [script: string, args: readonly string[]];
 const MEASURE: Tool = ["runner/cli.ts", ["measure", "--candidate", "fixtures/reference-candidate"]];
+const CALIBRATE: Tool = ["runner/cli.ts", ["calibrate", "--readings", "1"]];
 const ORACLE: Tool = ["oracle/cli.ts", []];
 const STACK_UP: Tool = ["scripts/stack-up.ts", []];
 
@@ -140,6 +142,32 @@ describe("bench lock taken by the bench tools", { timeout: 20_000 }, () => {
     }
     expect(stubCalls()).toEqual(measureCalls);
     expect(existsSync(DEV_SALT) ? readFileSync(DEV_SALT, "utf8") : undefined).toBe(devSalt);
+  });
+
+  // #72 : l'étalonnage recrée la pile, comme une mesure.
+  it("refuses migrabench calibrate while a measure holds it, before any Docker command", async () => {
+    // Détenteur `measure` simulé : une vraie mesure écrirait son dossier sous
+    // results/diagnostic/, que les tests des refus de measure, lancés en
+    // parallèle, surveillent.
+    const holder = spawn(process.execPath, [HOLD, BENCH_LOCK_FILE, "measure"], { stdio: ["pipe", "pipe", "inherit"] });
+    started.push(holder);
+    await new Promise((resolve) => holder.stdout?.once("data", resolve));
+
+    const result = run(...CALIBRATE, "fail");
+
+    expect(result.status).toBe(4);
+    expect(result.stderr).toContain("refused-lock: The bench lock is held by measure");
+    expect(stubCalls()).toEqual([]);
+  });
+
+  it("refuses a measure while migrabench calibrate holds it", async () => {
+    await holding(CALIBRATE, "calibrate");
+
+    const result = run(...MEASURE, "fail");
+
+    expect(result.status).toBe(4);
+    expect(result.stderr).toContain("refused-lock: The bench lock is held by calibrate");
+    expect(entries()).toEqual(before);
   });
 
   it("is released after a measure that fails, having been held while it ran", () => {

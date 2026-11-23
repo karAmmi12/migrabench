@@ -1,0 +1,116 @@
+# Étalonnage des délais et des limites (#72, spec de l'étape 3, « Candidat
+# d'étalonnage »). `migrabench calibrate` mesure 5 fois le candidat
+# d'étalonnage de fixtures/ sur un runner GitHub, l'environnement des mesures
+# comptées, et écrit results/calibration/<horodatage>-<commit>-ci<id>.<tentative>-1.json.
+# Ce résultat est publié comme artefact, puis versionné par une PR : seul un
+# étalonnage fait en CI est appliqué aux mesures (runner/calibration.ts).
+#
+# Quand il tourne (job changes, règle dans scripts/ci-scope.ts, comme les
+# autres jobs lourds) :
+# - en workflow_dispatch : toujours ;
+# - sur une PR : seulement si elle touche ce qui fait les relevés (chemins de
+#   calibration dans scripts/ci-scope.ts), et pas si aucun de ces chemins n'a
+#   changé depuis son dernier succès sur la PR. Versionner un résultat dans
+#   results/calibration/ ne relance donc pas l'étalonnage.
+# Pas de filtre paths sous on: : GitHub l'applique à tout le diff de la PR, et
+# le job tournait donc à chaque push, même d'un commit qui ne touchait que la
+# documentation (PR #87).
+name: Étalonnage
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Un nouveau commit annule l'exécution en cours sur la même PR (#76). Hors PR
+# (push sur main, workflow_dispatch), chaque exécution a son propre groupe et
+# n'est jamais annulée.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # Décide si le job lourd tourne (#76, #72) : règle dans scripts/ci-scope.ts.
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    # actions: read : lire les exécutions précédentes du workflow.
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      calibration: ${{ steps.scope.outputs.calibration }}
+    steps:
+      # Historique complet : diff depuis la base de la PR et depuis la référence.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Jobs lourds à lancer
+        id: scope
+        env:
+          CI_JOBS: calibration
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/write-ci-scope.ts
+
+  calibration:
+    needs: changes
+    if: needs.changes.outputs.calibration == 'true'
+    runs-on: ubuntu-24.04
+    # Borne un blocage : 5 relevés, chacun sous le plafond de sécurité.
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Le commit de la PR, pas le commit de fusion temporaire de GitHub :
+          # benchCommit doit rester citable une fois la PR fusionnée.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Installation des dépendances
+        run: npm ci
+
+      # Versions du navigateur et de Playwright relevées dans l'environnement,
+      # comme pour une mesure.
+      - name: Installation de Chromium pour Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Construction des images
+        run: docker compose build
+
+      # Le premigrabench vérifie que Node est celui de .nvmrc.
+      - name: Étalonnage
+        run: npm run migrabench -- calibrate
+
+      - name: Journaux de la pile
+        if: always()
+        run: |
+          mkdir -p .oracle-artifacts
+          docker compose ps --all > .oracle-artifacts/compose-ps.txt
+          docker compose logs --no-color --timestamps > .oracle-artifacts/compose-logs.txt
+
+      - name: Publication du résultat et des bruts
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: calibration
+          path: |
+            results/calibration/*-ci${{ github.run_id }}.${{ github.run_attempt }}-*.json
+            .oracle-artifacts/
+            !.oracle-artifacts/**/node_modules/
+            !.oracle-artifacts/**/npm-cache/
+          include-hidden-files: true
+          retention-days: 7
+          if-no-files-found: error

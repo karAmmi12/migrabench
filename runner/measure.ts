@@ -10,24 +10,40 @@
 // Le verdict et les codes de sortie viennent de #63 (runner/verdict.ts).
 // Le verrou du banc vient de #69 (shared/bench-lock.ts) : pris avant la
 // préparation, libéré à la fin de la mesure, y compris sur erreur.
+// Les délais et limites du dernier étalonnage de CI viennent de #72
+// (runner/calibration-results.ts).
 import { randomBytes } from "node:crypto";
-import { copyFile, mkdir, readdir, stat, writeFile } from "node:fs/promises";
-import { dirname, join, relative } from "node:path";
+import { mkdir, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { executeOracle, type ExecuteOracleResult, listOracle } from "../oracle/execute.ts";
 import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
-import { candidateCompose } from "./candidate-compose.ts";
-import { contractPhase } from "./contract-phase.ts";
-import { type CandidateFile, contentDigest, isCopied } from "./candidate-content.ts";
+import { contentDigest } from "./candidate-content.ts";
+import { contractPhase, type ContractPhaseResult } from "./contract-phase.ts";
 import { candidateName, measureId as measureIdOf } from "./measure-id.ts";
 import { type CandidateRecord, measureRecord, type OracleRecord } from "./measure-record.ts";
 import type { ExitCode, PhaseName, PhaseOutcome, PhaseRecord, Verdict } from "./verdict.ts";
-import { citedFileSha256 as digestOf, fileSha256 } from "../shared/digest.ts";
+import { citedFileSha256 as digestOf } from "../shared/digest.ts";
 import { acquireBenchLock, type TakenOver } from "../shared/bench-lock.ts";
 import { spawnCommand, stdoutOf } from "../shared/process.ts";
-import { ARTIFACTS_DIR_FROM_ROOT, readBenchEnv, ROOT } from "../shared/root.ts";
+import { ARTIFACTS_DIR_FROM_ROOT, ROOT } from "../shared/root.ts";
 import { buildCandidate } from "./build.ts";
+import { appliedCalibration } from "./calibration-results.ts";
+import {
+  buildRuntimeImage,
+  CANDIDATE_BASE_URL,
+  CANDIDATE_PORT,
+  candidateFiles,
+  candidateService,
+  type CandidateService,
+  copyCandidate,
+  isDirectory,
+  RUNTIME_IMAGE,
+  startCandidate,
+  stopCandidate,
+  waitUntilReady,
+} from "./candidate-runtime.ts";
 import { containerUser } from "./container-user.ts";
-import { type Limits, measureLimits, SAFETY_CAP } from "./limits.ts";
+import { cpuShortfall, type Limits, measureLimits, SAFETY_CAP } from "./limits.ts";
 import { DIAGNOSTIC_DIR_FROM_ROOT } from "./paths.ts";
 
 export interface MeasureOptions {
@@ -49,12 +65,6 @@ export type MeasureResult =
 
 type Refusal = "refused-usage" | "refused-counted" | "refused-lock";
 
-// Port imposé au candidat, publié sur 127.0.0.1.
-export const CANDIDATE_PORT = 8100;
-const RUNTIME_IMAGE = "migrabench-runtime";
-const RUNTIME_IMAGE_CONTEXT = "fixtures/runtime-image";
-const COMPOSE_FILE = "docker-compose.yml";
-
 export async function measureCandidate({ candidate, counted = false, salt, timeoutCapMs }: MeasureOptions): Promise<MeasureResult> {
   // 0. Refus préalables, avant toute écriture.
   const refused = (message: string, refusal: Refusal = "refused-usage"): MeasureResult => ({
@@ -69,11 +79,12 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
     return refused("a measure planned to count refuses an imposed --timeout-cap-ms", "refused-counted");
   }
   if (counted) throw new Error("A counted measure is not supported yet: run a diagnostic measure");
-  // Sans étalonnage (#72), le plafond de sécurité, marqué provisoire.
+  // Délais et limites du dernier étalonnage de CI ; sans lui, le plafond de
+  // sécurité, marqué provisoire.
   let limits: Limits;
   let limitsRecord: ReturnType<typeof measureLimits>["record"];
   try {
-    ({ limits, record: limitsRecord } = measureLimits(SAFETY_CAP, timeoutCapMs));
+    ({ limits, record: limitsRecord } = measureLimits({ safetyCap: SAFETY_CAP, calibration: await appliedCalibration(), timeoutCapMs }));
   } catch (error) {
     return refused((error as Error).message);
   }
@@ -133,31 +144,31 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
   const files = await candidateFiles(candidateDir);
   const candidateRecord: CandidateRecord = { path: candidate, contentDigest: contentDigest(files) };
   const copyDir = join(rawDir, "candidate");
-  for (const { path } of files) {
-    await mkdir(dirname(join(copyDir, path)), { recursive: true });
-    await copyFile(join(candidateDir, path), join(copyDir, path));
-  }
-  await spawnCommand("docker", ["build", "--quiet", "--tag", RUNTIME_IMAGE, RUNTIME_IMAGE_CONTEXT]);
-  const runtimeImage = await stdoutOf("docker", ["image", "inspect", "--format", "{{.Id}}", RUNTIME_IMAGE]);
+  await copyCandidate(candidateDir, files, copyDir);
+  const runtimeImage = await buildRuntimeImage();
   const user = containerUser(process.getuid?.(), process.getgid?.());
-  closePreparation();
+  // Garde-fou : une limite de CPU que Docker refuserait sur cette machine
+  // arrête la mesure avant tout code du candidat (runner/limits.ts).
+  const shortfall = cpuShortfall(limits, Number(await stdoutOf("docker", ["info", "--format", "{{.NCPU}}"])));
+  if (shortfall === undefined) closePreparation();
+  else closePreparation("runner-error-before-candidate", {}, shortfall);
 
   // 2. Contrat : candidate.json, package.json et sources du package-lock.json,
   // lus dans la copie (runner/contract-phase.ts). Invalide, il arrête la
   // mesure avant tout code du candidat : ni construction, ni démarrage.
-  const closeContract = phase("contract");
-  const contract = await contractPhase(copyDir);
-  Object.assign(candidateRecord, contract.candidate);
-  if (contract.outcome === "ok") closeContract();
-  else closeContract(contract.outcome, {}, contract.detail);
+  let contract: ContractPhaseResult | undefined;
+  if (shortfall === undefined) {
+    const closeContract = phase("contract");
+    contract = await contractPhase(copyDir);
+    Object.assign(candidateRecord, contract.candidate);
+    if (contract.outcome === "ok") closeContract();
+    else closeContract(contract.outcome, {}, contract.detail);
+  }
 
-  const overrideFile = join(rawDir, "compose.candidate.yml");
-  const compose = ["compose", "--file", COMPOSE_FILE, "--file", overrideFile];
-  const startLog = join(rawDir, "start.log");
-  let composeOverride: string | undefined;
+  let service: CandidateService | undefined;
   let oracle: OracleRecord | undefined;
   let oracleMetadata: ExecuteOracleResult["metadata"] | undefined;
-  if (contract.outcome === "ok") {
+  if (contract?.outcome === "ok") {
     const { build: buildCommand, start } = contract.candidate;
     if (start === undefined) throw new Error("A valid contract declares start");
 
@@ -171,13 +182,8 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     // 4 et 5. Pile et démarrage, puis oracle. L'exécution complète de l'étape 2
     // recrée le legacy et le service d'archivage, puis rappelle le runner, qui
     // recrée le service `candidate` et attend sa disponibilité.
-    const baseUrl = `http://127.0.0.1:${CANDIDATE_PORT}`;
-    const env = await readBenchEnv();
-    await writeFile(
-      overrideFile,
-      `${JSON.stringify(candidateCompose({ image: RUNTIME_IMAGE, user, port: CANDIDATE_PORT, copyDir, usersFile: join(ROOT, "fixtures", "users.json"), start, archiveToken: env.ARCHIVE_TOKEN ?? "" }), null, 2)}\n`,
-    );
-    composeOverride = await digestOf(overrideFile);
+    const described = await candidateService({ rawDir, copyDir, user, start });
+    service = described;
 
     if (build.outcome.outcome === "ok") {
       const closeStart = phase("start");
@@ -185,14 +191,14 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
       let startOutcome: PhaseOutcome<"start"> = "ok";
       try {
         const result = await executeOracle({
-          baseUrl,
+          baseUrl: CANDIDATE_BASE_URL,
           salt: measureSalt,
           artifactsDir: `${ARTIFACTS_DIR_FROM_ROOT}/${id}/oracle`,
           resultFile: join(measureDir, "oracle.json"),
           onStackReady: async () => {
-            await stopCandidate(compose, startLog);
-            await spawnCommand("docker", [...compose, "up", "--detach", "--force-recreate", "--no-deps", "candidate"]);
-            startOutcome = await waitUntilReady(compose, baseUrl, limits.readyTimeoutMs);
+            await stopCandidate(described);
+            await startCandidate(described);
+            startOutcome = await waitUntilReady(described, limits.readyTimeoutMs);
             if (startOutcome !== "ok") throw new CandidateNotStarted(startOutcome);
             closeStart();
             closeOracle = phase("oracle");
@@ -206,7 +212,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
         closeGates();
       } catch (error) {
         if (!(error instanceof CandidateNotStarted)) {
-          await stopCandidate(compose, startLog);
+          await stopCandidate(described);
           throw error;
         }
         closeStart(startOutcome);
@@ -217,13 +223,14 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
   // Oracle non lancé : le compte des scénarios, tous non atteints.
   oracle ??= { executed: false, summary: await listOracle(`${ARTIFACTS_DIR_FROM_ROOT}/${id}/oracle`) };
 
-  // 7. Clôture : arrêt du candidat, measure.json écrit. Après un contrat
-  // invalide, aucun service `candidate` n'a été décrit : rien à arrêter.
+  // 7. Clôture : arrêt du candidat, measure.json écrit. Après un garde-fou ou
+  // un contrat invalide, aucun service `candidate` n'a été décrit : rien à
+  // arrêter.
   const closeClosing = phase("closing");
-  if (composeOverride !== undefined) await stopCandidate(compose, startLog);
+  if (service !== undefined) await stopCandidate(service);
   closeClosing();
   const startPhase = phases.find(({ name }) => name === "start");
-  if (startPhase !== undefined) startPhase.raw["start.log"] = await digestOf(startLog);
+  if (startPhase !== undefined && service !== undefined) startPhase.raw["start.log"] = await digestOf(service.startLog);
 
   const { record, exitCode } = measureRecord({
     measureId: id,
@@ -235,7 +242,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
       ...oracleMetadata,
       runtimeImage,
       containerUser: user,
-      ...(composeOverride === undefined ? {} : { composeOverride }),
+      ...(service === undefined ? {} : { composeOverride: service.composeOverride }),
       port: CANDIDATE_PORT,
       limits: limitsRecord,
       lock: lockRecord,
@@ -275,53 +282,4 @@ function startPhases(phases: PhaseRecord[]) {
       } as PhaseRecord);
     };
   };
-}
-
-async function isDirectory(path: string): Promise<boolean> {
-  try {
-    return (await stat(path)).isDirectory();
-  } catch {
-    return false;
-  }
-}
-
-// Fichiers copiés du candidat, avec leur empreinte. Un lien symbolique pourrait
-// faire copier un fichier hors du candidat : il est refusé.
-async function candidateFiles(candidateDir: string): Promise<CandidateFile[]> {
-  const files: CandidateFile[] = [];
-  const walk = async (dir: string): Promise<void> => {
-    for (const entry of await readdir(dir, { withFileTypes: true })) {
-      const full = join(dir, entry.name);
-      const path = relative(candidateDir, full).split("\\").join("/");
-      if (!isCopied(path)) continue;
-      if (entry.isSymbolicLink()) throw new Error(`The candidate contains a symbolic link: ${path}`);
-      if (entry.isDirectory()) await walk(full);
-      else if (entry.isFile()) files.push({ path, sha256: await fileSha256(full) });
-    }
-  };
-  await walk(candidateDir);
-  return files;
-}
-
-// Disponible dès qu'une réponse HTTP arrive, quel que soit son statut.
-async function waitUntilReady(compose: readonly string[], baseUrl: string, readyTimeoutMs: number): Promise<PhaseOutcome<"start">> {
-  const deadline = Date.now() + readyTimeoutMs;
-  while (Date.now() < deadline) {
-    try {
-      await fetch(baseUrl, { signal: AbortSignal.timeout(2_000), redirect: "manual" });
-      return "ok";
-    } catch {
-      const container = await stdoutOf("docker", [...compose, "ps", "--all", "--quiet", "candidate"]);
-      const running = container === "" ? "false" : await stdoutOf("docker", ["inspect", "--format", "{{.State.Running}}", container]);
-      if (running !== "true") return "start-exited";
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-  }
-  return "start-not-ready";
-}
-
-// Ajoute les sorties du conteneur au brut de `start`, puis le supprime.
-async function stopCandidate(compose: readonly string[], startLog: string): Promise<void> {
-  await spawnCommand("docker", [...compose, "logs", "--no-color", "--timestamps", "candidate"], { logFile: startLog, allowFailure: true });
-  await spawnCommand("docker", [...compose, "rm", "--stop", "--force", "candidate"]);
 }

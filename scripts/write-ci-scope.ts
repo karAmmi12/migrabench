@@ -1,6 +1,7 @@
-// Job « changes » des workflows « Tests du banc » et « Oracle » (#76) : écrit
-// dans GITHUB_OUTPUT, pour chaque job lourd listé dans CI_JOBS (séparés par des
-// virgules), `<job>=true` s'il doit tourner, `<job>=false` sinon. Règle :
+// Job « changes » des workflows « Tests du banc », « Oracle » et « Étalonnage »
+// (#76, #72) : écrit dans GITHUB_OUTPUT, pour chaque job lourd listé dans
+// CI_JOBS (séparés par des virgules), `<job>=true` s'il doit tourner,
+// `<job>=false` sinon. Règle :
 // scripts/ci-scope.ts. Hors pull_request, n'appelle ni gh ni git.
 //
 // Le reste vient de l'environnement des Actions : GITHUB_EVENT_NAME,

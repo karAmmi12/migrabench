@@ -1,6 +1,7 @@
-// Décision de lancer ou non un job lourd de CI (tests, oracle, proof), #76.
+// Décision de lancer ou non un job lourd de CI (tests, oracle, proof,
+// calibration), #76 et #72.
 
-export const HEAVY_JOBS = ["tests", "oracle", "proof"] as const;
+export const HEAVY_JOBS = ["tests", "oracle", "proof", "calibration"] as const;
 export type HeavyJob = (typeof HEAVY_JOBS)[number];
 
 export type WorkflowRun = { id: number; headSha: string; createdAt: string };
@@ -18,8 +19,32 @@ export interface History {
 export type Context = { event: string; prFiles: string[] };
 export type Decision = { run: boolean; reason: string };
 
-// Ce que prouve le job proof : l'oracle, le legacy, la pile et les résultats versionnés.
-const PROOF_PATHS = ["oracle/", "fixtures/legacy-app/", "docker-compose.yml", "results/oracle/"];
+// Jobs qui ne tournent que sur une PR qui touche leurs chemins.
+const JOB_PATHS: Partial<Record<HeavyJob, string[]>> = {
+  // Ce que prouve le job proof : l'oracle, le legacy, la pile et les résultats versionnés.
+  proof: ["oracle/", "fixtures/legacy-app/", "docker-compose.yml", "results/oracle/"],
+  // Ce qui fait les relevés de l'étalonnage (#72) : le candidat d'étalonnage,
+  // l'image d'exécution, sa construction et son démarrage, son contrat, le
+  // relevé des ressources, et le workflow lui-même. Pas results/calibration/ :
+  // versionner un résultat ne doit pas en produire un autre.
+  calibration: [
+    "fixtures/calibration-candidate/",
+    "fixtures/runtime-image/",
+    "runner/build.ts",
+    "runner/calibrate.ts",
+    "runner/calibration.ts",
+    "runner/candidate-runtime.ts",
+    "runner/contract.ts",
+    "runner/contract-phase.ts",
+    "runner/resource-usage.ts",
+    ".github/workflows/calibration.yml",
+  ],
+};
+
+// Jobs dont seuls les propres chemins comptent depuis leur dernier succès,
+// et pas tout ce qui n'est pas docs/** : versionner un résultat d'étalonnage
+// (results/calibration/) ne doit pas relancer l'étalonnage (#72).
+const ONLY_OWN_PATHS_SINCE_SUCCESS: ReadonlySet<HeavyJob> = new Set(["calibration"]);
 
 function touches(files: string[], paths: string[]): boolean {
   return files.some((file) => paths.some((path) => (path.endsWith("/") ? file.startsWith(path) : file === path)));
@@ -44,8 +69,9 @@ export async function shouldRun(job: HeavyJob, context: Context, history: Histor
   if (context.event !== "pull_request") {
     return { run: true, reason: `événement ${context.event}` };
   }
-  if (job === "proof" && !touches(context.prFiles, PROOF_PATHS)) {
-    return { run: false, reason: `la PR ne touche aucun de ${PROOF_PATHS.join(", ")}` };
+  const paths = JOB_PATHS[job];
+  if (paths !== undefined && !touches(context.prFiles, paths)) {
+    return { run: false, reason: `la PR ne touche aucun de ${paths.join(", ")}` };
   }
   // #83 : le code du commit de fusion est alors celui de la base.
   if (onlyDocs(context.prFiles)) {
@@ -63,6 +89,9 @@ export async function shouldRun(job: HeavyJob, context: Context, history: Histor
   }
   if (onlyDocs(changed)) {
     return { run: false, reason: `seul docs/** a changé ${since}` };
+  }
+  if (paths !== undefined && ONLY_OWN_PATHS_SINCE_SUCCESS.has(job) && !touches(changed, paths)) {
+    return { run: false, reason: `aucun de ses chemins n'a changé ${since}` };
   }
   return { run: true, reason: `des fichiers hors docs/** ont changé ${since}` };
 }
