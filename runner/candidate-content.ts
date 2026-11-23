@@ -15,6 +15,14 @@ export function isCopied(path: string): boolean {
   return !BUILD_ARTIFACT_DIRS.has(segments[0] ?? "");
 }
 
+// Copie du téléchargement (`npm ci --ignore-scripts`, seule étape de la
+// construction qui a accès au réseau) : sans le `.npmrc` de la racine, le seul
+// que npm lit pour le projet. Un proxy, un délai réseau ou un registre de portée
+// qu'il déclarerait ne peut donc pas fabriquer une erreur du registre imposé.
+export function isFetchedWith(path: string): boolean {
+  return path !== ".npmrc";
+}
+
 export interface CandidateFile {
   // Chemin relatif au dossier du candidat, séparé par des barres.
   path: string;
