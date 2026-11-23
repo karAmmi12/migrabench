@@ -244,9 +244,31 @@ Avant que l'étalonnage soit versionné, la même mesure au commit `c6daa19`
 gardait `{"provisional":true,"source":"safety-cap",…}`, alors qu'un
 étalonnage local plus récent existait dans `results/diagnostic/calibration/`.
 
-> À vérifier après l'exécution de la CI de la PR : workflows « Tests du
-> banc », « Oracle » et « Vérification des types » sur la tête de la PR
-> (lien, head SHA, nombre de tests).
+CI de la PR #87 :
+
+- **Jobs lourds, sur `b44b257`**, le dernier commit qui touche autre chose
+  que `docs/**` :
+  - « Tests du banc » : [exécution 45274528965](https://github.com/karAmmi12/migrabench/actions/runs/45274528965),
+    job `tests` en 143 s, `Test Files 54 passed (54)`,
+    `Tests 402 passed (402)`. En local, au même commit : 398 tests ;
+  - « Oracle » : [exécution 45274528685](https://github.com/karAmmi12/migrabench/actions/runs/45274528685).
+    Le job `oracle` (116 s) rend `Scenarios: 38, passed: 38, failed: 0,
+    unreached: 0`. Le job `proof` (301 s) rend cinq fois la même ligne,
+    puis `Proof holds on 5 results.` ;
+  - « Vérification des types » : [exécution 45274528867](https://github.com/karAmmi12/migrabench/actions/runs/45274528867),
+    `success`.
+- **Sur `f17a309`**, qui n'ajoute que cette fiche : `tests`, `oracle` et
+  `proof` sont ignorés, avec la raison `seul docs/** a changé depuis
+  b44b2579dd3b78acd66d2a9332d1eb9bed85d8bd, où tests a réussi`. Ont réussi
+  sur ce commit :
+  - « Vérification des types » : [45276758697](https://github.com/karAmmi12/migrabench/actions/runs/45276758697) ;
+  - « Fiche de formation » : [45276758524](https://github.com/karAmmi12/migrabench/actions/runs/45276758524) ;
+  - « Actions épinglées » : [45276758502](https://github.com/karAmmi12/migrabench/actions/runs/45276758502).
+- **Le job `calibration` a tourné à chaque push de la PR.** Ce sont les
+  exécutions [45274528723](https://github.com/karAmmi12/migrabench/actions/runs/45274528723)
+  sur `b44b257` et [45276758945](https://github.com/karAmmi12/migrabench/actions/runs/45276758945)
+  sur `f17a309`, alors que ces commits ne touchent aucun chemin du filtre.
+  Leurs résultats ne sont pas versionnés.
 
 ## Pour aller plus loin
 
@@ -257,6 +279,12 @@ gardait `{"provisional":true,"source":"safety-cap",…}`, alors qu'un
   construction sortent d'un candidat d'étalonnage léger. Un candidat d'agent
   avec plus de dépendances les approchera. L'étape 6 réétalonne avant sa
   première mesure comptée.
+- **Job `calibration` relancé à chaque push d'une PR qui touche ses
+  chemins** : c'est ce qu'a observé la CI de la PR #87, avec 4 min environ
+  par push. On peut le réserver à `workflow_dispatch` une fois sur `main`,
+  ou le faire passer par la règle de `scripts/ci-scope.ts` (#76).
+  > À vérifier : la cause supposée. Pour `pull_request`, GitHub évaluerait
+  > le filtre `paths` sur tout le diff de la PR, et pas sur le dernier push.
 - **Relevé du pic de CPU** : un échantillonnage de `cpu.stat` pendant
   l'étape donnerait un pic, au lieu de la moyenne actuelle.
 - **ADR 0007**, exécution du candidat : les limites étalonnées ne
