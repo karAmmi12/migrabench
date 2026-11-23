@@ -10,7 +10,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "stack:up": "node scripts/stack-up.ts",
-    "pretest": "node scripts/check-node-version.mjs",
+    "pretest": "node scripts/check-node-version.mjs && node scripts/check-bench-lock.ts",
     "test": "vitest run",
     "preoracle": "node scripts/check-node-version.mjs",
     "oracle": "node oracle/cli.ts",
