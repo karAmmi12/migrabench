@@ -14,7 +14,7 @@ avec une annotation `::error::` qui recopie la ligne.
 
 - **Liste de tâches en Markdown** : une case `- [ ]` ou `- [x]` en tête d'un
   élément de liste à puces ou numérotée. GitHub l'affiche comme une case à
-  cocher. — [GitHub Docs : About tasklists](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/about-task-lists)
+  cocher. — [GitHub Docs : Basic writing and formatting syntax, Task lists](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#task-lists)
 - **Code en ligne et bloc délimité** (CommonMark) : un code en ligne est
   entouré de backticks, `` ` `` ou ` `` ` `` `, et peut s'étendre sur plusieurs
   lignes. Un bloc délimité s'ouvre par trois ``` ` ``` ou `~` (ou plus) et se
@@ -22,9 +22,12 @@ avec une annotation `::error::` qui recopie la ligne.
   [CommonMark 0.31.2 : Code spans](https://spec.commonmark.org/0.31.2/#code-spans) ;
   [Fenced code blocks](https://spec.commonmark.org/0.31.2/#fenced-code-blocks)
 - **Commandes de workflow GitHub** : une ligne `::error::<message>` écrite sur
-  la sortie d'une étape crée une annotation d'erreur. Dans le message, `%`,
-  `\r` et `\n` s'écrivent `%25`, `%0D` et `%0A`. —
-  [GitHub Docs : Workflow commands for GitHub Actions](https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions)
+  la sortie d'une étape crée une annotation d'erreur. —
+  [GitHub Docs : Workflow commands, Setting an error message](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#setting-an-error-message).
+  Dans le message, `%`, `\r` et `\n` s'écrivent `%25`, `%0D` et `%0A`. La
+  documentation ne le dit pas : la source est le code de la bibliothèque
+  officielle des actions, `escapeData`, au commit `0c3a9c3`. —
+  [actions/toolkit : packages/core/src/command.ts, lignes 103 à 108](https://github.com/actions/toolkit/blob/0c3a9c332b678ff1e776f93d728a4ad279803abe/packages/core/src/command.ts#L103-L108)
 - **`process.exitCode` plutôt que `process.exit()`** : `exit()` termine le
   processus tout de suite. Sur un pipe, ce qui n'est pas encore écrit sur la
   sortie peut alors être perdu. `exitCode` laisse Node finir d'écrire. —
@@ -32,9 +35,16 @@ avec une annotation `::error::` qui recopie la ligne.
   [A note on process I/O](https://nodejs.org/docs/latest-v22.x/api/process.html#a-note-on-process-io)
 - **Mots-clés de fermeture de GitHub** : `Closes #N`, `Fixes #N`,
   `Resolves #N` et leurs variantes, dans le corps d'une PR, ferment le ticket à
-  la fusion. — [GitHub Docs : Linking a pull request to an issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue)
+  la fusion. — [GitHub Docs : Linking a pull request to an issue using a keyword](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword)
 
-> À vérifier : les liens de cette section n'ont pas été ouverts pendant la session.
+Liens ouverts le 2026-11-23 (`curl`) : chaque page répond `200`, chaque ancre
+existe (`id="…"`), et chaque page traite de la notion citée. Deux liens ont
+été remplacés :
+
+- `about-task-lists` redirigeait vers « About tasklists », la fonctionnalité de
+  suivi de tickets ;
+- `workflow-commands-for-github-actions` redirigeait vers
+  `workflows-and-actions/workflow-commands`, qui ne documente pas l'encodage.
 
 ## Ce qui a été construit
 
