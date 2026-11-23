@@ -72,7 +72,8 @@ répond `404`. Elle se trouve sous
   `History` est le port vers l'historique (exécutions terminées, jobs d'une
   exécution, ancêtre de la tête, fichiers changés).
 - **`scripts/github-history.ts`** : l'adaptateur de `History`.
-  - `gh api` pour les exécutions et les jobs ;
+  - `gh api` pour les exécutions et les jobs. Le filtre des exécutions
+    terminées se fait côté client, car celui de l'API n'est pas fiable ;
   - `git merge-base --is-ancestor` pour l'ascendance ;
   - `changedFiles(range)`, soit `git diff --name-only --no-renames`, pour les
     fichiers changés depuis la référence et depuis la base de la PR.
@@ -92,7 +93,7 @@ répond `404`. Elle se trouve sous
     `oracle` a réussi ou a été ignoré.
 - **Tests** :
   - `tests/ci-scope.test.ts` (21 tests), avec un faux historique en mémoire ;
-  - `tests/github-history.test.ts` (5) : les analyseurs sur des réponses réelles
+  - `tests/github-history.test.ts` (7) : les analyseurs sur des réponses réelles
     de l'API, et `changedFiles` sur un vrai dépôt Git temporaire ;
   - `tests/write-ci-scope.test.ts` (3) : le script lancé avec
     `PATH=/nonexistent`, donc sans `gh` ni `git` ;
@@ -190,6 +191,20 @@ répond `404`. Elle se trouve sous
     écart fixe de 5 s, les cinq sont annulées (`9ec640c`). Sur un commit docs,
     une exécution dure 8 à 20 s, et GitHub met environ 6 s à créer les
     exécutions d'un push.
+- **Sur la PR #79, `oracle` a tourné sur un commit docs seul.**
+  - Symptôme : sur `6b2edf4`, `tests` a été ignoré mais `oracle` a tourné
+    ([« Oracle »](https://github.com/karAmmi12/migrabench/actions/runs/45231005516)) :
+    `oracle : tourne (oracle n'a réussi sur aucun commit de la PR ancêtre de la tête)`.
+  - Cause : le filtre `status=completed` de l'API des exécutions a rendu
+    0 exécution « Oracle » sur la branche, alors que les 2 étaient
+    `completed`/`success`, de même que leurs suites de vérifications. Sans ce
+    filtre, la même requête les rend. Sur la branche de #81, il en avait
+    écarté 1 sur 13. Aucun motif n'a été trouvé.
+  - Résolution : la requête ne filtre plus sur `status`, et
+    `parseWorkflowRuns` garde les exécutions `completed`. Les deux réponses
+    réelles sont versionnées (`tests/fixtures/github-api/oracle-runs-pr79-*.json`).
+    Corrigé dans `d9a1eac`. Le défaut allait dans le sens sûr : le job
+    tournait sans nécessité, et rien n'était masqué.
 - **Une attente de CI bloquée** (script jetable de la session, hors dépôt).
   - Symptôme : l'attente tournait encore 26 minutes après la fin des
     exécutions. Relevé par l'humain.
@@ -201,11 +216,11 @@ répond `404`. Elle se trouve sous
 
 ## Vérifier soi-même
 
-Tests sans la pile, fichier par fichier (état : `94fff58`) :
+Tests sans la pile, fichier par fichier (état : `d9a1eac`) :
 
 ```sh
 npx vitest run tests/ci-scope.test.ts            # Tests  21 passed (21)
-npx vitest run tests/github-history.test.ts      # Tests  5 passed (5)
+npx vitest run tests/github-history.test.ts      # Tests  7 passed (7)
 npx vitest run tests/write-ci-scope.test.ts      # Tests  3 passed (3)
 npx vitest run tests/workflow-concurrency.test.ts  # Tests  6 passed (6)
 npx vitest run tests/workflow-heavy-jobs.test.ts   # Tests  3 passed (3)
