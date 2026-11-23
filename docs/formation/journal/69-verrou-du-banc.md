@@ -33,8 +33,6 @@ un processus mort est repris, sans jamais déposséder un détenteur vivant.
   code non nul arrête `npm test`. —
   [npm Docs : Scripts, Pre & Post Scripts](https://docs.npmjs.com/cli/v10/using-npm/scripts#pre--post-scripts)
 
-> À vérifier : les ancres des liens Node et npm, non ouvertes pendant la session.
-
 ## Ce qui a été construit
 
 - `shared/bench-lock.ts`, le module du verrou du banc. Il n'importe que des
