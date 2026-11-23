@@ -25,6 +25,11 @@ function touches(files: string[], paths: string[]): boolean {
   return files.some((file) => paths.some((path) => (path.endsWith("/") ? file.startsWith(path) : file === path)));
 }
 
+// Au moins un fichier, tous sous docs/ : un diff vide n'est pas « docs seul ».
+function onlyDocs(files: string[]): boolean {
+  return files.length > 0 && files.every((file) => file.startsWith("docs/"));
+}
+
 async function lastSuccess(job: HeavyJob, history: History): Promise<string | null> {
   const runs = (await history.completedWorkflowRuns()).toSorted((a, b) => b.createdAt.localeCompare(a.createdAt));
   for (const run of runs) {
@@ -42,6 +47,10 @@ export async function shouldRun(job: HeavyJob, context: Context, history: Histor
   if (job === "proof" && !touches(context.prFiles, PROOF_PATHS)) {
     return { run: false, reason: `la PR ne touche aucun de ${PROOF_PATHS.join(", ")}` };
   }
+  // #83 : le code du commit de fusion est alors celui de la base.
+  if (onlyDocs(context.prFiles)) {
+    return { run: false, reason: "la PR ne touche que docs/**" };
+  }
   const reference = await lastSuccess(job, history);
   if (reference === null) {
     return { run: true, reason: `${job} n'a réussi sur aucun commit de la PR ancêtre de la tête` };
@@ -52,7 +61,7 @@ export async function shouldRun(job: HeavyJob, context: Context, history: Histor
     // Relance sur le commit même du succès : c'est une demande explicite.
     return { run: true, reason: `rien n'a changé ${since} : relance` };
   }
-  if (changed.every((file) => file.startsWith("docs/"))) {
+  if (onlyDocs(changed)) {
     return { run: false, reason: `seul docs/** a changé ${since}` };
   }
   return { run: true, reason: `des fichiers hors docs/** ont changé ${since}` };

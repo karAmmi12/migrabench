@@ -1,5 +1,6 @@
-# Tests du banc avec la pile Docker, sur chaque PR (#20). Ignorés si seul
-# docs/** a changé depuis leur dernier succès sur la PR (#76, job changes).
+# Tests du banc avec la pile Docker, sur chaque PR (#20). Ignorés si la PR ne
+# touche que docs/** (#83), ou si seul docs/** a changé depuis leur dernier
+# succès sur la PR (#76, job changes).
 # Le typecheck n'en fait pas partie : job séparé, sans Docker (#23).
 name: Tests du banc
 
@@ -19,8 +20,9 @@ concurrency:
 
 jobs:
   # Décide quels jobs lourds tournent (#76) : règle dans scripts/ci-scope.ts.
-  # Sur une PR, un job est ignoré si seul docs/** a changé depuis le dernier
-  # commit de la PR où ce même job a réussi. Condition au niveau du job, pas
+  # Sur une PR, un job est ignoré si la PR ne touche que docs/** (#83), ou si
+  # seul docs/** a changé depuis le dernier commit de la PR où ce même job a
+  # réussi. Condition au niveau du job, pas
   # filtre paths sous on: : un job ignoré compte comme réussi pour une
   # vérification obligatoire, un workflow filtré resterait « en attente ».
   changes:

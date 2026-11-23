@@ -135,8 +135,10 @@ Pour économiser les minutes de CI (#76) :
   l'exécution en cours sur la même PR. Hors PR, aucune exécution n'est annulée ;
 - les jobs lourds (`tests`, `oracle`, `proof`) passent d'abord par un job
   `changes` (`scripts/write-ci-scope.ts`, règle dans `scripts/ci-scope.ts`).
-  Sur une PR, un job lourd est ignoré si seul `docs/**` a changé depuis le
-  dernier commit de la PR où ce même job a réussi, commit ancêtre de la tête.
+  Sur une PR, un job lourd est ignoré si la PR ne touche que `docs/**` (#83) :
+  le code du commit de fusion est alors celui de la base. Il l'est aussi si
+  seul `docs/**` a changé depuis le dernier commit de la PR où ce même job a
+  réussi, commit ancêtre de la tête.
   Une exécution annulée, en échec ou ignorée ne sert jamais de référence ;
   sans référence, le job tourne. « Fiche de formation » tourne toujours.
 
