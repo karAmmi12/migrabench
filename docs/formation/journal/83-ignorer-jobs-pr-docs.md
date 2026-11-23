@@ -76,7 +76,12 @@ npm run typecheck                                # aucune erreur
 bash scripts/check-pinned-actions.sh .github/workflows   # aucune sortie, code 0
 ```
 
-> À vérifier après l'exécution de la CI de la PR : sur cette PR, qui touche du code, `tests` et `oracle` tournent, et `proof` est ignoré (liens, head SHA).
+CI de la PR #84, head `3caa40b`. Le commit touche du code, et la PR n'a
+encore aucune référence :
+
+- [« Tests du banc »](https://github.com/karAmmi12/migrabench/actions/runs/45266467734) : `tests : tourne (tests n'a réussi sur aucun commit de la PR ancêtre de la tête)`, job `success` ;
+- [« Oracle »](https://github.com/karAmmi12/migrabench/actions/runs/45266467630) : `oracle` tourne et réussit, et
+  `proof : ignoré (la PR ne touche aucun de oracle/, fixtures/legacy-app/, docker-compose.yml, results/oracle/)`.
 
 > À vérifier après la fusion : la PR de documentation de #76, rebasée sur `main`, a `tests`, `oracle` et `proof` ignorés sur son premier commit, avec la raison « la PR ne touche que docs/** », et « Fiche de formation » tourne (liens, head SHA).
 
