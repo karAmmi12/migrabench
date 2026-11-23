@@ -15,3 +15,5 @@ Cinquième ligne : premier de deux commits docs coup sur coup (reprise).
 Sixième ligne : second commit docs (reprise).
 
 Septième ligne : premier commit docs, second essai.
+
+Huitième ligne : second commit docs, second essai.
