@@ -59,10 +59,17 @@ Le vocabulaire du domaine du legacy et les termes dérivés sont définis dans
 4. Les résultats JSON sont versionnés. Les bruts lourds (traces, captures,
    HAR) sont conservés hors du dépôt et cités dans le JSON par leur
    empreinte (ADR 0005).
-5. Toute correction humaine sur un candidat est comptée et décrite.
+5. Toute correction humaine sur un candidat est comptée et décrite. Le
+   contenu de `candidates/` est la sortie de l'agent : toute modification
+   humaine de ce contenu est une correction, comptée et décrite. Les mesures
+   de diagnostic servent à mettre au point le banc, pas à corriger un
+   candidat.
 6. Le banc est validé sur lui-même : le legacy, déclaré comme candidat, doit
    obtenir 100 % à l'oracle, et échouer aux portes qui mesurent les pièges à
    corriger (ADR 0001).
+7. Une mesure ne peut être invalidée que sur une preuve que le candidat ne
+   peut ni recevoir ni fabriquer. Sinon, un candidat défectueux pourrait
+   transformer son échec en invalidité, et échapper indéfiniment à la mesure.
 
 ## Limites connues
 
@@ -83,6 +90,14 @@ Le vocabulaire du domaine du legacy et les termes dérivés sont définis dans
   (`*`) finales. Une reformulation volontaire des textes, même fidèle au
   sens, fait échouer le scénario : l'oracle ne mesure pas l'équivalence de
   sens.
+- Une requête envoyée à la main au legacy pendant une mesure, sans marqueur
+  du banc, n'est pas détectable comme une erreur du banc : elle fait échouer
+  la porte du relais au compte du candidat. Le verrou du banc et le contrôle
+  de `pretest` ne couvrent que les outils du banc.
+- Une panne de la pile du banc pendant que le candidat tourne est comptée
+  contre lui, même si elle vient du banc : il aurait pu la provoquer
+  (règle 7). Elle est enregistrée comme une catégorie distincte, avec le
+  service tombé et ses sorties, et le rapport compte sa fréquence.
 - Seul Chromium est mesuré. Un candidat qui fonctionne mal dans Firefox ou
   Safari n'est pas pénalisé.
 - La recherche de secret porte sur la valeur témoin en clair et sur ses
