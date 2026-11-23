@@ -114,9 +114,12 @@ export async function calibrateCandidate({ readings = CALIBRATION_READINGS }: Ca
     });
   }
 
+  // La limite de CPU est bornée au nombre de CPU de la machine d'étalonnage.
+  const host = await machine();
   const summary = calibrationSummary(
     recorded.map(({ values }) => values),
     DECLARED_MULTIPLES,
+    host.cpus,
   );
   const env = await readBenchEnv();
   const record = {
@@ -137,7 +140,7 @@ export async function calibrateCandidate({ readings = CALIBRATION_READINGS }: Ca
       containerUser: user,
       port: CANDIDATE_PORT,
       limits: limitsRecord,
-      machine: await machine(),
+      machine: host,
     },
     multiples: DECLARED_MULTIPLES,
     readings: recorded,

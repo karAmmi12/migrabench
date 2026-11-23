@@ -70,8 +70,12 @@ export interface CalibrationSummary {
 const MIB = 1024 ** 2;
 
 // Limites = maximum relevé × multiple, arrondies vers le haut : délais à la
-// milliseconde, mémoire au Mio, CPU au centième (`docker run --cpus`).
-export function calibrationSummary(readings: readonly ReadingValues[], multiples: Multiples): CalibrationSummary {
+// milliseconde, mémoire au Mio, CPU au centième (`docker run --cpus`). La
+// limite de CPU ne dépasse pas `machineCpus`, le nombre de CPU de la machine
+// d'étalonnage : Docker refuse un `--cpus` supérieur au nombre de CPU de sa
+// machine (code 125), ce qu'a produit 1,13 × 2 = 2,26 sur un runner à 2 CPU
+// (exécution 45279347841).
+export function calibrationSummary(readings: readonly ReadingValues[], multiples: Multiples, machineCpus: number): CalibrationSummary {
   if (readings.length === 0) throw new Error("A calibration needs at least one reading");
   const minimum = combine(readings, Math.min);
   const maximum = combine(readings, Math.max);
@@ -82,7 +86,7 @@ export function calibrationSummary(readings: readonly ReadingValues[], multiples
       buildTimeoutMs: ceilTo(maximum.buildDurationMs * multiples.timeouts, 1),
       readyTimeoutMs: ceilTo(maximum.readyDurationMs * multiples.timeouts, 1),
       buildMemoryBytes: ceilTo(maximum.buildPeakMemoryBytes * multiples.resources, MIB),
-      buildCpus: ceilTo(maximum.buildCpus * multiples.resources, 0.01),
+      buildCpus: Math.min(ceilTo(maximum.buildCpus * multiples.resources, 0.01), machineCpus),
     },
   };
 }

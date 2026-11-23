@@ -37,14 +37,14 @@ describe("calibrationSummary", () => {
   const second = { buildDurationMs: 30_000, buildPeakMemoryBytes: 450 * MIB, buildCpus: 1.8, readyDurationMs: 650, startPeakMemoryBytes: 70 * MIB, startCpus: 0.25 };
 
   it("records the dispersion of the readings, their minimum and maximum", () => {
-    const { minimum, maximum } = calibrationSummary([first, second], MULTIPLES);
+    const { minimum, maximum } = calibrationSummary([first, second], MULTIPLES, 4);
 
     expect(minimum).toEqual({ buildDurationMs: 21_000, buildPeakMemoryBytes: 450 * MIB, buildCpus: 1.5, readyDurationMs: 650, startPeakMemoryBytes: 60 * MIB, startCpus: 0.25 });
     expect(maximum).toEqual({ buildDurationMs: 30_000, buildPeakMemoryBytes: 500 * MIB, buildCpus: 1.8, readyDurationMs: 800, startPeakMemoryBytes: 70 * MIB, startCpus: 0.5 });
   });
 
   it("sets timeouts to the maximum times the timeout multiple, and memory and CPU to the maximum times the resource multiple", () => {
-    expect(calibrationSummary([first, second], MULTIPLES).limits).toEqual({
+    expect(calibrationSummary([first, second], MULTIPLES, 4).limits).toEqual({
       buildTimeoutMs: 150_000,
       readyTimeoutMs: 4_000,
       buildMemoryBytes: 1_000 * MIB,
@@ -55,7 +55,7 @@ describe("calibrationSummary", () => {
   it("rounds limits up: timeouts to the millisecond, memory to the MiB, CPUs to the hundredth", () => {
     const reading = { ...first, buildDurationMs: 1_000.2, readyDurationMs: 700.1, buildPeakMemoryBytes: 100 * MIB + 1, buildCpus: 1.234 };
 
-    expect(calibrationSummary([reading], MULTIPLES).limits).toEqual({
+    expect(calibrationSummary([reading], MULTIPLES, 4).limits).toEqual({
       buildTimeoutMs: 5_001,
       readyTimeoutMs: 3_501,
       buildMemoryBytes: 201 * MIB,
@@ -63,8 +63,22 @@ describe("calibrationSummary", () => {
     });
   });
 
+  // Docker refuse un --cpus supérieur au nombre de CPU de la machine (code
+  // 125) : observé avec 1,13 × 2 = 2,26 sur un runner à 2 CPU (exécution 45279347841).
+  it("caps the CPU limit at the CPU count of the calibration machine, leaving the other limits as they are", () => {
+    const reading = { ...first, buildCpus: 1.13 };
+
+    expect(calibrationSummary([reading], MULTIPLES, 2).limits).toEqual({
+      buildTimeoutMs: 105_000,
+      readyTimeoutMs: 4_000,
+      buildMemoryBytes: 1_000 * MIB,
+      buildCpus: 2,
+    });
+    expect(calibrationSummary([reading], MULTIPLES, 3).limits.buildCpus).toBe(2.26);
+  });
+
   it("refuses to summarise a calibration without readings", () => {
-    expect(() => calibrationSummary([], MULTIPLES)).toThrow("A calibration needs at least one reading");
+    expect(() => calibrationSummary([], MULTIPLES, 4)).toThrow("A calibration needs at least one reading");
   });
 });
 
