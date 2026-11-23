@@ -177,6 +177,12 @@ function statusOf(test: JSONReportTest): ScenarioStatus {
   return reached ? "failed" : "unreached";
 }
 
+// Résumé d'un oracle non lancé (spec de l'étape 3, « Règles des issues ») :
+// chaque scénario de la liste (`playwright test --list`) est non atteint.
+export function unreachedSummary(listed: JSONReport): OracleSummary {
+  return summarize(scenarios(listed).map(({ spec }) => ({ status: "unreached", keyboard: spec.tags.includes(KEYBOARD_TAG) })));
+}
+
 function summarize(statuses: ScenarioOutcome[]): OracleSummary {
   const count = (status: ScenarioStatus) => statuses.filter((entry) => entry.status === status).length;
   const passed = count("passed");

@@ -1,7 +1,7 @@
 // Collecte de l'oracle : JSON Playwright fabriqués, sans lancer Playwright.
 import type { JSONReport, JSONReportSpec } from "@playwright/test/reporter";
 import { describe, expect, it } from "vitest";
-import { artifactPaths, collect } from "../../oracle/collect.ts";
+import { artifactPaths, collect, unreachedSummary } from "../../oracle/collect.ts";
 
 const SALT = "a".repeat(64);
 const ROOT = "/home/runner/work/migrabench/migrabench";
@@ -330,5 +330,28 @@ describe("oracle collection of paths", () => {
     input.suites[0]!.specs[0]!.tests[0]!.results[0]!.stdout = [{ text: "cache in /home/someone/.cache/ms-playwright\n" }];
 
     expect(() => collectOn(ROOT, input)).toThrow("The oracle result would contain a machine path: /home/");
+  });
+});
+
+// Oracle non lancé (spec de l'étape 3, « Règles des issues ») : la liste des
+// scénarios (`playwright test --list`) n'a aucun résultat.
+describe("summary of an oracle that did not run", () => {
+  it("counts every listed scenario as unreached", () => {
+    const listed = report([
+      { title: "a", outcome: "passed", tags: ["recherche", "clavier"] },
+      { title: "b", outcome: "passed" },
+      { title: "c", outcome: "passed", tags: ["fiche"] },
+    ]);
+    for (const test of listed.suites[0]!.specs.flatMap((entry) => entry.tests)) test.results = [];
+
+    expect(unreachedSummary(listed)).toEqual({
+      scenarios: 3,
+      passed: 0,
+      failed: 0,
+      unreached: 3,
+      passRate: 0,
+      reachedPassRate: null,
+      keyboard: { passed: 0, total: 1 },
+    });
   });
 });
