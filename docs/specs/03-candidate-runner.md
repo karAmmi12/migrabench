@@ -513,6 +513,14 @@ le candidat tourne ensuite (voir les règles des issues).
 - Délais et limites = maximum relevé × multiple déclaré. Les multiples sont
   des paramètres du banc, déclarés et versionnés avec le résultat
   d'étalonnage, pas des mesures.
+- **Limite du relevé de CPU** (précisée par #72) : l'usage de CPU relevé
+  est une moyenne, le temps CPU du conteneur divisé par la durée de
+  l'étape, pas un pic. La limite `--cpus` qui en sort peut donc freiner une
+  construction qui demande par moments plus que sa moyenne. Ce
+  ralentissement allonge la construction, sans la faire échouer : il est
+  absorbé par la marge sur les délais (× 5), bien plus large que celle sur
+  le CPU (× 2). Le pic de mémoire, lui, est un vrai pic (`memory.peak` du
+  cgroup v2).
 - L'étalonnage de l'étape se fait en CI, l'environnement des mesures
   comptées. Son résultat est versionné ; `--counted` est refusé tant qu'il
   n'en existe aucun. En diagnostic sans étalonnage, le runner applique le
