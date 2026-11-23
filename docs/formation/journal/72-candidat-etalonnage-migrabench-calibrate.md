@@ -297,7 +297,9 @@ limites sortent.
   - La course existe déjà sur `main` sans ce ticket : sur `5b3f91c`, dans un
     worktree propre, `npx vitest run tests/runner/refused-usage.test.ts
     tests/runner/bench-lock-tools.test.ts` a échoué trois fois sur trois.
-    Elle n'est pas corrigée ici.
+    Elle n'est pas corrigée ici : elle est suivie par #90. En CI, elle a fait
+    échouer la tentative 1 de l'exécution 45285926481, et la tentative 2 est
+    verte.
 - **Un commit intermédiaire ne compile pas seul.** Dans `6f6deeb`,
   `runner/measure.ts` appelle encore l'ancienne signature de
   `measureLimits`. Il est adapté dans `e2751ab`. La PR se fusionne en squash.
@@ -539,12 +541,30 @@ CI sur `6a135fe`, la poussée qui apporte la borne de CPU :
   Le job `oracle` rend `Scenarios: 38, passed: 38, failed: 0, unreached: 0`,
   et le job `proof` rend `Proof holds on 5 results.`
 
-> À vérifier après l'exécution de la CI de la PR : sur la poussée suivante
-> (`main` fusionnée, résultat versionné, verrou de `calibrate`, fiche), aucun
-> chemin de `calibration` ne change depuis `6a135fe`. Le job doit être
-> ignoré avec la raison « aucun de ses chemins n'a changé depuis
-> 6a135fe…, où calibration a réussi » (lien et raison relevée). « Tests du
-> banc » : relever si la course de `refused-usage.test.ts` y apparaît.
+CI sur `9a43cb2`, la poussée qui apporte la fusion de `main` (#88), le
+résultat versionné, le verrou de `calibrate` et la fiche :
+
+- « Étalonnage » : [exécution 45285926480](https://github.com/karAmmi12/migrabench/actions/runs/45285926480).
+  Le job `changes` écrit `calibration : ignoré (aucun de ses chemins n'a
+  changé depuis 6a135febc6b074291b5651a8f1db61c28868cc53, où calibration a
+  réussi)`, et le job `calibration` est `skipped`. Versionner un résultat
+  d'étalonnage ne relance donc pas l'étalonnage.
+- « Tests du banc » : [exécution 45285926481](https://github.com/karAmmi12/migrabench/actions/runs/45285926481),
+  sur le commit de fusion `8a60a59` (`9a43cb2` dans `5b3f91c`, tête de
+  `main`) :
+  - tentative 1 en échec, `Test Files 1 failed | 59 passed (60)`,
+    `Tests 1 failed | 494 passed (495)`. Le test qui échoue vient de #88 :
+    « refuses npm run oracle and npm run stack:up while a measure holds it,
+    before any Docker command » (`+ "build --quiet --tag migrabench-runtime
+    fixtures/runtime-image lock=held"`). C'est un échec intermittent, suivi
+    par #90 ;
+  - tentative 2, sans changement de code, verte : `Test Files 60 passed
+    (60)`, `Tests 495 passed (495)`.
+- « Oracle » : [exécution 45285926677](https://github.com/karAmmi12/migrabench/actions/runs/45285926677).
+  Le job `oracle` rend `Scenarios: 38, passed: 38, failed: 0, unreached: 0`,
+  et le job `proof` rend `Proof holds on 5 results.`
+- « Vérification des types », « Fiche de formation » et « Actions
+  épinglées » : `success`.
 
 ## Pour aller plus loin
 
@@ -556,9 +576,10 @@ CI sur `6a135fe`, la poussée qui apporte la borne de CPU :
   répartir les relevés sur plusieurs jobs de CI et de garder le maximum.
 - **Code `125` de Docker** : d'autres causes que `--cpus` restent rangées en
   `build-failed` (commentaire sur #68).
-- **Course entre `refused-usage.test.ts` et `bench-lock-tools.test.ts`**
-  (venue de #88) : il faut isoler les dossiers de mesure des tests qui
-  lancent une vraie mesure, ou ne pas lancer ces deux fichiers en parallèle.
+- **#90, course entre `refused-usage.test.ts` et `bench-lock-tools.test.ts`**
+  (venue de #88) : le faux `docker` signale qu'il est atteint, comme point de
+  synchronisation explicite, et les mesures de ces tests n'écrivent plus
+  dans les dossiers que surveillent les tests de refus.
 - **Délais serrés** : 3,6 s jusqu'à la disponibilité et 49 s de
   construction sortent d'un candidat d'étalonnage léger. Un candidat d'agent
   avec plus de dépendances les approchera. L'étape 6 réétalonne avant sa
