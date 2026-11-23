@@ -94,17 +94,12 @@ async function prepare(
   const startedAt = new Date();
   // Lu avant la pile : un rang invalide arrête l'exécution avant toute mesure.
   const ciRun = ciRunOf(process.env);
-  // Le sel passe par l'environnement du shell, jamais par .env (que lit aussi le legacy).
-  await spawnCommand("docker", ["compose", "up", "--detach", "--force-recreate", "--no-build", "--wait", ...SERVICES], {
-    env: { ARCHIVE_SALT: salt },
-    inherit: true,
-  });
+  await recreateStack(salt);
   await onStackReady?.();
   const benchCommit = await stdoutOf("git", ["rev-parse", "HEAD"]);
   // Sortie brute, sans trim : une entrée commence par un espace (` M chemin`).
   const worktree = worktreeState((await spawnCommand("git", [...GIT_STATUS_ARGS])).stdout);
-  const images: Record<string, string> = {};
-  for (const service of SERVICES) images[service] = await imageOf(service);
+  const images = await stackImages();
   const { chromium, playwright } = await browserVersions();
   const env = await readBenchEnv();
   const executionId = `${timestamp(startedAt)}-${randomBytes(4).toString("hex")}`;
@@ -164,6 +159,23 @@ export async function listOracle(artifactsDir: string): Promise<OracleSummary> {
   const listed = JSON.parse(await readFile(reportFile, "utf8")) as JSONReport;
   if (listed.errors.length > 0) throw new Error(`Playwright could not list the oracle scenarios: ${listed.errors.map((error) => error.message ?? error.value).join("; ")}`);
   return unreachedSummary(listed);
+}
+
+// Recrée le legacy et le service d'archivage et attend qu'ils soient sains.
+// Le sel passe par l'environnement du shell, jamais par .env (que lit aussi le
+// legacy). Partagé avec `migrabench calibrate`.
+export async function recreateStack(salt: string): Promise<void> {
+  await spawnCommand("docker", ["compose", "up", "--detach", "--force-recreate", "--no-build", "--wait", ...SERVICES], {
+    env: { ARCHIVE_SALT: salt },
+    inherit: true,
+  });
+}
+
+// Empreinte de l'image de chaque service recréé (`images`).
+export async function stackImages(): Promise<Record<string, string>> {
+  const images: Record<string, string> = {};
+  for (const service of SERVICES) images[service] = await imageOf(service);
+  return images;
 }
 
 async function imageOf(service: string): Promise<string> {

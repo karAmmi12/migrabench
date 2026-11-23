@@ -8,23 +8,40 @@
 // l'étape les ajoutent. La construction, ses délais et ses limites viennent de
 // #65 (runner/build.ts).
 // Le verdict et les codes de sortie viennent de #63 (runner/verdict.ts).
+// Les délais et limites du dernier étalonnage de CI viennent de #72
+// (runner/calibration-results.ts).
 import { randomBytes } from "node:crypto";
-import { copyFile, mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
-import { dirname, join, relative } from "node:path";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { executeOracle, type ExecuteOracleResult, listOracle } from "../oracle/execute.ts";
 import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
-import { candidateCompose } from "./candidate-compose.ts";
-import { type CandidateFile, contentDigest, isCopied } from "./candidate-content.ts";
+import { contentDigest } from "./candidate-content.ts";
 import { candidateName, measureId as measureIdOf } from "./measure-id.ts";
 import { type CandidateRecord, measureRecord, type OracleRecord } from "./measure-record.ts";
 import type { ExitCode, PhaseName, PhaseOutcome, PhaseRecord, Verdict } from "./verdict.ts";
-import { citedFileSha256 as digestOf, fileSha256 } from "../shared/digest.ts";
+import { citedFileSha256 as digestOf } from "../shared/digest.ts";
 import { spawnCommand, stdoutOf } from "../shared/process.ts";
-import { ARTIFACTS_DIR_FROM_ROOT, readBenchEnv, ROOT } from "../shared/root.ts";
+import { ARTIFACTS_DIR_FROM_ROOT, ROOT } from "../shared/root.ts";
 import { buildCandidate } from "./build.ts";
+import { appliedCalibration } from "./calibration-results.ts";
+import {
+  buildRuntimeImage,
+  CANDIDATE_BASE_URL,
+  CANDIDATE_PORT,
+  candidateFiles,
+  candidateService,
+  copyCandidate,
+  isDirectory,
+  RUNTIME_IMAGE,
+  startCandidate,
+  stopCandidate,
+  waitUntilReady,
+} from "./candidate-runtime.ts";
 import { containerUser } from "./container-user.ts";
 import { type Limits, measureLimits, SAFETY_CAP } from "./limits.ts";
 import { DIAGNOSTIC_DIR_FROM_ROOT } from "./paths.ts";
+
+export { CANDIDATE_PORT };
 
 export interface MeasureOptions {
   // Dossier du candidat, relatif à la racine du dépôt.
@@ -43,12 +60,6 @@ export type MeasureResult =
   | { written: true; measureDir: string; outcome: Verdict; exitCode: ExitCode }
   | { written: false; refusal: "refused-usage" | "refused-counted"; message: string; exitCode: 4 };
 
-// Port imposé au candidat, publié sur 127.0.0.1.
-export const CANDIDATE_PORT = 8100;
-const RUNTIME_IMAGE = "migrabench-runtime";
-const RUNTIME_IMAGE_CONTEXT = "fixtures/runtime-image";
-const COMPOSE_FILE = "docker-compose.yml";
-
 export async function measureCandidate({ candidate, counted = false, salt, timeoutCapMs }: MeasureOptions): Promise<MeasureResult> {
   // 0. Refus préalables, avant toute écriture.
   const refused = (message: string, refusal: "refused-usage" | "refused-counted" = "refused-usage"): MeasureResult => ({
@@ -63,11 +74,12 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
     return refused("a measure planned to count refuses an imposed --timeout-cap-ms", "refused-counted");
   }
   if (counted) throw new Error("A counted measure is not supported yet: run a diagnostic measure");
-  // Sans étalonnage (#72), le plafond de sécurité, marqué provisoire.
+  // Délais et limites du dernier étalonnage de CI ; sans lui, le plafond de
+  // sécurité, marqué provisoire.
   let limits: Limits;
   let limitsRecord: ReturnType<typeof measureLimits>["record"];
   try {
-    ({ limits, record: limitsRecord } = measureLimits(SAFETY_CAP, timeoutCapMs));
+    ({ limits, record: limitsRecord } = measureLimits({ safetyCap: SAFETY_CAP, calibration: await appliedCalibration(), timeoutCapMs }));
   } catch (error) {
     return refused((error as Error).message);
   }
@@ -97,12 +109,8 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
   const files = await candidateFiles(candidateDir);
   const candidateRecord: CandidateRecord = { path: candidate, contentDigest: contentDigest(files) };
   const copyDir = join(rawDir, "candidate");
-  for (const { path } of files) {
-    await mkdir(dirname(join(copyDir, path)), { recursive: true });
-    await copyFile(join(candidateDir, path), join(copyDir, path));
-  }
-  await spawnCommand("docker", ["build", "--quiet", "--tag", RUNTIME_IMAGE, RUNTIME_IMAGE_CONTEXT]);
-  const runtimeImage = await stdoutOf("docker", ["image", "inspect", "--format", "{{.Id}}", RUNTIME_IMAGE]);
+  await copyCandidate(candidateDir, files, copyDir);
+  const runtimeImage = await buildRuntimeImage();
   const user = containerUser(process.getuid?.(), process.getgid?.());
   closePreparation();
 
@@ -122,16 +130,9 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
   // 4 et 5. Pile et démarrage, puis oracle. L'exécution complète de l'étape 2
   // recrée le legacy et le service d'archivage, puis rappelle le runner, qui
   // recrée le service `candidate` et attend sa disponibilité.
-  const overrideFile = join(rawDir, "compose.candidate.yml");
-  const compose = ["compose", "--file", COMPOSE_FILE, "--file", overrideFile];
-  const startLog = join(rawDir, "start.log");
-  const baseUrl = `http://127.0.0.1:${CANDIDATE_PORT}`;
-  const env = await readBenchEnv();
-  await writeFile(
-    overrideFile,
-    `${JSON.stringify(candidateCompose({ image: RUNTIME_IMAGE, user, port: CANDIDATE_PORT, copyDir, usersFile: join(ROOT, "fixtures", "users.json"), start: declared.start, archiveToken: env.ARCHIVE_TOKEN ?? "" }), null, 2)}\n`,
-  );
-  const composeOverride = await digestOf(overrideFile);
+  const service = await candidateService({ rawDir, copyDir, user, start: declared.start });
+  const { composeOverride, startLog } = service;
+  const baseUrl = CANDIDATE_BASE_URL;
 
   let oracle: OracleRecord | undefined;
   let oracleMetadata: ExecuteOracleResult["metadata"] | undefined;
@@ -146,9 +147,9 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
         artifactsDir: `${ARTIFACTS_DIR_FROM_ROOT}/${id}/oracle`,
         resultFile: join(measureDir, "oracle.json"),
         onStackReady: async () => {
-          await stopCandidate(compose, startLog);
-          await spawnCommand("docker", [...compose, "up", "--detach", "--force-recreate", "--no-deps", "candidate"]);
-          startOutcome = await waitUntilReady(compose, baseUrl, limits.readyTimeoutMs);
+          await stopCandidate(service);
+          await startCandidate(service);
+          startOutcome = await waitUntilReady(service, limits.readyTimeoutMs);
           if (startOutcome !== "ok") throw new CandidateNotStarted(startOutcome);
           closeStart();
           closeOracle = phase("oracle");
@@ -162,7 +163,7 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
       closeGates();
     } catch (error) {
       if (!(error instanceof CandidateNotStarted)) {
-        await stopCandidate(compose, startLog);
+        await stopCandidate(service);
         throw error;
       }
       closeStart(startOutcome);
@@ -174,7 +175,7 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
 
   // 7. Clôture : arrêt du candidat, measure.json écrit.
   const closeClosing = phase("closing");
-  await stopCandidate(compose, startLog);
+  await stopCandidate(service);
   closeClosing();
   const startPhase = phases.find(({ name }) => name === "start");
   if (startPhase !== undefined) startPhase.raw["start.log"] = await digestOf(startLog);
@@ -228,53 +229,4 @@ function startPhases(phases: PhaseRecord[]) {
       } as PhaseRecord);
     };
   };
-}
-
-async function isDirectory(path: string): Promise<boolean> {
-  try {
-    return (await stat(path)).isDirectory();
-  } catch {
-    return false;
-  }
-}
-
-// Fichiers copiés du candidat, avec leur empreinte. Un lien symbolique pourrait
-// faire copier un fichier hors du candidat : il est refusé.
-async function candidateFiles(candidateDir: string): Promise<CandidateFile[]> {
-  const files: CandidateFile[] = [];
-  const walk = async (dir: string): Promise<void> => {
-    for (const entry of await readdir(dir, { withFileTypes: true })) {
-      const full = join(dir, entry.name);
-      const path = relative(candidateDir, full).split("\\").join("/");
-      if (!isCopied(path)) continue;
-      if (entry.isSymbolicLink()) throw new Error(`The candidate contains a symbolic link: ${path}`);
-      if (entry.isDirectory()) await walk(full);
-      else if (entry.isFile()) files.push({ path, sha256: await fileSha256(full) });
-    }
-  };
-  await walk(candidateDir);
-  return files;
-}
-
-// Disponible dès qu'une réponse HTTP arrive, quel que soit son statut.
-async function waitUntilReady(compose: readonly string[], baseUrl: string, readyTimeoutMs: number): Promise<PhaseOutcome<"start">> {
-  const deadline = Date.now() + readyTimeoutMs;
-  while (Date.now() < deadline) {
-    try {
-      await fetch(baseUrl, { signal: AbortSignal.timeout(2_000), redirect: "manual" });
-      return "ok";
-    } catch {
-      const container = await stdoutOf("docker", [...compose, "ps", "--all", "--quiet", "candidate"]);
-      const running = container === "" ? "false" : await stdoutOf("docker", ["inspect", "--format", "{{.State.Running}}", container]);
-      if (running !== "true") return "start-exited";
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-  }
-  return "start-not-ready";
-}
-
-// Ajoute les sorties du conteneur au brut de `start`, puis le supprime.
-async function stopCandidate(compose: readonly string[], startLog: string): Promise<void> {
-  await spawnCommand("docker", [...compose, "logs", "--no-color", "--timestamps", "candidate"], { logFile: startLog, allowFailure: true });
-  await spawnCommand("docker", [...compose, "rm", "--stop", "--force", "candidate"]);
 }

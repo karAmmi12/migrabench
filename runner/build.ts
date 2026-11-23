@@ -21,6 +21,7 @@ import { type BuildStep, buildStepOutcome, type BuildStepOutcome } from "./build
 import { isFetchedWith } from "./candidate-content.ts";
 import { type ContainerUser, dockerUser } from "./container-user.ts";
 import type { Limits } from "./limits.ts";
+import { cgroupUsage, type ResourceUsage } from "./resource-usage.ts";
 
 // Registre public npm imposé, par une variable de npm, qui prime sur un `.npmrc` du candidat.
 export const NPM_REGISTRY = "https://registry.npmjs.org/";
@@ -35,21 +36,35 @@ export interface BuildInput {
   // Commande de construction déclarée, facultative.
   build: string | undefined;
   limits: Limits;
+  // Relève les ressources de chaque étape (`migrabench calibrate` seulement).
+  collectUsage?: boolean;
 }
 
 export interface BuildResult {
   outcome: BuildStepOutcome;
   // Empreinte de chaque brut, par son chemin dans le dossier des bruts.
   raw: Record<string, string>;
+  // Durée de la phase entière, celle que borne le délai global.
+  durationMs: number;
+  // Étapes lancées, avec leur durée et, sur demande, leurs ressources.
+  steps: { step: BuildStep; durationMs: number; usage?: ResourceUsage }[];
 }
 
 const WORKDIR = "/candidate";
 const NPM_CACHE = "/npm-cache";
 const NPM_LOGS = "/npm-logs";
+const USAGE = "/usage";
+// Relevé des ressources : la commande de l'étape (`$0`) tourne dans un
+// sous-shell, puis les compteurs du cgroup v2 du conteneur sont copiés, et le
+// code de sortie de la commande est rendu tel quel.
+const USAGE_WRAPPER = `sh -c "$0"; status=$?; cat /sys/fs/cgroup/memory.peak > ${USAGE}/memory.peak; cat /sys/fs/cgroup/cpu.stat > ${USAGE}/cpu.stat; exit $status`;
 
-export async function buildCandidate({ measureId, image, user, rawDir, copyDir, build, limits }: BuildInput): Promise<BuildResult> {
-  const deadline = Date.now() + limits.buildTimeoutMs;
+export async function buildCandidate({ measureId, image, user, rawDir, copyDir, build, limits, collectUsage = false }: BuildInput): Promise<BuildResult> {
+  const startedAt = Date.now();
+  const deadline = startedAt + limits.buildTimeoutMs;
   const raw: Record<string, string> = {};
+  const recorded: BuildResult["steps"] = [];
+  const result = (outcome: BuildStepOutcome): BuildResult => ({ outcome, raw, durationMs: Date.now() - startedAt, steps: recorded });
   const fetchDir = join(rawDir, "fetch");
   const cacheDir = join(rawDir, "npm-cache");
   await cp(copyDir, fetchDir, { recursive: true, filter: (source) => isFetchedWith(relative(copyDir, source).split("\\").join("/")) });
@@ -64,6 +79,9 @@ export async function buildCandidate({ measureId, image, user, rawDir, copyDir, 
     const output = `${step}.log`;
     const npmLogs = join(rawDir, "npm-logs", step);
     await mkdir(npmLogs, { recursive: true });
+    const usageDir = join(rawDir, "usage", step);
+    if (collectUsage) await mkdir(usageDir, { recursive: true });
+    const stepStartedAt = Date.now();
     const run = await runStep({
       container: `migrabench-${measureId}-${step}`,
       deadline,
@@ -84,10 +102,12 @@ export async function buildCandidate({ measureId, image, user, rawDir, copyDir, 
         "--volume", `${dir}:${WORKDIR}`,
         "--volume", `${cacheDir}:${NPM_CACHE}`,
         "--volume", `${npmLogs}:${NPM_LOGS}`,
+        ...(collectUsage ? ["--volume", `${usageDir}:${USAGE}`] : []),
         "--workdir", WORKDIR,
-        image, "sh", "-c", command,
+        image, "sh", "-c", ...(collectUsage ? [USAGE_WRAPPER, command] : [command]),
       ],
     });
+    const durationMs = Date.now() - stepStartedAt;
     raw[output] = await digestOf(join(rawDir, output));
     let npmLog = "";
     for (const name of (await readdir(npmLogs)).sort()) {
@@ -96,9 +116,16 @@ export async function buildCandidate({ measureId, image, user, rawDir, copyDir, 
       npmLog += await readFile(path, "utf8");
     }
     const outcome = buildStepOutcome({ step, ...run, npmLog }, NPM_REGISTRY);
-    if (outcome.outcome !== "ok") return { outcome, raw };
+    if (outcome.outcome !== "ok") return result(outcome);
+    recorded.push({ step, durationMs, ...(collectUsage ? { usage: await usageOf(usageDir) } : {}) });
   }
-  return { outcome: { outcome: "ok" }, raw };
+  return result({ outcome: "ok" });
+}
+
+async function usageOf(dir: string): Promise<ResourceUsage> {
+  const read = (name: string) => readFile(join(dir, name), "utf8").catch(() => undefined);
+  const [memoryPeak, cpuStat] = await Promise.all([read("memory.peak"), read("cpu.stat")]);
+  return cgroupUsage({ ...(memoryPeak === undefined ? {} : { memoryPeak }), ...(cpuStat === undefined ? {} : { cpuStat }) });
 }
 
 interface StepRun {
