@@ -5,6 +5,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { measureCandidate } from "../../runner/measure.ts";
 import { DIAGNOSTIC_DIR_FROM_ROOT } from "../../runner/paths.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, ROOT } from "../../shared/root.ts";
 
@@ -43,5 +44,25 @@ describe("migrabench measure refused before any measure", () => {
 
   it("refuses a candidate path that is a file", () => {
     expect(measure("measure", "--candidate", "fixtures/users.json")).toMatchObject({ status: 4, written: [] });
+  });
+});
+
+describe("timeout cap of a diagnostic measure", () => {
+  it("refuses a timeout cap that is not a positive whole number, or that would raise a timeout, with exit code 4", () => {
+    for (const value of ["0", "abc", "1.5", "600001"]) {
+      const result = measure("measure", "--candidate", "fixtures/reference-candidate", "--timeout-cap-ms", value);
+
+      expect(result).toMatchObject({ status: 4, written: [] });
+      expect(result.stderr).toContain("refused-usage: --timeout-cap-ms");
+    }
+  });
+
+  it("is refused by a measure planned to count, before anything is written", async () => {
+    const before = [entries(DIAGNOSTIC_DIR_FROM_ROOT), entries(ARTIFACTS_DIR_FROM_ROOT)];
+    const result = await measureCandidate({ candidate: "fixtures/reference-candidate", counted: true, timeoutCapMs: 5_000 });
+
+    expect(result).toMatchObject({ written: false, refusal: "refused-counted", exitCode: 4 });
+    expect(result.written ? "" : result.message).toContain("--timeout-cap-ms");
+    expect([entries(DIAGNOSTIC_DIR_FROM_ROOT), entries(ARTIFACTS_DIR_FROM_ROOT)]).toEqual(before);
   });
 });
