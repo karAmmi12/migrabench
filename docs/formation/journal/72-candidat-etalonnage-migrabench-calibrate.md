@@ -89,12 +89,18 @@ limites sortent.
 - `scripts/ci-scope.ts` : `calibration` rejoint les jobs lourds, avec ses
   propres chemins, comme `proof` (table `JOB_PATHS`). Tests dans
   `tests/ci-scope.test.ts` et `tests/write-ci-scope.test.ts`.
-- `results/calibration/` : deux résultats d'étalonnage de CI, chacun
-  versionné seul dans son commit :
-  - `20261123T215140Z-344b70c-ci45273672040.1-1.json` (commit `b44b257`) ;
-  - `20261123T222612Z-38a5914-ci45279347841.1-1.json` (commit `7de1c89`). Il
-    a été obtenu après la fusion de `main` et la nouvelle règle de CI, et
-    c'est celui que les mesures appliquent : c'est le plus récent.
+- `results/calibration/20261123T215140Z-344b70c-ci45273672040.1-1.json` :
+  le premier résultat d'étalonnage de CI, versionné seul dans le commit
+  `b44b257`. Le second, celui de l'exécution 45279347841, a été versionné
+  en local (commit `7de1c89`), puis retiré avant toute poussée : sa limite
+  de CPU dépassait les CPU du runner (voir « Difficultés »).
+- `oracle/result-check.ts`, `checkCalibrationResult` : le contrôle des
+  résultats versionnés (#53) étendu à `results/calibration/`, avec les mêmes
+  règles que pour l'oracle sauf le sel. Tests :
+  `tests/runner/calibration-check.test.ts` (un cas négatif par règle) et
+  `tests/runner/versioned-calibrations.test.ts`.
+- `runner/limits.ts`, `cpuShortfall` : le garde-fou d'une mesure contre une
+  limite de CPU que Docker refuserait.
 - `docs/specs/03-candidate-runner.md` : la limite du relevé de CPU.
 - Tests :
   - `tests/runner/resource-usage.test.ts` ;
@@ -156,6 +162,10 @@ limites sortent.
     contrat, le relevé des ressources et le workflow. Il ne tourne pas si
     seul `docs/**` a changé depuis son dernier succès sur la PR.
     `workflow_dispatch` le lance toujours.
+  - Depuis son dernier succès, seuls ses propres chemins comptent, et pas
+    tout ce qui n'est pas `docs/**` : sans cela, versionner un résultat
+    d'étalonnage relancerait l'étalonnage. Les tests ont été écrits rouges
+    d'abord.
   - Options écartées :
     - le filtre `paths` sous `on:`, qui laissait le job tourner à chaque
       push (voir « Difficultés ») ;
@@ -238,8 +248,16 @@ limites sortent.
     étalonnage verrait ses conteneurs de construction refusés par Docker
     (code `125`). #65 range ce code en `build-failed`, contre le candidat.
     En local, avec 14 CPU, la mesure passe.
-  - Résolution : la décision revient à l'humain (voir « Pour aller plus
-    loin »).
+  - Résolution, décidée par l'humain, tests rouges d'abord :
+    - à l'étalonnage, `buildCpus` ne dépasse pas `environment.machine.cpus`
+      de la machine d'étalonnage (`calibrationSummary`) ;
+    - à la mesure, si Docker voit moins de CPU que la limite appliquée, la
+      mesure s'arrête dans la préparation, avant `npm ci`, en
+      `runner-error-before-candidate`, avec la limite et le nombre de CPU
+      pour preuve (`cpuShortfall`). Jamais en `build-failed` ;
+    - le résultat de l'exécution 45279347841 n'est jamais arrivé sur la
+      branche : il a été retiré, puis le candidat a été réétalonné en CI
+      avec la correction.
 - **Quel commit l'étalonnage de CI enregistre.** Le workflow fait son
   checkout sur `github.event.pull_request.head.sha`, pas sur le commit de
   fusion temporaire. Le journal de l'exécution 45279347841 montre `HEAD is
@@ -326,7 +344,7 @@ empreinte `sha256:0a411d5fe323e88f13cc6bc9de3e80145693f7300da9794daa07ba73b0f55d
 Second étalonnage en CI : [exécution 45279347841](https://github.com/karAmmi12/migrabench/actions/runs/45279347841),
 job `calibration`, commit `38a5914` (tête de la PR), arbre propre. Runner
 ubuntu 24.04 (image `20261116.133.1`), 2 CPU Intel Xeon 6975P-C. Résultat
-versionné :
+versionné en local puis retiré, jamais poussé :
 `results/calibration/20261123T222612Z-38a5914-ci45279347841.1-1.json`,
 empreinte `sha256:9b921d7925e8d2062fd6e61e4745635738953f080ba61280b3dc397436c75bac`.
 
@@ -341,8 +359,9 @@ D'un runner à l'autre, le maximum de la construction passe de 10 110 ms
 (AMD EPYC, premier étalonnage) à 5 781 ms (Intel Xeon). Il reste sous le
 délai de chacun des deux étalonnages.
 
-Mesure du candidat de référence qui applique le second étalonnage, au
-commit `7de1c89`, arbre propre :
+Mesure du candidat de référence qui appliquait ce second étalonnage, au
+commit `7de1c89`, arbre propre. Ce commit a ensuite été retiré, avant toute
+poussée. La mesure passait en local, parce que Docker Desktop voit 14 CPU :
 
 ```sh
 npm run stack:up
@@ -434,24 +453,22 @@ règle de `calibration` :
   Le job `oracle` rend `Scenarios: 38, passed: 38, failed: 0, unreached: 0`,
   et le job `proof` rend `Proof holds on 5 results.`
 
-> À vérifier après l'exécution de la CI de la PR : sur le commit qui ne
-> touche que cette fiche, poussé après `38a5914`, le job `changes` du
-> workflow « Étalonnage » doit ignorer `calibration` (lien et raison
-> relevée).
+> À vérifier après l'exécution de la CI de la PR : sur la poussée qui
+> apporte la correction de la limite de CPU, `calibration` doit tourner
+> (lien, head SHA). Sur la poussée suivante, qui ne contient que le résultat
+> versionné et la documentation, il doit être ignoré avec la raison « aucun
+> de ses chemins n'a changé depuis … » (lien et raison relevée).
 
 ## Pour aller plus loin
 
 - **#73, mesure prévue pour compter** : `--counted` doit être refusé tant
   qu'aucun étalonnage de CI n'est versionné. `appliedCalibration` rend déjà
   `undefined` dans ce cas.
-- **Limite de CPU au-delà de la machine** : 2,26 CPU sur un runner qui en a
-  2 rend toute mesure en CI impossible (code `125` de Docker). Trois pistes :
-  - borner `buildCpus` au nombre de CPU de la machine d'étalonnage, déjà
-    enregistré dans `environment.machine.cpus` ;
-  - le borner au moment de l'appliquer, au nombre de CPU de la machine de
-    la mesure ;
-  - ranger le code `125` en panne du banc plutôt qu'en échec du candidat
-    (commentaire sur #68).
+- **#89, relevés sur plusieurs machines** : on a observé 10,1 s de
+  construction sur AMD EPYC et 5,8 s sur Intel Xeon. L'issue propose de
+  répartir les relevés sur plusieurs jobs de CI et de garder le maximum.
+- **Code `125` de Docker** : d'autres causes que `--cpus` restent rangées en
+  `build-failed` (commentaire sur #68).
 - **Délais serrés** : 3,6 s jusqu'à la disponibilité et 50,5 s de
   construction sortent d'un candidat d'étalonnage léger. Un candidat d'agent
   avec plus de dépendances les approchera. L'étape 6 réétalonne avant sa
