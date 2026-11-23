@@ -159,7 +159,7 @@ candidat de référence obtient 100 % dans une mesure comptée.
 - **Préconditions de `--counted`** (fonction pure) : prend les faits Git
   (arbre propre, `HEAD`, `origin/main` après `fetch`, atteignabilité) et la
   présence d'un sel imposé, rend toutes les conditions manquantes.
-- **Verrou du banc** : prise, refus, reprise d'un verrou mort, libération.
+- **Verrou du banc** : prise, refus, reprise d'un verrou orphelin, libération.
   Partagé par `migrabench measure`, `npm run oracle`, `npm run stack:up` et
   le contrôle de `pretest`.
 - **Journal d'accès** : lecture du journal brut d'une mesure, repérage des
@@ -319,8 +319,9 @@ de la mesure>/`, cités par empreinte (ADR 0005).
   - `limits` : délai de construction, délai de disponibilité, mémoire, CPU
     appliqués, avec le multiple déclaré et l'empreinte du résultat
     d'étalonnage dont ils sortent ;
-  - `lock` : prise du verrou du banc, et reprise d'un verrou mort s'il y en a
-    eu une (processus, outil, heure).
+  - `lock` : prise du verrou du banc, et reprise d'un verrou orphelin s'il
+    y en a eu une (outil, PID, heure de démarrage et ligne de commande du
+    processus repris).
 - **`salt`** et **`saltImposed`**, écrits à la fin, comme dans l'étape 2.
 - **`marker`** : marqueur de la mesure, écrit à la fin seulement.
 - **`phases`** : une entrée par phase, dans l'ordre : `name`, `outcome`,
@@ -367,21 +368,27 @@ le candidat tourne ensuite (voir les règles des issues).
 
 ### Verrou du banc
 
-Proposition de cette spec : `PROTOCOL.md` cite le verrou du banc sans le
-décrire.
+`PROTOCOL.md` cite le verrou du banc ; cette section le décrit.
 
 - Un fichier à la racine du dépôt, ignoré par Git, créé de façon exclusive.
-  Il contient l'outil (`measure`, `oracle`, `stack-up`), le processus, la
-  machine, l'identifiant de la mesure s'il y en a un et l'heure de prise.
+  Il contient l'outil (`measure`, `oracle`, `stack-up`), le PID du
+  processus qui le tient, l'heure de démarrage de ce processus, sa ligne de
+  commande, la machine, l'identifiant de la mesure s'il y en a un et l'heure
+  de prise.
 - **Le prennent** : `migrabench measure`, `npm run oracle`,
   `npm run stack:up`, pour toute leur durée.
 - **Le vérifie sans le prendre** : `pretest` (avant `npm test`), qui refuse
   si le verrou est tenu, car les tests du Seam A écrivent sur la pile.
 - **Refus** : code `4` pour `migrabench measure`, avec l'outil, le processus
   et l'heure de prise dans le message.
-- **Verrou mort** : si le processus qui le tient n'existe plus sur la même
-  machine, le verrou est repris, et la reprise est enregistrée dans
-  `environment.lock` de la mesure.
+- **Verrou orphelin** : sur la même machine, le verrou est repris seulement
+  si aucun processus ne porte le PID enregistré, ou si le processus qui le
+  porte a une autre heure de démarrage ou une autre ligne de commande. Les
+  trois sont vérifiés : un nouveau processus qui aurait reçu le même PID ne
+  passe pas pour le détenteur, et un détenteur vivant n'est jamais dépossédé.
+  La reprise est enregistrée dans `environment.lock` de la mesure, avec les
+  trois valeurs du verrou repris. Sur une autre machine, le verrou n'est
+  jamais repris.
 - **Libération** : à la fin de l'outil, y compris sur erreur et sur
   interruption.
 - **Limite** (`PROTOCOL.md`) : il ne couvre que les outils du banc. Une
@@ -444,10 +451,19 @@ décrire.
   Testé sur une redirection réelle du legacy à travers le relais.
 - Il ne modifie rien : un test compare, pour un ensemble de requêtes
   (pages des trois écrans, ressources, refus `401`), les en-têtes et les
-  corps reçus à travers le relais et directement du legacy. Seuls les
-  en-têtes de connexion (hop-by-hop, au sens de HTTP) peuvent différer ;
-  cette exception est une proposition de la spec, nécessaire à tout relais
-  HTTP.
+  corps reçus à travers le relais et directement du legacy. Les corps sont
+  comparés octet par octet. Les en-têtes sont comparés nom et valeur, sauf
+  ceux de cette liste fermée :
+  - **exclus de la comparaison**, parce qu'ils sont propres à une connexion
+    (hop-by-hop, au sens de HTTP) : `Connection`, `Keep-Alive`,
+    `Proxy-Connection`, `TE`, `Trailer`, `Transfer-Encoding`, `Upgrade` ;
+  - **comparés sur leur forme, pas sur leur valeur**, parce que leur valeur
+    change d'une réponse à l'autre, avec ou sans relais : `Date` (présent des
+    deux côtés) et `Set-Cookie` (même nom de cookie et mêmes attributs, valeur
+    du cookie de session ignorée).
+
+  Tout autre en-tête, `Content-Length` compris, doit être identique. Un
+  en-tête ajouté ou retiré par le relais fait échouer le test.
 - Il obtient 100 % à l'oracle (règle 6). À l'étape 4, il échoue aux mêmes
   portes que le legacy, plus la porte du relais, dont il est le test
   négatif : son journal d'accès contient des requêtes hors marqueur.
@@ -532,10 +548,13 @@ Vitest du contrat, pas par des candidats.
     `counted: true`, `originMain` connu, `benchCommit` égal à `originMain`
     ou ancêtre de lui,
     empreinte de `oracle.json` conforme.
-- **Seam 3 : le verrou du banc**, par des processus réels (prise, refus,
-  reprise d'un verrou dont le processus est mort, refus de `pretest`).
+- **Seam 3 : le verrou du banc**, par des processus réels : prise, refus,
+  refus de `pretest` ; reprise d'un verrou dont le PID n'existe plus ;
+  reprise d'un verrou dont le PID est porté par un processus d'une autre
+  heure de démarrage ou d'une autre ligne de commande ; refus de reprendre
+  un verrou dont le détenteur vit (les trois valeurs concordent).
 - **Seam A existant** : le relais du candidat de référence comparé au legacy
-  (en-têtes, corps, redirection) ; le journal d'accès survit à un
+  (corps octet par octet, en-têtes selon la liste fermée, redirection) ; le journal d'accès survit à un
   redémarrage du legacy et ne contient pas les requêtes du port `8081`.
 - **Antériorité** : tests de la collecte et du contrôle des résultats de
   l'oracle (étape 2, #53), `tests/seam-a`, contrôle de version de Node de
