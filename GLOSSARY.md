@@ -45,6 +45,18 @@ logique fourni par le banc. Il obtient 100 % à l'oracle et échoue aux mêmes
 portes que le legacy, plus la porte du relais, dont il est le test négatif.
 _Éviter_ : candidat legacy, proxy
 
+**Candidat d'étalonnage** :
+Candidat écrit par le banc, de la forme d'un vrai candidat, dont les mesures
+fixent les délais et les limites de ressources appliqués aux autres
+candidats. Jamais une sortie d'agent.
+_Éviter_ : candidat de calibration, benchmark
+
+**Verrou du banc** :
+Fichier pris par un outil du banc pendant qu'il utilise la pile, qui refuse
+les autres outils du banc jusqu'à sa libération. Ne pas confondre avec le
+verrou d'un champ du dossier : on écrit toujours « verrou du banc ».
+_Éviter_ : lock, mutex
+
 **Mesure** :
 Passe du banc sur un candidat : construction, démarrage, oracle et portes,
 avec un résultat enregistré. Une seule mesure compte par candidat : la
@@ -61,7 +73,10 @@ ni recevoir ni fabriquer (règle 7 de `PROTOCOL.md`) : pile du banc en échec
 avant le démarrage du candidat, ou pendant un redémarrage où il est arrêté ;
 erreur de l'oracle hors scénario ; erreur réseau sur une requête précise
 vers le registre imposé de l'installation des dépendances ; marqueur du banc
-hors de son moment prévu dans le journal d'accès du legacy. La raison est enregistrée dans son résultat, ou, si l'erreur est
+hors de son moment prévu dans le journal d'accès du legacy, ou requête
+témoin absente de ce journal ; erreur imprévue du runner avant le lancement
+de `npm ci` ; interruption de la mesure, qui est conservée et toujours
+signalée. La raison est enregistrée dans son résultat, ou, si l'erreur est
 découverte après coup, dans un document ajouté qui cite les mesures
 concernées, la raison et la preuve. La mesure
 suivante du même candidat compte à sa place, et le rapport le signale. Un
