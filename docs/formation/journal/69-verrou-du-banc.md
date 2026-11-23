@@ -209,7 +209,31 @@ git check-ignore .bench-lock .bench-lock.takeover
 # .bench-lock.takeover
 ```
 
-> À vérifier : environment.lock dans un vrai measure.json, mesure à faire quand la pile sera libre
+Sur la pile, au commit `bcccdea`, arbre propre, après `npm run stack:up` :
+une mesure du candidat de référence, puis une seconde lancée pendant qu'elle
+tourne.
+
+```sh
+npm run migrabench -- measure --candidate fixtures/reference-candidate; echo "exit=$?"
+# Measure: results/diagnostic/20261123T224324Z-bcccdea-reference-candidate
+# Outcome: completed (ok)
+# exit=0
+# measure.json : 38 scénarios, 38 réussis, 0 non atteint ; worktree clean
+# environment.lock :
+# {
+#   "takenAt": "2026-11-23T22:43:24.598Z"
+# }
+
+# pendant la première, depuis un autre terminal :
+node runner/cli.ts measure --candidate fixtures/reference-candidate; echo "exit=$?"
+# refused-lock: The bench lock is held by measure (PID 96775 on <machine>, started Mon Nov 23 22:43:24 2026: node runner/cli.ts measure --candidate fixtures/reference-candidate, measure 20261123T224324Z-bcccdea-reference-candidate), taken at 2026-11-23T22:43:24.598Z
+# exit=4
+# results/diagnostic/ : seulement le dossier de la première mesure
+```
+
+Après la mesure, `.bench-lock` n'existe plus. Cette mesure n'a pas eu de
+reprise : `takenOver` n'apparaît que lorsqu'un verrou du banc orphelin est
+repris, et ce cas est couvert par `tests/bench-lock.test.ts`.
 
 > À vérifier après l'exécution de la CI de la PR : `npm test` complet vert sur la pile (workflow « Tests du banc »), avec le lien de l'exécution et son head SHA.
 
