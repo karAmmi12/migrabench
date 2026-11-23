@@ -355,12 +355,26 @@ CI de la PR #87 :
   sur `f17a309`, alors que ces commits ne touchent aucun chemin du filtre.
   Leurs résultats ne sont pas versionnés. C'est corrigé par `82cf7b7`.
 
-> À vérifier après l'exécution de la CI de la PR : sur le push qui porte
-> `82cf7b7`, le job `changes` du workflow « Étalonnage » doit lancer
-> `calibration` (raison relevée), puisque ses propres fichiers changent ; et
-> « Tests du banc » doit tourner sur le code fusionné avec `main` (lien, head
-> SHA, nombre de tests). Puis, sur le commit suivant, qui ne touche que
-> `docs/**` : `calibration` doit être ignoré (lien et raison relevée).
+CI sur `38a5914`, tête de la PR après la fusion de `main` et la nouvelle
+règle de `calibration` :
+
+- « Étalonnage » : [exécution 45279347841](https://github.com/karAmmi12/migrabench/actions/runs/45279347841).
+  Le job `changes` écrit `calibration : tourne (des fichiers hors docs/** ont
+  changé depuis f17a309b988c2d420b9706a2e19ee58c7a5dd253, où calibration a
+  réussi)`. Le job `calibration` réussit en 235 s ; son résultat n'est pas
+  versionné.
+- « Tests du banc » : [exécution 45279347846](https://github.com/karAmmi12/migrabench/actions/runs/45279347846),
+  sur le commit de fusion `9654a9c` (`38a5914` dans `477d497`, tête de
+  `main`). `Test Files 56 passed (56)`, `Tests 462 passed (462)` : le même
+  compte qu'en local sur `82cf7b7`.
+- « Oracle » : [exécution 45279347839](https://github.com/karAmmi12/migrabench/actions/runs/45279347839).
+  Le job `oracle` rend `Scenarios: 38, passed: 38, failed: 0, unreached: 0`,
+  et le job `proof` rend `Proof holds on 5 results.`
+
+> À vérifier après l'exécution de la CI de la PR : sur le commit qui ne
+> touche que cette fiche, poussé après `38a5914`, le job `changes` du
+> workflow « Étalonnage » doit ignorer `calibration` (lien et raison
+> relevée).
 
 ## Pour aller plus loin
 
