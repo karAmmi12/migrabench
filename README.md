@@ -109,25 +109,6 @@ voit dans le résultat : `saltImposed: true` dans ses métadonnées.
 
 Le sel vient toujours du shell, jamais de `.env`, que lit aussi le legacy.
 
-### Verrou du banc
-
-Deux outils du banc ne partagent jamais la pile. `migrabench measure`,
-`npm run oracle` et `npm run stack:up` prennent le verrou du banc
-(`.bench-lock`, à la racine, ignoré par Git) pour toute leur durée et le
-libèrent à la fin, y compris sur erreur. Le fichier nomme l'outil, son
-processus (PID, heure de démarrage, ligne de commande), la machine,
-l'identifiant de la mesure s'il y en a un et l'heure de prise. Pendant qu'il
-est tenu, ces trois outils refusent avec le code `4` (`refused-lock`) et un
-message qui nomme le détenteur. `npm test` refuse aussi (script `pretest`),
-sans prendre le verrou du banc.
-
-Un verrou du banc orphelin, laissé par un processus mort, est repris par le
-prochain outil du banc : sur la même machine seulement, et seulement si aucun
-processus ne porte le PID enregistré, ou si celui qui le porte a une autre
-heure de démarrage ou une autre ligne de commande. Une mesure enregistre la
-prise et la reprise dans `environment.lock` de `measure.json`. Sur une autre
-machine, le verrou du banc n'est jamais repris : le supprimer à la main une
-fois l'outil arrêté.
 Sans `ARCHIVE_SALT`, `docker compose up` démarre quand même la pile : le
 service d'archivage tire son propre sel et ne le révèle pas. Un test le
 vérifie sur une seconde pile, sans port publié, à partir des images déjà
@@ -161,6 +142,28 @@ Pour économiser les minutes de CI (#76) :
   réussi, commit ancêtre de la tête.
   Une exécution annulée, en échec ou ignorée ne sert jamais de référence ;
   sans référence, le job tourne. « Fiche de formation » tourne toujours.
+
+### Verrou du banc
+
+Deux outils du banc ne partagent jamais la pile. `migrabench measure`,
+`npm run oracle` et `npm run stack:up` prennent le verrou du banc
+(`.bench-lock`, à la racine, ignoré par Git) pour toute leur durée et le
+libèrent à la fin, y compris sur erreur. Le fichier nomme l'outil, son
+processus (PID, heure de démarrage, ligne de commande), la machine,
+l'identifiant de la mesure s'il y en a un et l'heure de prise. Pendant qu'il
+est tenu, ces trois outils refusent avec le code `4` (`refused-lock`) et un
+message qui nomme le détenteur. `npm test` refuse aussi (script `pretest`),
+sans prendre le verrou du banc.
+
+Un verrou du banc orphelin, laissé par un processus mort, est repris par le
+prochain outil du banc : sur la même machine seulement, et seulement si aucun
+processus ne porte le PID enregistré, ou si celui qui le porte a une autre
+heure de démarrage ou une autre ligne de commande. Une mesure enregistre la
+prise et la reprise dans `environment.lock` de `measure.json`. Sur une autre
+machine, le verrou du banc n'est jamais repris : le supprimer à la main une
+fois l'outil arrêté. Si un outil du banc meurt pendant la reprise elle-même, il laisse
+`.bench-lock.takeover` : les outils du banc refusent en le nommant, à
+retirer à la main ; un détenteur vivant n'est jamais dépossédé.
 
 ## Lancer l'oracle
 
