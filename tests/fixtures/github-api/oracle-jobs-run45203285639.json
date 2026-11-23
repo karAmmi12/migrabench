@@ -1,0 +1,261 @@
+{
+  "total_count": 2,
+  "jobs": [
+    {
+      "id": 137792122514,
+      "run_id": 45203285639,
+      "workflow_name": "Oracle",
+      "head_branch": "feat/62-measure-tracer",
+      "run_url": "https://api.github.com/repos/karAmmi12/migrabench/actions/runs/45203285639",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVxzkOM8AAAAgFQzukg",
+      "head_sha": "2f0f0349a027c612f4807a185613e874cbaa1a1e",
+      "url": "https://api.github.com/repos/karAmmi12/migrabench/actions/jobs/137792122514",
+      "html_url": "https://github.com/karAmmi12/migrabench/actions/runs/45203285639/job/137792122514",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-23T15:16:00Z",
+      "started_at": "2026-11-23T15:16:06Z",
+      "completed_at": "2026-11-23T15:18:09Z",
+      "name": "oracle",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-23T15:16:07Z",
+          "completed_at": "2026-11-23T15:16:08Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-23T15:16:08Z",
+          "completed_at": "2026-11-23T15:16:09Z"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-23T15:16:09Z",
+          "completed_at": "2026-11-23T15:16:12Z"
+        },
+        {
+          "name": "Installation des dépendances",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-23T15:16:12Z",
+          "completed_at": "2026-11-23T15:16:15Z"
+        },
+        {
+          "name": "Installation de Chromium pour Playwright",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-23T15:16:15Z",
+          "completed_at": "2026-11-23T15:16:41Z"
+        },
+        {
+          "name": "Construction des images",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-11-23T15:16:41Z",
+          "completed_at": "2026-11-23T15:17:20Z"
+        },
+        {
+          "name": "Exécution complète de l'oracle",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-11-23T15:17:20Z",
+          "completed_at": "2026-11-23T15:18:03Z"
+        },
+        {
+          "name": "Journaux de la pile",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-11-23T15:18:03Z",
+          "completed_at": "2026-11-23T15:18:04Z"
+        },
+        {
+          "name": "Publication des résultats et des bruts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-11-23T15:18:04Z",
+          "completed_at": "2026-11-23T15:18:06Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17,
+          "started_at": "2026-11-23T15:18:06Z",
+          "completed_at": "2026-11-23T15:18:06Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18,
+          "started_at": "2026-11-23T15:18:06Z",
+          "completed_at": "2026-11-23T15:18:07Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19,
+          "started_at": "2026-11-23T15:18:07Z",
+          "completed_at": "2026-11-23T15:18:07Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/karAmmi12/migrabench/check-runs/137792122514",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 1000000385,
+      "runner_name": "GitHub Actions 1000000385",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 137793569619,
+      "run_id": 45203285639,
+      "workflow_name": "Oracle",
+      "head_branch": "feat/62-measure-tracer",
+      "run_url": "https://api.github.com/repos/karAmmi12/migrabench/actions/runs/45203285639",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVxzkOM8AAAAgFSMDUw",
+      "head_sha": "2f0f0349a027c612f4807a185613e874cbaa1a1e",
+      "url": "https://api.github.com/repos/karAmmi12/migrabench/actions/jobs/137793569619",
+      "html_url": "https://github.com/karAmmi12/migrabench/actions/runs/45203285639/job/137793569619",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-23T15:18:10Z",
+      "started_at": "2026-11-23T15:18:13Z",
+      "completed_at": "2026-11-23T15:23:54Z",
+      "name": "proof",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-23T15:18:14Z",
+          "completed_at": "2026-11-23T15:18:15Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-23T15:18:15Z",
+          "completed_at": "2026-11-23T15:18:16Z"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-23T15:18:16Z",
+          "completed_at": "2026-11-23T15:18:19Z"
+        },
+        {
+          "name": "Installation des dépendances",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-23T15:18:19Z",
+          "completed_at": "2026-11-23T15:18:21Z"
+        },
+        {
+          "name": "Installation de Chromium pour Playwright",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-23T15:18:21Z",
+          "completed_at": "2026-11-23T15:18:52Z"
+        },
+        {
+          "name": "Construction des images",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-11-23T15:18:52Z",
+          "completed_at": "2026-11-23T15:19:32Z"
+        },
+        {
+          "name": "Cinq exécutions complètes de l'oracle",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-11-23T15:19:32Z",
+          "completed_at": "2026-11-23T15:23:45Z"
+        },
+        {
+          "name": "Vérification de la preuve",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-11-23T15:23:45Z",
+          "completed_at": "2026-11-23T15:23:46Z"
+        },
+        {
+          "name": "Journaux de la pile",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-11-23T15:23:46Z",
+          "completed_at": "2026-11-23T15:23:46Z"
+        },
+        {
+          "name": "Publication des résultats et des bruts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-11-23T15:23:46Z",
+          "completed_at": "2026-11-23T15:23:50Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19,
+          "started_at": "2026-11-23T15:23:50Z",
+          "completed_at": "2026-11-23T15:23:50Z"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20,
+          "started_at": "2026-11-23T15:23:50Z",
+          "completed_at": "2026-11-23T15:23:51Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21,
+          "started_at": "2026-11-23T15:23:51Z",
+          "completed_at": "2026-11-23T15:23:51Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/karAmmi12/migrabench/check-runs/137793569619",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 1000000389,
+      "runner_name": "GitHub Actions 1000000389",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ]
+}

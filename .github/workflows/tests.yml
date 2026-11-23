@@ -1,4 +1,5 @@
-# Tests du banc avec la pile Docker, sur chaque PR (#20).
+# Tests du banc avec la pile Docker, sur chaque PR (#20). Ignorés si seul
+# docs/** a changé depuis leur dernier succès sur la PR (#76, job changes).
 # Le typecheck n'en fait pas partie : job séparé, sans Docker (#23).
 name: Tests du banc
 
@@ -9,8 +10,49 @@ on:
 permissions:
   contents: read
 
+# Un nouveau commit annule l'exécution en cours sur la même PR (#76). Hors PR
+# (push sur main, workflow_dispatch), chaque exécution a son propre groupe et
+# n'est jamais annulée.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  # Décide quels jobs lourds tournent (#76) : règle dans scripts/ci-scope.ts.
+  # Sur une PR, un job est ignoré si seul docs/** a changé depuis le dernier
+  # commit de la PR où ce même job a réussi. Condition au niveau du job, pas
+  # filtre paths sous on: : un job ignoré compte comme réussi pour une
+  # vérification obligatoire, un workflow filtré resterait « en attente ».
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    # actions: read : lire les exécutions précédentes du workflow.
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      tests: ${{ steps.scope.outputs.tests }}
+    steps:
+      # Historique complet : diff depuis la base de la PR et depuis la référence.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Jobs lourds à lancer
+        id: scope
+        env:
+          CI_JOBS: tests
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/write-ci-scope.ts
+
   tests:
+    needs: changes
+    if: needs.changes.outputs.tests == 'true'
     runs-on: ubuntu-24.04
     # Borne un blocage hors healthcheck (défaut GitHub : 360 min).
     timeout-minutes: 30

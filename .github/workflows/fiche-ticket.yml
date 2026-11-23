@@ -15,6 +15,13 @@ on:
 permissions:
   contents: read
 
+# Un nouveau commit annule l'exécution en cours sur la même PR (#76). Hors PR
+# (push sur main, workflow_dispatch), chaque exécution a son propre groupe et
+# n'est jamais annulée.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   fiche-ticket:
     runs-on: ubuntu-24.04

@@ -129,6 +129,17 @@ sous le Node de `.nvmrc`. Il publie en artefact le rapport JUnit de Vitest et
 les journaux de la pile (nom et durée de conservation : voir le workflow).
 Le typecheck tourne dans un workflow à part, sans Docker (« Vérification des types »).
 
+Pour économiser les minutes de CI (#76) :
+
+- chaque workflow a un groupe de concurrence par PR : un nouveau commit annule
+  l'exécution en cours sur la même PR. Hors PR, aucune exécution n'est annulée ;
+- les jobs lourds (`tests`, `oracle`, `proof`) passent d'abord par un job
+  `changes` (`scripts/write-ci-scope.ts`, règle dans `scripts/ci-scope.ts`).
+  Sur une PR, un job lourd est ignoré si seul `docs/**` a changé depuis le
+  dernier commit de la PR où ce même job a réussi, commit ancêtre de la tête.
+  Une exécution annulée, en échec ou ignorée ne sert jamais de référence ;
+  sans référence, le job tourne. « Fiche de formation » tourne toujours.
+
 ## Lancer l'oracle
 
 Prérequis : les images de la pile construites (`docker compose build`), et
@@ -153,10 +164,13 @@ seulement, jamais pour une mesure ; le résultat l'enregistre
 (`saltImposed: true`). Le format du résultat est décrit dans la
 spec de l'étape 2 (`docs/specs/02-oracle.md`, « Résultat JSON »).
 
-Le workflow « Oracle » (`.github/workflows/oracle.yml`) lance l'oracle sur
-chaque PR, en deux jobs : `oracle`, une exécution complète, et `proof`, le
-critère de fin de l'étape 2 : images construites une seule fois, puis 5
-exécutions complètes consécutives sur ces images. En CI, le résultat
+Le workflow « Oracle » (`.github/workflows/oracle.yml`) lance l'oracle en
+deux jobs : `oracle`, une exécution complète, et `proof`, le critère de fin de
+l'étape 2 : images construites une seule fois, puis 5 exécutions complètes
+consécutives sur ces images. Les deux tournent sur chaque push vers `main` et
+en `workflow_dispatch`. Sur une PR, `proof` ne tourne que si la PR touche
+`oracle/`, `fixtures/legacy-app/`, `docker-compose.yml` ou `results/oracle/`,
+et les deux suivent la règle `docs/**` ci-dessus. En CI, le résultat
 enregistre `ciRun` (identifiant et tentative de l'exécution de CI, rang de
 l'exécution complète dans le job, lu dans `ORACLE_CI_RANK`), repris dans le
 nom du fichier : `<horodatage>-<commit>-ci<identifiant>.<tentative>-<rang>.json`.
