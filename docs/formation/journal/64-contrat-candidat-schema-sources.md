@@ -241,7 +241,17 @@ Son `measure.json` contient :
 
 `npm test` complet, `tests/seam-a` et `tests/seam-b` compris :
 
-> À vérifier après l'exécution de la CI de la PR : le lien du job « Tests du banc », son head SHA et le nombre de tests passés
+Lancé par la CI de la PR, job « Tests du banc »
+(https://github.com/karAmmi12/migrabench/actions/runs/45272008822), sur le
+head SHA `0e13c81`, de 21:40:11Z à 21:42:45Z :
+
+```text
+ Test Files  54 passed (54)
+      Tests  435 passed (435)
+```
+
+Le run suivant, sur `e5577a9`, saute ce job : seul `docs/**` a changé depuis
+`0e13c81`, où il avait réussi (#84).
 
 ## Pour aller plus loin
 
