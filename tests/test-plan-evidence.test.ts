@@ -102,4 +102,12 @@ describe("test plan evidence", () => {
   it("copies a line without its carriage return (Windows line endings)", () => {
     expect(uncitedLines("- [x] 143 tests\r\n- [x] 12 tests\r\n")).toEqual(["- [x] 143 tests", "- [x] 12 tests"]);
   });
+
+  it("removes inline code that spans two lines, as the training sheet check does", () => {
+    expect(uncitedLines("- [x] `foo\n- [x] 12` bar")).toEqual([]);
+  });
+
+  it("does not take the number of a numbered list item for a number", () => {
+    expect(uncitedLines("1. [x] Sélecteurs sémantiques seulement\n12) [x] Messages au texte exact")).toEqual([]);
+  });
 });
