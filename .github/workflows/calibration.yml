@@ -5,25 +5,20 @@
 # Ce résultat est publié comme artefact, puis versionné par une PR : seul un
 # étalonnage fait en CI est appliqué aux mesures (runner/calibration.ts).
 #
-# Quand il tourne : en workflow_dispatch, et sur une PR qui touche ce qui fait
-# les relevés : le candidat d'étalonnage, l'image d'exécution, la construction,
-# l'étalonnage lui-même ou ce workflow. Pas sur tout runner/ : 5 constructions
-# complètes par PR iraient contre la réduction des minutes de CI (#76). Ce job n'est
-# pas une vérification obligatoire : un filtre paths sous on: ne laisse donc
-# aucun état « en attente ».
+# Quand il tourne (job changes, règle dans scripts/ci-scope.ts, comme les
+# autres jobs lourds) :
+# - en workflow_dispatch : toujours ;
+# - sur une PR : seulement si elle touche ce qui fait les relevés (chemins de
+#   calibration dans scripts/ci-scope.ts), et pas si seul docs/** a changé
+#   depuis son dernier succès sur la PR.
+# Pas de filtre paths sous on: : GitHub l'applique à tout le diff de la PR, et
+# le job tournait donc à chaque push, même d'un commit qui ne touchait que la
+# documentation (PR #87).
 name: Étalonnage
 
 on:
   pull_request:
     types: [opened, reopened, synchronize]
-    paths:
-      - fixtures/calibration-candidate/**
-      - fixtures/runtime-image/**
-      - runner/build.ts
-      - runner/calibrat*.ts
-      - runner/candidate-runtime.ts
-      - runner/resource-usage.ts
-      - .github/workflows/calibration.yml
   workflow_dispatch:
 
 permissions:
@@ -37,7 +32,37 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Décide si le job lourd tourne (#76, #72) : règle dans scripts/ci-scope.ts.
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    # actions: read : lire les exécutions précédentes du workflow.
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      calibration: ${{ steps.scope.outputs.calibration }}
+    steps:
+      # Historique complet : diff depuis la base de la PR et depuis la référence.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Jobs lourds à lancer
+        id: scope
+        env:
+          CI_JOBS: calibration
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/write-ci-scope.ts
+
   calibration:
+    needs: changes
+    if: needs.changes.outputs.calibration == 'true'
     runs-on: ubuntu-24.04
     # Borne un blocage : 5 relevés, chacun sous le plafond de sécurité.
     timeout-minutes: 60
