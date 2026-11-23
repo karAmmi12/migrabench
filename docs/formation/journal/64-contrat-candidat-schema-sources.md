@@ -165,9 +165,10 @@ un agent qui déclare mal et un agent qui migre mal.
 - **La pile Docker occupée par une autre session (étalonnage).**
   - Symptôme : ni mesure réelle, ni `tests/seam-a` et `tests/seam-b`, qui
     interrogent la pile en marche.
-  - Résolution : critères prouvés par Vitest sur la fonction de phase et sur
-    `measureRecord` ; le reste des tests lancé avec ces deux dossiers exclus ;
-    mesures réelles laissées à vérifier, `npm test` complet laissé à la CI.
+  - Résolution : critères prouvés d'abord par Vitest sur la fonction de
+    phase et sur `measureRecord`, le reste des tests lancé avec ces deux
+    dossiers exclus ; mesures réelles lancées une fois la pile libérée, sur
+    `0e13c81` ; `npm test` complet laissé à la CI.
 
 ## Vérifier soi-même
 
@@ -196,20 +197,47 @@ node -e 'import("./runner/contract-phase.ts").then(async m => { for (const d of 
 
 Le candidat défectueux 1, mesuré sur la pile :
 
+Sorties observées au commit `0e13c81`, arbre propre, pile levée par
+`npm run stack:up` :
+
 ```sh
 npm run migrabench -- measure --candidate fixtures/defective-candidates/contract-invalid; echo "exit=$?"
+# Measure: results/diagnostic/20261123T215039Z-0e13c81-defective-candidates-contract-invalid
+# Outcome: contract-failure (contract-invalid)
+# exit=0
 ```
 
-> À vérifier : mesure réelle sur la pile, à faire quand la session A aura libéré la pile
+Son `measure.json` contient :
+
+- phases : `preparation:ok contract:contract-invalid build:not-run
+  start:not-run oracle:not-run gates:not-run closing:ok` ;
+- `detail` de la phase `contract` : les deux manquements, `field "url" is
+  not allowed: the bench imposes the port…` et `"node_modules/left-pad" is
+  resolved on another host: https://registry.example.org/…` ;
+- `candidate` : `path` et `contentDigest` seulement, sans `contract` ;
+- `oracle` : `executed: false`, 38 non atteints ; pas de `composeOverride` ;
+- `verdict` : `{"category":"contract-failure","reason":"contract-invalid"}`.
+
+Une première mesure (`20261123T215032Z`) a été lancée avec la sortie passée
+à `tail` : le code affiché était celui de `tail`, d'où la seconde.
 
 Le candidat de référence, mesuré sur la pile (`candidate.contract` doit
 valoir `1`, la version lue) :
 
 ```sh
 npm run migrabench -- measure --candidate fixtures/reference-candidate; echo "exit=$?"
+# Measure: results/diagnostic/20261123T215048Z-0e13c81-reference-candidate
+# Outcome: completed (ok)
+# exit=0
 ```
 
-> À vérifier : mesure réelle sur la pile, à faire quand la session A aura libéré la pile
+Son `measure.json` contient :
+
+- phases : les sept à `ok` ;
+- `candidate` : `"contract":1,"start":"node server.js"` ;
+- `oracle` : `executed: true`, 38 scénarios, 38 réussis, 0 échoué,
+  0 non atteint ;
+- `verdict` : `{"category":"completed","reason":"ok"}`.
 
 `npm test` complet, `tests/seam-a` et `tests/seam-b` compris :
 
