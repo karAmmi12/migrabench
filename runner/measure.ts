@@ -15,9 +15,9 @@ import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
 import { type CandidateFile, contentDigest, isCopied } from "./candidate-content.ts";
 import { candidateCompose } from "./candidate-compose.ts";
 import { measureId as measureIdOf } from "./measure-id.ts";
-import { type CandidateRecord, measureRecord, type OracleRecord, type PhaseName, type PhaseRecord, type Verdict } from "./measure-record.ts";
+import { type CandidateRecord, measureRecord, type OracleRecord, type PhaseName, type PhaseRecord, type MeasureOutcome } from "./measure-record.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, DIAGNOSTIC_DIR_FROM_ROOT, ROOT } from "./paths.ts";
-import { run, stdoutOf } from "./process.ts";
+import { spawnCommand, stdoutOf } from "./process.ts";
 
 export interface MeasureOptions {
   // Dossier du candidat, relatif à la racine du dépôt.
@@ -30,7 +30,7 @@ export interface MeasureOptions {
 
 export interface MeasureResult {
   measureDir: string;
-  outcome: Verdict;
+  outcome: MeasureOutcome;
   exitCode: 0;
 }
 
@@ -55,7 +55,7 @@ export async function measureCandidate({ candidate, counted = false, salt }: Mea
   const candidateDir = join(ROOT, candidate);
   if (!(await lstat(candidateDir)).isDirectory()) throw new Error(`Not a directory: ${candidate}`);
   const benchCommit = await stdoutOf("git", ["rev-parse", "HEAD"]);
-  const worktree = worktreeState((await run("git", [...GIT_STATUS_ARGS])).stdout);
+  const worktree = worktreeState((await spawnCommand("git", [...GIT_STATUS_ARGS])).stdout);
   const id = measureIdOf(startedAt, benchCommit, candidate);
   const measureDir = join(ROOT, DIAGNOSTIC_DIR_FROM_ROOT, id);
   const rawDir = join(ROOT, ARTIFACTS_DIR_FROM_ROOT, id);
@@ -71,7 +71,7 @@ export async function measureCandidate({ candidate, counted = false, salt }: Mea
     await mkdir(dirname(join(copyDir, path)), { recursive: true });
     await copyFile(join(candidateDir, path), join(copyDir, path));
   }
-  await run("docker", ["build", "--quiet", "--tag", RUNTIME_IMAGE, RUNTIME_IMAGE_CONTEXT]);
+  await spawnCommand("docker", ["build", "--quiet", "--tag", RUNTIME_IMAGE, RUNTIME_IMAGE_CONTEXT]);
   const runtimeImage = await stdoutOf("docker", ["image", "inspect", "--format", "{{.Id}}", RUNTIME_IMAGE]);
   const user = containerUser();
   done();
@@ -87,7 +87,7 @@ export async function measureCandidate({ candidate, counted = false, salt }: Mea
   // mb-internal ni variable du banc, copie montée en écriture.
   done = phase("build");
   const npmLog = join(rawDir, "npm-ci.log");
-  const build = await run(
+  const build = await spawnCommand(
     "docker",
     ["run", "--rm", "--user", user, "--network", "bridge", "--env", "HOME=/tmp", "--env", `npm_config_registry=${NPM_REGISTRY}`,
       "--env", "npm_config_update_notifier=false", "--volume", `${copyDir}:/candidate`, "--workdir", "/candidate", RUNTIME_IMAGE, "sh", "-c", "npm ci"],
@@ -122,7 +122,7 @@ export async function measureCandidate({ candidate, counted = false, salt }: Mea
         resultFile: join(measureDir, "oracle.json"),
         onStackReady: async () => {
           await stopCandidate(compose, startLog);
-          await run("docker", [...compose, "up", "--detach", "--force-recreate", "--no-deps", "candidate"]);
+          await spawnCommand("docker", [...compose, "up", "--detach", "--force-recreate", "--no-deps", "candidate"]);
           startOutcome = await waitUntilReady(compose, baseUrl);
           if (startOutcome !== "ok") throw new CandidateNotStarted(startOutcome);
           done();
@@ -234,8 +234,8 @@ async function waitUntilReady(compose: readonly string[], baseUrl: string): Prom
 
 // Ajoute les sorties du conteneur au brut de `start`, puis le supprime.
 async function stopCandidate(compose: readonly string[], startLog: string): Promise<void> {
-  await run("docker", [...compose, "logs", "--no-color", "--timestamps", "candidate"], { logFile: startLog, allowFailure: true });
-  await run("docker", [...compose, "rm", "--stop", "--force", "candidate"]);
+  await spawnCommand("docker", [...compose, "logs", "--no-color", "--timestamps", "candidate"], { logFile: startLog, allowFailure: true });
+  await spawnCommand("docker", [...compose, "rm", "--stop", "--force", "candidate"]);
 }
 
 async function sha256(path: string): Promise<string> {

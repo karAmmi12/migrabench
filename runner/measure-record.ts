@@ -30,7 +30,7 @@ export interface CandidateRecord {
 
 export type OracleRecord = { executed: true; result: string; summary: OracleSummary } | { executed: false };
 
-export interface Verdict {
+export interface MeasureOutcome {
   category: "completed" | "candidate-failure";
   reason: string;
 }
@@ -69,9 +69,9 @@ export function measureRecord({ measureId, candidate, environment, salt, saltImp
   };
 }
 
-function verdictOf(phases: readonly PhaseRecord[]): Verdict {
+function verdictOf(phases: readonly PhaseRecord[]): MeasureOutcome {
   const failed = phases.find(({ outcome }) => outcome !== "ok" && outcome !== "not-run");
   if (failed === undefined) return { category: "completed", reason: "ok" };
   if (CANDIDATE_FAILURES.has(failed.outcome)) return { category: "candidate-failure", reason: failed.outcome };
-  throw new Error(`Outcome ${failed.outcome} of phase ${failed.name} has no verdict yet`);
+  throw new Error(`Outcome ${failed.outcome} of phase ${failed.name} has no verdict yet (#63, #68)`);
 }

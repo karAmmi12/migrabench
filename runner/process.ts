@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import { createWriteStream } from "node:fs";
 import { ROOT } from "./paths.ts";
 
-export interface RunOptions {
+export interface SpawnOptions {
   env?: Record<string, string>;
   // Fichier où écrire la sortie standard et la sortie d'erreur mêlées (brut d'une phase).
   logFile?: string;
@@ -11,12 +11,12 @@ export interface RunOptions {
   allowFailure?: boolean;
 }
 
-export interface RunResult {
+export interface SpawnResult {
   code: number;
   stdout: string;
 }
 
-export function run(command: string, args: readonly string[], { env = {}, logFile, allowFailure = false }: RunOptions = {}): Promise<RunResult> {
+export function spawnCommand(command: string, args: readonly string[], { env = {}, logFile, allowFailure = false }: SpawnOptions = {}): Promise<SpawnResult> {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, { cwd: ROOT, env: { ...process.env, ...env }, stdio: ["ignore", "pipe", "pipe"] });
     const log = logFile === undefined ? undefined : createWriteStream(logFile, { flags: "a" });
@@ -43,5 +43,5 @@ export function run(command: string, args: readonly string[], { env = {}, logFil
 }
 
 export async function stdoutOf(command: string, args: readonly string[]): Promise<string> {
-  return (await run(command, args)).stdout.trim();
+  return (await spawnCommand(command, args)).stdout.trim();
 }

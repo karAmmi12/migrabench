@@ -3,9 +3,10 @@
 // dépendance. Il présente le legacy comme un candidat, pour valider le banc
 // sur lui-même (règle 6 de PROTOCOL.md).
 //
-// Il ne modifie rien : en-têtes transmis tels quels dans les deux sens, `Host`
-// d'origine compris, noms et casse d'origine (format plat de rawHeaders), pour que les redirections du legacy visent le port du
-// relais ; corps transmis octet par octet.
+// Il ne modifie rien : en-têtes transmis tels quels dans les deux sens, noms
+// et casse d'origine (format plat de rawHeaders), `Host` d'origine compris,
+// pour que les redirections du legacy visent le port du relais ; corps
+// transmis octet par octet.
 import { createServer, request } from "node:http";
 
 const LEGACY = { host: "legacy", port: 8080 };
