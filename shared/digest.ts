@@ -16,3 +16,5 @@ export async function fileSha256(path: string): Promise<string> {
 export function cited(hex: string): string {
   return `sha256:${hex}`;
 }
+
+// Mesure des minutes de CI (#76) : commit de code jetable, hors oracle/.
