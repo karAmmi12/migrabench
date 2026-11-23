@@ -4,10 +4,12 @@
 // (measure.json, oracle.json) et rend l'issue.
 //
 // Fil traceur (#62) : mesure de diagnostic seulement, contrat lu sans
-// validation, sans verrou du banc ni journal d'accès. Les tickets suivants de
+// validation, sans journal d'accès. Les tickets suivants de
 // l'étape les ajoutent. La construction, ses délais et ses limites viennent de
 // #65 (runner/build.ts).
 // Le verdict et les codes de sortie viennent de #63 (runner/verdict.ts).
+// Le verrou du banc vient de #69 (shared/bench-lock.ts) : pris avant la
+// préparation, libéré à la fin de la mesure, y compris sur erreur.
 import { randomBytes } from "node:crypto";
 import { copyFile, mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
@@ -19,6 +21,7 @@ import { candidateName, measureId as measureIdOf } from "./measure-id.ts";
 import { type CandidateRecord, measureRecord, type OracleRecord } from "./measure-record.ts";
 import type { ExitCode, PhaseName, PhaseOutcome, PhaseRecord, Verdict } from "./verdict.ts";
 import { citedFileSha256 as digestOf, fileSha256 } from "../shared/digest.ts";
+import { acquireBenchLock, type TakenOver } from "../shared/bench-lock.ts";
 import { spawnCommand, stdoutOf } from "../shared/process.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, readBenchEnv, ROOT } from "../shared/root.ts";
 import { buildCandidate } from "./build.ts";
@@ -41,7 +44,9 @@ export interface MeasureOptions {
 // rien n'est écrit.
 export type MeasureResult =
   | { written: true; measureDir: string; outcome: Verdict; exitCode: ExitCode }
-  | { written: false; refusal: "refused-usage" | "refused-counted"; message: string; exitCode: 4 };
+  | { written: false; refusal: Refusal; message: string; exitCode: 4 };
+
+type Refusal = "refused-usage" | "refused-counted" | "refused-lock";
 
 // Port imposé au candidat, publié sur 127.0.0.1.
 export const CANDIDATE_PORT = 8100;
@@ -51,7 +56,7 @@ const COMPOSE_FILE = "docker-compose.yml";
 
 export async function measureCandidate({ candidate, counted = false, salt, timeoutCapMs }: MeasureOptions): Promise<MeasureResult> {
   // 0. Refus préalables, avant toute écriture.
-  const refused = (message: string, refusal: "refused-usage" | "refused-counted" = "refused-usage"): MeasureResult => ({
+  const refused = (message: string, refusal: Refusal = "refused-usage"): MeasureResult => ({
     written: false,
     refusal,
     message,
@@ -78,15 +83,45 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
   }
   const candidateDir = join(ROOT, candidate);
   if (!(await isDirectory(candidateDir))) return refused(`The candidate directory does not exist: ${candidate}`);
+  // Verrou du banc, au nom de la mesure : son identifiant est tiré avant.
+  const startedAt = new Date();
+  const benchCommit = await stdoutOf("git", ["rev-parse", "HEAD"]);
+  const id = measureIdOf(startedAt, benchCommit, candidate);
+  const lock = acquireBenchLock({ tool: "measure", measureId: id });
+  if (!lock.ok) return refused(lock.message, "refused-lock");
+  try {
+    return await measure({ candidate, candidateDir, salt, limits, limitsRecord, startedAt, benchCommit, id, lockRecord: lockRecord(lock.holder.takenAt, lock.takenOver) });
+  } finally {
+    lock.release();
+  }
+}
+
+// `environment.lock` : prise du verrou du banc, et reprise d'un verrou du banc
+// orphelin s'il y en a eu une.
+function lockRecord(takenAt: string, takenOver: TakenOver | undefined) {
+  return { takenAt, ...(takenOver === undefined ? {} : { takenOver }) };
+}
+
+interface MeasureContext {
+  candidate: string;
+  candidateDir: string;
+  salt: string | undefined;
+  limits: Limits;
+  limitsRecord: ReturnType<typeof measureLimits>["record"];
+  startedAt: Date;
+  benchCommit: string;
+  id: string;
+  lockRecord: ReturnType<typeof lockRecord>;
+}
+
+// Phases 1 à 7, sous le verrou du banc.
+async function measure({ candidate, candidateDir, salt, limits, limitsRecord, startedAt, benchCommit, id, lockRecord: lock }: MeasureContext): Promise<MeasureResult> {
   const phases: PhaseRecord[] = [];
   const phase = startPhases(phases);
 
   // 1. Préparation.
   const closePreparation = phase("preparation");
-  const startedAt = new Date();
-  const benchCommit = await stdoutOf("git", ["rev-parse", "HEAD"]);
   const worktree = worktreeState((await spawnCommand("git", [...GIT_STATUS_ARGS])).stdout);
-  const id = measureIdOf(startedAt, benchCommit, candidate);
   const measureDir = join(ROOT, DIAGNOSTIC_DIR_FROM_ROOT, id);
   const rawDir = join(ROOT, ARTIFACTS_DIR_FROM_ROOT, id);
   await mkdir(dirname(measureDir), { recursive: true });
@@ -192,6 +227,7 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
       composeOverride,
       port: CANDIDATE_PORT,
       limits: limitsRecord,
+      lock,
     },
     salt: measureSalt,
     saltImposed: salt !== undefined,
