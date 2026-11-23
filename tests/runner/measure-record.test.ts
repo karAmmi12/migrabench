@@ -1,10 +1,11 @@
 // Contenu de measure.json (spec de l'étape 3, « Contenu de measure.json »),
 // dans la mesure de ce que produit le fil traceur (#62).
 import { describe, expect, it } from "vitest";
-import { type MeasureRecordInput, type PhaseRecord, measureRecord } from "../../runner/measure-record.ts";
+import { type MeasureRecordInput, measureRecord } from "../../runner/measure-record.ts";
+import type { PhaseRecord } from "../../runner/verdict.ts";
 
-function phase(name: PhaseRecord["name"], outcome = "ok", raw: Record<string, string> = {}): PhaseRecord {
-  return { name, outcome, startedAt: "2026-11-23T09:05:07.123Z", durationMs: 10, raw };
+function phase(name: PhaseRecord["name"], outcome = "ok", raw: Record<string, string> = {}, detail?: string): PhaseRecord {
+  return { name, outcome, startedAt: "2026-11-23T09:05:07.123Z", durationMs: 10, raw, ...(detail === undefined ? {} : { detail }) } as PhaseRecord;
 }
 
 const SUMMARY = {
@@ -16,6 +17,12 @@ const SUMMARY = {
   reachedPassRate: 1,
   keyboard: { passed: 4, total: 4 },
 };
+
+// Oracle non lancé : les scénarios de la liste, tous non atteints.
+const NOT_RUN = {
+  executed: false,
+  summary: { scenarios: 38, passed: 0, failed: 0, unreached: 38, passRate: 0, reachedPassRate: null, keyboard: { passed: 0, total: 4 } },
+} as const;
 
 const COMPLETED: MeasureRecordInput = {
   measureId: "20261123T090507Z-454fb76-reference-candidate",
@@ -42,7 +49,7 @@ const COMPLETED: MeasureRecordInput = {
 
 describe("measureRecord", () => {
   it("records a diagnostic measure, with its format, identifier, candidate, environment and salt", () => {
-    const record = measureRecord(COMPLETED);
+    const { record } = measureRecord(COMPLETED);
 
     expect(record).toMatchObject({
       format: 1,
@@ -56,14 +63,14 @@ describe("measureRecord", () => {
   });
 
   it("records the oracle result by digest with a copy of its summary, and no gate yet", () => {
-    const record = measureRecord(COMPLETED);
+    const { record } = measureRecord(COMPLETED);
 
     expect(record.oracle).toEqual({ executed: true, result: "sha256:ff", summary: SUMMARY });
     expect(record.gates).toEqual([]);
   });
 
   it("records every phase in order, with its outcome, start, duration and raw digests", () => {
-    const record = measureRecord(COMPLETED);
+    const { record } = measureRecord(COMPLETED);
 
     expect(record.phases.map(({ name }) => name)).toEqual(["preparation", "contract", "build", "start", "oracle", "gates", "closing"]);
     expect(record.phases[2]).toEqual({
@@ -76,14 +83,14 @@ describe("measureRecord", () => {
   });
 
   it("is completed when every phase is ok", () => {
-    expect(measureRecord(COMPLETED).verdict).toEqual({ category: "completed", reason: "ok" });
+    expect(measureRecord(COMPLETED)).toMatchObject({ record: { verdict: { category: "completed", reason: "ok" } }, exitCode: 0 });
   });
 
   it("records the phases after the first failing one as not-run", () => {
-    const record = measureRecord({
+    const { record } = measureRecord({
       ...COMPLETED,
       phases: [phase("preparation"), phase("contract"), phase("build", "build-failed")],
-      oracle: { executed: false },
+      oracle: NOT_RUN,
     });
 
     expect(record.phases.map(({ name, outcome }) => [name, outcome])).toEqual([
@@ -95,23 +102,28 @@ describe("measureRecord", () => {
       ["gates", "not-run"],
       ["closing", "not-run"],
     ]);
-    expect(record.oracle).toEqual({ executed: false });
+    expect(record.oracle).toEqual(NOT_RUN);
   });
 
   it("counts a failed start against the candidate", () => {
-    const record = measureRecord({
+    const { record } = measureRecord({
       ...COMPLETED,
       phases: [phase("preparation"), phase("contract"), phase("build"), phase("start", "start-exited"), phase("closing")],
-      oracle: { executed: false },
+      oracle: NOT_RUN,
     });
 
     expect(record.verdict).toEqual({ category: "candidate-failure", reason: "start-exited" });
     expect(record.phases.find(({ name }) => name === "closing")?.outcome).toBe("ok");
   });
 
-  it("refuses an outcome it cannot classify yet", () => {
-    expect(() =>
-      measureRecord({ ...COMPLETED, phases: [phase("preparation", "runner-error-before-candidate")], oracle: { executed: false } }),
-    ).toThrow(/runner-error-before-candidate/);
+  it("records an invalid measure with its reason and evidence, exit code 3", () => {
+    const { record, exitCode } = measureRecord({
+      ...COMPLETED,
+      phases: [phase("preparation", "runner-error-before-candidate", {}, "Error: EACCES")],
+      oracle: NOT_RUN,
+    });
+
+    expect(record.verdict).toEqual({ category: "invalid", reason: "runner-error-before-candidate", evidence: "Error: EACCES" });
+    expect(exitCode).toBe(3);
   });
 });

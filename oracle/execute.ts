@@ -11,7 +11,7 @@ import { spawnCommand, stdoutOf } from "../shared/process.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, readBenchEnv, ROOT } from "../shared/root.ts";
 import { browserVersions } from "./browser-versions.ts";
 import { type CiRun, ciRunOf, resultFileName, timestamp } from "./ci-run.ts";
-import { artifactPaths, collect, type OracleSummary } from "./collect.ts";
+import { artifactPaths, collect, type OracleSummary, unreachedSummary } from "./collect.ts";
 import { DEFAULT_BASE_URL, ORACLE_ENV } from "./env.ts";
 import { GIT_STATUS_ARGS, RESULTS_DIR_FROM_ROOT, worktreeState, type WorktreeState } from "./worktree.ts";
 
@@ -46,6 +46,7 @@ export interface ExecuteOracleResult {
   summary: OracleSummary;
   // Erreurs de Playwright hors scénarios (configuration, chargement des fichiers).
   errors: number;
+  errorMessages: string[];
 }
 
 export async function executeOracle({ baseUrl = DEFAULT_BASE_URL, salt, ...options }: ExecuteOracleOptions = {}): Promise<ExecuteOracleResult> {
@@ -147,7 +148,22 @@ async function collectAndWrite({ salt, saltImposed, startedAt, metadata, outputD
   const resultFile = imposedResultFile ?? join(RESULTS_DIR, resultFileName(startedAt, metadata.benchCommit, metadata.ciRun));
   await mkdir(dirname(resultFile), { recursive: true });
   await writeFile(resultFile, `${JSON.stringify(result, null, 2)}\n`);
-  return { resultFile, metadata, summary, errors: report.errors.length };
+  return { resultFile, metadata, summary, errors: report.errors.length, errorMessages: report.errors.map((error) => error.message ?? error.value ?? "Playwright error without message") };
+}
+
+// Résumé d'un oracle non lancé (spec de l'étape 3) : les scénarios listés par
+// Playwright, sans les exécuter ni toucher à la pile, tous non atteints.
+// `artifactsDir` reçoit le rapport de la liste, depuis la racine du dépôt.
+export async function listOracle(artifactsDir: string): Promise<OracleSummary> {
+  const outputDir = join(ROOT, artifactsDir);
+  const reportFile = join(outputDir, "list.json");
+  await mkdir(outputDir, { recursive: true });
+  await spawnCommand("npx", ["playwright", "test", "--config", CONFIG, "--list"], {
+    env: { [ORACLE_ENV.outputDir]: outputDir, [ORACLE_ENV.report]: reportFile },
+  });
+  const listed = JSON.parse(await readFile(reportFile, "utf8")) as JSONReport;
+  if (listed.errors.length > 0) throw new Error(`Playwright could not list the oracle scenarios: ${listed.errors.map((error) => error.message ?? error.value).join("; ")}`);
+  return unreachedSummary(listed);
 }
 
 async function imageOf(service: string): Promise<string> {

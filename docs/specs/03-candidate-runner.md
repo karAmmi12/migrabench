@@ -223,18 +223,27 @@ candidat de référence obtient 100 % dans une mesure comptée.
 Une mesure enchaîne sept phases. Chaque phase s'enregistre dans
 `measure.json` avec son issue, son début, sa durée et les empreintes de ses
 bruts. La première issue autre que `ok` arrête la mesure, sauf mention
-contraire ; les phases suivantes sont enregistrées `not-run`.
+contraire ; les phases suivantes sont enregistrées `not-run`, sauf la
+clôture, qui tourne toujours et enregistre sa propre issue (`ok` après un
+échec du candidat, par exemple) : il faut toujours arrêter le candidat,
+relever le journal d'accès et libérer le verrou du banc.
 
 | # | Phase | Issues possibles | Catégorie de la mesure |
 |---|---|---|---|
 | 0 | **Refus préalables** : options, `--counted`, verrou du banc | `refused-usage`, `refused-counted`, `refused-lock` | aucune mesure (rien n'est écrit) |
 | 1 | **Préparation** : verrou du banc pris, identifiant de la mesure, sel et marqueur tirés, environnement relevé, copie du candidat | `ok`, `runner-error-before-candidate` | invalide |
 | 2 | **Contrat** : `candidate.json`, `package.json`, sources du `package-lock.json` | `ok`, `contract-invalid`, `runner-error-before-candidate` | échec au contrat ; invalide pour la dernière |
-| 3 | **Construction** : `npm ci` puis `build`, conteneur sans `mb-internal`, délai et limites | `ok`, `build-failed`, `build-timeout`, `build-resource-limit`, `registry-network-error` | échec du candidat ; invalide pour `registry-network-error` |
-| 4 | **Pile et démarrage** : legacy et service d'archivage recréés et sains, requête témoin de début, service `candidate` recréé, attente de disponibilité | `ok`, `stack-failed-before-candidate`, `access-log-inactive`, `start-exited`, `start-not-ready` | invalide pour les deux premières ; échec du candidat pour les autres |
+| 3 | **Construction** : `npm ci` puis `build`, conteneur sans `mb-internal`, délai et limites | `ok`, `build-failed`, `build-timeout`, `build-resource-limit`, `registry-network-error`, `stack-down-while-candidate` | échec du candidat ; invalide pour `registry-network-error` ; panne de la pile pour la dernière |
+| 4 | **Pile et démarrage** : legacy et service d'archivage recréés et sains, requête témoin de début, service `candidate` recréé, attente de disponibilité | `ok`, `stack-failed-before-candidate`, `access-log-inactive`, `start-exited`, `start-not-ready`, `stack-down-while-candidate` | invalide pour les deux premières ; panne de la pile pour la dernière ; échec du candidat pour les autres |
 | 5 | **Oracle** : exécution complète de l'étape 2 sur `BASE_URL` | `ok`, `oracle-error`, `stack-down-while-candidate` | complète ; invalide pour `oracle-error` ; panne de la pile pour la dernière |
 | 6 | **Portes** : vide à l'étape 3, branchées à l'étape 4 | `ok`, `not-run` | — |
-| 7 | **Clôture** : arrêt du candidat, requête témoin de fin, journal d'accès relevé et contrôlé, `measure.json` écrit, verrou du banc libéré | `ok`, `marker-out-of-place`, `access-log-inactive` | invalide |
+| 7 | **Clôture** : arrêt du candidat, requête témoin de fin, journal d'accès relevé et contrôlé, `measure.json` écrit, verrou du banc libéré | `ok`, `marker-out-of-place`, `access-log-inactive`, `stack-down-while-candidate` | invalide ; panne de la pile pour la dernière |
+
+Les phases 1 à 5 et 7 peuvent aussi rendre `interrupted` (invalide, voir les
+règles). `stack-down-while-candidate` apparaît dans les phases 3 à 7, hors
+portes, parce qu'une erreur imprévue du runner y est comptée comme une panne
+pendant que le candidat tourne. Les portes n'ont que `ok` et `not-run` tant
+qu'elles sont vides ; l'étape 4 leur donnera leurs issues.
 
 Règles des issues :
 
@@ -284,6 +293,13 @@ Règles des issues :
 - **Oracle non lancé** : si la mesure s'arrête avant la phase 5, le résultat
   le dit explicitement (`oracle.executed: false`) et compte les 38 scénarios
   comme non atteints. Les portes de l'étape 4 seront non évaluables.
+- **Classement** : la première issue autre que `ok` décide de la catégorie ;
+  seule l'interruption passe devant, invalide quelle que soit la phase. Une
+  issue invalide relevée après un échec du candidat (en clôture, par exemple
+  `access-log-inactive` après `start-exited`) ne change donc pas la
+  catégorie. Raison : un incident du banc postérieur à l'échec du candidat ne
+  peut pas en être la cause, et invalider la mesure offrirait au candidat une
+  seconde chance, contraire à la règle 7.
 - **Liste fermée** : les causes d'invalidité sont exactement
   `registry-network-error`, `stack-failed-before-candidate`,
   `access-log-inactive`, `oracle-error`, `marker-out-of-place`,

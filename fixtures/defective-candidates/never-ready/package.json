@@ -1,0 +1,7 @@
+{
+  "name": "never-ready",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Candidat défectueux 4 du banc : start tourne sans jamais écouter sur PORT.",
+  "type": "module"
+}
