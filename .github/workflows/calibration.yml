@@ -9,8 +9,9 @@
 # autres jobs lourds) :
 # - en workflow_dispatch : toujours ;
 # - sur une PR : seulement si elle touche ce qui fait les relevés (chemins de
-#   calibration dans scripts/ci-scope.ts), et pas si seul docs/** a changé
-#   depuis son dernier succès sur la PR.
+#   calibration dans scripts/ci-scope.ts), et pas si aucun de ces chemins n'a
+#   changé depuis son dernier succès sur la PR. Versionner un résultat dans
+#   results/calibration/ ne relance donc pas l'étalonnage.
 # Pas de filtre paths sous on: : GitHub l'applique à tout le diff de la PR, et
 # le job tournait donc à chaque push, même d'un commit qui ne touchait que la
 # documentation (PR #87).

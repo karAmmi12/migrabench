@@ -80,6 +80,23 @@ describe("shouldRun", () => {
     });
   });
 
+  // Versionner un résultat d'étalonnage ne doit pas en produire un autre.
+  it("skips calibration when none of its paths changed since it succeeded on the pull request", async () => {
+    const runs = [{ sha: "a1", at: "2026-11-23T10:00:00Z", jobs: { changes: "success", calibration: "success" } }];
+    const changed = { a1: ["results/calibration/x.json", "docs/formation/journal/72-x.md"] };
+
+    expect(await shouldRun("calibration", pr("runner/calibrate.ts"), history(runs, { changed }))).toEqual({
+      run: false,
+      reason: "aucun de ses chemins n'a changé depuis a1, où calibration a réussi",
+    });
+  });
+
+  it("runs calibration when one of its paths changed since it succeeded on the pull request", async () => {
+    const runs = [{ sha: "a1", at: "2026-11-23T10:00:00Z", jobs: { changes: "success", calibration: "success" } }];
+
+    expect((await shouldRun("calibration", pr("runner/calibrate.ts"), history(runs, { changed: { a1: ["runner/calibration.ts"] } }))).run).toBe(true);
+  });
+
   // #83 : une PR neuve n'a aucune référence, mais son code est celui de la base.
   it.each(["tests", "oracle"] as const)(
     "skips %s on a pull request touching only docs/**, even without reference",

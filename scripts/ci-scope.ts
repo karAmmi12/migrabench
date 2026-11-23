@@ -41,6 +41,11 @@ const JOB_PATHS: Partial<Record<HeavyJob, string[]>> = {
   ],
 };
 
+// Jobs dont seuls les propres chemins comptent depuis leur dernier succès,
+// et pas tout ce qui n'est pas docs/** : versionner un résultat d'étalonnage
+// (results/calibration/) ne doit pas relancer l'étalonnage (#72).
+const ONLY_OWN_PATHS_SINCE_SUCCESS: ReadonlySet<HeavyJob> = new Set(["calibration"]);
+
 function touches(files: string[], paths: string[]): boolean {
   return files.some((file) => paths.some((path) => (path.endsWith("/") ? file.startsWith(path) : file === path)));
 }
@@ -84,6 +89,9 @@ export async function shouldRun(job: HeavyJob, context: Context, history: Histor
   }
   if (onlyDocs(changed)) {
     return { run: false, reason: `seul docs/** a changé ${since}` };
+  }
+  if (paths !== undefined && ONLY_OWN_PATHS_SINCE_SUCCESS.has(job) && !touches(changed, paths)) {
+    return { run: false, reason: `aucun de ses chemins n'a changé ${since}` };
   }
   return { run: true, reason: `des fichiers hors docs/** ont changé ${since}` };
 }

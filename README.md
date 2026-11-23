@@ -136,7 +136,8 @@ Pour économiser les minutes de CI (#76) :
 - les jobs lourds (`tests`, `oracle`, `proof`, `calibration`) passent d'abord
   par un job `changes` (`scripts/write-ci-scope.ts`, règle dans
   `scripts/ci-scope.ts`). `proof` et `calibration` ne tournent que sur une PR
-  qui touche leurs propres chemins, listés dans la règle.
+  qui touche leurs propres chemins, listés dans la règle. `calibration` est
+  aussi ignoré si aucun de ses chemins n'a changé depuis son dernier succès.
   Sur une PR, un job lourd est ignoré si la PR ne touche que `docs/**` (#83) :
   le code du commit de fusion est alors celui de la base. Il l'est aussi si
   seul `docs/**` a changé depuis le dernier commit de la PR où ce même job a
