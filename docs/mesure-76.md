@@ -7,3 +7,5 @@ Deuxième ligne : commit docs poussé juste après un commit de code.
 Troisième ligne : premier de deux commits docs coup sur coup.
 
 Quatrième ligne : second commit docs.
+
+Cinquième ligne : premier de deux commits docs coup sur coup (reprise).
