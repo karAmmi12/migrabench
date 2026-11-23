@@ -2,7 +2,8 @@
 // résultat invalide au moment de l'écrire, ce contrôle refuse un résultat
 // versionné écrit par une version antérieure de la collecte, modifié à la
 // main ou produit sous un mauvais Node. C'est l'unique définition d'un
-// résultat valide : la vérification de la preuve (proof.ts) la reprend.
+// résultat valide : la vérification de la preuve (proof.ts) la reprend, et le
+// contrôle des résultats d'étalonnage (#72) en reprend les règles, sauf le sel.
 
 import { describeMachinePath, machinePathsIn } from "./collect.ts";
 
@@ -29,14 +30,27 @@ const FULL_SHA = /^[0-9a-f]{40}$/;
 
 // Manquements d'un résultat, vide s'il est valide.
 export function checkResult(result: CheckedResult, environment: ResultEnvironment): Violation[] {
-  const metadata = result.config?.metadata ?? {};
+  return checkRecorded(result, result.config?.metadata ?? {}, environment, { salt: true });
+}
+
+// Manquements d'un résultat d'étalonnage versionné dans results/calibration/,
+// vide s'il est valide : son environnement est dans `environment`, et
+// l'étalonnage ne tire pas de sel.
+export function checkCalibrationResult(result: unknown, environment: ResultEnvironment): Violation[] {
+  const recorded = (result as { environment?: Record<string, unknown> } | null)?.environment ?? {};
+  return checkRecorded(result, recorded, environment, { salt: false });
+}
+
+// Règles communes : `metadata` porte l'état où le résultat a été obtenu,
+// `result` est cherché en entier pour les chemins machine.
+function checkRecorded(result: unknown, metadata: Record<string, unknown>, environment: ResultEnvironment, { salt }: { salt: boolean }): Violation[] {
   const violations: Violation[] = [];
   const violate = (rule: ResultRule, detail: string) => violations.push({ rule, detail });
 
   if (metadata.worktree !== "clean") violate("worktree", `${JSON.stringify(metadata.worktree)}, expected "clean"`);
   const node = `v${environment.node.replace(/^v/, "")}`;
   if (metadata.node !== node) violate("node", `${JSON.stringify(metadata.node)}, expected "${node}" (.nvmrc)`);
-  if (metadata.saltImposed !== false) {
+  if (salt && metadata.saltImposed !== false) {
     violate("saltImposed", `${"saltImposed" in metadata ? JSON.stringify(metadata.saltImposed) : "missing"}, expected false`);
   }
   const { benchCommit } = metadata;
