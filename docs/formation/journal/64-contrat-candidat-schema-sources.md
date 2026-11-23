@@ -22,7 +22,17 @@ un agent qui déclare mal et un agent qui migre mal.
   validation. La classe par défaut vise le draft-07 ; un schéma 2020-12
   demande une autre classe, importée de `ajv/dist/2020.js`. —
   [Ajv : draft-2020-12](https://ajv.js.org/json-schema.html#draft-2020-12)
-  > À vérifier : le nom `Ajv2020` n'a pas été lu sur cette page (bloc de code non extrait) ; il a été lu dans `node_modules/ajv/dist/2020.d.ts`.
+  Observé au commit `30894af`, dans la version installée par `npm ci` :
+
+  ```sh
+  ls node_modules/ajv/dist/2020.js
+  # node_modules/ajv/dist/2020.js
+  node -p 'require("./package-lock.json").packages["node_modules/ajv"].version'
+  # 8.20.0
+  ```
+
+  Import utilisé, `runner/contract.ts:7` :
+  `import { Ajv2020, type ErrorObject } from "ajv/dist/2020.js";`
 - **Options `allErrors` et `strict` d'Ajv** : `allErrors` collecte toutes les
   erreurs au lieu de s'arrêter à la première ; `strict` fait échouer la
   compilation d'un schéma mal écrit. —
@@ -40,7 +50,14 @@ un agent qui déclare mal et un agent qui migre mal.
   `EISDIR`, un fichier attendu est un dossier. La phase 2 traite le premier
   comme un manquement du contrat, le second comme une erreur du runner. —
   [Node.js 22 : Common system errors](https://nodejs.org/docs/latest-v22.x/api/errors.html#common-system-errors)
-  > À vérifier : la présence d'`EISDIR` dans la liste de cette page n'a pas été lue mot pour mot.
+  Observé au commit `30894af`, Node v22.23.5, en lisant un dossier comme un
+  fichier :
+
+  ```sh
+  node -e 'require("fs").readFileSync("runner")'
+  # Error: EISDIR: illegal operation on a directory, read
+  #   code: 'EISDIR',
+  ```
 
 ## Ce qui a été construit
 
