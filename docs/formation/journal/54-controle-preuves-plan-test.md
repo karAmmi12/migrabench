@@ -212,8 +212,18 @@ npm test
 Attendu (observé sur `c0523be`, pile Docker démarrée) :
 `Test Files  37 passed (37)`, `Tests  259 passed (259)`.
 
-> À vérifier après l'exécution de la CI de la PR : le lien du job « Fiche de
-> formation » sur la PR du ticket, son head SHA, et la sortie des deux étapes.
+Job « Fiche de formation » de la PR #58 :
+[exécution 45091487346](https://github.com/karAmmi12/migrabench/actions/runs/45091487346/job/137421829536),
+verte, sur le head SHA `4ad5d94`, de 00:54:27Z à 00:54:39Z
+(`gh run view 45091487346 --json startedAt,updatedAt`). Sorties des deux
+étapes :
+
+- `Fiche trouvée pour #54.`
+- `Chaque case cochée chiffrée cite un état.`
+
+L'API des annotations rend `0` pour ce job. Les lignes `::error::` du corps de
+la PR, que le journal recopie dans l'environnement de l'étape (`PR_BODY`),
+n'ont pas créé d'annotation.
 
 ## Pour aller plus loin
 
