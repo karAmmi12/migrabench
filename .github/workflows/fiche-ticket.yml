@@ -3,7 +3,9 @@
 # apporte sa fiche de formation docs/formation/journal/N-*.md, rédigée avec
 # /fiche-ticket.
 # Chaque case cochée du plan de test qui contient un nombre cite l'état où il
-# a été obtenu, un SHA ou une exécution de CI (#54).
+# a été obtenu, un SHA de commit ou un lien de job de CI (#54).
+# Les deux contrôles lisent le corps de la PR, nettoyé de son code par la même
+# fonction (scripts/pr-body.ts).
 name: Fiche de formation
 
 on:
@@ -19,38 +21,15 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Node de .nvmrc : les scripts sont en TypeScript, lancés sans compilation.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+
       - name: Une fiche par ticket fermé par la PR
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: |
-          # Comme GitHub, ignorer les mots-clés écrits dans du code : on retire
-          # d'abord les blocs délimités (``` ou ~~~, fermés ou non), puis le
-          # code en ligne (`…`, ``…``).
-          prose=$(printf '%s' "$PR_BODY" | perl -0777 -pe '
-            s/^[ \t]*(`{3,}|~{3,})[^\n]*\n.*?(?:^[ \t]*\1[`~]*[ \t]*$|\z)//gms;
-            s/(?<!`)(`+)(?!`).+?(?<!`)\1(?!`)//gs;
-          ')
-          tickets=$(printf '%s' "$prose" | grep -oiE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?):? +#[0-9]+' | grep -oE '[0-9]+' | sort -un || true)
-          if [ -z "$tickets" ]; then
-            echo "Aucun ticket fermé par la PR : rien à vérifier."
-            exit 0
-          fi
-          missing=0
-          for n in $tickets; do
-            if compgen -G "docs/formation/journal/${n}-*.md" > /dev/null; then
-              echo "Fiche trouvée pour #${n}."
-            else
-              echo "::error::Fiche manquante pour #${n} : ajouter docs/formation/journal/${n}-<nom-court>.md (lancer /fiche-ticket)."
-              missing=1
-            fi
-          done
-          exit "$missing"
-
-      # Node de .nvmrc : le script est en TypeScript, lancé sans compilation.
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        if: ${{ !cancelled() }}
-        with:
-          node-version-file: .nvmrc
+        run: node scripts/check-training-sheet.ts
 
       # Lancée même si la fiche manque : les deux manquements sont signalés ensemble.
       - name: Chaque case cochée chiffrée cite un état
