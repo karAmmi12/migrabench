@@ -18,3 +18,4 @@ export function cited(hex: string): string {
 }
 
 // Mesure des minutes de CI (#76) : commit de code jetable, hors oracle/.
+// Deuxième commit de code jetable (#76), annulé par le commit docs suivant.
