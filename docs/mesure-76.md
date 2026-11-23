@@ -19,3 +19,5 @@ Septième ligne : premier commit docs, second essai.
 Huitième ligne : second commit docs, second essai.
 
 Neuvième ligne : premier commit docs, écart de 5 s.
+
+Dixième ligne : second commit docs, écart de 5 s.
