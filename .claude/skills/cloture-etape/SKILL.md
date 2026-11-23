@@ -38,6 +38,12 @@ Argument : le numéro N de l'étape dans `docs/PLAN.md`. S'il manque, demander.
      étape : quelles fiches lire d'abord, lesquelles se lisent ensemble, en
      suivant les « Notions à connaître » (une notion est introduite avant
      d'être utilisée).
+   - **Fiches hors étape** : une fiche dont le ticket n'a pas de titre en
+     « Étape N · » va au sommaire sous `### Hors étape`, après les étapes,
+     dans l'ordre des tickets. Dans le parcours, elle se place là où ses
+     notions sont introduites : avant la première fiche qui les utilise, ou
+     avec la fiche dont elle dépend. Un bloc de fiches hors étape lues entre
+     deux étapes prend un titre `### Entre les étapes N et N+1 · <thème>`.
 
    Fini quand chaque fiche de `docs/formation/journal/` apparaît une fois au
    sommaire et au moins une fois dans le parcours.
