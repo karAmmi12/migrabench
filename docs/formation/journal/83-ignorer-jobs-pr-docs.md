@@ -30,6 +30,15 @@ ancre existe (`id="…"`).
   `onlyDocs(prFiles)` est vrai, avec la raison « la PR ne touche que
   `docs/**` ». Ce test passe après celui des chemins de `proof` et avant la
   recherche de référence. La règle de la référence utilise la même fonction.
+- **`scripts/github-history.ts`** : `pullRequestFiles(baseSha, headSha)` rend
+  les fichiers de la PR avec la plage à trois points `base...tête`. Le script
+  `scripts/write-ci-scope.ts` l'appelle au lieu d'écrire la plage lui-même,
+  si bien qu'un test la protège.
+- **`tests/github-history.test.ts`** : « lists only the pull request's files
+  when main moved on, so that a docs-only pull request stays docs-only ». Sur
+  un vrai dépôt Git temporaire, une branche ne modifie que `docs/x.md`, puis
+  `main` reçoit un commit de code `runner/y.ts`. `pullRequestFiles(main, pr)`
+  doit rendre `["docs/x.md"]`.
 - **`tests/ci-scope.test.ts`** : 3 tests de plus, soit 24.
   - `tests` et `oracle` sont ignorés sur une PR qui ne touche que `docs/**`,
     sans aucune référence ;
@@ -61,13 +70,37 @@ ancre existe (`id="…"`).
   - Résolution : ce ticket. Les deux tests de la PR docs seule ont d'abord
     échoué, puis ils passent depuis `53096a0`.
 
+- **Aucun test ne protégeait la comparaison à la base de fusion.**
+  - Symptôme : à la question de l'humain, aucun test n'a pu être cité. Les
+    tests de `shouldRun` reçoivent `prFiles` tout fait. Le seul test de
+    `changedFiles` sur un vrai dépôt utilise deux points, et le test du
+    script ne couvre que les événements hors PR. Remplacer `...` par `..`
+    dans le script ne cassait aucun test.
+  - Cause : la plage était écrite en dur dans `write-ci-scope.ts`, hors de
+    toute fonction testée.
+  - Résolution : la plage passe dans `pullRequestFiles`, avec le test
+    ci-dessus. Pour prouver qu'il protège, la plage a été passée
+    temporairement à `..`. Le test a échoué ainsi :
+
+    ```text
+    × lists only the pull request's files when main moved on, so that a docs-only pull request stays docs-only
+    - Expected
+    + Received
+      [
+        "docs/x.md",
+    +   "runner/y.ts",
+      ]
+    ```
+
+    La plage a ensuite été remise à `...`, et le test passe depuis `70ac43b`.
+
 ## Vérifier soi-même
 
-Tests sans la pile, fichier par fichier (état : `4a969ac`) :
+Tests sans la pile, fichier par fichier (état : `70ac43b`) :
 
 ```sh
 npx vitest run tests/ci-scope.test.ts            # Tests  24 passed (24)
-npx vitest run tests/github-history.test.ts      # Tests  7 passed (7)
+npx vitest run tests/github-history.test.ts      # Tests  8 passed (8)
 npx vitest run tests/write-ci-scope.test.ts      # Tests  3 passed (3)
 npx vitest run tests/workflow-concurrency.test.ts  # Tests  6 passed (6)
 npx vitest run tests/workflow-heavy-jobs.test.ts   # Tests  3 passed (3)
