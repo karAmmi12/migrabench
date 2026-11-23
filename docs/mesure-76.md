@@ -11,3 +11,5 @@ Quatrième ligne : second commit docs.
 Cinquième ligne : premier de deux commits docs coup sur coup (reprise).
 
 Cinquième ligne : premier de deux commits docs coup sur coup (reprise).
+
+Sixième ligne : second commit docs (reprise).
