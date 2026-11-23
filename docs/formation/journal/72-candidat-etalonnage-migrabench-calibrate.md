@@ -89,9 +89,12 @@ limites sortent.
 - `scripts/ci-scope.ts` : `calibration` rejoint les jobs lourds, avec ses
   propres chemins, comme `proof` (table `JOB_PATHS`). Tests dans
   `tests/ci-scope.test.ts` et `tests/write-ci-scope.test.ts`.
-- `results/calibration/20261123T215140Z-344b70c-ci45273672040.1-1.json` : le
-  premier résultat d'étalonnage de CI, versionné seul dans le commit
-  `b44b257`.
+- `results/calibration/` : deux résultats d'étalonnage de CI, chacun
+  versionné seul dans son commit :
+  - `20261123T215140Z-344b70c-ci45273672040.1-1.json` (commit `b44b257`) ;
+  - `20261123T222612Z-38a5914-ci45279347841.1-1.json` (commit `7de1c89`). Il
+    a été obtenu après la fusion de `main` et la nouvelle règle de CI, et
+    c'est celui que les mesures appliquent : c'est le plus récent.
 - `docs/specs/03-candidate-runner.md` : la limite du relevé de CPU.
 - Tests :
   - `tests/runner/resource-usage.test.ts` ;
@@ -223,6 +226,31 @@ limites sortent.
     après un contrat valide), avec les fonctions extraites.
   - Il a aussi fallu `npm ci` : `ajv`, ajouté par #64, manquait pour le
     typecheck.
+- **Le second étalonnage donne une limite de CPU supérieure au nombre de
+  CPU du runner.**
+  - Symptôme : l'exécution 45279347841 a tourné sur un runner à 2 CPU
+    (Intel Xeon 6975P-C), et rend `buildCpus` 2,26, soit 1,13 × 2.
+  - Cause : Docker refuse un `--cpus` supérieur au nombre de CPU de la
+    machine. Observé en local, avec 14 CPU : `docker run --cpus 15` rend
+    `range of CPUs is from 0.01 to 14.00, as there are only 14 CPUs
+    available`, et le code `125`.
+  - Conséquence : sur un runner à 2 CPU, une mesure qui applique cet
+    étalonnage verrait ses conteneurs de construction refusés par Docker
+    (code `125`). #65 range ce code en `build-failed`, contre le candidat.
+    En local, avec 14 CPU, la mesure passe.
+  - Résolution : la décision revient à l'humain (voir « Pour aller plus
+    loin »).
+- **Quel commit l'étalonnage de CI enregistre.** Le workflow fait son
+  checkout sur `github.event.pull_request.head.sha`, pas sur le commit de
+  fusion temporaire. Le journal de l'exécution 45279347841 montre `HEAD is
+  now at 38a5914`, et `benchCommit` vaut `38a5914…`, la tête de la PR.
+  - Après une fusion en squash, ce commit reste joignable par
+    `refs/pull/87/head`, que `npm run fetch:pull-heads` récupère, comme pour
+    les résultats de l'oracle.
+  - Le contrôle des résultats versionnés (#53) ne lit que
+    `results/oracle/`. `results/calibration/` n'est pas contrôlé :
+    `benchCommit`, `worktree` et l'absence de chemin de machine y ont été
+    vérifiés à la main (`clean`, aucun chemin `/home/runner` ni `/Users/`).
 - **Un commit intermédiaire ne compile pas seul.** Dans `6f6deeb`,
   `runner/measure.ts` appelle encore l'ancienne signature de
   `measureLimits`. Il est adapté dans `e2751ab`. La PR se fusionne en squash.
@@ -295,8 +323,43 @@ empreinte `sha256:0a411d5fe323e88f13cc6bc9de3e80145693f7300da9794daa07ba73b0f55d
 | Pic de mémoire, construction | 329 773 056 o | 331 354 112 o | 663 748 608 o |
 | CPU moyen, construction | 0,71 | 0,97 | 1,95 |
 
-Mesure du candidat de référence qui applique cet étalonnage, au commit
-`82cf7b7`, arbre propre. Le dossier de la mesure est un diagnostic, ignoré
+Second étalonnage en CI : [exécution 45279347841](https://github.com/karAmmi12/migrabench/actions/runs/45279347841),
+job `calibration`, commit `38a5914` (tête de la PR), arbre propre. Runner
+ubuntu 24.04 (image `20261116.133.1`), 2 CPU Intel Xeon 6975P-C. Résultat
+versionné :
+`results/calibration/20261123T222612Z-38a5914-ci45279347841.1-1.json`,
+empreinte `sha256:9b921d7925e8d2062fd6e61e4745635738953f080ba61280b3dc397436c75bac`.
+
+| Sur 5 relevés | min | max | limite (max × multiple) |
+|---|---|---|---|
+| Construction | 3 940 ms | 5 781 ms | 28 905 ms |
+| Jusqu'à la disponibilité | 644 ms | 658 ms | 3 290 ms |
+| Pic de mémoire, construction | 330 924 032 o | 342 003 712 o | 684 720 128 o |
+| CPU moyen, construction | 0,82 | 1,13 | 2,26 |
+
+D'un runner à l'autre, le maximum de la construction passe de 10 110 ms
+(AMD EPYC, premier étalonnage) à 5 781 ms (Intel Xeon). Il reste sous le
+délai de chacun des deux étalonnages.
+
+Mesure du candidat de référence qui applique le second étalonnage, au
+commit `7de1c89`, arbre propre :
+
+```sh
+npm run stack:up
+npm run migrabench -- measure --candidate fixtures/reference-candidate
+# Measure: results/diagnostic/20261123T223953Z-7de1c89-reference-candidate
+# Outcome: completed (ok)
+# measure.json : 7 phases ok, 38 scénarios, 38 réussis, 0 non atteint ;
+# environment.limits :
+# {"provisional":false,"source":"calibration",
+#  "calibration":{"file":"results/calibration/20261123T222612Z-38a5914-ci45279347841.1-1.json",
+#   "digest":"sha256:9b921d7925e8d2062fd6e61e4745635738953f080ba61280b3dc397436c75bac"},
+#  "multiples":{"timeouts":5,"resources":2},
+#  "buildTimeoutMs":28905,"readyTimeoutMs":3290,"buildMemoryBytes":684720128,"buildCpus":2.26}
+```
+
+Mesure du candidat de référence qui applique le premier étalonnage, au
+commit `82cf7b7`, arbre propre. Le dossier de la mesure est un diagnostic, ignoré
 par Git : seules les mesures prévues pour compter seront versionnées (#73).
 
 ```sh
@@ -381,6 +444,14 @@ règle de `calibration` :
 - **#73, mesure prévue pour compter** : `--counted` doit être refusé tant
   qu'aucun étalonnage de CI n'est versionné. `appliedCalibration` rend déjà
   `undefined` dans ce cas.
+- **Limite de CPU au-delà de la machine** : 2,26 CPU sur un runner qui en a
+  2 rend toute mesure en CI impossible (code `125` de Docker). Trois pistes :
+  - borner `buildCpus` au nombre de CPU de la machine d'étalonnage, déjà
+    enregistré dans `environment.machine.cpus` ;
+  - le borner au moment de l'appliquer, au nombre de CPU de la machine de
+    la mesure ;
+  - ranger le code `125` en panne du banc plutôt qu'en échec du candidat
+    (commentaire sur #68).
 - **Délais serrés** : 3,6 s jusqu'à la disponibilité et 50,5 s de
   construction sortent d'un candidat d'étalonnage léger. Un candidat d'agent
   avec plus de dépendances les approchera. L'étape 6 réétalonne avant sa
