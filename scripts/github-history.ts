@@ -13,8 +13,13 @@ function listOf(response: unknown, key: string): Record<string, unknown>[] {
   return list as Record<string, unknown>[];
 }
 
+// Exécutions terminées seulement. Le filtre status=completed de l'API n'est pas
+// fiable : sur la PR #79, il a écarté les 2 exécutions « Oracle », pourtant
+// terminées (tests/fixtures/github-api/oracle-runs-pr79-*.json).
 export function parseWorkflowRuns(response: unknown): WorkflowRun[] {
-  return listOf(response, "workflow_runs").map((run) => ({
+  return listOf(response, "workflow_runs")
+    .filter((run) => run.status === "completed")
+    .map((run) => ({
     id: run.id as number,
     headSha: run.head_sha as string,
     createdAt: run.created_at as string,
@@ -53,7 +58,7 @@ export type PullRequest = {
 export function githubHistory(pr: PullRequest): History {
   return {
     async completedWorkflowRuns() {
-      const query = new URLSearchParams({ event: "pull_request", branch: pr.headRef, status: "completed", per_page: "100" });
+      const query = new URLSearchParams({ event: "pull_request", branch: pr.headRef, per_page: "100" });
       return parseWorkflowRuns(await api(`repos/${pr.repository}/actions/workflows/${pr.workflow}/runs?${query}`));
     },
     // Par défaut, l'API rend la dernière tentative de chaque job.

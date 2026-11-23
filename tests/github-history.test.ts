@@ -19,6 +19,23 @@ describe("parseWorkflowRuns", () => {
     ]);
   });
 
+  // Le filtre status=completed de l'API a rendu 0 exécution sur la PR #79,
+  // alors que les 2 étaient terminées : la requête ne filtre pas, l'analyseur si.
+  it("keeps the completed runs the API status filter dropped", () => {
+    expect(recorded("oracle-runs-pr79-status-completed.json")).toMatchObject({ total_count: 0 });
+
+    expect(parseWorkflowRuns(recorded("oracle-runs-pr79-unfiltered.json")).map((run) => run.id)).toEqual([
+      45231005516, 45216443496,
+    ]);
+  });
+
+  it("drops a run that is not completed, such as the run deciding", () => {
+    const response = recorded("oracle-runs-pr79-unfiltered.json") as { workflow_runs: { status: string }[] };
+    response.workflow_runs[0]!.status = "in_progress";
+
+    expect(parseWorkflowRuns(response).map((run) => run.id)).toEqual([45216443496]);
+  });
+
   it("refuses a response that is not a list of workflow runs", () => {
     expect(() => parseWorkflowRuns({ message: "Not Found" })).toThrow(/workflow_runs/);
   });
