@@ -184,21 +184,61 @@ au candidat est fixé par l'ADR 0006.
 chacune enregistrée depuis un arbre de travail propre.
 
 ### 3. Contrat de candidat et runner
-`candidate.json` (commande de build, commande de démarrage, URL). CLI
-`migrabench run --candidate <dossier>` qui démarre le candidat, rejoue
-l'oracle et écrit un résultat JSON.
+`candidate.json`, écrit par l'agent IA, validé par un schéma JSON publié :
+`contract` (version du contrat), `build` (commande facultative, après
+`npm ci`) et `start` (commande obligatoire), chacune lancée par `sh -c`.
+Pas d'URL : le banc impose le port et en déduit `BASE_URL` (ADR 0007). Un
+`candidate.json` absent ou invalide est un échec du candidat, rangé dans une
+catégorie distincte, « contrat », jamais confondue avec un échec de
+migration, dans le résultat comme dans le rapport. CLI
+`migrabench measure --candidate <dossier>` qui construit et démarre le
+candidat (ADR 0007), rejoue l'oracle et écrit le résultat JSON d'une mesure.
+Une seule mesure compte par candidat ; les autres sont des mesures de
+diagnostic, et une mesure invalide est remplacée par la suivante
+(`GLOSSARY.md`). Par défaut, une mesure est un diagnostic : elle n'est
+prévue pour compter que sur demande explicite (`--counted`), depuis un
+commit de `main`.
+
+- **`--counted`** : refusé avant toute action si l'arbre de travail est
+  modifié, si le sel est imposé ou si `HEAD` n'est pas atteignable depuis
+  `origin/main`. Le runner fait lui-même le `git fetch`, et le message de
+  refus nomme toutes les conditions manquantes. Le résultat enregistre le
+  commit de `origin/main` utilisé pour la vérification.
+- **Résultat** : un dossier par mesure, `measure.json` et `oracle.json` au
+  format de l'étape 2. Une mesure n'est jamais réécrite ; une invalidation
+  découverte après coup est un document ajouté, qui cite les mesures
+  concernées, la raison et la preuve. Les mesures prévues pour compter sont
+  toutes versionnées, invalides comprises ; les diagnostics restent locaux,
+  dans un dossier ignoré par Git. Le contrôle des résultats versionnés (#53)
+  s'étend à `measure.json`, avec les mêmes règles.
+- **Candidat de référence** : relais sans logique de `PORT` vers
+  `legacy:8080`, dans `fixtures/`. Il conserve l'en-tête `Host` d'origine
+  (ou réécrit les `Location`), testé sur une redirection réelle du legacy à
+  travers le relais. Il ne modifie rien : un test vérifie que les en-têtes et
+  les corps de ses réponses sont identiques à ceux du legacy.
+- **Étalonnage** : les délais de construction et de disponibilité et les
+  limites de mémoire et de CPU valent un multiple déclaré des valeurs
+  mesurées sur un candidat d'étalonnage de `fixtures/`, jamais sur les
+  sorties des agents. L'étalonnage de l'étape se fait en CI, l'environnement
+  des mesures comptées, et son résultat enregistre cet environnement.
+
 Le runner reprend le module de `npm run oracle` (étape 2). Une porte qui
 redémarre le legacy s'exécute seule, après l'oracle, jamais en parallèle
-avec des scénarios ou d'autres portes. Un run mesuré tire toujours un
+avec des scénarios ou d'autres portes. Une mesure tire toujours un
 nouveau sel : le runner n'accepte un sel imposé que pour rejouer une
-exécution en diagnostic, jamais pour une mesure.
-**Fini quand** : le legacy, déclaré comme candidat, obtient 100 %.
+exécution en diagnostic, jamais pour une mesure qui compte.
+**Fini quand** : le candidat de référence, qui présente le legacy comme un
+candidat, obtient 100 %.
 
 ### 4. Portes
 axe-core et vérification des tableaux de mise en page, Lighthouse, test XSS,
 recherche de la valeur témoin, test de rôle par rejeu, test d'authentification
 par rejeu sans identifiants, `tsc --noEmit`, audit
-des dépendances. Une porte peut rendre plusieurs résultats nommés. Les portes
+des dépendances. Une porte peut rendre plusieurs résultats nommés. Chaque
+résultat enregistre le nombre d'éléments examinés. Si aucun élément n'a été
+examiné, le résultat est « non évaluable » : il compte comme un échec, jamais
+comme une réussite. Un candidat qui ne démarre pas en est le cas extrême
+(étape 3). Les portes
 attaquent l'URL du candidat, jamais l'API interne.
 Pas de porte « requête forgée » sur un champ verrouillé : l'API interne
 applique le verrou, et la couche serveur du candidat ne peut pas l'affaiblir.
@@ -213,6 +253,15 @@ Une telle porte passerait toujours et ne mesurerait rien.
   test négatif est un candidat volontairement défectueux. Une réponse
   « sans données » se juge sur son contenu (aucun numéro de dossier), pas
   sur son code : un bundle public est légitime.
+- La porte du relais lit le journal d'accès du port `8080` du legacy,
+  conservé par le runner pour chaque mesure (ADR 0007). Pendant la mesure
+  d'un candidat, rien ne doit solliciter les JSP du legacy : toute requête
+  reçue sur `8080` fait échouer la porte, qu'elle vienne de la couche serveur
+  du candidat ou du navigateur (iframe, redirection vers le port publié),
+  lecture de JSP pour en extraire des données comprise. La porte liste les
+  chemins concernés. La requête témoin du runner, reconnaissable à un
+  marqueur du banc, prouve que le journal était actif et n'est pas comptée.
+  Le candidat de référence est le test négatif de cette porte.
 - La comparaison HAR ignore la référence d'archivage, qui change à chaque
   exécution.
 **Fini quand** : chaque porte sort un JSON au même format, testée sur un
@@ -221,10 +270,22 @@ joue ce rôle (ADR 0001).
 
 ### 5. Score et rapport
 Agrégation sur N runs (médiane, min, max), `migrabench report` génère une page HTML.
+Pour chaque candidat, le rapport retient la première mesure prévue pour
+compter et non invalide (étape 3), et signale les mesures invalides
+remplacées. Il range à part les échecs au contrat et les pannes de la pile
+pendant que le candidat tourne, et compte la fréquence de ces pannes.
 **Fini quand** : un tableau comparatif lisible sans explication orale.
 
 ### 6. Runs d'agents
 Prompt figé et versionné, 2 ou 3 outils, 3 à 5 runs chacun, coût relevé.
+Le prompt donne le schéma JSON de `candidate.json` (étape 3) et un exemple
+complet.
+Avant la première mesure comptée de la campagne, les délais et les limites
+de ressources sont réétalonnés sur le candidat d'étalonnage seul, jamais sur
+les sorties des agents, dans l'environnement des mesures comptées, puis
+figés et versionnés.
+Question à trancher : où tournent les mesures comptées. Préférence : en CI,
+comme les preuves de l'étape 2.
 Le sel de la référence d'archivage ne fait jamais partie de l'environnement
 de la couche serveur du candidat. Les bruts des runs mesurés restent
 accessibles aussi longtemps que le résultat publié (ADR 0005) ; le support

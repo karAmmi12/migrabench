@@ -39,6 +39,41 @@ candidat, placée devant l'API interne du legacy.
 _Synonyme accepté_ : BFF
 _Éviter_ : backend, proxy, API du candidat
 
+**Candidat de référence** :
+Le legacy présenté au banc sous la forme d'un candidat, par un relais sans
+logique fourni par le banc. Il obtient 100 % à l'oracle et échoue aux mêmes
+portes que le legacy, plus la porte du relais, dont il est le test négatif.
+_Éviter_ : candidat legacy, proxy
+
+**Mesure** :
+Passe du banc sur un candidat : construction, démarrage, oracle et portes,
+avec un résultat enregistré. Une seule mesure compte par candidat : la
+première mesure prévue pour compter qui n'est pas invalide. Par défaut, une
+mesure est un diagnostic ; elle n'est prévue pour compter que sur demande
+explicite, depuis un commit de `main`. Une mesure n'est
+jamais réécrite. Les mesures prévues pour compter sont toutes versionnées,
+invalides comprises ; les mesures de diagnostic restent locales.
+_Éviter_ : run, exécution, évaluation
+
+**Mesure invalide** :
+Mesure écartée pour une erreur du banc vérifiable, que le candidat ne peut
+ni recevoir ni fabriquer (règle 7 de `PROTOCOL.md`) : pile du banc en échec
+avant le démarrage du candidat, ou pendant un redémarrage où il est arrêté ;
+erreur de l'oracle hors scénario ; erreur réseau sur une requête précise
+vers le registre imposé de l'installation des dépendances ; marqueur du banc
+hors de son moment prévu dans le journal d'accès du legacy. La raison est enregistrée dans son résultat, ou, si l'erreur est
+découverte après coup, dans un document ajouté qui cite les mesures
+concernées, la raison et la preuve. La mesure
+suivante du même candidat compte à sa place, et le rapport le signale. Un
+échec dû au candidat ne rend jamais une mesure invalide.
+_Éviter_ : mesure ratée, mesure annulée
+
+**Non évaluable** :
+Résultat d'une porte qui n'a examiné aucun élément. Il compte comme un échec,
+jamais comme une réussite. Un candidat qui ne démarre pas rend toutes ses
+portes non évaluables.
+_Éviter_ : sans objet, ignoré, ok par défaut
+
 **Valeur témoin** :
 Valeur unique et connue d'un secret serveur, injectée par le banc, dont la
 présence côté navigateur prouve une fuite.
