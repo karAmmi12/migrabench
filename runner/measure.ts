@@ -41,8 +41,6 @@ import { containerUser } from "./container-user.ts";
 import { type Limits, measureLimits, SAFETY_CAP } from "./limits.ts";
 import { DIAGNOSTIC_DIR_FROM_ROOT } from "./paths.ts";
 
-export { CANDIDATE_PORT };
-
 export interface MeasureOptions {
   // Dossier du candidat, relatif à la racine du dépôt.
   candidate: string;
@@ -132,7 +130,6 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
   // recrée le service `candidate` et attend sa disponibilité.
   const service = await candidateService({ rawDir, copyDir, user, start: declared.start });
   const { composeOverride, startLog } = service;
-  const baseUrl = CANDIDATE_BASE_URL;
 
   let oracle: OracleRecord | undefined;
   let oracleMetadata: ExecuteOracleResult["metadata"] | undefined;
@@ -142,7 +139,7 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
     let startOutcome: PhaseOutcome<"start"> = "ok";
     try {
       const result = await executeOracle({
-        baseUrl,
+        baseUrl: CANDIDATE_BASE_URL,
         salt: measureSalt,
         artifactsDir: `${ARTIFACTS_DIR_FROM_ROOT}/${id}/oracle`,
         resultFile: join(measureDir, "oracle.json"),

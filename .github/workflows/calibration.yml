@@ -5,8 +5,10 @@
 # Ce résultat est publié comme artefact, puis versionné par une PR : seul un
 # étalonnage fait en CI est appliqué aux mesures (runner/calibration.ts).
 #
-# Quand il tourne : en workflow_dispatch, et sur une PR qui touche le candidat
-# d'étalonnage, l'image d'exécution, le runner ou ce workflow. Ce job n'est
+# Quand il tourne : en workflow_dispatch, et sur une PR qui touche ce qui fait
+# les relevés : le candidat d'étalonnage, l'image d'exécution, la construction,
+# l'étalonnage lui-même ou ce workflow. Pas sur tout runner/ : 5 constructions
+# complètes par PR iraient contre la réduction des minutes de CI (#76). Ce job n'est
 # pas une vérification obligatoire : un filtre paths sous on: ne laisse donc
 # aucun état « en attente ».
 name: Étalonnage
@@ -17,7 +19,10 @@ on:
     paths:
       - fixtures/calibration-candidate/**
       - fixtures/runtime-image/**
-      - runner/**
+      - runner/build.ts
+      - runner/calibrat*.ts
+      - runner/candidate-runtime.ts
+      - runner/resource-usage.ts
       - .github/workflows/calibration.yml
   workflow_dispatch:
 

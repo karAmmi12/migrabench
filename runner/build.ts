@@ -125,7 +125,7 @@ export async function buildCandidate({ measureId, image, user, rawDir, copyDir, 
 async function usageOf(dir: string): Promise<ResourceUsage> {
   const read = (name: string) => readFile(join(dir, name), "utf8").catch(() => undefined);
   const [memoryPeak, cpuStat] = await Promise.all([read("memory.peak"), read("cpu.stat")]);
-  return cgroupUsage({ ...(memoryPeak === undefined ? {} : { memoryPeak }), ...(cpuStat === undefined ? {} : { cpuStat }) });
+  return cgroupUsage({ memoryPeak, cpuStat });
 }
 
 interface StepRun {

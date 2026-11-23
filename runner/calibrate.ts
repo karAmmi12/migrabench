@@ -21,7 +21,7 @@ import { citedFileSha256 as digestOf } from "../shared/digest.ts";
 import { spawnCommand, stdoutOf } from "../shared/process.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, readBenchEnv, ROOT } from "../shared/root.ts";
 import { buildCandidate } from "./build.ts";
-import { CALIBRATION_RUNS, type CalibrationRun, calibrationSummary, DECLARED_MULTIPLES, runReadings } from "./calibration.ts";
+import { CALIBRATION_READINGS, type CalibrationReading, calibrationSummary, DECLARED_MULTIPLES, readingValues } from "./calibration.ts";
 import { contentDigest } from "./candidate-content.ts";
 import {
   buildRuntimeImage,
@@ -46,11 +46,10 @@ export const CALIBRATION_FORMAT = 1;
 
 export interface CalibrateOptions {
   // Nombre de relevés ; défaut : le paramètre déclaré du banc.
-  runs?: number;
+  readings?: number;
 }
 
-export async function calibrateCandidate({ runs = CALIBRATION_RUNS }: CalibrateOptions = {}): Promise<{ resultFile: string }> {
-  if (!Number.isInteger(runs) || runs < 1) throw new Error("--runs must be a positive whole number");
+export async function calibrateCandidate({ readings = CALIBRATION_READINGS }: CalibrateOptions = {}): Promise<{ resultFile: string }> {
   const calibratedAt = new Date();
   const ciRun = ciRunOf(process.env);
   const benchCommit = await stdoutOf("git", ["rev-parse", "HEAD"]);
@@ -69,48 +68,48 @@ export async function calibrateCandidate({ runs = CALIBRATION_RUNS }: CalibrateO
   const { limits, record: limitsRecord } = measureLimits({ safetyCap: SAFETY_CAP });
 
   const recorded = [];
-  for (let run = 1; run <= runs; run++) {
-    console.log(`Calibration run ${run}/${runs}`);
-    const rawDir = join(ROOT, artifacts, `run-${run}`);
+  for (let reading = 1; reading <= readings; reading++) {
+    console.log(`Calibration reading ${reading}/${readings}`);
+    const rawDir = join(ROOT, artifacts, `reading-${reading}`);
     const copyDir = join(rawDir, "candidate");
     await mkdir(rawDir, { recursive: true });
     await copyCandidate(candidateDir, files, copyDir);
     const startedAt = new Date().toISOString();
 
-    const build = await buildCandidate({ measureId: `${id}-${run}`, image: RUNTIME_IMAGE, user, rawDir, copyDir, build: declared.build, limits, collectUsage: true });
-    if (build.outcome.outcome !== "ok") throw new Error(`Calibration run ${run}: ${build.outcome.outcome}: ${build.outcome.detail}`);
+    const build = await buildCandidate({ measureId: `${id}-${reading}`, image: RUNTIME_IMAGE, user, rawDir, copyDir, build: declared.build, limits, collectUsage: true });
+    if (build.outcome.outcome !== "ok") throw new Error(`Calibration reading ${reading}: ${build.outcome.outcome}: ${build.outcome.detail}`);
 
     // Pile recréée comme pour une mesure, puis le candidat démarré seul.
     const service = await candidateService({ rawDir, copyDir, user, start: declared.start });
     await recreateStack(randomBytes(32).toString("hex"));
-    let start: CalibrationRun["start"];
+    let start: CalibrationReading["start"];
     try {
       await startCandidate(service);
       const upAt = Date.now();
       const outcome = await waitUntilReady(service, limits.readyTimeoutMs);
       const readyMs = Date.now() - upAt;
-      if (outcome !== "ok") throw new Error(`Calibration run ${run}: ${outcome}`);
+      if (outcome !== "ok") throw new Error(`Calibration reading ${reading}: ${outcome}`);
       start = { readyMs, ...(await runningUsage(await candidateContainer(service))) };
     } finally {
       await stopCandidate(service);
     }
 
-    const calibrationRun: CalibrationRun = {
+    const measured: CalibrationReading = {
       build: { durationMs: build.durationMs, steps: build.steps.map(({ step, durationMs, usage }) => ({ step, durationMs, ...usage! })) },
       start,
     };
     recorded.push({
-      run,
+      reading,
       startedAt,
-      ...calibrationRun,
-      readings: runReadings(calibrationRun),
+      ...measured,
+      values: readingValues(measured),
       composeOverride: service.composeOverride,
       raw: { ...build.raw, "start.log": await digestOf(service.startLog) },
     });
   }
 
   const summary = calibrationSummary(
-    recorded.map(({ readings }) => readings),
+    recorded.map(({ values }) => values),
     DECLARED_MULTIPLES,
   );
   const env = await readBenchEnv();
@@ -135,7 +134,7 @@ export async function calibrateCandidate({ runs = CALIBRATION_RUNS }: CalibrateO
       machine: await machine(),
     },
     multiples: DECLARED_MULTIPLES,
-    runs: recorded,
+    readings: recorded,
     minimum: summary.minimum,
     maximum: summary.maximum,
     limits: summary.limits,
@@ -153,7 +152,7 @@ async function runningUsage(container: string): Promise<ResourceUsage> {
     return code === 0 ? stdout : undefined;
   };
   const [memoryPeak, cpuStat] = [await read("memory.peak"), await read("cpu.stat")];
-  return cgroupUsage({ ...(memoryPeak === undefined ? {} : { memoryPeak }), ...(cpuStat === undefined ? {} : { cpuStat }) });
+  return cgroupUsage({ memoryPeak, cpuStat });
 }
 
 // Machine de l'étalonnage : l'hôte, le démon Docker qui exécute les

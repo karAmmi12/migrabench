@@ -6,8 +6,8 @@
 
 export interface CgroupFiles {
   // Contenu des fichiers du cgroup, absent si la lecture a échoué.
-  memoryPeak?: string;
-  cpuStat?: string;
+  memoryPeak?: string | undefined;
+  cpuStat?: string | undefined;
 }
 
 export interface ResourceUsage {

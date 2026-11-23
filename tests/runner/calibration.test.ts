@@ -1,15 +1,15 @@
 // Résultat d'étalonnage (spec de l'étape 3, « Candidat d'étalonnage ») : les
-// relevés de chaque exécution du candidat d'étalonnage, leur dispersion
+// valeurs de chaque relevé du candidat d'étalonnage, leur dispersion
 // (minimum et maximum) et les limites = maximum relevé × multiple déclaré.
 import { describe, expect, it } from "vitest";
-import { calibrationSummary, chooseCalibration, runReadings } from "../../runner/calibration.ts";
+import { calibrationSummary, chooseCalibration, readingValues } from "../../runner/calibration.ts";
 
 const MIB = 1024 ** 2;
 const MULTIPLES = { timeouts: 5, resources: 2 };
 
-describe("runReadings", () => {
+describe("readingValues", () => {
   it("takes the build duration of the whole phase, and the memory peak and CPU of its busiest step, since each step has its own container", () => {
-    const readings = runReadings({
+    const readings = readingValues({
       build: {
         durationMs: 21_000,
         steps: [

@@ -1,5 +1,5 @@
 // Résultat d'étalonnage (spec de l'étape 3, « Candidat d'étalonnage ») :
-// fonctions pures qui tirent les relevés d'une exécution du candidat
+// fonctions pures qui tirent les valeurs de chaque relevé du candidat
 // d'étalonnage, leur dispersion et les limites d'une mesure.
 import type { BuildStep } from "./build-outcome.ts";
 import type { Limits } from "./limits.ts";
@@ -28,18 +28,18 @@ export interface Multiples {
 export const DECLARED_MULTIPLES: Readonly<Multiples> = { timeouts: 5, resources: 2 };
 
 // Nombre de relevés d'un étalonnage, paramètre déclaré du banc.
-export const CALIBRATION_RUNS = 5;
+export const CALIBRATION_READINGS = 5;
 
-// Relevé d'une exécution : la construction entière (délai global) et chacune
+// Un relevé : la construction entière (délai global) et chacune
 // de ses étapes, chacune dans son conteneur ; le démarrage jusqu'à la
 // disponibilité.
-export interface CalibrationRun {
+export interface CalibrationReading {
   build: { durationMs: number; steps: ({ step: BuildStep; durationMs: number } & ResourceUsage)[] };
   start: { readyMs: number } & ResourceUsage;
 }
 
 // CPU : nombre moyen de cœurs occupés, temps CPU divisé par la durée.
-export interface Readings {
+export interface ReadingValues {
   buildDurationMs: number;
   buildPeakMemoryBytes: number;
   buildCpus: number;
@@ -50,7 +50,7 @@ export interface Readings {
 
 // Les limites de mémoire et de CPU s'appliquent à chaque conteneur de la
 // construction : c'est l'étape la plus gourmande qui compte.
-export function runReadings({ build, start }: CalibrationRun): Readings {
+export function readingValues({ build, start }: CalibrationReading): ReadingValues {
   return {
     buildDurationMs: build.durationMs,
     buildPeakMemoryBytes: Math.max(...build.steps.map((step) => step.peakMemoryBytes)),
@@ -62,8 +62,8 @@ export function runReadings({ build, start }: CalibrationRun): Readings {
 }
 
 export interface CalibrationSummary {
-  minimum: Readings;
-  maximum: Readings;
+  minimum: ReadingValues;
+  maximum: ReadingValues;
   limits: Limits;
 }
 
@@ -71,7 +71,7 @@ const MIB = 1024 ** 2;
 
 // Limites = maximum relevé × multiple, arrondies vers le haut : délais à la
 // milliseconde, mémoire au Mio, CPU au centième (`docker run --cpus`).
-export function calibrationSummary(readings: readonly Readings[], multiples: Multiples): CalibrationSummary {
+export function calibrationSummary(readings: readonly ReadingValues[], multiples: Multiples): CalibrationSummary {
   if (readings.length === 0) throw new Error("A calibration needs at least one reading");
   const minimum = combine(readings, Math.min);
   const maximum = combine(readings, Math.max);
@@ -91,9 +91,9 @@ function cpus(cpuSeconds: number, durationMs: number): number {
   return cpuSeconds / (durationMs / 1_000);
 }
 
-function combine(readings: readonly Readings[], pick: (...values: number[]) => number): Readings {
-  const keys = Object.keys(readings[0]!) as (keyof Readings)[];
-  return Object.fromEntries(keys.map((key) => [key, pick(...readings.map((reading) => reading[key]))])) as unknown as Readings;
+function combine(readings: readonly ReadingValues[], pick: (...values: number[]) => number): ReadingValues {
+  const keys = Object.keys(readings[0]!) as (keyof ReadingValues)[];
+  return Object.fromEntries(keys.map((key) => [key, pick(...readings.map((reading) => reading[key]))])) as unknown as ReadingValues;
 }
 
 // Arrondi vers le haut au multiple de `unit`, sans compter un écart de
