@@ -167,7 +167,12 @@ describe("bench lock left mid-way by a crash", () => {
     const lock = acquireBenchLock({ file, tool: "stack-up" });
 
     expect(lock.ok).toBe(false);
-    if (!lock.ok) expect(lock.message).toContain(`${file}.takeover`);
+    // Les deux commandes exactes : vérifier qu'aucun outil du banc ne tourne,
+    // puis retirer la garde.
+    if (!lock.ok) {
+      expect(lock.message).toContain('pgrep -fl "runner/cli.ts|oracle/cli.ts|scripts/stack-up.ts"');
+      expect(lock.message).toContain(`rm ${file}.takeover`);
+    }
     expect(readFileSync(`${file}.takeover`, "utf8")).toBe(guard);
   });
 });

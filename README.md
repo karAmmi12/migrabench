@@ -161,9 +161,17 @@ processus ne porte le PID enregistré, ou si celui qui le porte a une autre
 heure de démarrage ou une autre ligne de commande. Une mesure enregistre la
 prise et la reprise dans `environment.lock` de `measure.json`. Sur une autre
 machine, le verrou du banc n'est jamais repris : le supprimer à la main une
-fois l'outil arrêté. Si un outil du banc meurt pendant la reprise elle-même, il laisse
-`.bench-lock.takeover` : les outils du banc refusent en le nommant, à
-retirer à la main ; un détenteur vivant n'est jamais dépossédé.
+fois l'outil arrêté.
+
+Si un outil du banc meurt pendant la reprise elle-même, il laisse
+`.bench-lock.takeover`, que les outils du banc ne retirent jamais : un
+détenteur vivant n'est jamais dépossédé. Ils refusent avec les deux commandes
+à lancer depuis la racine du dépôt :
+
+```sh
+pgrep -fl "runner/cli.ts|oracle/cli.ts|scripts/stack-up.ts"   # aucune sortie attendue
+rm .bench-lock.takeover
+```
 
 ## Lancer l'oracle
 

@@ -137,6 +137,10 @@ function isOrphan(holder: BenchLockHolder): boolean {
 // Une garde dont le repreneur est mort pendant sa reprise n'est jamais
 // retirée ici : la retirer sans course exigerait une seconde garde. Le refus
 // demande de la retirer à la main ; un détenteur vivant n'est jamais dépossédé.
+// Commande qui liste les outils du banc en marche, à lancer depuis la racine
+// du dépôt avant de retirer une garde de reprise.
+const BENCH_TOOLS_RUNNING = 'pgrep -fl "runner/cli.ts|oracle/cli.ts|scripts/stack-up.ts"';
+
 function takeOver(file: string, orphan: string, text: string): "taken" | "retry" | { message: string; holder: BenchLockHolder } {
   const guard = `${file}.takeover`;
   if (!createExclusive(guard, text)) {
@@ -144,7 +148,16 @@ function takeOver(file: string, orphan: string, text: string): "taken" | "retry"
     if (held === undefined) return "retry";
     const other = parseHolder(guard, held);
     if (!isOrphan(other)) return { holder: other, message: `${heldMessage(other)} (taking over an orphan bench lock)` };
-    return { holder: other, message: `${heldMessage(other)} (died while taking over an orphan bench lock): remove ${guard}, then try again` };
+    return {
+      holder: other,
+      message: [
+        `${heldMessage(other)} (died while taking over an orphan bench lock).`,
+        "Check that no bench tool runs (no output expected):",
+        `  ${BENCH_TOOLS_RUNNING}`,
+        "then remove the takeover guard, and try again:",
+        `  rm ${guard}`,
+      ].join("\n"),
+    };
   }
   try {
     if (readText(file) !== orphan) return "retry";
