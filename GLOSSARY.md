@@ -45,6 +45,18 @@ logique fourni par le banc. Il obtient 100 % à l'oracle et échoue aux mêmes
 portes que le legacy, plus la porte du relais, dont il est le test négatif.
 _Éviter_ : candidat legacy, proxy
 
+**Candidat d'étalonnage** :
+Candidat écrit par le banc, de la forme d'un vrai candidat, dont les mesures
+fixent les délais et les limites de ressources appliqués aux autres
+candidats. Jamais une sortie d'agent.
+_Éviter_ : candidat de calibration, benchmark
+
+**Verrou du banc** :
+Fichier pris par un outil du banc pendant qu'il utilise la pile, qui refuse
+les autres outils du banc jusqu'à sa libération. Ne pas confondre avec le
+verrou d'un champ du dossier : on écrit toujours « verrou du banc ».
+_Éviter_ : lock, mutex
+
 **Mesure** :
 Passe du banc sur un candidat : construction, démarrage, oracle et portes,
 avec un résultat enregistré. Une seule mesure compte par candidat : la
