@@ -16,3 +16,8 @@ export async function fileSha256(path: string): Promise<string> {
 export function cited(hex: string): string {
   return `sha256:${hex}`;
 }
+
+// Empreinte d'un fichier brut, sous sa forme citée.
+export async function citedFileSha256(path: string): Promise<string> {
+  return cited(await fileSha256(path));
+}

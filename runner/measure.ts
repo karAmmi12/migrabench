@@ -4,8 +4,9 @@
 // (measure.json, oracle.json) et rend l'issue.
 //
 // Fil traceur (#62) : mesure de diagnostic seulement, contrat lu sans
-// validation, construction réduite à `npm ci`, sans verrou du banc, journal
-// d'accès, délais ni limites. Les tickets suivants de l'étape les ajoutent.
+// validation, sans verrou du banc ni journal d'accès. Les tickets suivants de
+// l'étape les ajoutent. La construction, ses délais et ses limites viennent de
+// #65 (runner/build.ts).
 // Le verdict et les codes de sortie viennent de #63 (runner/verdict.ts).
 import { randomBytes } from "node:crypto";
 import { copyFile, mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
@@ -17,10 +18,12 @@ import { type CandidateFile, contentDigest, isCopied } from "./candidate-content
 import { candidateName, measureId as measureIdOf } from "./measure-id.ts";
 import { type CandidateRecord, measureRecord, type OracleRecord } from "./measure-record.ts";
 import type { ExitCode, PhaseName, PhaseOutcome, PhaseRecord, Verdict } from "./verdict.ts";
-import { cited, fileSha256 } from "../shared/digest.ts";
+import { citedFileSha256 as digestOf, fileSha256 } from "../shared/digest.ts";
 import { spawnCommand, stdoutOf } from "../shared/process.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, readBenchEnv, ROOT } from "../shared/root.ts";
-import { containerUser, dockerUser } from "./container-user.ts";
+import { buildCandidate } from "./build.ts";
+import { containerUser } from "./container-user.ts";
+import { type Limits, measureLimits, SAFETY_CAP } from "./limits.ts";
 import { DIAGNOSTIC_DIR_FROM_ROOT } from "./paths.ts";
 
 export interface MeasureOptions {
@@ -30,28 +33,44 @@ export interface MeasureOptions {
   counted?: boolean;
   // Imposé : diagnostic seulement.
   salt?: string;
+  // Plafond des délais imposé (`--timeout-cap-ms`) : diagnostic seulement.
+  timeoutCapMs?: number;
 }
 
 // Une mesure écrite, valide (0) ou invalide (3), ou un refus préalable (4) :
 // rien n'est écrit.
 export type MeasureResult =
   | { written: true; measureDir: string; outcome: Verdict; exitCode: ExitCode }
-  | { written: false; refusal: "refused-usage"; message: string; exitCode: 4 };
+  | { written: false; refusal: "refused-usage" | "refused-counted"; message: string; exitCode: 4 };
 
 // Port imposé au candidat, publié sur 127.0.0.1.
 export const CANDIDATE_PORT = 8100;
 const RUNTIME_IMAGE = "migrabench-runtime";
 const RUNTIME_IMAGE_CONTEXT = "fixtures/runtime-image";
-// Registre public npm imposé à la construction (variable de npm, qui prime sur un .npmrc du candidat).
-const NPM_REGISTRY = "https://registry.npmjs.org/";
 const COMPOSE_FILE = "docker-compose.yml";
-// Plafond provisoire de l'attente de disponibilité : le délai sortira de l'étalonnage (#72).
-const READY_CAP_MS = 60_000;
 
-export async function measureCandidate({ candidate, counted = false, salt }: MeasureOptions): Promise<MeasureResult> {
-  if (counted) throw new Error("A counted measure is not supported yet: run a diagnostic measure");
+export async function measureCandidate({ candidate, counted = false, salt, timeoutCapMs }: MeasureOptions): Promise<MeasureResult> {
   // 0. Refus préalables, avant toute écriture.
-  const refused = (message: string): MeasureResult => ({ written: false, refusal: "refused-usage", message, exitCode: 4 });
+  const refused = (message: string, refusal: "refused-usage" | "refused-counted" = "refused-usage"): MeasureResult => ({
+    written: false,
+    refusal,
+    message,
+    exitCode: 4,
+  });
+  // Une valeur imposée n'est permise qu'en diagnostic. Les autres conditions
+  // de `--counted` viennent avec #73.
+  if (counted && timeoutCapMs !== undefined) {
+    return refused("a measure planned to count refuses an imposed --timeout-cap-ms", "refused-counted");
+  }
+  if (counted) throw new Error("A counted measure is not supported yet: run a diagnostic measure");
+  // Sans étalonnage (#72), le plafond de sécurité, marqué provisoire.
+  let limits: Limits;
+  let limitsRecord: ReturnType<typeof measureLimits>["record"];
+  try {
+    ({ limits, record: limitsRecord } = measureLimits(SAFETY_CAP, timeoutCapMs));
+  } catch (error) {
+    return refused((error as Error).message);
+  }
   try {
     candidateName(candidate);
   } catch (error) {
@@ -91,20 +110,14 @@ export async function measureCandidate({ candidate, counted = false, salt }: Mea
   const closeContract = phase("contract");
   const declared = JSON.parse(await readFile(join(copyDir, "candidate.json"), "utf8")) as { contract: number; build?: string; start: string };
   Object.assign(candidateRecord, { contract: declared.contract, start: declared.start }, declared.build === undefined ? {} : { build: declared.build });
-  if (declared.build !== undefined) throw new Error("A build command is not supported yet (#65)");
   closeContract();
 
-  // 3. Construction : `npm ci` dans un conteneur de l'image d'exécution, sans
-  // mb-internal ni variable du banc, copie montée en écriture.
+  // 3. Construction : `npm ci` puis `build`, sans mb-internal ni variable du
+  // banc, sous le délai global et les limites (runner/build.ts).
   const closeBuild = phase("build");
-  const npmLog = join(rawDir, "npm-ci.log");
-  const build = await spawnCommand(
-    "docker",
-    ["run", "--rm", "--user", dockerUser(user), "--network", "bridge", "--env", "HOME=/tmp", "--env", `npm_config_registry=${NPM_REGISTRY}`,
-      "--env", "npm_config_update_notifier=false", "--volume", `${copyDir}:/candidate`, "--workdir", "/candidate", RUNTIME_IMAGE, "sh", "-c", "npm ci"],
-    { logFile: npmLog, allowFailure: true },
-  );
-  closeBuild(build.code === 0 ? "ok" : "build-failed", { "npm-ci.log": await digestOf(npmLog) });
+  const build = await buildCandidate({ measureId: id, image: RUNTIME_IMAGE, user, rawDir, copyDir, build: declared.build, limits });
+  if (build.outcome.outcome === "ok") closeBuild("ok", build.raw);
+  else closeBuild(build.outcome.outcome, build.raw, build.outcome.detail);
 
   // 4 et 5. Pile et démarrage, puis oracle. L'exécution complète de l'étape 2
   // recrée le legacy et le service d'archivage, puis rappelle le runner, qui
@@ -122,7 +135,7 @@ export async function measureCandidate({ candidate, counted = false, salt }: Mea
 
   let oracle: OracleRecord | undefined;
   let oracleMetadata: ExecuteOracleResult["metadata"] | undefined;
-  if (build.code === 0) {
+  if (build.outcome.outcome === "ok") {
     const closeStart = phase("start");
     let closeOracle: ClosePhase<"oracle"> | undefined;
     let startOutcome: PhaseOutcome<"start"> = "ok";
@@ -135,7 +148,7 @@ export async function measureCandidate({ candidate, counted = false, salt }: Mea
         onStackReady: async () => {
           await stopCandidate(compose, startLog);
           await spawnCommand("docker", [...compose, "up", "--detach", "--force-recreate", "--no-deps", "candidate"]);
-          startOutcome = await waitUntilReady(compose, baseUrl);
+          startOutcome = await waitUntilReady(compose, baseUrl, limits.readyTimeoutMs);
           if (startOutcome !== "ok") throw new CandidateNotStarted(startOutcome);
           closeStart();
           closeOracle = phase("oracle");
@@ -178,6 +191,7 @@ export async function measureCandidate({ candidate, counted = false, salt }: Mea
       containerUser: user,
       composeOverride,
       port: CANDIDATE_PORT,
+      limits: limitsRecord,
     },
     salt: measureSalt,
     saltImposed: salt !== undefined,
@@ -243,8 +257,8 @@ async function candidateFiles(candidateDir: string): Promise<CandidateFile[]> {
 }
 
 // Disponible dès qu'une réponse HTTP arrive, quel que soit son statut.
-async function waitUntilReady(compose: readonly string[], baseUrl: string): Promise<PhaseOutcome<"start">> {
-  const deadline = Date.now() + READY_CAP_MS;
+async function waitUntilReady(compose: readonly string[], baseUrl: string, readyTimeoutMs: number): Promise<PhaseOutcome<"start">> {
+  const deadline = Date.now() + readyTimeoutMs;
   while (Date.now() < deadline) {
     try {
       await fetch(baseUrl, { signal: AbortSignal.timeout(2_000), redirect: "manual" });
@@ -263,9 +277,4 @@ async function waitUntilReady(compose: readonly string[], baseUrl: string): Prom
 async function stopCandidate(compose: readonly string[], startLog: string): Promise<void> {
   await spawnCommand("docker", [...compose, "logs", "--no-color", "--timestamps", "candidate"], { logFile: startLog, allowFailure: true });
   await spawnCommand("docker", [...compose, "rm", "--stop", "--force", "candidate"]);
-}
-
-// Empreinte d'un brut, sous sa forme citée.
-async function digestOf(path: string): Promise<string> {
-  return cited(await fileSha256(path));
 }
