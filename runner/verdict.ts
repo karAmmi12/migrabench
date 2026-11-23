@@ -33,18 +33,17 @@ type FailureCategory = keyof typeof FAILURES;
 export type Category = "completed" | FailureCategory;
 type FailureOutcome = (typeof FAILURES)[FailureCategory][number];
 
-// Issues possibles de chaque phase (table de la spec). Deux règles s'ajoutent
-// à la table : `interrupted` peut survenir dans toute phase ; dès le lancement
-// de `npm ci`, une erreur imprévue du runner est une panne pendant que le
-// candidat tourne (`stack-down-while-candidate`), avant lui une
-// `runner-error-before-candidate`.
+// Issues possibles de chaque phase (table de la spec) : `interrupted` dans
+// toute phase, `stack-down-while-candidate` à partir de la construction (une
+// erreur imprévue du runner dès le lancement de `npm ci`), et les portes,
+// vides à l'étape 3, n'ont que `ok` et `not-run`.
 export const PHASE_OUTCOMES = {
   preparation: ["ok", "runner-error-before-candidate", "interrupted"],
   contract: ["ok", "contract-invalid", "runner-error-before-candidate", "interrupted"],
   build: ["ok", "build-failed", "build-timeout", "build-resource-limit", "registry-network-error", "stack-down-while-candidate", "interrupted"],
   start: ["ok", "stack-failed-before-candidate", "access-log-inactive", "start-exited", "start-not-ready", "stack-down-while-candidate", "interrupted"],
   oracle: ["ok", "oracle-error", "stack-down-while-candidate", "interrupted"],
-  gates: ["ok", "stack-down-while-candidate", "interrupted"],
+  gates: ["ok"],
   closing: ["ok", "marker-out-of-place", "access-log-inactive", "stack-down-while-candidate", "interrupted"],
 } as const satisfies Record<PhaseName, readonly ("ok" | FailureOutcome)[]>;
 

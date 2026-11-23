@@ -32,7 +32,6 @@ describe("verdict", () => {
     ["build", "stack-down-while-candidate", "stack-down-while-candidate"],
     ["start", "stack-down-while-candidate", "stack-down-while-candidate"],
     ["oracle", "stack-down-while-candidate", "stack-down-while-candidate"],
-    ["gates", "stack-down-while-candidate", "stack-down-while-candidate"],
     ["closing", "stack-down-while-candidate", "stack-down-while-candidate"],
   ] as const)("counts %s ending in %s as a valid measure of category %s, exit code 0", (name, outcome, category) => {
     expect(verdict(stoppedAt(name, outcome))).toEqual({ verdict: { category, reason: outcome }, exitCode: 0 });
@@ -47,7 +46,7 @@ describe("verdict", () => {
     ["oracle", "oracle-error"],
     ["closing", "marker-out-of-place"],
     ["closing", "access-log-inactive"],
-    ...(["preparation", "contract", "build", "start", "oracle", "gates", "closing"] as const).map((name) => [name, "interrupted"] as const),
+    ...(["preparation", "contract", "build", "start", "oracle", "closing"] as const).map((name) => [name, "interrupted"] as const),
   ] as const)("counts %s ending in %s as an invalid measure with its evidence, exit code 3", (name, outcome) => {
     expect(verdict(stoppedAt(name, outcome, "proof line"))).toEqual({
       verdict: { category: "invalid", reason: outcome, evidence: "proof line" },
@@ -61,6 +60,11 @@ describe("verdict", () => {
 
   it("refuses an outcome that its phase cannot produce", () => {
     expect(() => verdict(stoppedAt("start", "registry-network-error", "proof line"))).toThrow(/registry-network-error.*start/);
+  });
+
+  it("refuses any gates outcome other than ok while the gates are empty (step 3)", () => {
+    expect(() => verdict(stoppedAt("gates", "stack-down-while-candidate"))).toThrow(/stack-down-while-candidate.*gates/);
+    expect(() => verdict(stoppedAt("gates", "interrupted", "SIGINT"))).toThrow(/interrupted.*gates/);
   });
 
   it("refuses an invalid measure without evidence", () => {
