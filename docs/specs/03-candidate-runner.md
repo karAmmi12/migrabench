@@ -411,6 +411,13 @@ le candidat tourne ensuite (voir les règles des issues).
 - **Limite** (`PROTOCOL.md`) : il ne couvre que les outils du banc. Une
   requête envoyée à la main au legacy pendant une mesure fait échouer la
   porte du relais au compte du candidat.
+- **Limite connue, jusqu'à #67** : `npm test` vérifie le verrou du banc à
+  son démarrage, sans le prendre. Une mesure lancée pendant un `npm test`
+  déjà en cours n'est donc pas refusée. Tant que le marqueur du Seam A
+  (section « Journal d'accès ») n'existe pas, les requêtes des tests du
+  Seam A, sans marqueur, font alors échouer la porte du relais au compte du
+  candidat (étape 4). Ne pas lancer de mesure pendant `npm test`. Cette
+  limite disparaît avec #67 : la mesure sera rendue invalide.
 - Le mot seul « verrou » désigne le verrou d'un champ du dossier
   (`GLOSSARY.md`) : on écrit toujours « verrou du banc ».
 
@@ -431,10 +438,20 @@ le candidat tourne ensuite (voir les règles des issues).
   après l'arrêt du candidat. Avec un rappel par recréation du legacy, une
   requête témoin de début est envoyée après chaque recréation.
 - **Contrôle à la clôture** : chaque requête témoin attendue est présente
-  (sinon `access-log-inactive`), et aucune ligne portant le marqueur
-  n'apparaît hors de ces moments (sinon `marker-out-of-place`). Le candidat
+  (sinon `access-log-inactive`), aucune ligne portant le marqueur
+  n'apparaît hors de ces moments, et aucune ligne portant un marqueur du
+  Seam A n'apparaît pendant la mesure (sinon `marker-out-of-place`). Le candidat
   ne connaît pas le marqueur : il ne peut fabriquer ni l'une ni l'autre de
   ces preuves.
+- **Marqueur du Seam A** (décision Q14 du cadrage) : `npm test` tire un
+  marqueur à chaque exécution, inconnu du candidat, que portent les
+  requêtes des tests du Seam A vers le legacy. Une ligne qui porte un
+  marqueur du Seam A pendant une mesure rend la mesure invalide
+  (`marker-out-of-place`, la ligne en preuve), au lieu de faire échouer la
+  porte du relais au compte du candidat : un `npm test` lancé pendant une
+  mesure est un incident du banc. Le runner reconnaît ce marqueur sans que
+  le candidat puisse en recevoir ni en fabriquer un ; le moyen (où
+  `npm test` l'enregistre, comment le runner le relit) est fixé par #67.
 - Les autres lignes ne sont pas jugées à l'étape 3 : c'est la porte du
   relais (étape 4) qui les lit.
 
@@ -580,7 +597,8 @@ Vitest du contrat, pas par des candidats.
     ensemble, nommées dans un seul message ;
   - **journal d'accès** : requêtes témoins présentes ; absente →
     `access-log-inactive` ; marqueur hors de son moment →
-    `marker-out-of-place` ; marqueur d'une autre mesure ignoré ;
+    `marker-out-of-place` ; marqueur d'une autre mesure ignoré ; marqueur
+    du Seam A pendant la mesure → `marker-out-of-place` ;
   - **contrôle de `measure.json` versionné** : mêmes règles que #53, plus
     `counted: true`, `originMain` connu, `benchCommit` égal à `originMain`
     ou ancêtre de lui,
