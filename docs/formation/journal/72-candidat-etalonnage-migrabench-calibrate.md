@@ -89,11 +89,19 @@ limites sortent.
 - `scripts/ci-scope.ts` : `calibration` rejoint les jobs lourds, avec ses
   propres chemins, comme `proof` (table `JOB_PATHS`). Tests dans
   `tests/ci-scope.test.ts` et `tests/write-ci-scope.test.ts`.
-- `results/calibration/20261123T215140Z-344b70c-ci45273672040.1-1.json` :
-  le premier résultat d'étalonnage de CI, versionné seul dans le commit
-  `b44b257`. Le second, celui de l'exécution 45279347841, a été versionné
-  en local (commit `7de1c89`), puis retiré avant toute poussée : sa limite
-  de CPU dépassait les CPU du runner (voir « Difficultés »).
+- `results/calibration/` : deux résultats d'étalonnage de CI, chacun
+  versionné seul dans son commit :
+  - `20261123T215140Z-344b70c-ci45273672040.1-1.json` (commit `b44b257`) ;
+  - `20261123T225559Z-6a135fe-ci45284030833.1-1.json` (commit `412a860`),
+    obtenu avec la borne de CPU. C'est le plus récent, donc celui que les
+    mesures appliquent.
+
+  Celui de l'exécution 45279347841 a été versionné en local (commit
+  `7de1c89`), puis retiré avant toute poussée : sa limite de CPU dépassait
+  les CPU du runner (voir « Difficultés »).
+- `runner/cli.ts` et `shared/bench-lock.ts` : `migrabench calibrate` tient le
+  verrou du banc (#69, fusionné par #88), comme une mesure, puisqu'il recrée
+  la pile. Tests dans `tests/runner/bench-lock-tools.test.ts`.
 - `oracle/result-check.ts`, `checkCalibrationResult` : le contrôle des
   résultats versionnés (#53) étendu à `results/calibration/`, avec les mêmes
   règles que pour l'oracle sauf le sel. Tests :
@@ -269,6 +277,27 @@ limites sortent.
     `results/oracle/`. `results/calibration/` n'est pas contrôlé :
     `benchCommit`, `worktree` et l'absence de chemin de machine y ont été
     vérifiés à la main (`clean`, aucun chemin `/home/runner` ni `/Users/`).
+- **Deuxième fusion de `main`, pour le verrou du banc (#88).** Le conflit
+  dans `runner/measure.ts` ne portait que sur l'en-tête et les imports. Le
+  verrou est pris avant la préparation, et le garde-fou de CPU s'exécute
+  sous le verrou. `calibrate` recréait la pile sans le verrou : il le prend
+  désormais. Les tests ont été écrits rouges d'abord.
+- **`npm test` échoue en local sur un test de refus, par une course entre
+  fichiers de tests.**
+  - Symptôme : `tests/runner/refused-usage.test.ts` voit apparaître des
+    dossiers `…-reference-candidate` dans `results/diagnostic/` et
+    `.oracle-artifacts/` pendant ses refus (`written` non vide). Le test qui
+    échoue change d'une exécution à l'autre.
+  - Cause : des tests de `tests/runner/bench-lock-tools.test.ts` lancent une
+    vraie `migrabench measure` (sous un faux `docker`), qui crée son
+    dossier pendant que les tests de refus, lancés en parallèle,
+    surveillent ces mêmes dossiers.
+  - Le nouveau test de `calibrate` en lançait une aussi. Il utilise
+    maintenant un détenteur simulé (`tests/fixtures/bench-lock/hold.ts`).
+  - La course existe déjà sur `main` sans ce ticket : sur `5b3f91c`, dans un
+    worktree propre, `npx vitest run tests/runner/refused-usage.test.ts
+    tests/runner/bench-lock-tools.test.ts` a échoué trois fois sur trois.
+    Elle n'est pas corrigée ici.
 - **Un commit intermédiaire ne compile pas seul.** Dans `6f6deeb`,
   `runner/measure.ts` appelle encore l'ancienne signature de
   `measureLimits`. Il est adapté dans `e2751ab`. La PR se fusionne en squash.
@@ -359,7 +388,51 @@ D'un runner à l'autre, le maximum de la construction passe de 10 110 ms
 (AMD EPYC, premier étalonnage) à 5 781 ms (Intel Xeon). Il reste sous le
 délai de chacun des deux étalonnages.
 
-Mesure du candidat de référence qui appliquait ce second étalonnage, au
+Troisième étalonnage en CI, avec la borne de CPU : [exécution 45284030833](https://github.com/karAmmi12/migrabench/actions/runs/45284030833),
+job `calibration`, commit `6a135fe` (tête de la PR), arbre propre. Runner
+ubuntu 24.04 (image `20261116.376.1`), 2 CPU Intel Xeon Platinum 8573C.
+Résultat versionné seul dans le commit `412a860` :
+`results/calibration/20261123T225559Z-6a135fe-ci45284030833.1-1.json`,
+empreinte `sha256:55b372826254edccda4334c1e99854f0bed9c78e0abb09773737b6283eae4c5c`.
+
+| Sur 5 relevés | min | max | limite |
+|---|---|---|---|
+| Construction | 8 638 ms | 9 794 ms | 48 970 ms (× 5) |
+| Jusqu'à la disponibilité | 684 ms | 719 ms | 3 595 ms (× 5) |
+| Pic de mémoire, construction | 331 128 832 o | 332 779 520 o | 665 845 760 o (× 2) |
+| CPU moyen, construction | 0,96 | 1,01 | 2 : 1,01 × 2 = 2,02, borné aux 2 CPU du runner |
+
+Mesure du candidat de référence qui applique ce troisième étalonnage, au
+commit `412a860` (`main` fusionnée, verrou du banc compris), arbre propre :
+
+```sh
+npm run stack:up
+npm run migrabench -- measure --candidate fixtures/reference-candidate
+# Measure: results/diagnostic/20261123T230146Z-412a860-reference-candidate
+# Outcome: completed (ok)
+# measure.json : 7 phases ok, 38 scénarios, 38 réussis, 0 non atteint ;
+# environment.limits :
+# {"provisional":false,"source":"calibration",
+#  "calibration":{"file":"results/calibration/20261123T225559Z-6a135fe-ci45284030833.1-1.json",
+#   "digest":"sha256:55b372826254edccda4334c1e99854f0bed9c78e0abb09773737b6283eae4c5c"},
+#  "multiples":{"timeouts":5,"resources":2},
+#  "buildTimeoutMs":48970,"readyTimeoutMs":3595,"buildMemoryBytes":665845760,"buildCpus":2}
+# environment.lock : {"takenAt":"2026-11-23T23:01:46.970Z"}
+cat .bench-lock
+# (aucun fichier : verrou libéré à la fin de la mesure)
+```
+
+Suite complète au commit `d2470ff`, pile démarrée par `npm run stack:up` :
+
+```sh
+npm run typecheck   # aucune erreur
+npm test
+# Test Files  1 failed | 59 passed (60)
+#      Tests  1 failed | 494 passed (495)
+# × refuses a candidate path that is a file   (course décrite dans « Difficultés »)
+```
+
+Mesure du candidat de référence qui appliquait le second étalonnage, au
 commit `7de1c89`, arbre propre. Ce commit a ensuite été retiré, avant toute
 poussée. La mesure passait en local, parce que Docker Desktop voit 14 CPU :
 
@@ -453,11 +526,25 @@ règle de `calibration` :
   Le job `oracle` rend `Scenarios: 38, passed: 38, failed: 0, unreached: 0`,
   et le job `proof` rend `Proof holds on 5 results.`
 
-> À vérifier après l'exécution de la CI de la PR : sur la poussée qui
-> apporte la correction de la limite de CPU, `calibration` doit tourner
-> (lien, head SHA). Sur la poussée suivante, qui ne contient que le résultat
-> versionné et la documentation, il doit être ignoré avec la raison « aucun
-> de ses chemins n'a changé depuis … » (lien et raison relevée).
+CI sur `6a135fe`, la poussée qui apporte la borne de CPU :
+
+- « Étalonnage » : [exécution 45284030833](https://github.com/karAmmi12/migrabench/actions/runs/45284030833).
+  Le job `changes` écrit `calibration : tourne (des fichiers hors docs/** ont
+  changé depuis 38a5914786edf42b7fa7a74645a0520c817aac76, où calibration a
+  réussi)`. Le job `calibration` réussit en 252 s ; c'est le résultat
+  versionné dans `412a860`.
+- « Tests du banc » : [exécution 45284030769](https://github.com/karAmmi12/migrabench/actions/runs/45284030769),
+  `Test Files 58 passed (58)`, `Tests 475 passed (475)`.
+- « Oracle » : [exécution 45284030793](https://github.com/karAmmi12/migrabench/actions/runs/45284030793).
+  Le job `oracle` rend `Scenarios: 38, passed: 38, failed: 0, unreached: 0`,
+  et le job `proof` rend `Proof holds on 5 results.`
+
+> À vérifier après l'exécution de la CI de la PR : sur la poussée suivante
+> (`main` fusionnée, résultat versionné, verrou de `calibrate`, fiche), aucun
+> chemin de `calibration` ne change depuis `6a135fe`. Le job doit être
+> ignoré avec la raison « aucun de ses chemins n'a changé depuis
+> 6a135fe…, où calibration a réussi » (lien et raison relevée). « Tests du
+> banc » : relever si la course de `refused-usage.test.ts` y apparaît.
 
 ## Pour aller plus loin
 
@@ -469,7 +556,10 @@ règle de `calibration` :
   répartir les relevés sur plusieurs jobs de CI et de garder le maximum.
 - **Code `125` de Docker** : d'autres causes que `--cpus` restent rangées en
   `build-failed` (commentaire sur #68).
-- **Délais serrés** : 3,6 s jusqu'à la disponibilité et 50,5 s de
+- **Course entre `refused-usage.test.ts` et `bench-lock-tools.test.ts`**
+  (venue de #88) : il faut isoler les dossiers de mesure des tests qui
+  lancent une vraie mesure, ou ne pas lancer ces deux fichiers en parallèle.
+- **Délais serrés** : 3,6 s jusqu'à la disponibilité et 49 s de
   construction sortent d'un candidat d'étalonnage léger. Un candidat d'agent
   avec plus de dépendances les approchera. L'étape 6 réétalonne avant sa
   première mesure comptée.
