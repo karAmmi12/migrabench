@@ -5,7 +5,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { changedFiles, parseJobs, parseWorkflowRuns } from "../scripts/github-history.ts";
+import { changedFiles, parseJobs, parseWorkflowRuns, pullRequestFiles } from "../scripts/github-history.ts";
 
 function recorded(name: string): unknown {
   return JSON.parse(readFileSync(new URL(`./fixtures/github-api/${name}`, import.meta.url), "utf8"));
@@ -85,5 +85,22 @@ describe("changedFiles", () => {
     const after = commit(cwd);
 
     expect((await changedFiles(`${before}..${after}`, cwd)).toSorted()).toEqual(["docs/x.ts", "runner/x.ts"]);
+  });
+  // #83 : la base de fusion, pas la pointe de main.
+  it("lists only the pull request's files when main moved on, so that a docs-only pull request stays docs-only", async () => {
+    const cwd = repository();
+    mkdirSync(join(cwd, "docs"));
+    writeFileSync(join(cwd, "docs/x.md"), "# x\n");
+    commit(cwd);
+    git(cwd, "branch", "-M", "main");
+    git(cwd, "checkout", "--quiet", "-b", "pr");
+    writeFileSync(join(cwd, "docs/x.md"), "# x\n\nchanged\n");
+    const head = commit(cwd);
+    git(cwd, "checkout", "--quiet", "main");
+    mkdirSync(join(cwd, "runner"));
+    writeFileSync(join(cwd, "runner/y.ts"), "export const y = 1;\n");
+    const base = commit(cwd);
+
+    expect(await pullRequestFiles(base, head, cwd)).toEqual(["docs/x.md"]);
   });
 });
