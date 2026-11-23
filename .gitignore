@@ -15,6 +15,10 @@ test-results/
 # Mesures de diagnostic de `migrabench measure`, un dossier par mesure : hors
 # de Git, seules les mesures prévues pour compter sont versionnées (étape 3).
 results/diagnostic/
+# Verrou du banc, pris par `migrabench measure`, `npm run oracle` et
+# `npm run stack:up` pendant qu'ils utilisent la pile (étape 3).
+.bench-lock
+.bench-lock.*
 # Sel de développement tiré par `npm run stack:up`, relu par `npm test` (#33).
 .dev-archive-salt
 *.har
