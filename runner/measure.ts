@@ -3,19 +3,20 @@
 // Il enchaîne les phases d'une mesure, écrit le dossier de la mesure
 // (measure.json, oracle.json) et rend l'issue.
 //
-// Fil traceur (#62) : mesure de diagnostic seulement, contrat lu sans
-// validation, sans verrou du banc ni journal d'accès. Les tickets suivants de
-// l'étape les ajoutent. La construction, ses délais et ses limites viennent de
-// #65 (runner/build.ts).
+// Fil traceur (#62) : mesure de diagnostic seulement, sans verrou du banc ni
+// journal d'accès. Les tickets suivants de l'étape les ajoutent. La
+// construction, ses délais et ses limites viennent de #65 (runner/build.ts).
+// Le contrat vient de #64 (runner/contract-phase.ts).
 // Le verdict et les codes de sortie viennent de #63 (runner/verdict.ts).
 // Les délais et limites du dernier étalonnage de CI viennent de #72
 // (runner/calibration-results.ts).
 import { randomBytes } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { executeOracle, type ExecuteOracleResult, listOracle } from "../oracle/execute.ts";
 import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
 import { contentDigest } from "./candidate-content.ts";
+import { contractPhase } from "./contract-phase.ts";
 import { candidateName, measureId as measureIdOf } from "./measure-id.ts";
 import { type CandidateRecord, measureRecord, type OracleRecord } from "./measure-record.ts";
 import type { ExitCode, PhaseName, PhaseOutcome, PhaseRecord, Verdict } from "./verdict.ts";
@@ -30,6 +31,7 @@ import {
   CANDIDATE_PORT,
   candidateFiles,
   candidateService,
+  type CandidateService,
   copyCandidate,
   isDirectory,
   RUNTIME_IMAGE,
@@ -112,70 +114,80 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
   const user = containerUser(process.getuid?.(), process.getgid?.());
   closePreparation();
 
-  // 2. Contrat : lu sans validation, le schéma arrive avec #64.
+  // 2. Contrat : candidate.json, package.json et sources du package-lock.json,
+  // lus dans la copie (runner/contract-phase.ts). Invalide, il arrête la
+  // mesure avant tout code du candidat : ni construction, ni démarrage.
   const closeContract = phase("contract");
-  const declared = JSON.parse(await readFile(join(copyDir, "candidate.json"), "utf8")) as { contract: number; build?: string; start: string };
-  Object.assign(candidateRecord, { contract: declared.contract, start: declared.start }, declared.build === undefined ? {} : { build: declared.build });
-  closeContract();
+  const contract = await contractPhase(copyDir);
+  Object.assign(candidateRecord, contract.candidate);
+  if (contract.outcome === "ok") closeContract();
+  else closeContract(contract.outcome, {}, contract.detail);
 
-  // 3. Construction : `npm ci` puis `build`, sans mb-internal ni variable du
-  // banc, sous le délai global et les limites (runner/build.ts).
-  const closeBuild = phase("build");
-  const build = await buildCandidate({ measureId: id, image: RUNTIME_IMAGE, user, rawDir, copyDir, build: declared.build, limits });
-  if (build.outcome.outcome === "ok") closeBuild("ok", build.raw);
-  else closeBuild(build.outcome.outcome, build.raw, build.outcome.detail);
-
-  // 4 et 5. Pile et démarrage, puis oracle. L'exécution complète de l'étape 2
-  // recrée le legacy et le service d'archivage, puis rappelle le runner, qui
-  // recrée le service `candidate` et attend sa disponibilité.
-  const service = await candidateService({ rawDir, copyDir, user, start: declared.start });
-  const { composeOverride, startLog } = service;
-
+  let service: CandidateService | undefined;
   let oracle: OracleRecord | undefined;
   let oracleMetadata: ExecuteOracleResult["metadata"] | undefined;
-  if (build.outcome.outcome === "ok") {
-    const closeStart = phase("start");
-    let closeOracle: ClosePhase<"oracle"> | undefined;
-    let startOutcome: PhaseOutcome<"start"> = "ok";
-    try {
-      const result = await executeOracle({
-        baseUrl: CANDIDATE_BASE_URL,
-        salt: measureSalt,
-        artifactsDir: `${ARTIFACTS_DIR_FROM_ROOT}/${id}/oracle`,
-        resultFile: join(measureDir, "oracle.json"),
-        onStackReady: async () => {
-          await stopCandidate(service);
-          await startCandidate(service);
-          startOutcome = await waitUntilReady(service, limits.readyTimeoutMs);
-          if (startOutcome !== "ok") throw new CandidateNotStarted(startOutcome);
-          closeStart();
-          closeOracle = phase("oracle");
-        },
-      });
-      oracleMetadata = result.metadata;
-      oracle = { executed: true, result: await digestOf(result.resultFile), summary: result.summary };
-      if (result.errors === 0) closeOracle?.();
-      else closeOracle?.("oracle-error", {}, result.errorMessages.join("\n"));
-      const closeGates = phase("gates");
-      closeGates();
-    } catch (error) {
-      if (!(error instanceof CandidateNotStarted)) {
-        await stopCandidate(service);
-        throw error;
+  if (contract.outcome === "ok") {
+    const { build: buildCommand, start } = contract.candidate;
+    if (start === undefined) throw new Error("A valid contract declares start");
+
+    // 3. Construction : `npm ci` puis `build`, sans mb-internal ni variable du
+    // banc, sous le délai global et les limites (runner/build.ts).
+    const closeBuild = phase("build");
+    const build = await buildCandidate({ measureId: id, image: RUNTIME_IMAGE, user, rawDir, copyDir, build: buildCommand, limits });
+    if (build.outcome.outcome === "ok") closeBuild("ok", build.raw);
+    else closeBuild(build.outcome.outcome, build.raw, build.outcome.detail);
+
+    // 4 et 5. Pile et démarrage, puis oracle. L'exécution complète de l'étape 2
+    // recrée le legacy et le service d'archivage, puis rappelle le runner, qui
+    // recrée le service `candidate` et attend sa disponibilité.
+    const described = await candidateService({ rawDir, copyDir, user, start });
+    service = described;
+
+    if (build.outcome.outcome === "ok") {
+      const closeStart = phase("start");
+      let closeOracle: ClosePhase<"oracle"> | undefined;
+      let startOutcome: PhaseOutcome<"start"> = "ok";
+      try {
+        const result = await executeOracle({
+          baseUrl: CANDIDATE_BASE_URL,
+          salt: measureSalt,
+          artifactsDir: `${ARTIFACTS_DIR_FROM_ROOT}/${id}/oracle`,
+          resultFile: join(measureDir, "oracle.json"),
+          onStackReady: async () => {
+            await stopCandidate(described);
+            await startCandidate(described);
+            startOutcome = await waitUntilReady(described, limits.readyTimeoutMs);
+            if (startOutcome !== "ok") throw new CandidateNotStarted(startOutcome);
+            closeStart();
+            closeOracle = phase("oracle");
+          },
+        });
+        oracleMetadata = result.metadata;
+        oracle = { executed: true, result: await digestOf(result.resultFile), summary: result.summary };
+        if (result.errors === 0) closeOracle?.();
+        else closeOracle?.("oracle-error", {}, result.errorMessages.join("\n"));
+        const closeGates = phase("gates");
+        closeGates();
+      } catch (error) {
+        if (!(error instanceof CandidateNotStarted)) {
+          await stopCandidate(described);
+          throw error;
+        }
+        closeStart(startOutcome);
       }
-      closeStart(startOutcome);
     }
   }
 
   // Oracle non lancé : le compte des scénarios, tous non atteints.
   oracle ??= { executed: false, summary: await listOracle(`${ARTIFACTS_DIR_FROM_ROOT}/${id}/oracle`) };
 
-  // 7. Clôture : arrêt du candidat, measure.json écrit.
+  // 7. Clôture : arrêt du candidat, measure.json écrit. Après un contrat
+  // invalide, aucun service `candidate` n'a été décrit : rien à arrêter.
   const closeClosing = phase("closing");
-  await stopCandidate(service);
+  if (service !== undefined) await stopCandidate(service);
   closeClosing();
   const startPhase = phases.find(({ name }) => name === "start");
-  if (startPhase !== undefined) startPhase.raw["start.log"] = await digestOf(startLog);
+  if (startPhase !== undefined && service !== undefined) startPhase.raw["start.log"] = await digestOf(service.startLog);
 
   const { record, exitCode } = measureRecord({
     measureId: id,
@@ -187,7 +199,7 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
       ...oracleMetadata,
       runtimeImage,
       containerUser: user,
-      composeOverride,
+      ...(service === undefined ? {} : { composeOverride: service.composeOverride }),
       port: CANDIDATE_PORT,
       limits: limitsRecord,
     },

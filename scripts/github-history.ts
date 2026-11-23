@@ -41,6 +41,13 @@ export async function changedFiles(range: string, cwd = process.cwd()): Promise<
   return stdout.split("\n").filter((line) => line !== "");
 }
 
+// Fichiers d'une PR : trois points, depuis la base commune de la base et de la
+// tête, comme l'onglet « Files changed ». Les commits arrivés sur main pendant
+// la PR n'y entrent pas : une PR docs seule le reste (#83).
+export function pullRequestFiles(baseSha: string, headSha: string, cwd = process.cwd()): Promise<string[]> {
+  return changedFiles(`${baseSha}...${headSha}`, cwd);
+}
+
 async function api(path: string): Promise<unknown> {
   const { stdout } = await execFileAsync("gh", ["api", path], { maxBuffer: 64 * 1024 * 1024 });
   return JSON.parse(stdout);

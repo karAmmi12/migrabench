@@ -44,6 +44,21 @@ describe("shouldRun", () => {
     },
   );
 
+  // #83 : une PR neuve n'a aucune référence, mais son code est celui de la base.
+  it.each(["tests", "oracle"] as const)(
+    "skips %s on a pull request touching only docs/**, even without reference",
+    async (job) => {
+      expect(await shouldRun(job, pr("docs/x.md", "docs/y/z.md"), history())).toEqual({
+        run: false,
+        reason: "la PR ne touche que docs/**",
+      });
+    },
+  );
+
+  it("runs a job on a pull request with an empty diff: nothing changed is not a docs-only change", async () => {
+    expect((await shouldRun("tests", pr(), history())).run).toBe(true);
+  });
+
   it("skips a job when only docs/** changed since its last success on the pull request", async () => {
     const runs = [{ sha: "a1", at: "2026-11-23T10:00:00Z", jobs: { tests: "success" } }];
 

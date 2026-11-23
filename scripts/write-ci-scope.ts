@@ -9,7 +9,7 @@
 import { appendFileSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { HEAVY_JOBS, shouldRun, type Context, type HeavyJob, type History } from "./ci-scope.ts";
-import { changedFiles, githubHistory } from "./github-history.ts";
+import { githubHistory, pullRequestFiles } from "./github-history.ts";
 
 function env(name: string): string {
   const value = process.env[name];
@@ -39,8 +39,7 @@ async function scope(event: string): Promise<{ context: Context; history: Histor
   const payload = JSON.parse(readFileSync(env("GITHUB_EVENT_PATH"), "utf8"));
   const headSha: string = payload.pull_request.head.sha;
   const baseSha: string = payload.pull_request.base.sha;
-  // Trois points : depuis la base commune, comme l'onglet « Files changed ».
-  const prFiles = await changedFiles(`${baseSha}...${headSha}`);
+  const prFiles = await pullRequestFiles(baseSha, headSha);
   return {
     context: { event, prFiles },
     history: githubHistory({

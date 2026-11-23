@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/karAmmi12/migrabench/main/runner/schemas/candidate-1.schema.json",
+  "title": "candidate.json, contract 1",
+  "description": "Contract of a migrabench candidate, written by the AI agent at the root of the candidate folder. The folder also holds package.json and package-lock.json. No URL and no port: the bench imposes the port through the PORT variable.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "description": "Address of this schema, for the editor. Ignored by the bench.",
+      "type": "string"
+    },
+    "contract": {
+      "description": "Version of the contract.",
+      "const": 1
+    },
+    "build": {
+      "description": "Command run with sh -c after npm ci, in the build phase. Optional.",
+      "type": "string",
+      "minLength": 1
+    },
+    "start": {
+      "description": "Command run with sh -c in the start phase. It must listen on the PORT variable.",
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": ["contract", "start"],
+  "additionalProperties": false
+}

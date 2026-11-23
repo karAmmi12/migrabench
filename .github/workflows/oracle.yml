@@ -10,8 +10,8 @@
 #
 # Quand ils tournent (#76, job changes, règle dans scripts/ci-scope.ts) :
 # - sur push vers main et en workflow_dispatch : toujours, les deux ;
-# - sur une PR : oracle, sauf si seul docs/** a changé depuis son dernier
-#   succès sur la PR ; proof, de même, et seulement si la PR touche oracle/,
+# - sur une PR : oracle, sauf si la PR ne touche que docs/** (#83) ou si seul
+#   docs/** a changé depuis son dernier succès sur la PR ; proof, de même, et seulement si la PR touche oracle/,
 #   fixtures/legacy-app/, docker-compose.yml ou results/oracle/.
 #
 # Ni ARCHIVE_SALT ni ORACLE_SALT ne sont définis : une mesure tire toujours son
@@ -39,8 +39,9 @@ concurrency:
 
 jobs:
   # Décide quels jobs lourds tournent (#76) : règle dans scripts/ci-scope.ts.
-  # Sur une PR, un job est ignoré si seul docs/** a changé depuis le dernier
-  # commit de la PR où ce même job a réussi. Condition au niveau du job, pas
+  # Sur une PR, un job est ignoré si la PR ne touche que docs/** (#83), ou si
+  # seul docs/** a changé depuis le dernier commit de la PR où ce même job a
+  # réussi. Condition au niveau du job, pas
   # filtre paths sous on: : un job ignoré compte comme réussi pour une
   # vérification obligatoire, un workflow filtré resterait « en attente ».
   changes:

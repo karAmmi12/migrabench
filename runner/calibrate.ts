@@ -10,7 +10,7 @@
 // ailleurs, dans results/diagnostic/calibration/, ignoré par Git et jamais
 // appliqué à une mesure (runner/calibration.ts, chooseCalibration).
 import { randomBytes } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { arch, cpus, platform, release, totalmem } from "node:os";
 import { join, relative } from "node:path";
 import { browserVersions } from "../oracle/browser-versions.ts";
@@ -37,6 +37,7 @@ import {
   waitUntilReady,
 } from "./candidate-runtime.ts";
 import { containerUser } from "./container-user.ts";
+import { contractPhase } from "./contract-phase.ts";
 import { measureLimits, SAFETY_CAP } from "./limits.ts";
 import { CALIBRATION_DIR_FROM_ROOT, LOCAL_CALIBRATION_DIR_FROM_ROOT } from "./paths.ts";
 import { cgroupUsage, type ResourceUsage } from "./resource-usage.ts";
@@ -61,7 +62,12 @@ export async function calibrateCandidate({ readings = CALIBRATION_READINGS }: Ca
 
   const candidateDir = join(ROOT, CALIBRATION_CANDIDATE);
   const files = await candidateFiles(candidateDir);
-  const declared = JSON.parse(await readFile(join(candidateDir, "candidate.json"), "utf8")) as { contract: number; build?: string; start: string };
+  // Le même contrat qu'une mesure (runner/contract-phase.ts) : le candidat
+  // d'étalonnage doit être un candidat valide.
+  const contract = await contractPhase(candidateDir);
+  if (contract.outcome !== "ok") throw new Error(`The calibration candidate breaks the contract: ${contract.outcome}: ${contract.detail}`);
+  const { contract: version, build: buildCommand, start: startCommand } = contract.candidate;
+  if (version === undefined || startCommand === undefined) throw new Error("A valid contract declares its version and start");
   const runtimeImage = await buildRuntimeImage();
   const user = containerUser(process.getuid?.(), process.getgid?.());
   // Sans autre délai que le plafond de sécurité.
@@ -76,11 +82,11 @@ export async function calibrateCandidate({ readings = CALIBRATION_READINGS }: Ca
     await copyCandidate(candidateDir, files, copyDir);
     const startedAt = new Date().toISOString();
 
-    const build = await buildCandidate({ measureId: `${id}-${reading}`, image: RUNTIME_IMAGE, user, rawDir, copyDir, build: declared.build, limits, collectUsage: true });
+    const build = await buildCandidate({ measureId: `${id}-${reading}`, image: RUNTIME_IMAGE, user, rawDir, copyDir, build: buildCommand, limits, collectUsage: true });
     if (build.outcome.outcome !== "ok") throw new Error(`Calibration reading ${reading}: ${build.outcome.outcome}: ${build.outcome.detail}`);
 
     // Pile recréée comme pour une mesure, puis le candidat démarré seul.
-    const service = await candidateService({ rawDir, copyDir, user, start: declared.start });
+    const service = await candidateService({ rawDir, copyDir, user, start: startCommand });
     await recreateStack(randomBytes(32).toString("hex"));
     let start: CalibrationReading["start"];
     try {
@@ -116,7 +122,7 @@ export async function calibrateCandidate({ readings = CALIBRATION_READINGS }: Ca
   const record = {
     format: CALIBRATION_FORMAT,
     calibratedAt: calibratedAt.toISOString(),
-    candidate: { path: CALIBRATION_CANDIDATE, contentDigest: contentDigest(files), contract: declared.contract, ...(declared.build === undefined ? {} : { build: declared.build }), start: declared.start },
+    candidate: { path: CALIBRATION_CANDIDATE, contentDigest: contentDigest(files), contract: version, ...(buildCommand === undefined ? {} : { build: buildCommand }), start: startCommand },
     environment: {
       benchCommit,
       worktree,
