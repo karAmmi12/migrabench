@@ -235,7 +235,15 @@ Après la mesure, `.bench-lock` n'existe plus. Cette mesure n'a pas eu de
 reprise : `takenOver` n'apparaît que lorsqu'un verrou du banc orphelin est
 repris, et ce cas est couvert par `tests/bench-lock.test.ts`.
 
-> À vérifier après l'exécution de la CI de la PR : `npm test` complet vert sur la pile (workflow « Tests du banc »), avec le lien de l'exécution et son head SHA.
+`npm test` complet sur la pile, en CI (workflow « Tests du banc »),
+[exécution 45282567598](https://github.com/karAmmi12/migrabench/actions/runs/45282567598),
+head SHA `527ee6d`, 2 min 47 s du début à la fin de l'exécution :
+
+```text
+> node scripts/check-node-version.mjs && node scripts/check-bench-lock.ts
+ Test Files  56 passed (56)
+      Tests  452 passed (452)
+```
 
 ## Pour aller plus loin
 
