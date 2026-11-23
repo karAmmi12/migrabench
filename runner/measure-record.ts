@@ -1,24 +1,10 @@
 // Contenu de measure.json (spec de l'étape 3, « Contenu de measure.json ») :
 // fonction pure qui assemble le résultat d'une mesure à partir de ce que le
-// runner a relevé. Le fil traceur (#62) n'écrit que des mesures de diagnostic,
-// sans portes ; le verdict complet et ses codes de sortie viennent avec #63.
+// runner a relevé, avec son verdict et le code de sortie qui en découle.
 import type { OracleSummary } from "../oracle/collect.ts";
+import { type ExitCode, PHASES, type PhaseRecord, verdict } from "./verdict.ts";
 
 export const MEASURE_FORMAT = 1;
-
-export const PHASES = ["preparation", "contract", "build", "start", "oracle", "gates", "closing"] as const;
-export type PhaseName = (typeof PHASES)[number];
-
-export interface PhaseRecord {
-  name: PhaseName;
-  // `ok`, ou l'issue nommée qui a arrêté la mesure ; `not-run` si la phase n'a pas tourné.
-  outcome: string;
-  startedAt: string;
-  durationMs: number;
-  detail?: string;
-  // Empreinte de chaque brut de la phase, par son chemin dans le dossier des bruts.
-  raw: Record<string, string>;
-}
 
 export interface CandidateRecord {
   path: string;
@@ -28,12 +14,8 @@ export interface CandidateRecord {
   start?: string;
 }
 
-export type OracleRecord = { executed: true; result: string; summary: OracleSummary } | { executed: false };
-
-export interface MeasureOutcome {
-  category: "completed" | "candidate-failure";
-  reason: string;
-}
+// Oracle non lancé : le compte des scénarios, tous non atteints (`oracle.executed: false`).
+export type OracleRecord = { executed: true; result: string; summary: OracleSummary } | { executed: false; summary: OracleSummary };
 
 export interface MeasureRecordInput {
   measureId: string;
@@ -46,15 +28,13 @@ export interface MeasureRecordInput {
   oracle: OracleRecord;
 }
 
-// Issues que le fil traceur sait produire, comptées contre le candidat.
-const CANDIDATE_FAILURES = new Set(["build-failed", "start-exited", "start-not-ready"]);
-
 export function measureRecord({ measureId, candidate, environment, salt, saltImposed, phases, oracle }: MeasureRecordInput) {
   const recorded = PHASES.map(
     (name): PhaseRecord =>
       phases.find((entry) => entry.name === name) ?? { name, outcome: "not-run", startedAt: "", durationMs: 0, raw: {} },
   );
-  return {
+  const { verdict: measureVerdict, exitCode } = verdict(recorded);
+  const record = {
     format: MEASURE_FORMAT,
     measureId,
     counted: false,
@@ -65,13 +45,7 @@ export function measureRecord({ measureId, candidate, environment, salt, saltImp
     phases: recorded,
     oracle,
     gates: [] as never[],
-    verdict: verdictOf(recorded),
+    verdict: measureVerdict,
   };
-}
-
-function verdictOf(phases: readonly PhaseRecord[]): MeasureOutcome {
-  const failed = phases.find(({ outcome }) => outcome !== "ok" && outcome !== "not-run");
-  if (failed === undefined) return { category: "completed", reason: "ok" };
-  if (CANDIDATE_FAILURES.has(failed.outcome)) return { category: "candidate-failure", reason: failed.outcome };
-  throw new Error(`Outcome ${failed.outcome} of phase ${failed.name} has no verdict yet (#63, #68)`);
+  return { record, exitCode: exitCode satisfies ExitCode };
 }

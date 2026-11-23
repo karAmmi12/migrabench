@@ -11,7 +11,8 @@ export function measureId(startedAt: Date, benchCommit: string, candidate: strin
   return `${timestamp(startedAt)}-${benchCommit.slice(0, 7)}-${candidateName(candidate)}`;
 }
 
-function candidateName(candidate: string): string {
+// Nom du candidat dans l'identifiant ; refuse un dossier hors de candidates/ et fixtures/.
+export function candidateName(candidate: string): string {
   const [root, ...rest] = posix.normalize(candidate).replace(/\/$/, "").split("/");
   if (!CANDIDATE_ROOTS.some((allowed) => allowed === root) || rest.length === 0 || rest.includes("..")) {
     throw new Error(`The candidate must be a directory under candidates/ or fixtures/: ${candidate}`);
