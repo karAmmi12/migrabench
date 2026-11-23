@@ -70,7 +70,7 @@ candidat de référence obtient 100 % dans une mesure comptée.
 8. En tant qu'opérateur, je veux lancer une mesure avec `migrabench measure --candidate <dossier>`, pour obtenir un résultat sans étape manuelle.
 9. En tant qu'opérateur, je veux qu'une mesure soit un diagnostic par défaut, pour mettre au point le banc sans produire de mesure qui compte.
 10. En tant qu'opérateur, je veux prévoir une mesure pour compter avec `--counted`, pour que ce choix soit explicite et visible dans le résultat.
-11. En tant qu'opérateur, je veux que `--counted` soit refusé avant toute action si l'arbre de travail est modifié, si le sel est imposé ou si `HEAD` n'est pas atteignable depuis `origin/main`, pour qu'aucune mesure qui compte ne parte d'un état non publié.
+11. En tant qu'opérateur, je veux que `--counted` soit refusé avant toute action si l'arbre de travail est modifié, si le sel ou le plafond des délais est imposé ou si `HEAD` n'est pas atteignable depuis `origin/main`, pour qu'aucune mesure qui compte ne parte d'un état non publié.
 12. En tant qu'opérateur, je veux que le refus de `--counted` nomme toutes les conditions manquantes d'un coup, pour tout corriger en une fois.
 13. En tant qu'opérateur, je veux que le runner fasse lui-même le `git fetch` avant de vérifier `origin/main`, pour ne pas dépendre d'une copie locale périmée.
 14. En tant qu'opérateur, je veux imposer le sel en diagnostic seulement, pour rejouer une exécution passée sans jamais affaiblir une mesure qui compte.
@@ -334,7 +334,8 @@ de la mesure>/`, cités par empreinte (ADR 0005).
   - `port` : port imposé ;
   - `limits` : délai de construction, délai de disponibilité, mémoire, CPU
     appliqués, avec le multiple déclaré et l'empreinte du résultat
-    d'étalonnage dont ils sortent ;
+    d'étalonnage dont ils sortent ; avec `--timeout-cap-ms`, le plafond imposé
+    (`imposedTimeoutCapMs`) ;
   - `lock` : prise du verrou du banc, et reprise d'un verrou orphelin s'il
     y en a eu une (outil, PID, heure de démarrage et ligne de commande du
     processus repris).
@@ -446,7 +447,20 @@ le candidat tourne ensuite (voir les règles des issues).
   imposé (registre fixé par une variable d'environnement de npm, qui prime
   sur un `.npmrc` du candidat), ni `mb-internal` ni variable du banc,
   limites de mémoire et de CPU, délai global. Sorties et journal de npm
-  conservés comme bruts.
+  conservés comme bruts. Précisé par #65 : trois conteneurs successifs sous
+  le même délai global.
+  - **téléchargement** : `npm ci --ignore-scripts` dans une copie du candidat
+    sans son `.npmrc`, sur le réseau `bridge`, qui remplit un cache npm propre
+    à la mesure. C'est la seule étape qui a accès au réseau, et aucun code du
+    candidat n'y tourne : ni script d'installation, ni `.npmrc` (un proxy ou un
+    `fetch-timeout` qu'il déclarerait pourrait sinon fabriquer une erreur du
+    registre). Seul son journal de npm peut prouver `registry-network-error` ;
+  - **installation** : `npm ci --offline` dans la copie du candidat, scripts
+    d'installation actifs, depuis ce cache, sans réseau (`--network none`) ;
+  - **`build`** : la commande déclarée, par `sh -c`, sans réseau.
+
+  Un script d'installation ou une commande `build` qui tente une requête
+  réseau échoue donc toujours : `build-failed`, échec du candidat.
 - **Démarrage** : service `candidate` de la composition complémentaire,
   même image, utilisateur non-root, copie montée en lecture seule, dossier
   temporaire en écriture, `USERS_FILE` monté en lecture seule, réseaux
@@ -504,6 +518,13 @@ le candidat tourne ensuite (voir les règles des issues).
   n'en existe aucun. En diagnostic sans étalonnage, le runner applique le
   plafond de sécurité et l'écrit dans `environment.limits` comme provisoire.
 - L'étape 6 réétalonne avant la première mesure comptée de sa campagne.
+- **Plafond des délais imposé** (précisé par #65) : `--timeout-cap-ms <ms>`
+  abaisse les délais de construction et de disponibilité, jamais les limites
+  de mémoire et de CPU, et ne peut pas les relever. Diagnostic seulement :
+  `--counted` le refuse (`refused-counted`, code `4`). La valeur est
+  enregistrée dans `environment.limits.imposedTimeoutCapMs`. Le candidat
+  défectueux 3 est mesuré avec ce plafond en CI, pour ne pas attendre tout le
+  délai de construction ; un délai dépassé reste un échec du candidat.
 
 ### Candidats défectueux
 

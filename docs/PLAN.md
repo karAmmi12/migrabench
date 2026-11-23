@@ -279,7 +279,10 @@ pendant que le candidat tourne, et compte la fréquence de ces pannes.
 ### 6. Runs d'agents
 Prompt figé et versionné, 2 ou 3 outils, 3 à 5 runs chacun, coût relevé.
 Le prompt donne le schéma JSON de `candidate.json` (étape 3) et un exemple
-complet.
+complet. Il donne aussi la règle de la construction (#65) : aucun accès
+réseau pendant les scripts d'installation ni pendant la commande `build`.
+Seul `npm ci` télécharge, depuis le registre imposé ; un script ou une
+construction qui tente une requête réseau échoue, au compte du candidat.
 Avant la première mesure comptée de la campagne, les délais et les limites
 de ressources sont réétalonnés sur le candidat d'étalonnage seul, jamais sur
 les sorties des agents, dans l'environnement des mesures comptées, puis
