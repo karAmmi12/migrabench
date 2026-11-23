@@ -306,7 +306,24 @@ commit docs seul dans `docs/mesure-76.md`.
   [job `tests`](https://github.com/karAmmi12/migrabench/actions/runs/45216443911/job/137838951063), 48 fichiers, 325 tests
   réussis.
 
-> À vérifier après la fusion : `proof` tourne sur `push` vers `main` et en `workflow_dispatch` (liens). « To trigger the workflow_dispatch event, your workflow must be in the default branch » ([GitHub Docs : Manually running a workflow](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow), lu le 2026-11-23).
+- **Après la fusion, `proof` tourne hors PR**, sur le commit de fusion
+  `586ce91` de la PR #79 :
+  - `push` vers `main` : [exécution « Oracle »](https://github.com/karAmmi12/migrabench/actions/runs/45260712375), avec les jobs
+    [`oracle`](https://github.com/karAmmi12/migrabench/actions/runs/45260712375/job/137994481995) et
+    [`proof`](https://github.com/karAmmi12/migrabench/actions/runs/45260712375/job/137995721760). Journal du job `changes` :
+    `proof : tourne (événement push)`, puis `Proof holds on 5 results.` ;
+  - `workflow_dispatch` : [exécution « Oracle »](https://github.com/karAmmi12/migrabench/actions/runs/45260783761), avec les jobs
+    [`oracle`](https://github.com/karAmmi12/migrabench/actions/runs/45260783761/job/137994750602) et
+    [`proof`](https://github.com/karAmmi12/migrabench/actions/runs/45260783761/job/137996075422). Journal :
+    `proof : tourne (événement workflow_dispatch)`, puis
+    `Proof holds on 5 results.`
+
+  Les deux ont tourné en même temps (créées à 20:34:08 et 20:34:33 UTC) et
+  aucune n'a annulé l'autre : hors PR, chaque exécution a son propre groupe de
+  concurrence. Le lancement manuel n'a été possible qu'après la fusion :
+  « To trigger the workflow_dispatch event, your workflow must be in the
+  default branch » ([GitHub Docs : Manually running a workflow](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow),
+  lu le 2026-11-23).
 
 ## Pour aller plus loin
 
