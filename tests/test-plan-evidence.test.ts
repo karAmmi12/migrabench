@@ -68,4 +68,38 @@ describe("test plan evidence", () => {
   it("does not take a scenario or record identifier for a number", () => {
     expect(uncitedLines("- [x] R2 à R16 échouent, R11 utilise `D-0999`, sous Node v22")).toEqual([]);
   });
+
+  it("does not take a ticket or PR reference for a number", () => {
+    expect(uncitedLines("- [x] Fermé par #41, suite de #39")).toEqual([]);
+  });
+
+  it("does not take a long number or an all-letter hex word for a commit SHA", () => {
+    const lines = [
+      "- [x] 143 tests le 20261121",
+      "- [x] 143 tests, commit `20261121`",
+      "- [x] 143 tests defaced",
+      "- [x] 143 tests, commit `deadbeef`",
+    ];
+    expect(uncitedLines(lines.join("\n"))).toEqual(lines);
+  });
+
+  it("reads checked boxes of numbered lists and boxes followed by a tab", () => {
+    const lines = ["1. [x] 143 tests", "2) [X] 143 tests", "- [x]\t143 tests", "-\t[x] 143 tests"];
+    expect(uncitedLines(lines.join("\n"))).toEqual(lines);
+  });
+
+  it("counts a CI job link written in inline code", () => {
+    expect(
+      uncitedLines(
+        [
+          "- [x] CI verte : `https://github.com/karAmmi12/migrabench/actions/runs/44953461587`, 143 tests",
+          "- [x] CI verte : `actions/runs/44953461587/job/137267606175`, 143 tests",
+        ].join("\n"),
+      ),
+    ).toEqual([]);
+  });
+
+  it("copies a line without its carriage return (Windows line endings)", () => {
+    expect(uncitedLines("- [x] 143 tests\r\n- [x] 12 tests\r\n")).toEqual(["- [x] 143 tests", "- [x] 12 tests"]);
+  });
 });

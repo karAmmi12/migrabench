@@ -24,8 +24,8 @@ describe("check-test-plan-evidence script", () => {
     expect(outcome).toEqual({
       code: 1,
       stdout: [
-        "::error::Checked test plan line with a number but no state (commit SHA or actions/runs/<id> link): - [x] `npm test` : 143 tests",
-        "::error::Checked test plan line with a number but no state (commit SHA or actions/runs/<id> link): - [x] 100%25 des scénarios",
+        "::error::Case cochée chiffrée sans état (SHA de commit ou lien de job de CI actions/runs/<id>) : - [x] `npm test` : 143 tests",
+        "::error::Case cochée chiffrée sans état (SHA de commit ou lien de job de CI actions/runs/<id>) : - [x] 100%25 des scénarios",
         "",
       ].join("\n"),
     });
@@ -34,7 +34,7 @@ describe("check-test-plan-evidence script", () => {
   it("passes when every checked line with a number cites a state", async () => {
     expect(await check("- [x] `npm test` : 143 tests, commit `62bd7cd`\n- [ ] 12 tests")).toEqual({
       code: 0,
-      stdout: "Every checked test plan line with a number cites a state.\n",
+      stdout: "Chaque case cochée chiffrée cite un état.\n",
     });
   });
 
