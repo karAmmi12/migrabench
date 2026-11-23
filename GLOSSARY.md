@@ -73,7 +73,10 @@ ni recevoir ni fabriquer (règle 7 de `PROTOCOL.md`) : pile du banc en échec
 avant le démarrage du candidat, ou pendant un redémarrage où il est arrêté ;
 erreur de l'oracle hors scénario ; erreur réseau sur une requête précise
 vers le registre imposé de l'installation des dépendances ; marqueur du banc
-hors de son moment prévu dans le journal d'accès du legacy. La raison est enregistrée dans son résultat, ou, si l'erreur est
+hors de son moment prévu dans le journal d'accès du legacy, ou requête
+témoin absente de ce journal ; erreur imprévue du runner avant le lancement
+de `npm ci` ; interruption de la mesure, qui est conservée et toujours
+signalée. La raison est enregistrée dans son résultat, ou, si l'erreur est
 découverte après coup, dans un document ajouté qui cite les mesures
 concernées, la raison et la preuve. La mesure
 suivante du même candidat compte à sa place, et le rapport le signale. Un

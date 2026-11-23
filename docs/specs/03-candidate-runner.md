@@ -40,7 +40,8 @@ issue nommée. Le résultat range la mesure dans une catégorie : complète,
 échec au contrat, échec du candidat, panne de la pile pendant que le
 candidat tourne, ou invalide, et seulement sur une preuve que le candidat ne
 peut ni recevoir ni fabriquer. La commande rend un code de sortie parmi
-trois : mesure valide, mesure invalide, aucune mesure.
+trois : mesure valide, mesure invalide, aucune mesure écrite ; le code `1`
+reste réservé au plantage.
 
 Un verrou du banc empêche deux outils du banc de partager la pile. Par
 défaut, une mesure est un diagnostic ; `--counted` la prévoit pour compter,
@@ -48,8 +49,8 @@ depuis un commit de `main`.
 
 Le banc fournit trois sortes de candidats dans `fixtures/` : le candidat de
 référence (le legacy derrière un relais sans logique), le candidat
-d'étalonnage (dont les mesures fixent délais et limites) et cinq candidats
-défectueux, un par issue d'échec à prouver. L'étape est finie quand le
+d'étalonnage (dont les mesures fixent délais et limites) et sept candidats
+défectueux, un par issue à prouver. L'étape est finie quand le
 candidat de référence obtient 100 % dans une mesure comptée.
 
 ## User stories
@@ -73,7 +74,7 @@ candidat de référence obtient 100 % dans une mesure comptée.
 12. En tant qu'opérateur, je veux que le refus de `--counted` nomme toutes les conditions manquantes d'un coup, pour tout corriger en une fois.
 13. En tant qu'opérateur, je veux que le runner fasse lui-même le `git fetch` avant de vérifier `origin/main`, pour ne pas dépendre d'une copie locale périmée.
 14. En tant qu'opérateur, je veux imposer le sel en diagnostic seulement, pour rejouer une exécution passée sans jamais affaiblir une mesure qui compte.
-15. En tant qu'opérateur, je veux trois codes de sortie distincts (mesure valide, mesure invalide, aucune mesure), pour qu'un script ou un job de CI réagisse sans lire le résultat.
+15. En tant qu'opérateur, je veux trois codes de sortie distincts (mesure valide, mesure invalide, aucune mesure écrite), tous différents du code d'un plantage, pour qu'un script ou un job de CI réagisse sans lire le résultat et ne confonde jamais un plantage avec une mesure invalide.
 16. En tant qu'opérateur, je veux que le score du candidat n'influe pas sur le code de sortie, pour qu'un candidat qui échoue à l'oracle ne passe pas pour une panne du banc.
 17. En tant qu'opérateur, je veux un verrou du banc qui refuse une mesure, une exécution complète de l'oracle, `npm test` ou `npm run stack:up` pendant qu'un autre outil du banc tient la pile, pour que deux outils ne redémarrent pas le legacy l'un sous l'autre.
 18. En tant qu'opérateur, je veux que le refus dû au verrou du banc nomme l'outil qui le tient, son processus et l'heure de prise, pour savoir quoi attendre ou arrêter.
@@ -99,30 +100,31 @@ candidat de référence obtient 100 % dans une mesure comptée.
 35. En tant que mainteneur du banc, je veux que les délais de construction et de disponibilité et les limites de mémoire et de CPU valent un multiple déclaré des valeurs mesurées sur le candidat d'étalonnage, pour que ces seuils sortent d'une mesure et pas d'un choix à l'œil.
 36. En tant que mainteneur du banc, je veux que l'étalonnage tourne en CI et enregistre son environnement, pour qu'il corresponde à l'environnement des mesures comptées.
 37. En tant que mainteneur du banc, je veux que le contrôle des résultats versionnés (#53) s'étende à `measure.json`, pour refuser une mesure versionnée écrite à la main, sous un mauvais Node ou depuis un arbre modifié.
-38. En tant que mainteneur du banc, je veux un candidat défectueux par issue d'échec à prouver, pour voir chaque issue se produire au moins une fois sur une vraie pile.
+38. En tant que mainteneur du banc, je veux un candidat défectueux par issue à prouver, mesure invalide comprise, pour voir chaque issue se produire au moins une fois sur une vraie pile.
 39. En tant que mainteneur du banc, je veux qu'une panne de la pile pendant que le candidat tourne soit comptée contre lui, rangée dans sa propre catégorie avec le service tombé et ses sorties, parce qu'il aurait pu la provoquer (règle 7).
 
 ### Garant du protocole
 
 40. En tant que garant du protocole, je veux qu'une mesure ne soit invalide que pour une cause de la liste fermée du glossaire, chacune avec sa preuve, pour qu'aucun candidat ne puisse échapper à la mesure (règle 7).
 41. En tant que garant du protocole, je veux que le dépassement d'un délai ou d'une limite soit un échec du candidat, jamais une invalidité, pour la même raison.
-42. En tant que garant du protocole, je veux que le candidat de référence, qui présente le legacy comme un candidat, obtienne 100 % à l'oracle, pour valider le banc sur lui-même (règle 6).
-43. En tant que garant du protocole, je veux un test qui prouve que le relais du candidat de référence ne modifie ni les en-têtes ni les corps des réponses du legacy, pour que son 100 % soit celui du legacy.
-44. En tant que garant du protocole, je veux que le résultat enregistre une empreinte du contenu du candidat mesuré, pour qu'une correction humaine dans `candidates/` se voie d'une mesure à l'autre (règle 5).
-45. En tant que garant du protocole, je veux que le résultat d'une mesure comptée enregistre le commit de `origin/main` utilisé pour la vérification, pour que la preuve cite l'état exact où elle a été obtenue.
+42. En tant que garant du protocole, je veux qu'une mesure interrompue soit conservée, invalide pour la cause « interruption », et toujours signalée, pour qu'interrompre une mesure qui tourne mal ne la fasse pas disparaître.
+43. En tant que garant du protocole, je veux que le candidat de référence, qui présente le legacy comme un candidat, obtienne 100 % à l'oracle, pour valider le banc sur lui-même (règle 6).
+44. En tant que garant du protocole, je veux un test qui prouve que le relais du candidat de référence ne modifie ni les en-têtes ni les corps des réponses du legacy, pour que son 100 % soit celui du legacy.
+45. En tant que garant du protocole, je veux que le résultat enregistre une empreinte du contenu du candidat mesuré, pour qu'une correction humaine dans `candidates/` se voie d'une mesure à l'autre (règle 5).
+46. En tant que garant du protocole, je veux que le résultat d'une mesure comptée enregistre le commit de `origin/main` utilisé pour la vérification, pour que la preuve cite l'état exact où elle a été obtenue.
 
 ### Lecteur du rapport (étape 5)
 
-46. En tant que lecteur du rapport, je veux que les échecs au contrat soient rangés à part des échecs de migration, pour ne pas confondre un agent qui déclare mal et un agent qui migre mal.
-47. En tant que lecteur du rapport, je veux que les pannes de la pile pendant que le candidat tourne soient rangées à part, avec leur fréquence, pour juger si le banc est fiable.
-48. En tant que lecteur du rapport, je veux que la mesure invalide garde sa raison et sa preuve, et que la mesure qui la remplace le dise, pour comprendre pourquoi une mesure ne compte pas.
-49. En tant que lecteur du rapport, je veux qu'un candidat qui ne démarre pas ait un résultat explicite « oracle non lancé », jamais un résultat vide, pour qu'il ne passe pas pour un candidat non mesuré.
+47. En tant que lecteur du rapport, je veux que les échecs au contrat soient rangés à part des échecs de migration, pour ne pas confondre un agent qui déclare mal et un agent qui migre mal.
+48. En tant que lecteur du rapport, je veux que les pannes de la pile pendant que le candidat tourne soient rangées à part, avec leur fréquence, pour juger si le banc est fiable.
+49. En tant que lecteur du rapport, je veux que la mesure invalide garde sa raison et sa preuve, et que la mesure qui la remplace le dise, pour comprendre pourquoi une mesure ne compte pas.
+50. En tant que lecteur du rapport, je veux qu'un candidat qui ne démarre pas ait un résultat explicite « oracle non lancé », jamais un résultat vide, pour qu'il ne passe pas pour un candidat non mesuré.
 
 ### Auteur des portes (étape 4)
 
-50. En tant qu'auteur des portes, je veux un emplacement réservé aux portes dans `measure.json` et une phase des portes dans la mesure, pour brancher les portes sans changer le format.
-51. En tant qu'auteur des portes, je veux que le runner recrée le candidat à chaque redémarrage du legacy, pour qu'une porte qui redémarre le legacy s'exécute seule, après l'oracle, avec un candidat neuf.
-52. En tant qu'auteur des portes, je veux le journal d'accès de chaque mesure et ses deux marqueurs, pour écrire la porte du relais, dont le candidat de référence est le test négatif.
+51. En tant qu'auteur des portes, je veux un emplacement réservé aux portes dans `measure.json` et une phase des portes dans la mesure, pour brancher les portes sans changer le format.
+52. En tant qu'auteur des portes, je veux que le runner recrée le candidat à chaque redémarrage du legacy, pour qu'une porte qui redémarre le legacy s'exécute seule, après l'oracle, avec un candidat neuf.
+53. En tant qu'auteur des portes, je veux le journal d'accès de chaque mesure et ses deux marqueurs, pour écrire la porte du relais, dont le candidat de référence est le test négatif.
 
 ## Décisions d'implémentation
 
@@ -145,7 +147,7 @@ candidat de référence obtient 100 % dans une mesure comptée.
     candidate: string;   // dossier du candidat, relatif à la racine du dépôt
     counted?: boolean;   // défaut : false (diagnostic)
     salt?: string;       // imposé : diagnostic seulement, refusé avec counted
-  }): Promise<{ measureDir: string; outcome: MeasureOutcome; exitCode: 0 | 1 | 2 }>;
+  }): Promise<{ measureDir: string; outcome: MeasureOutcome; exitCode: 0 | 3 | 4 }>;
   ```
 
 - **`migrabench measure`** : commande mince sur `measureCandidate`. Elle lit
@@ -177,7 +179,7 @@ candidat de référence obtient 100 % dans une mesure comptée.
   du banc, pas un piège : elle est documentée dans `TRAPS.md` comme telle,
   et aucun piège n'est touché.
 - **Contrôle des résultats versionnés** (#53), étendu à `measure.json`.
-- **Fixtures** : candidat de référence, candidat d'étalonnage, cinq
+- **Fixtures** : candidat de référence, candidat d'étalonnage, sept
   candidats défectueux (voir ces sections).
 - **Dépendance ajoutée** : un validateur JSON Schema (Ajv), à justifier dans
   la PR : le schéma est le contrat publié, et le valider avec lui-même
@@ -226,8 +228,8 @@ contraire ; les phases suivantes sont enregistrées `not-run`.
 | # | Phase | Issues possibles | Catégorie de la mesure |
 |---|---|---|---|
 | 0 | **Refus préalables** : options, `--counted`, verrou du banc | `refused-usage`, `refused-counted`, `refused-lock` | aucune mesure (rien n'est écrit) |
-| 1 | **Préparation** : verrou du banc pris, identifiant de la mesure, sel et marqueur tirés, environnement relevé, copie du candidat | `ok` | — |
-| 2 | **Contrat** : `candidate.json`, `package.json`, sources du `package-lock.json` | `ok`, `contract-invalid` | échec au contrat |
+| 1 | **Préparation** : verrou du banc pris, identifiant de la mesure, sel et marqueur tirés, environnement relevé, copie du candidat | `ok`, `runner-error-before-candidate` | invalide |
+| 2 | **Contrat** : `candidate.json`, `package.json`, sources du `package-lock.json` | `ok`, `contract-invalid`, `runner-error-before-candidate` | échec au contrat ; invalide pour la dernière |
 | 3 | **Construction** : `npm ci` puis `build`, conteneur sans `mb-internal`, délai et limites | `ok`, `build-failed`, `build-timeout`, `build-resource-limit`, `registry-network-error` | échec du candidat ; invalide pour `registry-network-error` |
 | 4 | **Pile et démarrage** : legacy et service d'archivage recréés et sains, requête témoin de début, service `candidate` recréé, attente de disponibilité | `ok`, `stack-failed-before-candidate`, `access-log-inactive`, `start-exited`, `start-not-ready` | invalide pour les deux premières ; échec du candidat pour les autres |
 | 5 | **Oracle** : exécution complète de l'étape 2 sur `BASE_URL` | `ok`, `oracle-error`, `stack-down-while-candidate` | complète ; invalide pour `oracle-error` ; panne de la pile pour la dernière |
@@ -248,6 +250,23 @@ Règles des issues :
   refusée ou coupée, DNS, `5xx` du registre). La ligne du journal est la
   preuve, citée dans le résultat. Toute autre erreur de `npm ci` est
   `build-failed`.
+- **Scripts d'installation** : `npm ci` les exécute ; ils restent actifs.
+  Ce sont du code choisi par le candidat : une erreur réseau qu'ils
+  provoquent hors du registre imposé est `build-failed`, un échec du
+  candidat.
+- **`runner-error-before-candidate`** : erreur imprévue du runner pendant la
+  préparation ou le contrat, avant le lancement de `npm ci`. Aucun code du
+  candidat n'a encore tourné : il ne peut ni la recevoir ni la fabriquer.
+  Dès le lancement de `npm ci`, scripts d'installation compris, une erreur
+  imprévue du runner est comptée comme une panne pendant que le candidat
+  tourne (`stack-down-while-candidate`, avec l'erreur en détail).
+- **`interrupted`** : la mesure reçoit `SIGINT` ou `SIGTERM`, ou le job de CI
+  est annulé, quelle que soit la phase. Le runner arrête le candidat, écrit
+  `measure.json` avec les phases déjà faites, invalide pour cette cause, et
+  libère le verrou du banc. Une mesure comptée interrompue est versionnée
+  comme les autres, et le rapport la signale toujours. Le candidat ne peut
+  pas l'envoyer : il n'a accès ni au processus du runner ni au socket
+  Docker.
 - **`stack-failed-before-candidate`** : le legacy ou le service d'archivage
   n'est pas sain avant le démarrage du candidat, ou pendant un redémarrage
   où le candidat est arrêté.
@@ -267,8 +286,9 @@ Règles des issues :
   comme non atteints. Les portes de l'étape 4 seront non évaluables.
 - **Liste fermée** : les causes d'invalidité sont exactement
   `registry-network-error`, `stack-failed-before-candidate`,
-  `access-log-inactive`, `oracle-error` et `marker-out-of-place`, celles du
-  glossaire. Le verdict refuse toute autre cause.
+  `access-log-inactive`, `oracle-error`, `marker-out-of-place`,
+  `runner-error-before-candidate` et `interrupted`, celles du glossaire. Le
+  verdict refuse toute autre cause.
 
 ### Contenu de `measure.json`
 
@@ -326,24 +346,24 @@ preuve.
 
 ### Codes de sortie
 
-Proposition de cette spec : le plan ne les fixe pas.
-
 | Code | Sens | Résultat écrit |
 |---|---|---|
 | `0` | mesure valide : `completed`, `contract-failure`, `candidate-failure` ou `stack-down-while-candidate` | oui |
-| `1` | mesure invalide | oui |
-| `2` | aucune mesure : options invalides, dossier du candidat absent, `--counted` refusé, verrou du banc pris | non |
+| `3` | mesure invalide, interruption comprise | oui |
+| `4` | aucune mesure écrite : options invalides, dossier du candidat absent, `--counted` refusé, verrou du banc pris | non |
+
+Le code `1` reste celui d'un plantage : une exception que le runner n'a pas
+pu ranger dans une mesure, et le code par défaut de Node dans ce cas. Il ne
+se confond jamais avec une mesure invalide. Le code `2` n'est pas utilisé.
 
 Le score du candidat ne change jamais le code de sortie : un candidat à 0 %
 donne `0`. Le critère de fin et les tests lisent `measure.json`, pas le code.
 C'est un écart voulu avec `npm run oracle`, qui rend un code non nul dès
 qu'un scénario échoue : l'oracle juge le legacy, le runner juge le banc.
 
-Une erreur imprévue du runner, une fois que du code du candidat a tourné
-(construction comprise), est comptée comme une panne pendant que le
-candidat tourne : le candidat aurait pu la provoquer (règle 7). Avant, dans
-la préparation ou le contrat, aucun code du candidat n'a tourné : voir les
-questions ouvertes.
+Une erreur imprévue du runner est rangée dans une mesure quand c'est
+possible : `runner-error-before-candidate` avant `npm ci`, panne pendant que
+le candidat tourne ensuite (voir les règles des issues).
 
 ### Verrou du banc
 
@@ -357,7 +377,7 @@ décrire.
   `npm run stack:up`, pour toute leur durée.
 - **Le vérifie sans le prendre** : `pretest` (avant `npm test`), qui refuse
   si le verrou est tenu, car les tests du Seam A écrivent sur la pile.
-- **Refus** : code `2` pour `migrabench measure`, avec l'outil, le processus
+- **Refus** : code `4` pour `migrabench measure`, avec l'outil, le processus
   et l'heure de prise dans le message.
 - **Verrou mort** : si le processus qui le tient n'existe plus sur la même
   machine, le verrou est repris, et la reprise est enregistrée dans
@@ -455,9 +475,11 @@ décrire.
 
 ### Candidats défectueux
 
-Proposition de cette spec : cinq candidats dans `fixtures/`, un par issue
-d'échec qu'une mesure doit savoir produire. Chacun est une copie minimale du
-candidat de référence, avec un seul défaut.
+Sept candidats dans `fixtures/`, un par issue qu'une mesure doit savoir
+produire. Chacun est une copie minimale du candidat de référence, avec un
+seul défaut. Le septième n'est pas défectueux en lui-même : il est mesuré
+sur une pile que le test casse volontairement, pour prouver le chemin d'une
+mesure invalide.
 
 | # | Candidat | Défaut | Issue attendue | Catégorie | Code |
 |---|---|---|---|---|---|
@@ -466,6 +488,8 @@ candidat de référence, avec un seul défaut.
 | 3 | construction trop longue | `build` qui ne termine jamais | `build-timeout` | échec du candidat, jamais invalide | `0` |
 | 4 | jamais disponible | `start` qui tourne sans écouter sur `PORT` | `start-not-ready`, oracle non lancé | échec du candidat | `0` |
 | 5 | sonde d'isolation | `start` qui écoute sur `PORT` et sert le constat de ses tentatives : écrire dans son code, lire le socket Docker, joindre l'hôte de l'API interne pendant la construction, lire `ARCHIVE_SALT`, tourner en root | mesure complète ; le constat, lu par le test, montre chaque tentative refusée | complète | `0` |
+| 6 | relais qui altère un libellé | relais du candidat de référence qui change un libellé de champ dans les pages du legacy | mesure complète, au moins un scénario échoué | complète | `0` |
+| 7 | pile volontairement cassée | candidat de référence, mesuré pendant que le test empêche le legacy de devenir sain | `stack-failed-before-candidate` | invalide | `3` |
 
 Les variantes de contrat (`candidate.json` absent, JSON mal formé, champ
 manquant, source Git, chemin hors du candidat) sont couvertes par les tests
@@ -483,17 +507,21 @@ Vitest du contrat, pas par des candidats.
   - le candidat de référence : mesure complète, 38 scénarios réussis, 0 non
     atteint, journal d'accès avec ses deux requêtes témoins et des requêtes
     hors marqueur ;
-  - les cinq candidats défectueux : l'issue, la catégorie et le code du
+  - les sept candidats défectueux : l'issue, la catégorie et le code du
     tableau ;
   - une mesure lancée pendant qu'une autre tient le verrou du banc : code
-    `2`, aucun résultat écrit.
+    `4`, aucun résultat écrit ;
+  - une mesure interrompue par `SIGINT` pendant l'oracle : code `3`,
+    `measure.json` écrit avec la cause `interrupted`, verrou du banc libéré.
 - **Seam 2 : Vitest sur les fonctions pures**, en TDD (rouge d'abord) :
   - **contrat** : chaque champ du schéma, champ inconnu, `url` refusée avec
     son message, `package-lock.json` absent, chaque sorte de source
     refusée, chemin local dans le candidat accepté ;
   - **verdict** : chaque issue de phase vers sa catégorie et son code ;
     refus de toute cause d'invalidité hors de la liste fermée ; délai
-    dépassé jamais invalide ; `oracle.executed: false` compte les scénarios
+    dépassé jamais invalide ; erreur du runner avant `npm ci` invalide,
+    après `npm ci` panne pendant que le candidat tourne ; erreur réseau hors
+    du registre imposé jamais invalide ; `oracle.executed: false` compte les scénarios
     comme non atteints ;
   - **préconditions de `--counted`** : chaque condition seule, puis toutes
     ensemble, nommées dans un seul message ;
@@ -536,23 +564,14 @@ Vitest du contrat, pas par des candidats.
     `originMain` renseigné, journal d'accès avec ses deux requêtes témoins ;
     son dossier récupéré des artefacts et versionné, comme toute mesure
     comptée ;
-  - les cinq candidats défectueux avec l'issue attendue, dans le même job ;
+  - les sept candidats défectueux avec l'issue attendue, dans le même job ;
   - les tests Vitest verts, et la PR qui cite le job par son lien.
-- **Ajouts au glossaire proposés** : « verrou du banc » et « candidat
-  d'étalonnage », dans la même PR que cette spec.
-- **Questions ouvertes** :
-  - une mesure comptée interrompue par l'opérateur : la ranger comme
-    invalide ouvrirait un moyen d'écarter une mesure gênante. Proposition :
-    l'enregistrer comme `interrupted`, versionnée, non remplaçable sans un
-    document ajouté qui la justifie ; les mesures comptées tournent en CI,
-    où une annulation se voit ;
-  - une erreur imprévue du runner pendant la préparation ou le contrat,
-    avant tout code du candidat : elle n'est dans aucune cause d'invalidité
-    du glossaire. Proposition : ajouter `runner-error-before-candidate` à la
-    liste fermée, le candidat ne pouvant ni la recevoir ni la fabriquer ;
-  - `npm ci` exécute les scripts d'installation des dépendances. Ils
-    tournent dans le conteneur isolé de la construction ; les interdire
-    (`--ignore-scripts`) casserait des dépendances courantes. Proposition :
-    les garder.
+- **Glossaire** : « verrou du banc » et « candidat d'étalonnage » ajoutés,
+  et la liste des causes d'invalidité étendue à l'erreur du runner avant
+  `npm ci` et à l'interruption, dans la même PR que cette spec.
+- **Mesure interrompue** : la remplacer sans trace ouvrirait un moyen
+  d'écarter une mesure qui tourne mal. Elle est donc conservée, invalide,
+  versionnée si elle était prévue pour compter, et toujours signalée par le
+  rapport.
 - Suite prévue : `/to-tickets` sur cette spec. Premier ticket naturel : le
   contrat de candidat et son schéma, qui ne dépendent pas de Docker.
