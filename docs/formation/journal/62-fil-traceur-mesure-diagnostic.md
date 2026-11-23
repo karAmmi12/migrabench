@@ -293,7 +293,18 @@ npm run typecheck   # aucune erreur
 En CI, la PR rejoue les tests du banc et l'oracle contre le legacy ; aucun
 job ne lance encore `migrabench measure` (#74).
 
-> À vérifier après l'exécution de la CI de la PR : liens et head SHA des jobs « Tests du banc », « Oracle » (oracle et proof) et « Typecheck », et leur résultat.
+CI de la PR #75, sur le head SHA `d14909c` : tous les jobs verts.
+
+- « Tests du banc » ([job](https://github.com/karAmmi12/migrabench/actions/runs/45201392587/job/137785524349), 2 min 12 s) :
+  `Test Files  43 passed (43)`, `Tests  287 passed (287)`.
+- « Oracle », job `oracle` ([job](https://github.com/karAmmi12/migrabench/actions/runs/45201392534/job/137785523459), 2 min 29 s) :
+  `Scenarios: 38, passed: 38, failed: 0, unreached: 0`.
+- « Oracle », job `proof` ([job](https://github.com/karAmmi12/migrabench/actions/runs/45201392534/job/137787211727), 5 min 56 s) :
+  cinq exécutions complètes à `Scenarios: 38, passed: 38, failed: 0, unreached: 0`, puis `Proof holds on 5 results.`
+  L'exécution « Oracle » (les deux jobs) a duré de 15:06:05Z à 15:14:39Z.
+- « Typecheck » ([job](https://github.com/karAmmi12/migrabench/actions/runs/45201393585/job/137785527618), 19 s) : vert.
+- « Fiche de formation » ([job](https://github.com/karAmmi12/migrabench/actions/runs/45201392550/job/137785523595), 18 s) :
+  `Fiche trouvée pour #62.` et `Chaque case cochée chiffrée cite un état.`
 
 ## Pour aller plus loin
 
