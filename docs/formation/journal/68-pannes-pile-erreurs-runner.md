@@ -36,19 +36,18 @@ provoquer le cas ; sinon le cas est compté contre lui (règle 7).
   composition quand `--file` est absent. Elle sert ici à ajouter une
   composition qui casse le healthcheck du legacy, sans modifier le legacy. —
   [Docker, Compose pre-defined environment variables](https://docs.docker.com/compose/how-tos/environment-variables/envvars/)
-- **`outputDir` de Playwright** : le dossier des sorties des tests. Dans la
-  session, Playwright l'a vidé à son démarrage : un fichier écrit dedans
-  avant le lancement a disparu. —
+- **`outputDir` de Playwright** : le dossier des sorties des tests. La page
+  de référence le dit dans ses détails : « This directory is cleaned at the
+  start. » Un fichier écrit dedans avant le lancement disparaît donc ; c'est
+  ce qu'on a constaté pendant la session. Version de Playwright du dépôt :
+  `@playwright/test` 1.65.1. —
   [Playwright, TestConfig.outputDir](https://playwright.dev/docs/api/class-testconfig#test-config-output-dir)
-
-  > À vérifier : la page de Playwright ne dit pas en toutes lettres que le
-  > dossier est vidé au démarrage ; c'est le comportement constaté pendant
-  > la session (Playwright 1.65).
 
 Liens ouverts le 24/11/2026 (`curl`) : chaque page répond `200`. La page de
 `docker compose up` cite `--wait`, celle de `docker run` cite `125`, celle
-des variables de Compose cite `COMPOSE_FILE`, et la référence du Dockerfile
-cite `retries`.
+des variables de Compose cite `COMPOSE_FILE`, la référence du Dockerfile
+cite `retries`, et la section `outputDir` de Playwright cite « This
+directory is cleaned at the start. »
 
 ## Ce qui a été construit
 
@@ -293,8 +292,9 @@ Sur la CI de la PR #106 (head 524606f), tous les jobs sont passés :
   défectueux 7.
 - L'interruption (`SIGINT`, `SIGTERM`) a son propre ticket de l'étape 3 ; la
   clôture qui tourne toujours, posée ici, lui sert de base.
-- Étape 5, le score : il devra traiter une mesure sans `oracle.summary`
-  (Playwright n'a pu ni exécuter ni lister les scénarios).
+- Note pour l'étape 5 : le score devra gérer un `oracle.summary` absent,
+  quand Playwright n'a pu ni exécuter ni lister les scénarios. La mesure
+  n'a alors aucun compte de scénarios, et aucun ne doit être inventé.
 - ADR 0007, exécution du candidat : pourquoi la construction est découpée
   en `fetch`, `install` et `build`, et pourquoi seul `fetch` peut rendre une
   mesure invalide.
