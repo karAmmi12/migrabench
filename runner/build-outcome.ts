@@ -35,21 +35,40 @@ export type BuildStep = "fetch" | "install" | "build";
 export interface BuildStepRun {
   step: BuildStep;
   exitCode: number;
+  // Docker a démarré le conteneur de l'étape (#68). Sinon, `docker run` a
+  // échoué de lui-même (code 125 : image absente, démon injoignable), et
+  // aucune commande de l'étape n'a tourné.
+  started: boolean;
   // Arrêtée par le banc : le délai global de construction est écoulé.
   timedOut: boolean;
   // Tuée par la limite de mémoire du conteneur.
   oomKilled: boolean;
   // Journal de npm de l'étape, vide pour `build`.
   npmLog: string;
+  // Sorties de `docker run` pour l'étape : le message de Docker s'il n'a pas
+  // démarré le conteneur.
+  log: string;
 }
 
 export type BuildStepOutcome =
   | { outcome: "ok" }
-  | { outcome: "build-failed" | "build-timeout" | "build-resource-limit" | "registry-network-error"; detail: string };
+  | {
+      outcome: "build-failed" | "build-timeout" | "build-resource-limit" | "registry-network-error" | "runner-error-before-candidate" | "stack-down-while-candidate";
+      detail: string;
+    };
 
 // Un délai ou une limite dépassés sont toujours un échec du candidat (règle 7) ;
 // seule une erreur du registre pendant `fetch`, prouvée, rend la mesure invalide.
-export function buildStepOutcome({ step, exitCode, timedOut, oomKilled, npmLog }: BuildStepRun, registry: string): BuildStepOutcome {
+// Un conteneur que Docker n'a jamais démarré est une erreur du banc (#68) :
+// avant le lancement de `npm ci` pour `fetch`, une panne pendant que le
+// candidat tourne ensuite.
+export function buildStepOutcome({ step, exitCode, started, timedOut, oomKilled, npmLog, log }: BuildStepRun, registry: string): BuildStepOutcome {
+  if (!started) {
+    return {
+      outcome: step === "fetch" ? "runner-error-before-candidate" : "stack-down-while-candidate",
+      detail: `Docker did not start the ${step} container (docker run exited with code ${exitCode}): ${log.trim()}`,
+    };
+  }
   if (timedOut) return { outcome: "build-timeout", detail: `${step} was stopped: the global build timeout ran out` };
   if (oomKilled) return { outcome: "build-resource-limit", detail: `${step} was killed: memory limit reached` };
   if (exitCode === 0) return { outcome: "ok" };

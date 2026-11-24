@@ -115,7 +115,7 @@ export async function buildCandidate({ measureId, image, user, rawDir, copyDir, 
       raw[relative(rawDir, path)] = await digestOf(path);
       npmLog += await readFile(path, "utf8");
     }
-    const outcome = buildStepOutcome({ step, ...run, npmLog }, NPM_REGISTRY);
+    const outcome = buildStepOutcome({ step, ...run, npmLog, log: await readFile(join(rawDir, output), "utf8") }, NPM_REGISTRY);
     if (outcome.outcome !== "ok") return result(outcome);
     recorded.push({ step, durationMs, ...(collectUsage ? { usage: await usageOf(usageDir) } : {}) });
   }
@@ -128,15 +128,21 @@ async function usageOf(dir: string): Promise<ResourceUsage> {
   return cgroupUsage({ memoryPeak, cpuStat });
 }
 
+// `State.StartedAt` d'un conteneur créé mais jamais démarré.
+const NEVER_STARTED = "0001-01-01";
+
 interface StepRun {
   exitCode: number;
+  started: boolean;
   timedOut: boolean;
   oomKilled: boolean;
 }
 
 // Lance un conteneur nommé et l'arrête au délai global : `docker kill` est
 // répété chaque seconde, au cas où le conteneur n'existerait pas encore au
-// premier essai. Le conteneur est gardé jusqu'au relevé de `OOMKilled`.
+// premier essai. Le conteneur est gardé jusqu'au relevé de `OOMKilled` et de
+// son démarrage : un conteneur absent, ou jamais démarré (`StartedAt` à zéro),
+// dit que `docker run` a échoué de lui-même (#68).
 async function runStep({ container, deadline, logFile, args }: { container: string; deadline: number; logFile: string; args: string[] }): Promise<StepRun> {
   let timedOut = false;
   let killer: NodeJS.Timeout | undefined;
@@ -148,8 +154,9 @@ async function runStep({ container, deadline, logFile, args }: { container: stri
   }, Math.max(0, deadline - Date.now()));
   try {
     const { code } = await spawnCommand("docker", ["run", "--name", container, ...args], { logFile, allowFailure: true });
-    const inspect = await spawnCommand("docker", ["inspect", "--format", "{{.State.OOMKilled}}", container], { allowFailure: true });
-    return { exitCode: code, timedOut, oomKilled: inspect.stdout.trim() === "true" };
+    const inspect = await spawnCommand("docker", ["inspect", "--format", "{{.State.OOMKilled}} {{.State.StartedAt}}", container], { allowFailure: true });
+    const [oomKilled, startedAt] = inspect.code === 0 ? inspect.stdout.trim().split(" ") : [];
+    return { exitCode: code, started: startedAt !== undefined && !startedAt.startsWith(NEVER_STARTED), timedOut, oomKilled: oomKilled === "true" };
   } finally {
     clearTimeout(timer);
     clearInterval(killer);

@@ -95,7 +95,7 @@ describe("registryNetworkError", () => {
 // aucun code du candidat), `install` (npm ci hors ligne, scripts actifs) et
 // `build` (commande déclarée).
 describe("buildStepOutcome", () => {
-  const finished = { exitCode: 0, timedOut: false, oomKilled: false, npmLog: "" };
+  const finished = { exitCode: 0, started: true, timedOut: false, oomKilled: false, npmLog: "", log: "" };
 
   it("is ok when the step exits with code 0", () => {
     expect(buildStepOutcome({ step: "build", ...finished }, REGISTRY)).toEqual({ outcome: "ok" });
@@ -135,6 +135,33 @@ describe("buildStepOutcome", () => {
     expect(buildStepOutcome({ step: "install", ...finished, exitCode: 137, oomKilled: true }, REGISTRY)).toEqual({
       outcome: "build-resource-limit",
       detail: "install was killed: memory limit reached",
+    });
+  });
+
+  // #68 : un code 125 de `docker run` est une erreur de Docker lui-même (image
+  // absente, démon injoignable) si le conteneur n'a jamais démarré. Le code
+  // seul ne suffit pas : la commande `build` du candidat peut rendre 125.
+  const DOCKER_ERROR = "docker: Error response from daemon: No such image: migrabench-runtime:latest.\n";
+
+  it("is a runner error before the candidate when Docker never started the fetch container: npm ci was not launched", () => {
+    expect(buildStepOutcome({ step: "fetch", ...finished, exitCode: 125, started: false, log: DOCKER_ERROR }, REGISTRY)).toEqual({
+      outcome: "runner-error-before-candidate",
+      detail: `Docker did not start the fetch container (docker run exited with code 125): ${DOCKER_ERROR.trim()}`,
+    });
+  });
+
+  it("is a stack failure while the candidate runs when Docker never started a later container: npm ci was launched", () => {
+    expect(buildStepOutcome({ step: "install", ...finished, exitCode: 125, started: false, log: DOCKER_ERROR }, REGISTRY)).toEqual({
+      outcome: "stack-down-while-candidate",
+      detail: `Docker did not start the install container (docker run exited with code 125): ${DOCKER_ERROR.trim()}`,
+    });
+    expect(buildStepOutcome({ step: "build", ...finished, exitCode: 125, started: false, log: DOCKER_ERROR }, REGISTRY).outcome).toBe("stack-down-while-candidate");
+  });
+
+  it("is a build-failed candidate failure when the build command itself exits with code 125 in a started container", () => {
+    expect(buildStepOutcome({ step: "build", ...finished, exitCode: 125 }, REGISTRY)).toEqual({
+      outcome: "build-failed",
+      detail: "build exited with code 125",
     });
   });
 });
