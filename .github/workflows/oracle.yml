@@ -97,6 +97,12 @@ jobs:
       - name: Installation de Chromium pour Playwright
         run: npx playwright install --with-deps chromium
 
+      # Empreinte du contexte de construction de chaque image, posée en label
+      # au build : une mesure, l'oracle et l'étalonnage refusent une pile dont
+      # les images ne viennent pas de cette copie du dépôt (#102).
+      - name: Empreintes des contextes de la pile
+        run: node scripts/stack-context-env.ts >> "$GITHUB_ENV"
+
       # Étape distincte : l'exécution complète recrée les conteneurs sans
       # reconstruire les images.
       - name: Construction des images
@@ -155,6 +161,12 @@ jobs:
 
       - name: Installation de Chromium pour Playwright
         run: npx playwright install --with-deps chromium
+
+      # Empreinte du contexte de construction de chaque image, posée en label
+      # au build : une mesure, l'oracle et l'étalonnage refusent une pile dont
+      # les images ne viennent pas de cette copie du dépôt (#102).
+      - name: Empreintes des contextes de la pile
+        run: node scripts/stack-context-env.ts >> "$GITHUB_ENV"
 
       # Une seule construction pour les 5 exécutions : même empreinte d'images.
       - name: Construction des images

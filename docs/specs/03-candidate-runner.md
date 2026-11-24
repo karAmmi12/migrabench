@@ -233,10 +233,10 @@ relever le journal d'accès et libérer le verrou du banc.
 | # | Phase | Issues possibles | Catégorie de la mesure |
 |---|---|---|---|
 | 0 | **Refus préalables** : options, `--counted`, verrou du banc | `refused-usage`, `refused-counted`, `refused-lock` | aucune mesure (rien n'est écrit) |
-| 1 | **Préparation** : verrou du banc pris, identifiant de la mesure, sel et marqueur tirés, environnement relevé, copie du candidat | `ok`, `runner-error-before-candidate` | invalide |
+| 1 | **Préparation** : verrou du banc pris, identifiant de la mesure, sel et marqueur tirés, environnement relevé, copie du candidat, images de la pile vérifiées | `ok`, `runner-error-before-candidate`, `stack-not-from-this-copy` | invalide |
 | 2 | **Contrat** : `candidate.json`, `package.json`, sources du `package-lock.json` | `ok`, `contract-invalid`, `runner-error-before-candidate` | échec au contrat ; invalide pour la dernière |
 | 3 | **Construction** : `npm ci` puis `build`, conteneur sans `mb-internal`, délai et limites | `ok`, `build-failed`, `build-timeout`, `build-resource-limit`, `registry-network-error`, `stack-down-while-candidate` | échec du candidat ; invalide pour `registry-network-error` ; panne de la pile pour la dernière |
-| 4 | **Pile et démarrage** : legacy et service d'archivage recréés et sains, requête témoin de début, service `candidate` recréé, attente de disponibilité | `ok`, `stack-failed-before-candidate`, `access-log-inactive`, `start-exited`, `start-not-ready`, `stack-down-while-candidate` | invalide pour les deux premières ; panne de la pile pour la dernière ; échec du candidat pour les autres |
+| 4 | **Pile et démarrage** : legacy et service d'archivage recréés et sains, requête témoin de début, service `candidate` recréé, attente de disponibilité | `ok`, `stack-failed-before-candidate`, `stack-not-from-this-copy`, `access-log-inactive`, `start-exited`, `start-not-ready`, `stack-down-while-candidate` | invalide pour les trois premières ; panne de la pile pour la dernière ; échec du candidat pour les autres |
 | 5 | **Oracle** : exécution complète de l'étape 2 sur `BASE_URL` | `ok`, `oracle-error`, `stack-down-while-candidate` | complète ; invalide pour `oracle-error` ; panne de la pile pour la dernière |
 | 6 | **Portes** : vide à l'étape 3, branchées à l'étape 4 | `ok`, `not-run` | — |
 | 7 | **Clôture** : arrêt du candidat, requête témoin de fin, journal d'accès relevé et contrôlé, `measure.json` écrit, verrou du banc libéré | `ok`, `marker-out-of-place`, `access-log-inactive`, `stack-down-while-candidate` | invalide ; panne de la pile pour la dernière |
@@ -281,6 +281,32 @@ Règles des issues :
 - **`stack-failed-before-candidate`** : le legacy ou le service d'archivage
   n'est pas sain avant le démarrage du candidat, ou pendant un redémarrage
   où le candidat est arrêté.
+- **`stack-not-from-this-copy`** : images de la pile construites depuis une
+  autre copie du dépôt ; remède : `npm run stack:up` (#102). Les images de
+  la pile sont communes à toute la machine : la dernière copie du dépôt qui
+  les a construites, un autre worktree par exemple, n'est pas forcément
+  celle qui mesure. Une image saine mais étrangère n'est pas celle du commit
+  cité : la pile ne peut pas servir. Chaque image porte le label
+  `org.migrabench.context-digest`, l'empreinte de son contexte de
+  construction ; la cause est relevée quand ce label diffère de l'empreinte
+  calculée sur la copie qui mesure, ou manque. Le runner le vérifie deux
+  fois : sur les images construites, à la préparation, avant tout code du
+  candidat ; puis sur les conteneurs, à chaque recréation de la pile (phase
+  4). La preuve nomme le service, l'image, le label trouvé, l'empreinte
+  attendue et le remède. `npm run oracle` et `migrabench calibrate` font la
+  même vérification et s'arrêtent sur le même message.
+- **Empreinte du contexte de construction** : tout le contexte de
+  construction du service (la racine du dépôt), moins ce que `.dockerignore`
+  exclut, avec la sémantique de Docker (`@balena/dockerignore`, portage de
+  son implémentation) : chaque fichier et lien symbolique, par chemin et
+  empreinte de son contenu ou de sa cible. Les fichiers ne sont pas déduits
+  des `COPY` des Dockerfile. Raison : un contrôle plus large qui refuse
+  parfois pour rien vaut mieux qu'un contrôle qui rate un fichier sans le
+  dire. Une modification d'un fichier que les images n'utilisent pas (la
+  documentation, par exemple) demande donc un `npm run stack:up` avant de
+  mesurer. Les sorties du banc écrites dans la copie (`results/`,
+  `.oracle-artifacts/`, `.dev-archive-salt`…) sont exclues par
+  `.dockerignore`, sans quoi chaque mesure changerait l'empreinte.
 - **`stack-down-while-candidate`** : à la fin de l'oracle, et après chaque
   porte à l'étape 4, le runner relève l'état des conteneurs `legacy` et
   `archive` (arrêt, redémarrage, santé). Une panne survenue pendant que le
@@ -304,7 +330,7 @@ Règles des issues :
   seconde chance, contraire à la règle 7.
 - **Liste fermée** : les causes d'invalidité sont exactement
   `registry-network-error`, `stack-failed-before-candidate`,
-  `access-log-inactive`, `oracle-error`, `marker-out-of-place`,
+  `stack-not-from-this-copy`, `access-log-inactive`, `oracle-error`, `marker-out-of-place`,
   `runner-error-before-candidate` et `interrupted`, celles du glossaire. Le
   verdict refuse toute autre cause.
 
@@ -331,8 +357,8 @@ de la mesure>/`, cités par empreinte (ADR 0005).
     est invalide ;
   - `build` et `start` : commandes déclarées.
 - **`environment`** : les métadonnées de l'étape 2 (`benchCommit`,
-  `worktree`, `node`, `chromium`, `playwright`, `images`, `frozenDate`,
-  `baseUrl`, `artifacts`, `ciRun`), plus :
+  `worktree`, `node`, `chromium`, `playwright`, `images`, `imageContexts`,
+  `frozenDate`, `baseUrl`, `artifacts`, `ciRun`), plus :
   - `runtimeImage` : empreinte de l'image d'exécution du banc ;
   - `composeOverride` : empreinte de la composition complémentaire générée ;
   - `port` : port imposé ;
@@ -667,6 +693,7 @@ mesure invalide.
 | 5 | sonde d'isolation | `start` qui écoute sur `PORT` et sert le constat de ses tentatives : écrire dans son code, lire le socket Docker, joindre l'hôte de l'API interne pendant la construction, lire `ARCHIVE_SALT`, tourner en root | mesure complète ; le constat, lu par le test, montre chaque tentative refusée | complète | `0` |
 | 6 | relais qui altère un libellé | relais du candidat de référence qui change un libellé de champ dans les pages du legacy | mesure complète, au moins un scénario échoué | complète | `0` |
 | 7 | pile volontairement cassée | candidat de référence, mesuré pendant que le test empêche le legacy de devenir sain | `stack-failed-before-candidate` | invalide | `3` |
+| 8 | pile d'une autre copie | candidat de référence, mesuré sous un faux `docker` qui rend pour les images de la pile un label étranger à la copie (#102) | `stack-not-from-this-copy` en préparation, ni construction ni pile recréée | invalide | `3` |
 
 Les variantes de contrat (`candidate.json` absent, JSON mal formé, champ
 manquant, source Git, chemin hors du candidat) sont couvertes par les tests

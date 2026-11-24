@@ -3,9 +3,11 @@
 // Ce sel de développement ne sert jamais à une exécution mesurée (README).
 // Le verrou du banc est tenu pendant le démarrage ; s'il est tenu par un autre
 // outil du banc, refus avec le code 4, avant d'écrire le sel.
+// Les images portent le label de l'empreinte de leur contexte (#102).
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { writeFileSync } from "node:fs";
+import { contextDigestEnv, stackContextDigests } from "../oracle/stack-images.ts";
 import { acquireBenchLockOrExit } from "../shared/bench-lock.ts";
 import { DEV_SALT_FILE, DEV_SALT_FILE_FROM_ROOT } from "./dev-archive-salt.ts";
 
@@ -17,7 +19,7 @@ try {
   writeFileSync(DEV_SALT_FILE, `${salt}\n`, { mode: 0o600 });
   up = spawnSync("docker", ["compose", "up", "--detach", "--build", "--wait"], {
     stdio: "inherit",
-    env: { ...process.env, ARCHIVE_SALT: salt },
+    env: { ...process.env, ...contextDigestEnv(await stackContextDigests()), ARCHIVE_SALT: salt },
   });
 } finally {
   lock.release();

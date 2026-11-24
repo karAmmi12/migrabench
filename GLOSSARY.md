@@ -71,7 +71,8 @@ _Éviter_ : run, exécution, évaluation
 Mesure écartée pour une erreur du banc vérifiable, que le candidat ne peut
 ni recevoir ni fabriquer (règle 7 de `PROTOCOL.md`) : pile du banc en échec
 avant le démarrage du candidat, ou pendant un redémarrage où il est arrêté ;
-erreur de l'oracle hors scénario ; erreur réseau sur une requête précise
+images de la pile construites depuis une autre copie du dépôt (remède :
+`npm run stack:up`) ; erreur de l'oracle hors scénario ; erreur réseau sur une requête précise
 vers le registre imposé de l'installation des dépendances ; marqueur du banc
 hors de son moment prévu dans le journal d'accès du legacy, ou requête
 témoin absente de ce journal ; erreur imprévue du runner avant le lancement

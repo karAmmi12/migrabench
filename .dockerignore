@@ -1,7 +1,19 @@
+# Contexte de construction de la pile : la racine du dépôt (docker-compose.yml).
+# Son empreinte, tout le contexte moins ce fichier, est le label de chaque
+# image de la pile (#102, oracle/stack-images.ts). Sont exclus les fichiers
+# générés et les sorties du banc, que les outils du banc écrivent dans la
+# copie du dépôt : sans cela, chaque mesure changerait l'empreinte.
 **/node_modules
 **/target
+**/dist
+**/.DS_Store
 .git
 .access-log
 *.har
 playwright-report
 test-results
+.oracle-artifacts
+results
+.dev-archive-salt
+.probes
+.claude/settings.local.json

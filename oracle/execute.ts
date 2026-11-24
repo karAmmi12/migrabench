@@ -13,6 +13,7 @@ import { browserVersions } from "./browser-versions.ts";
 import { type CiRun, ciRunOf, resultFileName, timestamp } from "./ci-run.ts";
 import { artifactPaths, collect, type OracleSummary, unreachedSummary } from "./collect.ts";
 import { DEFAULT_BASE_URL, ORACLE_ENV } from "./env.ts";
+import { SERVICES, type StackContextDigests, stackContextDigests, verifyStackImages } from "./stack-images.ts";
 import { GIT_STATUS_ARGS, RESULTS_DIR_FROM_ROOT, worktreeState, type WorktreeState } from "./worktree.ts";
 
 export { DEFAULT_BASE_URL };
@@ -20,8 +21,6 @@ export { DEFAULT_BASE_URL };
 // La collecte rapporte les chemins à la racine du dépôt (ROOT, sans barre finale).
 const RESULTS_DIR = join(ROOT, RESULTS_DIR_FROM_ROOT);
 const CONFIG = join(ROOT, "oracle", "playwright.config.ts");
-// Services recréés à chaque exécution : le legacy recharge son jeu de données au démarrage.
-const SERVICES = ["legacy", "archive"] as const;
 
 export interface ExecuteOracleOptions {
   baseUrl?: string;
@@ -71,6 +70,10 @@ export interface OracleEnvironment {
   chromium: string;
   playwright: string;
   images: Record<string, string>;
+  // Empreinte du contexte de construction de chaque image, calculée sur la
+  // copie du dépôt et vérifiée sur le label de l'image en cours (#102) : elle
+  // relie `images` aux fixtures de `benchCommit` quand l'arbre est propre.
+  imageContexts: StackContextDigests;
   frozenDate: string | null;
   baseUrl: string;
   // Dossier des bruts de l'exécution, depuis la racine du dépôt ; les pièces
@@ -101,7 +104,7 @@ async function prepare(
   const startedAt = new Date();
   // Lu avant la pile : un rang invalide arrête l'exécution avant toute mesure.
   const ciRun = ciRunOf(process.env);
-  await recreateStack(salt, accessLogDir);
+  const imageContexts = await recreateStack(salt, accessLogDir);
   await onStackReady?.();
   const benchCommit = await stdoutOf("git", ["rev-parse", "HEAD"]);
   // Sortie brute, sans trim : une entrée commence par un espace (` M chemin`).
@@ -115,7 +118,7 @@ async function prepare(
     baseUrl,
     salt,
     saltImposed,
-    metadata: { benchCommit, worktree, node: process.version, chromium, playwright, images, frozenDate: env.FROZEN_DATE ?? null, baseUrl, artifacts, ...(ciRun === undefined ? {} : { ciRun }) },
+    metadata: { benchCommit, worktree, node: process.version, chromium, playwright, images, imageContexts, frozenDate: env.FROZEN_DATE ?? null, baseUrl, artifacts, ...(ciRun === undefined ? {} : { ciRun }) },
     outputDir: join(ROOT, artifacts),
     reportFile: join(ROOT, artifacts, "report.json"),
     resultFile,
@@ -168,15 +171,23 @@ export async function listOracle(artifactsDir: string): Promise<OracleSummary> {
   return unreachedSummary(listed);
 }
 
-// Recrée le legacy et le service d'archivage et attend qu'ils soient sains.
-// Le sel passe par l'environnement du shell, jamais par .env (que lit aussi le
+// Recrée le legacy et le service d'archivage et attend qu'ils soient sains,
+// sur les images déjà construites, puis vérifie qu'elles viennent de cette
+// copie du dépôt : le label de chaque image en cours doit être l'empreinte du
+// contexte de construction calculée sur la copie, sinon StackNotFromCopy
+// (#102). Pas de reconstruction ici : elle changerait l'empreinte des images
+// d'une exécution à l'autre. Rend les empreintes vérifiées. Le sel passe
+// par l'environnement du shell, jamais par .env (que lit aussi le
 // legacy). Partagé avec `migrabench calibrate`. Le journal d'accès du legacy va
 // dans `accessLogDir` s'il est donné (MB_ACCESS_LOG_DIR de docker-compose.yml).
-export async function recreateStack(salt: string, accessLogDir?: string): Promise<void> {
+export async function recreateStack(salt: string, accessLogDir?: string): Promise<StackContextDigests> {
+  const digests = await stackContextDigests();
   await spawnCommand("docker", ["compose", "up", "--detach", "--force-recreate", "--no-build", "--wait", ...SERVICES], {
     env: { ARCHIVE_SALT: salt, ...(accessLogDir === undefined ? {} : { MB_ACCESS_LOG_DIR: accessLogDir }) },
     inherit: true,
   });
+  await verifyStackImages(digests);
+  return digests;
 }
 
 // Empreinte de l'image de chaque service recréé (`images`).

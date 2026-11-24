@@ -5,6 +5,11 @@ services:
     build:
       context: .
       dockerfile: fixtures/legacy-app/Dockerfile
+      # Empreinte du contexte de construction, calculée sur la copie du dépôt
+      # qui construit (oracle/stack-images.ts) : une mesure vérifie que l'image
+      # en cours vient de sa propre copie (#102). Vide hors outils du banc.
+      labels:
+        org.migrabench.context-digest: ${MB_LEGACY_CONTEXT_DIGEST:-}
     # Seul le port 8080 (JSP) est publié. Le port 8081 (API interne) n'est
     # pas joignable depuis l'hôte ; la couche serveur du candidat l'appelle
     # par mb-internal. Limite connue : default le joint aussi (ADR 0004).
@@ -39,6 +44,8 @@ services:
     build:
       context: .
       dockerfile: fixtures/archive-service/Dockerfile
+      labels:
+        org.migrabench.context-digest: ${MB_ARCHIVE_CONTEXT_DIGEST:-}
     ports:
       - "127.0.0.1:8090:8090"
     # Même .env que le legacy : la valeur témoin ARCHIVE_TOKEN est la même des deux côtés.
