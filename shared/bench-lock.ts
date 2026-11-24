@@ -85,13 +85,13 @@ export function acquireBenchLock({ tool, measureId, file = BENCH_LOCK_FILE }: Ac
     const held = readText(file);
     if (held === undefined) continue;
     const current = parseHolder(file, held);
-    if (!isOrphan(current)) return { ok: false, holder: current, message: `${heldMessage(current)}\n${lockLine(file)}` };
+    if (!isOrphan(current)) return refusal(file, current, heldMessage(current));
     const takeover = takeOver(file, held, text);
     if (takeover === "taken") {
       const { tool: orphanTool, pid, startedAt, command } = current;
       return taken({ tool: orphanTool, pid, startedAt, command });
     }
-    if (takeover !== "retry") return { ok: false, holder: takeover.holder, message: `${takeover.message}\n${lockLine(file)}` };
+    if (takeover !== "retry") return refusal(file, takeover.holder, takeover.message);
   }
   throw new Error(`The bench lock ${file} keeps changing: try again`);
 }
@@ -132,8 +132,12 @@ export function heldMessage({ tool, pid, startedAt, command, host, measureId, ta
 
 // Ligne qui donne le chemin du verrou du banc, à la fin d'un refus : il est
 // hors du dépôt (#92).
-export function lockLine(file: string = BENCH_LOCK_FILE): string {
+export function benchLockPathLine(file: string = BENCH_LOCK_FILE): string {
   return `Bench lock: ${file}`;
+}
+
+function refusal(file: string, holder: BenchLockHolder, message: string): Extract<BenchLock, { ok: false }> {
+  return { ok: false, holder, message: `${message}\n${benchLockPathLine(file)}` };
 }
 
 // Orphelin : sur cette machine, aucun processus ne porte le PID, ou celui qui

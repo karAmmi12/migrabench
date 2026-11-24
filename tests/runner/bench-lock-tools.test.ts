@@ -16,7 +16,7 @@ import { type ChildProcess, spawn, spawnSync } from "node:child_process";
 import { chmodSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
 import { DIAGNOSTIC_DIR_FROM_ROOT } from "../../runner/paths.ts";
 import { type BenchLockHolder, inspectBenchLock } from "../../shared/bench-lock.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, ROOT } from "../../shared/root.ts";
@@ -90,6 +90,8 @@ async function holding([script, args]: Tool, tool: string): Promise<BenchLockHol
   }
   throw new Error(`${script} did not take the bench lock and reach Docker`);
 }
+
+afterAll(() => rmSync(STATE_HOME, { recursive: true, force: true }));
 
 beforeEach(() => {
   rmSync(stubLog, { force: true });

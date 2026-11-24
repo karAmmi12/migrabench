@@ -175,12 +175,11 @@ fois l'outil arrêté.
 Si un outil du banc meurt pendant la reprise elle-même, il laisse la garde
 `bench-lock.takeover`, à côté du verrou du banc, que les outils du banc ne
 retirent jamais : un détenteur vivant n'est jamais dépossédé. Ils refusent
-avec les deux commandes à lancer, la seconde avec le chemin complet de la
-garde :
+avec les deux commandes à lancer :
 
 ```sh
 pgrep -fl "runner/cli.ts|oracle/cli.ts|scripts/stack-up.ts"   # aucune sortie attendue
-rm ~/.local/state/migrabench/bench-lock.takeover                 # chemin donné par le refus
+rm "${XDG_STATE_HOME:-$HOME/.local/state}/migrabench/bench-lock.takeover"
 ```
 
 ## Lancer l'oracle

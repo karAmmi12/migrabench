@@ -3,10 +3,10 @@
 // qu'un outil du banc tient le verrou du banc. Le contrôle ne prend pas le
 // verrou du banc. Un verrou du banc orphelin ne bloque pas : le prochain outil
 // du banc le reprendra.
-import { heldMessage, inspectBenchLock, lockLine } from "../shared/bench-lock.ts";
+import { heldMessage, inspectBenchLock, benchLockPathLine } from "../shared/bench-lock.ts";
 
 const lock = inspectBenchLock();
 if (lock.state === "held") {
-  console.error(`npm test refused: ${heldMessage(lock.holder)}.\n${lockLine()}\nWait for it to end, or stop it, then run \`npm test\` again.`);
+  console.error(`npm test refused: ${heldMessage(lock.holder)}.\n${benchLockPathLine()}\nWait for it to end, or stop it, then run \`npm test\` again.`);
   process.exit(4);
 }
