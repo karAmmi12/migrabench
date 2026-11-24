@@ -233,7 +233,7 @@ relever le journal d'accès et libérer le verrou du banc.
 | # | Phase | Issues possibles | Catégorie de la mesure |
 |---|---|---|---|
 | 0 | **Refus préalables** : options, `--counted`, verrou du banc | `refused-usage`, `refused-counted`, `refused-lock` | aucune mesure (rien n'est écrit) |
-| 1 | **Préparation** : verrou du banc pris, identifiant de la mesure, sel et marqueur tirés, environnement relevé, copie du candidat | `ok`, `runner-error-before-candidate` | invalide |
+| 1 | **Préparation** : verrou du banc pris, identifiant de la mesure, sel et marqueur tirés, environnement relevé, copie du candidat, images de la pile vérifiées | `ok`, `runner-error-before-candidate`, `stack-failed-before-candidate` | invalide |
 | 2 | **Contrat** : `candidate.json`, `package.json`, sources du `package-lock.json` | `ok`, `contract-invalid`, `runner-error-before-candidate` | échec au contrat ; invalide pour la dernière |
 | 3 | **Construction** : `npm ci` puis `build`, conteneur sans `mb-internal`, délai et limites | `ok`, `build-failed`, `build-timeout`, `build-resource-limit`, `registry-network-error`, `stack-down-while-candidate` | échec du candidat ; invalide pour `registry-network-error` ; panne de la pile pour la dernière |
 | 4 | **Pile et démarrage** : legacy et service d'archivage recréés et sains, requête témoin de début, service `candidate` recréé, attente de disponibilité | `ok`, `stack-failed-before-candidate`, `access-log-inactive`, `start-exited`, `start-not-ready`, `stack-down-while-candidate` | invalide pour les deux premières ; panne de la pile pour la dernière ; échec du candidat pour les autres |
@@ -281,10 +281,13 @@ Règles des issues :
 - **`stack-failed-before-candidate`** : le legacy ou le service d'archivage
   n'est pas sain avant le démarrage du candidat, ou pendant un redémarrage
   où le candidat est arrêté.
-  C'est aussi l'issue quand la pile recréée tourne sur des images qui ne
-  viennent pas de la copie du dépôt qui mesure (#102) : le label
-  `org.migrabench.context-digest` d'une image en cours diffère de
-  l'empreinte de son contexte de construction calculée sur la copie. La
+  C'est aussi l'issue quand les images de la pile ne viennent pas de la
+  copie du dépôt qui mesure (#102) : le label `org.migrabench.context-digest`
+  d'une image diffère de l'empreinte de son contexte de construction
+  calculée sur la copie, ou manque. Le runner le vérifie deux fois : sur les
+  images construites, à la préparation, avant tout code du candidat ; puis
+  sur les conteneurs, à chaque recréation de la pile. Une image saine mais
+  étrangère n'est pas celle du commit cité : la pile ne peut pas servir. La
   preuve nomme le service, l'image, le label trouvé et l'empreinte attendue.
 - **`stack-down-while-candidate`** : à la fin de l'oracle, et après chaque
   porte à l'étape 4, le runner relève l'état des conteneurs `legacy` et

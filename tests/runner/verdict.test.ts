@@ -39,6 +39,8 @@ describe("verdict", () => {
 
   it.each([
     ["preparation", "runner-error-before-candidate"],
+    // Images de la pile qui ne viennent pas de la copie, vues dès la préparation (#102).
+    ["preparation", "stack-failed-before-candidate"],
     ["contract", "runner-error-before-candidate"],
     ["build", "registry-network-error"],
     ["start", "stack-failed-before-candidate"],

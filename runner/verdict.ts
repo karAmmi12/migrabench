@@ -38,7 +38,7 @@ type FailureOutcome = (typeof FAILURES)[FailureCategory][number];
 // erreur imprévue du runner dès le lancement de `npm ci`), et les portes,
 // vides à l'étape 3, n'ont que `ok` et `not-run`.
 export const PHASE_OUTCOMES = {
-  preparation: ["ok", "runner-error-before-candidate", "interrupted"],
+  preparation: ["ok", "runner-error-before-candidate", "stack-failed-before-candidate", "interrupted"],
   contract: ["ok", "contract-invalid", "runner-error-before-candidate", "interrupted"],
   build: ["ok", "build-failed", "build-timeout", "build-resource-limit", "registry-network-error", "stack-down-while-candidate", "interrupted"],
   start: ["ok", "stack-failed-before-candidate", "access-log-inactive", "start-exited", "start-not-ready", "stack-down-while-candidate", "interrupted"],

@@ -200,7 +200,9 @@ le laisse vide.
 
 Une mesure, `npm run oracle` et `migrabench calibrate` recréent la pile sans
 la reconstruire, puis comparent le label de chaque image en cours à
-l'empreinte calculée sur leur propre copie. S'ils diffèrent, ils refusent de
+l'empreinte calculée sur leur propre copie ; une mesure vérifie aussi les
+images construites dès sa préparation, avant tout code du candidat. S'ils
+diffèrent, ils refusent de
 tourner contre elle : l'oracle et l'étalonnage s'arrêtent sur l'erreur
 `Stack images not built from this copy of the repository`, qui nomme chaque
 service ; une mesure est invalide, `stack-failed-before-candidate`, avec ce

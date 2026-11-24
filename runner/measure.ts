@@ -18,7 +18,7 @@ import { randomBytes } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { executeOracle, type ExecuteOracleResult, listOracle } from "../oracle/execute.ts";
-import { StackNotFromCopy } from "../oracle/stack-images.ts";
+import { stackContextDigests, StackNotFromCopy, verifyBuiltImages } from "../oracle/stack-images.ts";
 import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
 import { checkAccessLog } from "./access-log.ts";
 import { closeAccessLog, sendWitness, witnessEvidence } from "./witness.ts";
@@ -178,14 +178,25 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
   // Garde-fou : une limite de CPU que Docker refuserait sur cette machine
   // arrête la mesure avant tout code du candidat (runner/limits.ts).
   const shortfall = cpuShortfall(limits, Number(await stdoutOf("docker", ["info", "--format", "{{.NCPU}}"])));
-  if (shortfall === undefined) closePreparation();
+  // Images de la pile construites depuis cette copie du dépôt (#102),
+  // vérifiées avant tout code du candidat ; puis de nouveau sur les
+  // conteneurs, à chaque recréation de la pile (oracle/execute.ts).
+  const notFromCopy = await verifyBuiltImages(await stackContextDigests()).then(
+    () => undefined,
+    (error: unknown) => {
+      if (error instanceof StackNotFromCopy) return error.message;
+      throw error;
+    },
+  );
+  if (notFromCopy !== undefined) closePreparation("stack-failed-before-candidate", {}, notFromCopy);
+  else if (shortfall === undefined) closePreparation();
   else closePreparation("runner-error-before-candidate", {}, shortfall);
 
   // 2. Contrat : candidate.json, package.json et sources du package-lock.json,
   // lus dans la copie (runner/contract-phase.ts). Invalide, il arrête la
   // mesure avant tout code du candidat : ni construction, ni démarrage.
   let contract: ContractPhaseResult | undefined;
-  if (shortfall === undefined) {
+  if (notFromCopy === undefined && shortfall === undefined) {
     const closeContract = phase("contract");
     contract = await contractPhase(copyDir);
     Object.assign(candidateRecord, contract.candidate);

@@ -16,6 +16,7 @@ import { join, relative } from "node:path";
 import { browserVersions } from "../oracle/browser-versions.ts";
 import { ciRunOf, resultFileName } from "../oracle/ci-run.ts";
 import { recreateStack, stackImages } from "../oracle/execute.ts";
+import type { StackContextDigests } from "../oracle/stack-images.ts";
 import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
 import { citedFileSha256 as digestOf } from "../shared/digest.ts";
 import { spawnCommand, stdoutOf } from "../shared/process.ts";
@@ -75,7 +76,7 @@ export async function calibrateCandidate({ readings = CALIBRATION_READINGS }: Ca
 
   const recorded = [];
   // Empreintes des contextes de la pile, vérifiées à chaque recréation (#102).
-  let imageContexts: Awaited<ReturnType<typeof recreateStack>> | undefined;
+  let imageContexts: StackContextDigests | undefined;
   for (let reading = 1; reading <= readings; reading++) {
     console.log(`Calibration reading ${reading}/${readings}`);
     const rawDir = join(ROOT, artifacts, `reading-${reading}`);

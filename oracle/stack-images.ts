@@ -8,7 +8,7 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { cited, sha256 } from "../shared/digest.ts";
-import { stdoutOf } from "../shared/process.ts";
+import { spawnCommand, stdoutOf } from "../shared/process.ts";
 import { ROOT } from "../shared/root.ts";
 
 // Label de l'image : l'empreinte du contexte de construction de son service.
@@ -41,20 +41,23 @@ export async function contextDigest(root: string, dockerfile: string): Promise<s
   return cited(sha256(lines.join("")));
 }
 
+// Empreinte du contexte de construction de chaque service de la pile.
+export type StackContextDigests = Record<StackService, string>;
+
 // Empreinte du contexte de chaque service de la pile, sur la copie du dépôt.
-export async function stackContextDigests(root = ROOT): Promise<Record<StackService, string>> {
-  const digests = {} as Record<StackService, string>;
+export async function stackContextDigests(root = ROOT): Promise<StackContextDigests> {
+  const digests = {} as StackContextDigests;
   for (const service of SERVICES) digests[service] = await contextDigest(root, STACK_SERVICES[service].dockerfile);
   return digests;
 }
 
 // Variables de docker-compose.yml qui posent les labels au build.
-export function contextDigestEnv(digests: Record<StackService, string>): Record<string, string> {
+export function contextDigestEnv(digests: StackContextDigests): Record<string, string> {
   return Object.fromEntries(SERVICES.map((service) => [STACK_SERVICES[service].env, digests[service]]));
 }
 
-// Pile recréée sur des images qui ne viennent pas de la copie : incident du
-// banc, jamais imputable au candidat. Le message est la preuve.
+// Images de la pile qui ne viennent pas de la copie : incident du banc,
+// jamais imputable au candidat. Le message est la preuve.
 export class StackNotFromCopy extends Error {
   constructor(mismatches: readonly string[]) {
     super(`Stack images not built from this copy of the repository: ${mismatches.join("; ")}`);
@@ -62,21 +65,48 @@ export class StackNotFromCopy extends Error {
   }
 }
 
-// Compare le label de l'image de chaque conteneur en cours, lu sur le conteneur, à l'empreinte
-// attendue ; lève StackNotFromCopy en nommant chaque service qui diffère.
-export async function verifyStackImages(expected: Record<StackService, string>): Promise<void> {
-  const mismatches = [];
+// Image et labels relevés par `docker inspect`, sur une image ou un conteneur.
+const IMAGE_INSPECTED = '{"image":{{json .Id}},"labels":{{json .Config.Labels}}}';
+const CONTAINER_INSPECTED = '{"image":{{json .Image}},"labels":{{json .Config.Labels}}}';
+interface Inspected {
+  image: string;
+  labels: Record<string, string> | null;
+}
+
+// Images construites pour la pile, celles que recréera `docker compose up
+// --no-build` (projet Compose `migrabench`) : vérifiées à la préparation
+// d'une mesure, avant tout code du candidat. Une image absente diffère.
+export async function verifyBuiltImages(expected: StackContextDigests): Promise<void> {
+  const inspected = {} as Record<StackService, Inspected | undefined>;
+  for (const service of SERVICES) {
+    const { code, stdout } = await spawnCommand("docker", ["image", "inspect", "--format", IMAGE_INSPECTED, `migrabench-${service}`], { allowFailure: true });
+    inspected[service] = code === 0 ? (JSON.parse(stdout) as Inspected) : undefined;
+  }
+  check(expected, inspected);
+}
+
+// Images des conteneurs en cours, après la recréation de la pile. Les labels
+// sont lus sur le conteneur, qui reprend ceux de son image : l'image d'un
+// conteneur en cours peut avoir perdu son tag, voire avoir été supprimée.
+export async function verifyStackImages(expected: StackContextDigests): Promise<void> {
+  const inspected = {} as Record<StackService, Inspected | undefined>;
   for (const service of SERVICES) {
     const container = await stdoutOf("docker", ["compose", "ps", "--quiet", service]);
-    if (container === "") throw new Error(`No running container for service ${service}`);
-    // Labels du conteneur, qui reprennent ceux de son image : l'image d'un
-    // conteneur en cours peut avoir perdu son tag, voire avoir été supprimée.
-    const { image, labels } = JSON.parse(await stdoutOf("docker", ["inspect", "--format", '{"image":{{json .Image}},"labels":{{json .Config.Labels}}}', container])) as {
-      image: string;
-      labels: Record<string, string> | null;
-    };
-    const found = labels?.[CONTEXT_LABEL] || "no context label";
-    if (found !== expected[service]) mismatches.push(`${service} image ${image} carries ${found}, this copy gives ${expected[service]}`);
+    inspected[service] = container === "" ? undefined : (JSON.parse(await stdoutOf("docker", ["inspect", "--format", CONTAINER_INSPECTED, container])) as Inspected);
+  }
+  check(expected, inspected);
+}
+
+// Lève StackNotFromCopy en nommant chaque service dont l'image manque, n'a
+// pas de label, ou porte une autre empreinte que celle de la copie.
+function check(expected: StackContextDigests, inspected: Record<StackService, Inspected | undefined>): void {
+  const mismatches = [];
+  for (const service of SERVICES) {
+    const found = inspected[service];
+    const label = found?.labels?.[CONTEXT_LABEL];
+    if (found === undefined) mismatches.push(`no ${service} image, this copy gives ${expected[service]}`);
+    else if (label === undefined || label === "") mismatches.push(`${service} image ${found.image} carries no context label, this copy gives ${expected[service]}`);
+    else if (label !== expected[service]) mismatches.push(`${service} image ${found.image} carries ${label}, this copy gives ${expected[service]}`);
   }
   if (mismatches.length > 0) throw new StackNotFromCopy(mismatches);
 }

@@ -13,7 +13,7 @@ import { browserVersions } from "./browser-versions.ts";
 import { type CiRun, ciRunOf, resultFileName, timestamp } from "./ci-run.ts";
 import { artifactPaths, collect, type OracleSummary, unreachedSummary } from "./collect.ts";
 import { DEFAULT_BASE_URL, ORACLE_ENV } from "./env.ts";
-import { SERVICES, stackContextDigests, type StackService, verifyStackImages } from "./stack-images.ts";
+import { SERVICES, type StackContextDigests, stackContextDigests, verifyStackImages } from "./stack-images.ts";
 import { GIT_STATUS_ARGS, RESULTS_DIR_FROM_ROOT, worktreeState, type WorktreeState } from "./worktree.ts";
 
 export { DEFAULT_BASE_URL };
@@ -73,7 +73,7 @@ export interface OracleEnvironment {
   // Empreinte du contexte de construction de chaque image, calculée sur la
   // copie du dépôt et vérifiée sur le label de l'image en cours (#102) : elle
   // relie `images` aux fixtures de `benchCommit` quand l'arbre est propre.
-  imageContexts: Record<StackService, string>;
+  imageContexts: StackContextDigests;
   frozenDate: string | null;
   baseUrl: string;
   // Dossier des bruts de l'exécution, depuis la racine du dépôt ; les pièces
@@ -180,7 +180,7 @@ export async function listOracle(artifactsDir: string): Promise<OracleSummary> {
 // par l'environnement du shell, jamais par .env (que lit aussi le
 // legacy). Partagé avec `migrabench calibrate`. Le journal d'accès du legacy va
 // dans `accessLogDir` s'il est donné (MB_ACCESS_LOG_DIR de docker-compose.yml).
-export async function recreateStack(salt: string, accessLogDir?: string): Promise<Record<StackService, string>> {
+export async function recreateStack(salt: string, accessLogDir?: string): Promise<StackContextDigests> {
   const digests = await stackContextDigests();
   await spawnCommand("docker", ["compose", "up", "--detach", "--force-recreate", "--no-build", "--wait", ...SERVICES], {
     env: { ARCHIVE_SALT: salt, ...(accessLogDir === undefined ? {} : { MB_ACCESS_LOG_DIR: accessLogDir }) },
