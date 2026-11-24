@@ -16,15 +16,20 @@ protection tient.
 - **Capacités Linux et `cap_drop`** : root est découpé en capacités
   (`CAP_NET_ADMIN`, `CAP_CHOWN`…), et Docker en accorde un jeu par défaut à
   tout conteneur. `cap_drop: [ALL]` les retire toutes. —
-  [Docker Compose : services, `cap_drop`](https://docs.docker.com/reference/compose-file/services/#cap_drop)
+  [Docker Compose, container specification : `cap_drop`](https://docs.docker.com/reference/compose-file/container-spec/#cap_drop)
 - **`no-new-privileges`** : empêche un processus d'acquérir des privilèges
   qu'il n'a pas au départ, par exemple par un binaire setuid. —
-  [Docker : `docker run --security-opt`](https://docs.docker.com/reference/cli/docker/container/run/#security-opt)
+  [Docker Compose, container specification : `security_opt`](https://docs.docker.com/reference/compose-file/container-spec/#security_opt)
 - **Limites de ressources d'un service** : `mem_limit` (mémoire), `memswap_limit`
   (mémoire plus échange ; égale à `mem_limit`, elle interdit l'échange), `cpus`
-  et `pids_limit` (nombre de processus et de fils d'exécution). —
-  [Docker Compose : services](https://docs.docker.com/reference/compose-file/services/)
-  > À vérifier : les ancres exactes de chaque clé dans cette page.
+  et `pids_limit` (nombre de processus et de fils d'exécution). — Docker
+  Compose, container specification :
+  [`mem_limit`](https://docs.docker.com/reference/compose-file/container-spec/#mem_limit),
+  [`memswap_limit`](https://docs.docker.com/reference/compose-file/container-spec/#memswap_limit),
+  [`cpus`](https://docs.docker.com/reference/compose-file/container-spec/#cpus),
+  [`pids_limit`](https://docs.docker.com/reference/compose-file/container-spec/#pids_limit).
+  Ancres relevées le 24/11/2026 dans le HTML de la page (titres `h3`) ; la page
+  `services/` n'a pas de section pour ces clés, elle renvoie à celle-ci.
 - **Lire un socket Unix** : un socket n'est pas un fichier ordinaire. Le lire
   comme un fichier échoue même quand il est là. Seul `stat` dit s'il existe. —
   [open(2), erreur ENXIO](https://man7.org/linux/man-pages/man2/open.2.html)
