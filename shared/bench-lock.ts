@@ -101,7 +101,7 @@ export function acquireBenchLock({ tool, measureId, file = BENCH_LOCK_FILE }: Ac
 }
 
 // Ligne affichée par un outil du banc qui a repris un verrou du banc orphelin.
-export function takenOverNotice({ tool, pid, startedAt, command }: TakenOver): string {
+function takenOverNotice({ tool, pid, startedAt, command }: TakenOver): string {
   return `Took over an orphan bench lock of ${tool} (PID ${pid}, started ${startedAt}: ${command}).`;
 }
 

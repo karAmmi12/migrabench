@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { acquireBenchLock } from "../shared/bench-lock.ts";
 
 const HOLD = new URL("./fixtures/bench-lock/hold.ts", import.meta.url).pathname;
-const TEST = new URL("../scripts/test.ts", import.meta.url).pathname;
+const NPM_TEST = new URL("../scripts/test.ts", import.meta.url).pathname;
 const MODULE = new URL("../shared/bench-lock.ts", import.meta.url).pathname;
 
 function lockFile(): string {
@@ -253,18 +253,18 @@ if (exit === "wait") {
     env: NodeJS.ProcessEnv;
   }
 
-  function repo(exit: string): Repo {
+  function repo(exit: number | "wait", vitest = true): Repo {
     const root = mkdtempSync(join(tmpdir(), "mb-npm-test-"));
     mkdirSync(join(root, "scripts"));
     mkdirSync(join(root, "shared"));
     mkdirSync(join(root, "node_modules", "vitest"), { recursive: true });
-    copyFileSync(TEST, join(root, "scripts", "test.ts"));
+    copyFileSync(NPM_TEST, join(root, "scripts", "test.ts"));
     copyFileSync(MODULE, join(root, "shared", "bench-lock.ts"));
-    writeFileSync(join(root, "node_modules", "vitest", "vitest.mjs"), FAKE_VITEST);
+    if (vitest) writeFileSync(join(root, "node_modules", "vitest", "vitest.mjs"), FAKE_VITEST);
     const state = mkdtempSync(join(tmpdir(), "mb-state-"));
     const file = join(state, "migrabench", "bench-lock");
     const seen = join(root, "seen.json");
-    return { root, file, seen, env: { ...process.env, XDG_STATE_HOME: state, FAKE_VITEST_LOCK: file, FAKE_VITEST_SEEN: seen, FAKE_VITEST_EXIT: exit } };
+    return { root, file, seen, env: { ...process.env, XDG_STATE_HOME: state, FAKE_VITEST_LOCK: file, FAKE_VITEST_SEEN: seen, FAKE_VITEST_EXIT: String(exit) } };
   }
 
   function npmTest({ root, env }: Repo, args: readonly string[] = []) {
@@ -272,32 +272,32 @@ if (exit === "wait") {
     return { status, stderr };
   }
 
-  function seen({ seen }: Repo): { pid: number; args: string[]; lock: Record<string, unknown> | null } {
+  function readSeen({ seen }: Repo): { pid: number; args: string[]; lock: Record<string, unknown> | null } {
     return JSON.parse(readFileSync(seen, "utf8"));
   }
 
   it("holds the bench lock as the tool test while vitest runs, then releases it", () => {
-    const copied = repo("0");
+    const copied = repo(0);
 
     const outcome = npmTest(copied, ["tests/one.test.ts", "--reporter=default"]);
 
     expect(outcome).toEqual({ status: 0, stderr: "" });
-    const { args, lock } = seen(copied);
+    const { args, lock } = readSeen(copied);
     expect(args).toEqual(["run", "tests/one.test.ts", "--reporter=default"]);
     expect(lock).toMatchObject({ tool: "test", host: hostname() });
     expect(existsSync(copied.file)).toBe(false);
   });
 
   it("releases the bench lock after failing tests, keeping the exit code of vitest", () => {
-    const copied = repo("1");
+    const copied = repo(1);
 
     expect(npmTest(copied).status).toBe(1);
-    expect(seen(copied).lock).toMatchObject({ tool: "test" });
+    expect(readSeen(copied).lock).toMatchObject({ tool: "test" });
     expect(existsSync(copied.file)).toBe(false);
   });
 
   it("refuses to run while a bench tool holds the bench lock, naming it, without launching vitest", async () => {
-    const copied = repo("0");
+    const copied = repo(0);
     const { file } = copied;
     const holder = await hold(file, "measure", "20261123T090507Z-454fb76-reference-candidate");
     const held = readFileSync(file, "utf8");
@@ -305,7 +305,7 @@ if (exit === "wait") {
     const outcome = npmTest(copied);
 
     expect(outcome.status).toBe(4);
-    expect(outcome.stderr).toContain("npm test refused");
+    expect(outcome.stderr).toContain("refused-lock: The bench lock is held by measure");
     expect(outcome.stderr).toContain(`measure (PID ${holder.pid}`);
     expect(outcome.stderr).toContain("20261123T090507Z-454fb76-reference-candidate");
     expect(outcome.stderr).toContain(`Bench lock: ${file}`);
@@ -314,14 +314,21 @@ if (exit === "wait") {
   });
 
   it("takes over an orphan bench lock, saying so, and releases it at the end", async () => {
-    const copied = repo("0");
+    const copied = repo(0);
     await killHard(await hold(copied.file, "oracle"));
 
     const outcome = npmTest(copied);
 
     expect(outcome.status).toBe(0);
     expect(outcome.stderr).toContain("Took over an orphan bench lock of oracle");
-    expect(seen(copied).lock).toMatchObject({ tool: "test" });
+    expect(readSeen(copied).lock).toMatchObject({ tool: "test" });
+    expect(existsSync(copied.file)).toBe(false);
+  });
+
+  it("releases the bench lock when vitest cannot be launched", () => {
+    const copied = repo(0, false);
+
+    expect(npmTest(copied).status).not.toBe(0);
     expect(existsSync(copied.file)).toBe(false);
   });
 
@@ -346,7 +353,7 @@ if (exit === "wait") {
 
       expect(await exited).not.toBe(0);
       expect(existsSync(copied.file)).toBe(false);
-      const vitest = seen(copied).pid;
+      const vitest = readSeen(copied).pid;
       const vitestAlive = spawnSync("ps", ["-p", String(vitest)]).status === 0;
       if (vitestAlive) process.kill(vitest, "SIGKILL");
       expect(vitestAlive).toBe(false);

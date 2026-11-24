@@ -162,8 +162,9 @@ les clones du dépôt voient le même verrou du banc (#92). Le dossier est cré�
 s'il manque, et chaque refus donne le chemin du fichier. Le fichier nomme l'outil, son
 processus (PID, heure de démarrage, ligne de commande), la machine,
 l'identifiant de la mesure s'il y en a un et l'heure de prise. Pendant qu'il
-est tenu, les autres outils du banc refusent avec le code `4` et un message
-qui nomme le détenteur (`refused-lock`, ou `npm test refused`).
+est tenu, les autres outils du banc refusent avec le code `4` (`refused-lock`)
+et un message qui nomme le détenteur. Limite : si `npm test` est tué par
+`SIGKILL`, Vitest continue seul, sans tenir le verrou du banc.
 
 Un verrou du banc orphelin, laissé par un processus mort, est repris par le
 prochain outil du banc : sur la même machine seulement, et seulement si aucun

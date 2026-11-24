@@ -409,10 +409,16 @@ le candidat tourne ensuite (voir les règles des issues).
   écrivent sur la pile, et l'un d'eux redémarre le legacy (#67). Le script
   `scripts/test.ts` prend le verrou du banc, lance `vitest run` avec les
   arguments reçus, relaie à Vitest un signal d'interruption, puis libère le
-  verrou du banc et rend le code de Vitest. Refus : code `4`, avant de lancer
-  Vitest. `npx vitest` lancé directement ne le prend pas.
-- **Refus** : code `4` pour `migrabench measure`, avec l'outil, le processus
-  et l'heure de prise dans le message.
+  verrou du banc et rend le code de Vitest. `npx vitest` lancé directement
+  ne le prend pas. Tué par `SIGKILL`, `scripts/test.ts` ne relaie rien :
+  Vitest continue seul, et le verrou du banc, orphelin, est repris par le
+  prochain outil du banc. Les tests qui lancent de vrais outils du banc
+  (`tests/runner/bench-lock-tools.test.ts`, `counted-measure.test.ts`) leur
+  donnent un `XDG_STATE_HOME` temporaire depuis #92 : ils ne voient pas le
+  verrou du banc que tient `npm test`.
+- **Refus** : code `4` (`refused-lock`), pour tous les outils qui le
+  prennent, avec l'outil, le processus et l'heure de prise dans le message.
+  `npm test` refuse avant de lancer Vitest.
 - **Verrou orphelin** : sur la même machine, le verrou est repris seulement
   si aucun processus ne porte le PID enregistré, ou si le processus qui le
   porte a une autre heure de démarrage ou une autre ligne de commande. Les
