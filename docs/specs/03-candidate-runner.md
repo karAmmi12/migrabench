@@ -309,7 +309,14 @@ Règles des issues :
   libère le verrou du banc. Une mesure comptée interrompue est versionnée
   comme les autres, et le rapport la signale toujours. Le candidat ne peut
   pas l'envoyer : il n'a accès ni au processus du runner ni au socket
-  Docker.
+  Docker. Mise en œuvre (#71) : la phase en cours est fermée `interrupted`,
+  preuve `Interrupted by <signal>` ; les commandes qu'elle a lancées
+  reçoivent le signal et elle ne peut plus en lancer ; les conteneurs de la
+  construction sont supprimés, et les phases interrompues ont 10 secondes
+  pour finir avant la clôture, qui arrête le candidat. Un signal reçu entre
+  deux phases ou pendant la clôture est rangé dans la clôture. Seul le
+  premier signal compte (npm relaie aussi Ctrl+C) ; `SIGKILL` arrête le
+  runner sans mesure, et laisse un verrou du banc orphelin.
 - **`stack-failed-before-candidate`** : le legacy ou le service d'archivage
   n'est pas sain avant le démarrage du candidat, ou pendant un redémarrage
   où le candidat est arrêté. Relevée quand `docker compose up --wait` échoue

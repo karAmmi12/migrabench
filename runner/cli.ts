@@ -6,6 +6,8 @@
 // abaisse les délais de construction et de disponibilité, pour le diagnostic
 // seulement (runner/limits.ts). `--counted` prévoit la mesure pour compter
 // (#73) : refusée hors d'un état publié, écrite sous results/counted/.
+// SIGINT ou SIGTERM pendant la mesure l'interrompt : mesure invalide,
+// `interrupted`, code 3 (#71).
 //
 // `migrabench calibrate [--readings <n>]` : commande mince sur calibrateCandidate
 // (runner/calibrate.ts). Imprime le fichier du résultat d'étalonnage.
@@ -80,4 +82,7 @@ console.log(values.counted === true ? "Planned to count: written under results/c
 if (salt !== undefined) console.log("Salt imposed: diagnostic measure.");
 if (timeoutCap !== undefined) console.log(`Timeout cap imposed (${timeoutCap} ms): diagnostic measure.`);
 console.log("The stack now runs with this measure's salt: run `npm run stack:up` before `npm test`.");
+// Mesure interrompue (#71) : une commande arrêtée qui tarderait à finir ne
+// retient pas le processus.
+if (result.outcome.reason === "interrupted") process.exit(result.exitCode);
 process.exitCode = result.exitCode;

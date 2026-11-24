@@ -87,7 +87,7 @@ export async function buildCandidate({ measureId, image, user, rawDir, copyDir, 
     if (step === "fetch") onNpmCiLaunch?.();
     const stepStartedAt = Date.now();
     const run = await runStep({
-      container: `migrabench-${measureId}-${step}`,
+      container: buildContainer(measureId, step),
       deadline,
       logFile: join(rawDir, output),
       args: [
@@ -126,6 +126,18 @@ export async function buildCandidate({ measureId, image, user, rawDir, copyDir, 
   return result({ outcome: "ok" });
 }
 
+// Conteneur d'une étape de la construction, nommé par la mesure.
+export function buildContainer(measureId: string, step: BuildStep): string {
+  return `migrabench-${measureId}-${step}`;
+}
+
+// Supprime les conteneurs de la construction d'une mesure interrompue (#71) :
+// `docker run`, interrompu, peut laisser le sien en marche.
+export async function removeBuildContainers(measureId: string): Promise<void> {
+  const steps: BuildStep[] = ["fetch", "install", "build"];
+  await spawnCommand("docker", ["rm", "--force", ...steps.map((step) => buildContainer(measureId, step))], { allowFailure: true });
+}
+
 async function usageOf(dir: string): Promise<ResourceUsage> {
   const read = (name: string) => readFile(join(dir, name), "utf8").catch(() => undefined);
   const [memoryPeak, cpuStat] = await Promise.all([read("memory.peak"), read("cpu.stat")]);
@@ -153,7 +165,8 @@ async function runStep({ container, deadline, logFile, args }: { container: stri
   let killer: NodeJS.Timeout | undefined;
   const timer = setTimeout(() => {
     timedOut = true;
-    const kill = () => void spawnCommand("docker", ["kill", container], { allowFailure: true });
+    // Refusé après une interruption (#71) : la clôture supprime le conteneur.
+    const kill = () => void spawnCommand("docker", ["kill", container], { allowFailure: true }).catch(() => undefined);
     kill();
     killer = setInterval(kill, 1_000);
   }, Math.max(0, deadline - Date.now()));

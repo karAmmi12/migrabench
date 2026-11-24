@@ -16,6 +16,7 @@
 // (runner/access-log.ts, runner/witness.ts).
 // Les pannes de la pile et les erreurs imprévues du runner, rangées dans une
 // mesure, viennent de #68 (oracle/stack-state.ts).
+// La mesure interrompue vient de #71 (runner/interruption.ts).
 import { randomBytes } from "node:crypto";
 import { mkdir, stat, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
@@ -33,11 +34,12 @@ import { type AccessLogRecord, type CandidateRecord, measureRecord, type OracleR
 import type { ExitCode, PhaseName, PhaseOutcome, PhaseRecord, RunnerErrorOutcome, Verdict } from "./verdict.ts";
 import { citedFileSha256 as digestOf } from "../shared/digest.ts";
 import { acquireBenchLock, type TakenOver } from "../shared/bench-lock.ts";
-import { spawnCommand, stdoutOf } from "../shared/process.ts";
+import { interruptibleCommands, spawnCommand, stdoutOf } from "../shared/process.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, COUNTED_DIR_FROM_ROOT, ROOT } from "../shared/root.ts";
 import { type CountedRecord, countedPreconditions } from "./counted.ts";
 import { countedGitFacts } from "./counted-facts.ts";
-import { buildCandidate } from "./build.ts";
+import { buildCandidate, removeBuildContainers } from "./build.ts";
+import { type Interruption, interruptionDetail, watchInterruption } from "./interruption.ts";
 import { appliedCalibration } from "./calibration-results.ts";
 import {
   buildRuntimeImage,
@@ -122,9 +124,13 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
   const id = measureIdOf(startedAt, benchCommit, candidate);
   const lock = acquireBenchLock({ tool: "measure", measureId: id });
   if (!lock.ok) return refused(lock.message, "refused-lock");
+  // Dès le verrou du banc pris, SIGINT et SIGTERM interrompent la mesure au
+  // lieu d'arrêter le processus (#71).
+  const interruption = watchInterruption();
   try {
-    return await measure({ candidate, candidateDir, salt, limits, limitsRecord, startedAt, benchCommit, id, lockRecord: lockRecord(lock.holder.takenAt, lock.takenOver), counted: countedRecord });
+    return await measure({ candidate, candidateDir, salt, limits, limitsRecord, startedAt, benchCommit, id, lockRecord: lockRecord(lock.holder.takenAt, lock.takenOver), counted: countedRecord, interruption });
   } finally {
+    interruption.dispose();
     lock.release();
   }
 }
@@ -147,7 +153,12 @@ interface MeasureContext {
   lockRecord: ReturnType<typeof lockRecord>;
   // Prévue pour compter : le commit de origin/main vérifié.
   counted: CountedRecord | undefined;
+  interruption: Interruption;
 }
+
+// Délai laissé aux phases interrompues pour finir, leurs commandes arrêtées,
+// avant la clôture.
+const INTERRUPTED_PHASES_GRACE_MS = 10_000;
 
 // Phases 1 à 7, sous le verrou du banc.
 //
@@ -157,7 +168,13 @@ interface MeasureContext {
 // `runner-error-before-candidate`, invalide. Ensuite,
 // `stack-down-while-candidate`, comptée contre le candidat (règle 7). La clôture tourne toujours. Avant le dossier de la mesure, ou si
 // measure.json ne peut pas être écrit, l'erreur reste un plantage (code 1).
-async function measure({ candidate, candidateDir, salt, limits, limitsRecord, startedAt, benchCommit, id, lockRecord, counted }: MeasureContext): Promise<MeasureResult> {
+//
+// Mesure interrompue (#71) : la phase en cours est fermée `interrupted`, les
+// commandes qu'elle a lancées reçoivent le signal et elle ne peut plus en
+// lancer ; les conteneurs de la construction sont supprimés, puis la clôture
+// tourne comme toujours et arrête le candidat. Un signal reçu entre les
+// phases ou pendant la clôture est rangé dans la clôture.
+async function measure({ candidate, candidateDir, salt, limits, limitsRecord, startedAt, benchCommit, id, lockRecord, counted, interruption }: MeasureContext): Promise<MeasureResult> {
   const phases: PhaseRecord[] = [];
   const tracker = startPhases(phases);
   const phase = tracker.open;
@@ -304,18 +321,40 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     const closeGates = phase("gates");
     closeGates();
   };
-  try {
-    await runPhases();
-  } catch (error) {
-    const current = tracker.current();
-    if (current === undefined) unplaced = describeError(error);
-    else current.close(runnerErrorOutcome(npmCiLaunched), {}, describeError(error));
+  const commands = interruptibleCommands(runPhases);
+  // Une erreur levée après l'interruption en est la suite : elle n'est pas rangée.
+  const phasesDone = commands.result.then(
+    () => undefined,
+    (error: unknown) => {
+      if (interruption.signal() !== undefined) return;
+      const current = tracker.current();
+      if (current === undefined) unplaced = describeError(error);
+      else current.close(runnerErrorOutcome(npmCiLaunched), {}, describeError(error));
+    },
+  );
+  const signal = await Promise.race([phasesDone, interruption.received]);
+  // L'interruption a-t-elle été rangée dans une phase avant la clôture ?
+  let interruptionPlaced = false;
+  if (signal !== undefined) {
+    commands.interrupt(signal);
+    interruptionPlaced = tracker.interrupt(interruptionDetail(signal));
+    if (npmCiLaunched) await removeBuildContainers(id);
+    let grace: NodeJS.Timeout | undefined;
+    await Promise.race([phasesDone, new Promise((resolve) => (grace = setTimeout(resolve, INTERRUPTED_PHASES_GRACE_MS)))]);
+    clearTimeout(grace);
   }
 
   // 7. Clôture : arrêt du candidat, compte des scénarios si l'oracle n'a pas
   // été lancé, puis requête témoin de fin et contrôle du journal d'accès si
   // la pile a été recréée. Une erreur y est rangée comme ailleurs.
-  const closeClosing = phase("closing");
+  const openedClosing = phase("closing");
+  // Un signal reçu sans phase où le ranger : la clôture est interrompue, et
+  // garde son propre détail à la suite de la preuve.
+  const closeClosing: ClosePhase<"closing"> = (outcome, raw, detail) => {
+    const received = interruption.signal();
+    if (received === undefined || interruptionPlaced) return openedClosing(outcome, raw, detail);
+    openedClosing("interrupted", raw, [interruptionDetail(received), ...(detail === undefined ? [] : [detail])].join("\n"));
+  };
   let accessLog: AccessLogRecord | undefined;
   try {
     if (service !== undefined) await stopCandidate(service);
@@ -398,13 +437,20 @@ class CandidateNotStarted extends Error {
 type ClosePhase<N extends PhaseName> = (outcome?: PhaseOutcome<N>, raw?: Record<string, string>, detail?: string) => void;
 
 // Phases ouvertes par `open` ; `current` rend la phase ouverte et pas encore
-// fermée, pour y ranger une erreur imprévue (#68).
+// fermée, pour y ranger une erreur imprévue (#68). `interrupt` ferme la phase
+// en cours `interrupted` et rend vrai s'il y en avait une (#71) : ensuite, les
+// phases interrompues ne peuvent plus ni se fermer ni en ouvrir une autre.
+// Seule la clôture s'ouvre encore.
 function startPhases(phases: PhaseRecord[]) {
   let current: { name: PhaseName; close: ClosePhase<PhaseName> } | undefined;
+  let interrupted = false;
   const open = <N extends PhaseName>(name: N): ClosePhase<N> => {
+    if (interrupted && name !== "closing") throw new Error(`Phase ${name} not opened: the measure is interrupted`);
     const startedAt = new Date();
     const entry = { name, close: undefined as unknown as ClosePhase<PhaseName> };
+    const closing = interrupted;
     const close: ClosePhase<N> = (outcome = "ok", raw = {}, detail) => {
+      if (interrupted && !closing) return;
       phases.push({
         name,
         outcome,
@@ -419,5 +465,11 @@ function startPhases(phases: PhaseRecord[]) {
     current = entry;
     return close;
   };
-  return { open, current: () => current };
+  const interrupt = (detail: string): boolean => {
+    const entry = current;
+    entry?.close("interrupted", {}, detail);
+    interrupted = true;
+    return entry !== undefined;
+  };
+  return { open, current: () => current, interrupt };
 }
