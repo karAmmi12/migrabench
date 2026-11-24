@@ -1,0 +1,162 @@
+// Issues attendues des mesures du job de CI des mesures (#74) : le contrôle
+// compare le code de sortie, measure.json et la présence d'oracle.json au
+// tableau de la spec de l'étape 3 (« Candidats défectueux »), et, pour la
+// mesure comptée du candidat de référence, au critère de fin (« Notes »).
+import { describe, expect, it } from "vitest";
+import { MEASURE_CASES, type Observed, caseProblems } from "../scripts/measure-cases.ts";
+
+const PHASE_NAMES = ["preparation", "contract", "build", "start", "oracle", "gates", "closing"];
+
+function phases(outcomes: Record<string, string> = {}, details: Record<string, string> = {}) {
+  return PHASE_NAMES.map((name) => ({ name, outcome: outcomes[name] ?? "ok", ...(details[name] === undefined ? {} : { detail: details[name] }) }));
+}
+
+function summary(passed: number, failed: number, unreached: number) {
+  return { scenarios: passed + failed + unreached, passed, failed, unreached };
+}
+
+const COMPLETE = {
+  counted: false,
+  saltImposed: false,
+  environment: { worktree: "dirty" },
+  phases: phases(),
+  oracle: { executed: true, summary: summary(38, 0, 0) },
+  accessLog: { witnesses: [{ name: "start-1", line: 2 }, { name: "end", line: 195 }] },
+  verdict: { category: "completed", reason: "ok" },
+};
+
+function observed(record: object, more: Partial<Observed> = {}): Observed {
+  return { exitCode: 0, record, oracle: { saltImposed: false }, ...more };
+}
+
+describe("caseProblems, reference candidate", () => {
+  it("has nothing to report for a complete measure with 38 passed scenarios and both witnesses", () => {
+    expect(caseProblems(MEASURE_CASES.reference, observed(COMPLETE))).toEqual([]);
+  });
+
+  it("names a failed and an unreached scenario", () => {
+    const record = { ...COMPLETE, oracle: { executed: true, summary: summary(36, 1, 1) } };
+
+    expect(caseProblems(MEASURE_CASES.reference, observed(record))).toEqual(["oracle.summary.passed is 36, expected 38", "oracle.summary.failed is 1, expected 0", "oracle.summary.unreached is 1, expected 0"]);
+  });
+
+  it("names a missing end witness of the access log", () => {
+    const record = { ...COMPLETE, accessLog: { witnesses: [{ name: "start-1", line: 2 }] } };
+
+    expect(caseProblems(MEASURE_CASES.reference, observed(record))).toEqual(["accessLog.witnesses has no end witness"]);
+  });
+
+  // Avant 71d8c18 (#73), oracle.json disait saltImposed: true même sans
+  // ORACLE_SALT, alors que measure.json disait false : les deux fichiers sont lus.
+  it("names an imposed salt in oracle.json even when measure.json says it was drawn", () => {
+    expect(caseProblems(MEASURE_CASES.reference, observed(COMPLETE, { oracle: { saltImposed: true } }))).toEqual(["oracle.json: saltImposed is true, expected false"]);
+  });
+
+  it("names a measure without oracle.json", () => {
+    expect(caseProblems(MEASURE_CASES.reference, observed(COMPLETE, { oracle: undefined }))).toEqual(["oracle.json is missing"]);
+  });
+
+  it("names an unexpected exit code", () => {
+    expect(caseProblems(MEASURE_CASES.reference, observed(COMPLETE, { exitCode: 3 }))).toEqual(["exit code is 3, expected 0"]);
+  });
+});
+
+describe("caseProblems, counted measure of the reference candidate", () => {
+  const counted = { ...COMPLETE, counted: true, environment: { worktree: "clean", originMain: "a".repeat(40) } };
+
+  it("has nothing to report for a counted measure from a clean worktree, with origin/main known", () => {
+    expect(caseProblems(MEASURE_CASES["reference-counted"], observed(counted))).toEqual([]);
+  });
+
+  it("names a diagnostic measure, a modified worktree, an unknown origin/main and an imposed salt", () => {
+    const record = { ...COMPLETE, saltImposed: true };
+
+    expect(caseProblems(MEASURE_CASES["reference-counted"], observed(record))).toEqual([
+      "measure.json: saltImposed is true, expected false",
+      "counted is false, expected true",
+      "environment.worktree is dirty, expected clean",
+      "environment.originMain is missing",
+    ]);
+  });
+});
+
+describe("caseProblems, defective candidates", () => {
+  it("expects both failures of the invalid contract in its detail", () => {
+    const record = {
+      ...COMPLETE,
+      phases: phases({ contract: "contract-invalid", build: "not-run", start: "not-run", oracle: "not-run", gates: "not-run" }, { contract: 'candidate.json: field "url" is not allowed: the bench imposes the port' }),
+      oracle: { executed: false },
+      verdict: { category: "contract-failure", reason: "contract-invalid" },
+    };
+
+    expect(caseProblems(MEASURE_CASES["contract-invalid"], observed(record, { oracle: undefined }))).toEqual(["phase contract: detail does not cite \"is resolved on another host\""]);
+  });
+
+  it("names a wrong category and reason", () => {
+    const record = { ...COMPLETE, verdict: { category: "completed", reason: "ok" } };
+
+    expect(caseProblems(MEASURE_CASES["build-fails"], observed(record))).toEqual([
+      "verdict is completed (ok), expected candidate-failure (build-failed)",
+      "phase build is ok, expected build-failed",
+      "phase start is ok, expected not-run",
+      "oracle.json is present, expected absent",
+    ]);
+  });
+
+  it("expects the never-ready candidate to stop before the oracle", () => {
+    const record = { ...COMPLETE, phases: phases({ start: "start-not-ready", oracle: "ok" }), oracle: { executed: true }, verdict: { category: "candidate-failure", reason: "start-not-ready" } };
+
+    expect(caseProblems(MEASURE_CASES["never-ready"], observed(record, { oracle: undefined }))).toEqual(["phase oracle is ok, expected not-run", "oracle.executed is true, expected false"]);
+  });
+
+  it("expects at least one failed scenario through the relay that alters a label", () => {
+    expect(caseProblems(MEASURE_CASES["relay-alters-label"], observed(COMPLETE))).toEqual(["oracle.summary.failed is 0, expected at least 1"]);
+  });
+
+  it("expects the broken stack to give an invalid measure, exit code 3", () => {
+    const record = { ...COMPLETE, phases: phases({ start: "stack-failed-before-candidate", oracle: "not-run", gates: "not-run" }), oracle: { executed: false }, verdict: { category: "invalid", reason: "stack-failed-before-candidate", evidence: "legacy: unhealthy" } };
+
+    expect(caseProblems(MEASURE_CASES["broken-stack"], observed(record, { exitCode: 3, oracle: undefined }))).toEqual([]);
+  });
+
+  it("expects a stack from another copy to be refused before any build", () => {
+    const record = {
+      ...COMPLETE,
+      phases: phases({ preparation: "stack-not-from-this-copy", contract: "not-run", build: "ok", start: "not-run", oracle: "not-run", gates: "not-run" }),
+      oracle: { executed: false },
+      verdict: { category: "invalid", reason: "stack-not-from-this-copy", evidence: "foreign" },
+    };
+
+    expect(caseProblems(MEASURE_CASES["foreign-stack"], observed(record, { exitCode: 3, oracle: undefined }))).toEqual(["phase build is ok, expected not-run"]);
+  });
+});
+
+describe("caseProblems, failures of #68 and interruption", () => {
+  it("keeps oracle.json of a measure whose legacy went down during the oracle", () => {
+    const record = { ...COMPLETE, phases: phases({ oracle: "stack-down-while-candidate" }), oracle: { executed: true, summary: summary(2, 2, 34) }, verdict: { category: "stack-down-while-candidate", reason: "stack-down-while-candidate" } };
+
+    expect(caseProblems(MEASURE_CASES["legacy-stopped-during-oracle"], observed(record, { oracle: undefined }))).toEqual(["oracle.json is missing"]);
+  });
+
+  it("expects an interrupted measure with its exact verdict, the oracle not executed and no oracle.json", () => {
+    const record = {
+      ...COMPLETE,
+      phases: phases({ oracle: "interrupted", gates: "not-run" }),
+      oracle: { executed: false },
+      verdict: { category: "invalid", reason: "interrupted", evidence: "Interrupted by SIGINT" },
+    };
+
+    expect(caseProblems(MEASURE_CASES.interrupted, observed(record, { exitCode: 3, oracle: undefined }))).toEqual([]);
+  });
+
+  it("names an interrupted measure that kept oracle.json, with another evidence", () => {
+    const record = {
+      ...COMPLETE,
+      phases: phases({ oracle: "interrupted", gates: "not-run" }),
+      oracle: { executed: false },
+      verdict: { category: "invalid", reason: "interrupted", evidence: "Interrupted by SIGTERM" },
+    };
+
+    expect(caseProblems(MEASURE_CASES.interrupted, observed(record, { exitCode: 3 }))).toEqual(["verdict.evidence is \"Interrupted by SIGTERM\", expected \"Interrupted by SIGINT\"", "oracle.json is present, expected absent"]);
+  });
+});
