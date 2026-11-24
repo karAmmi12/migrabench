@@ -81,8 +81,8 @@ candidat de référence obtient 100 % dans une mesure comptée.
 19. En tant qu'opérateur, je veux qu'un verrou du banc laissé par un processus mort soit repris, et que la reprise soit enregistrée, pour qu'un plantage ne bloque pas le banc.
 20. En tant qu'opérateur, je veux que la construction se fasse dans une copie du candidat, jamais dans le dossier versionné, pour que mesurer ne modifie pas `candidates/` (règle 5).
 21. En tant qu'opérateur, je veux que le résultat d'une mesure soit un dossier propre à la mesure, jamais réécrit, pour qu'une mesure reste la preuve de son état.
-22. En tant qu'opérateur, je veux que les mesures de diagnostic restent dans un dossier ignoré par Git, pour ne pas les versionner par erreur.
-23. En tant qu'opérateur, je veux que les mesures prévues pour compter soient toutes versionnées, invalides comprises, pour qu'aucune mesure gênante ne disparaisse.
+22. En tant qu'opérateur, je veux que les mesures de diagnostic restent dans un dossier ignoré par Git (`results/diagnostic/`), pour ne pas les versionner par erreur.
+23. En tant qu'opérateur, je veux que les mesures prévues pour compter soient toutes versionnées dans `results/counted/`, invalides comprises, pour qu'aucune mesure gênante ne disparaisse.
 
 ### Mainteneur du banc
 
@@ -311,6 +311,8 @@ Règles des issues :
 Un dossier par mesure, nommé par l'identifiant de la mesure :
 `<horodatage>-<commit court>-<nom du candidat>`, le nom étant le chemin du
 candidat sous `candidates/` ou `fixtures/`, barres remplacées par des tirets.
+Une mesure de diagnostic l'écrit sous `results/diagnostic/`, ignoré par Git ;
+une mesure prévue pour compter, sous `results/counted/`, versionné (#73).
 Il contient `measure.json` et, si l'oracle a été lancé, `oracle.json` au
 format de l'étape 2. Les bruts restent dans `.oracle-artifacts/<identifiant
 de la mesure>/`, cités par empreinte (ADR 0005).
