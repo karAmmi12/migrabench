@@ -25,7 +25,9 @@ import type { ExitCode, PhaseName, PhaseOutcome, PhaseRecord, Verdict } from "./
 import { citedFileSha256 as digestOf } from "../shared/digest.ts";
 import { acquireBenchLock, type TakenOver } from "../shared/bench-lock.ts";
 import { spawnCommand, stdoutOf } from "../shared/process.ts";
-import { ARTIFACTS_DIR_FROM_ROOT, ROOT } from "../shared/root.ts";
+import { ARTIFACTS_DIR_FROM_ROOT, COUNTED_DIR_FROM_ROOT, ROOT } from "../shared/root.ts";
+import { countedPreconditions } from "./counted.ts";
+import { countedGitFacts } from "./counted-facts.ts";
 import { buildCandidate } from "./build.ts";
 import { appliedCalibration } from "./calibration-results.ts";
 import {
@@ -49,7 +51,8 @@ import { DIAGNOSTIC_DIR_FROM_ROOT } from "./paths.ts";
 export interface MeasureOptions {
   // Dossier du candidat, relatif à la racine du dépôt.
   candidate: string;
-  // Prévue pour compter : pas encore prise en charge (#73).
+  // Prévue pour compter (#73) : refusée hors d'un état publié, écrite sous
+  // results/counted/, versionné.
   counted?: boolean;
   // Imposé : diagnostic seulement.
   salt?: string;
@@ -73,18 +76,13 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
     message,
     exitCode: 4,
   });
-  // Une valeur imposée n'est permise qu'en diagnostic. Les autres conditions
-  // de `--counted` viennent avec #73.
-  if (counted && timeoutCapMs !== undefined) {
-    return refused("a measure planned to count refuses an imposed --timeout-cap-ms", "refused-counted");
-  }
-  if (counted) throw new Error("A counted measure is not supported yet: run a diagnostic measure");
   // Délais et limites du dernier étalonnage de CI ; sans lui, le plafond de
   // sécurité, marqué provisoire.
+  const calibration = await appliedCalibration();
   let limits: Limits;
   let limitsRecord: ReturnType<typeof measureLimits>["record"];
   try {
-    ({ limits, record: limitsRecord } = measureLimits({ safetyCap: SAFETY_CAP, calibration: await appliedCalibration(), timeoutCapMs }));
+    ({ limits, record: limitsRecord } = measureLimits({ safetyCap: SAFETY_CAP, calibration, timeoutCapMs }));
   } catch (error) {
     return refused((error as Error).message);
   }
@@ -95,6 +93,20 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
   }
   const candidateDir = join(ROOT, candidate);
   if (!(await isDirectory(candidateDir))) return refused(`The candidate directory does not exist: ${candidate}`);
+  // Prévue pour compter : un état publié, après les refus d'options et avant
+  // le verrou du banc. Le sel et le plafond des délais imposés restent permis
+  // en diagnostic.
+  let countedRecord: { originMain: string } | undefined;
+  if (counted) {
+    const preconditions = countedPreconditions({
+      ...(await countedGitFacts(ROOT)),
+      saltImposed: salt !== undefined,
+      timeoutCapImposed: timeoutCapMs !== undefined,
+      calibrationVersioned: calibration !== undefined,
+    });
+    if (!preconditions.ok) return refused(preconditions.message, "refused-counted");
+    countedRecord = { originMain: preconditions.originMain };
+  }
   // Verrou du banc, au nom de la mesure : son identifiant est tiré avant.
   const startedAt = new Date();
   const benchCommit = await stdoutOf("git", ["rev-parse", "HEAD"]);
@@ -102,7 +114,7 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
   const lock = acquireBenchLock({ tool: "measure", measureId: id });
   if (!lock.ok) return refused(lock.message, "refused-lock");
   try {
-    return await measure({ candidate, candidateDir, salt, limits, limitsRecord, startedAt, benchCommit, id, lockRecord: lockRecord(lock.holder.takenAt, lock.takenOver) });
+    return await measure({ candidate, candidateDir, salt, limits, limitsRecord, startedAt, benchCommit, id, lockRecord: lockRecord(lock.holder.takenAt, lock.takenOver), counted: countedRecord });
   } finally {
     lock.release();
   }
@@ -124,17 +136,19 @@ interface MeasureContext {
   benchCommit: string;
   id: string;
   lockRecord: ReturnType<typeof lockRecord>;
+  // Prévue pour compter : le commit de origin/main vérifié.
+  counted: { originMain: string } | undefined;
 }
 
 // Phases 1 à 7, sous le verrou du banc.
-async function measure({ candidate, candidateDir, salt, limits, limitsRecord, startedAt, benchCommit, id, lockRecord }: MeasureContext): Promise<MeasureResult> {
+async function measure({ candidate, candidateDir, salt, limits, limitsRecord, startedAt, benchCommit, id, lockRecord, counted }: MeasureContext): Promise<MeasureResult> {
   const phases: PhaseRecord[] = [];
   const phase = startPhases(phases);
 
   // 1. Préparation.
   const closePreparation = phase("preparation");
   const worktree = worktreeState((await spawnCommand("git", [...GIT_STATUS_ARGS])).stdout);
-  const measureDir = join(ROOT, DIAGNOSTIC_DIR_FROM_ROOT, id);
+  const measureDir = join(ROOT, counted === undefined ? DIAGNOSTIC_DIR_FROM_ROOT : COUNTED_DIR_FROM_ROOT, id);
   const rawDir = join(ROOT, ARTIFACTS_DIR_FROM_ROOT, id);
   await mkdir(dirname(measureDir), { recursive: true });
   // Sans `recursive` : un dossier de mesure existant n'est jamais réécrit.
@@ -251,6 +265,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     saltImposed: salt !== undefined,
     phases,
     oracle,
+    ...(counted === undefined ? {} : { counted }),
   });
   await writeFile(join(measureDir, "measure.json"), `${JSON.stringify(record, null, 2)}\n`);
   return { written: true, measureDir, outcome: record.verdict, exitCode };

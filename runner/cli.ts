@@ -4,7 +4,8 @@
 // Le code 1 reste celui d'un plantage. ORACLE_SALT impose le sel, pour le
 // diagnostic seulement, comme pour `npm run oracle`. `--timeout-cap-ms`
 // abaisse les délais de construction et de disponibilité, pour le diagnostic
-// seulement (runner/limits.ts).
+// seulement (runner/limits.ts). `--counted` prévoit la mesure pour compter
+// (#73) : refusée hors d'un état publié, écrite sous results/counted/.
 //
 // `migrabench calibrate [--readings <n>]` : commande mince sur calibrateCandidate
 // (runner/calibrate.ts). Imprime le fichier du résultat d'étalonnage.
@@ -15,7 +16,7 @@ import { calibrateCandidate } from "./calibrate.ts";
 import { measureCandidate } from "./measure.ts";
 
 const USAGE = [
-  "Usage: migrabench measure --candidate <directory> [--timeout-cap-ms <milliseconds>]",
+  "Usage: migrabench measure --candidate <directory> [--counted] [--timeout-cap-ms <milliseconds>]",
   "       migrabench calibrate [--readings <count>]",
 ].join("\n");
 
@@ -27,14 +28,16 @@ function refuse(message: string): never {
 
 let parsed;
 try {
-  parsed = parseArgs({ allowPositionals: true, options: { candidate: { type: "string" }, "timeout-cap-ms": { type: "string" }, readings: { type: "string" } } });
+  parsed = parseArgs({ allowPositionals: true, options: { candidate: { type: "string" }, counted: { type: "boolean" }, "timeout-cap-ms": { type: "string" }, readings: { type: "string" } } });
 } catch (error) {
   refuse((error as Error).message);
 }
 const { positionals, values } = parsed;
 
 if (positionals.length === 1 && positionals[0] === "calibrate") {
-  if (values.candidate !== undefined || values["timeout-cap-ms"] !== undefined) refuse("calibrate takes no --candidate nor --timeout-cap-ms");
+  if (values.candidate !== undefined || values["timeout-cap-ms"] !== undefined || values.counted !== undefined) {
+    refuse("calibrate takes no --candidate, --counted nor --timeout-cap-ms");
+  }
   if (values.readings !== undefined && !/^[1-9]\d*$/.test(values.readings)) refuse("--readings must be a positive whole number");
   // L'étalonnage recrée la pile : il tient le verrou du banc, comme une mesure.
   const lock = acquireBenchLockOrExit({ tool: "calibrate" });
@@ -60,6 +63,7 @@ const timeoutCap = values["timeout-cap-ms"];
 const salt = process.env.ORACLE_SALT;
 const result = await measureCandidate({
   candidate: values.candidate,
+  counted: values.counted === true,
   ...(salt === undefined ? {} : { salt }),
   ...(timeoutCap === undefined ? {} : { timeoutCapMs: /^\d+$/.test(timeoutCap) ? Number(timeoutCap) : Number.NaN }),
 });
@@ -72,6 +76,7 @@ if (!result.written) {
 console.log();
 console.log(`Measure: ${relative(process.cwd(), result.measureDir)}`);
 console.log(`Outcome: ${result.outcome.category} (${result.outcome.reason})`);
+console.log(values.counted === true ? "Planned to count: versioned under results/counted/." : "Diagnostic measure.");
 if (salt !== undefined) console.log("Salt imposed: diagnostic measure.");
 if (timeoutCap !== undefined) console.log(`Timeout cap imposed (${timeoutCap} ms): diagnostic measure.`);
 console.log("The stack now runs with this measure's salt: run `npm run stack:up` before `npm test`.");
