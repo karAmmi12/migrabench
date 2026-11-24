@@ -1,0 +1,17 @@
+# Candidat défectueux 7, « pile volontairement cassée » (spec de l'étape 3,
+# #68) : composition ajoutée par COMPOSE_FILE à celle de la pile, pour que le
+# legacy ne devienne jamais sain. Le legacy lui-même n'est pas modifié : seul
+# son healthcheck échoue toujours. Le candidat de référence, mesuré ainsi, doit
+# donner `stack-failed-before-candidate`, invalide, code 3 :
+#
+#   COMPOSE_FILE=docker-compose.yml:tests/fixtures/broken-stack/legacy-never-healthy.compose.yml \
+#     npm run migrabench -- measure --candidate fixtures/reference-candidate
+#
+# Puis `npm run stack:up` pour rendre une pile saine.
+services:
+  legacy:
+    healthcheck:
+      test: ["CMD", "false"]
+      interval: 1s
+      timeout: 1s
+      retries: 2
