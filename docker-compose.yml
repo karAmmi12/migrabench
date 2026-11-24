@@ -19,10 +19,12 @@ services:
     env_file: .env
     # Journal d'accès du banc (#67) : connecteur 8080 seul, écrit en ajout sur
     # l'hôte, il survit aux redémarrages du legacy. Une mesure le dirige vers
-    # le dossier de ses bruts (MB_ACCESS_LOG_DIR) ; sinon, un dossier ignoré
-    # par Git de la copie du dépôt qui a lancé la pile.
+    # le dossier de ses bruts (MB_ACCESS_LOG_DIR), qu'elle crée elle-même ;
+    # sinon, .access-log/ de la copie du dépôt qui a lancé la pile, ignoré par
+    # Git. Pas sous .oracle-artifacts/ : sous Linux, Docker crée en root la
+    # source manquante d'un montage, et le runner ne pourrait plus y écrire.
     volumes:
-      - ${MB_ACCESS_LOG_DIR:-./.oracle-artifacts/access-log}:/usr/local/tomcat/logs/migrabench
+      - ${MB_ACCESS_LOG_DIR:-./.access-log}:/usr/local/tomcat/logs/migrabench
     healthcheck:
       # Prêt quand l'application déployée exige l'authentification (401).
       test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/ | grep -q 401"]
