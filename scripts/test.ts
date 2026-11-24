@@ -19,15 +19,26 @@ const VITEST = new URL("../node_modules/vitest/vitest.mjs", import.meta.url).pat
 
 const lock = acquireBenchLockOrExit({ tool: "test" });
 
-const vitest = spawn(process.execPath, [VITEST, "run", ...process.argv.slice(2)], { stdio: "inherit" });
+// Vitest tourne dans son propre groupe de processus (`detached`) : Ctrl+C,
+// envoyé par le terminal au groupe de premier plan, ne l'atteint que par le
+// relais ci-dessous. Sinon il recevrait SIGINT deux fois, du terminal et du
+// relais ; il n'écoute le signal qu'une fois, et le second l'arrêterait au
+// milieu de son nettoyage (#94). Ce processus ne peut pas savoir si un SIGINT
+// visait son groupe ou lui seul : il relaie donc toujours, et Vitest ne
+// l'entend que de lui.
+const vitest = spawn(process.execPath, [VITEST, "run", ...process.argv.slice(2)], { stdio: "inherit", detached: true });
 
-// Interruption : le signal est relayé à Vitest, et le verrou du banc n'est
-// libéré qu'à sa fin. Le relais couvre un signal envoyé à ce seul processus.
-// Avec Ctrl+C, Vitest reçoit SIGINT deux fois (groupe de processus, puis
-// relais) : il ne l'écoute qu'une fois, et le second le termine aussitôt,
-// après son propre nettoyage.
+// Interruption : la première est relayée à Vitest, une seule fois. npm relaie
+// lui aussi SIGINT et SIGTERM à ce processus, qui les reçoit donc en double
+// sous Ctrl+C. Le verrou du banc n'est libéré qu'à la fin de Vitest, après son
+// nettoyage. Pour l'arrêter sans attendre : SIGKILL sur son PID.
+let relayed = false;
 for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"] as const) {
-  process.on(signal, () => vitest.kill(signal));
+  process.on(signal, () => {
+    if (relayed) return;
+    relayed = true;
+    vitest.kill(signal);
+  });
 }
 
 vitest.once("error", (error) => {

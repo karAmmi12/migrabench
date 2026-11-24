@@ -408,8 +408,13 @@ le candidat tourne ensuite (voir les règles des issues).
   à sa fin, y compris sur échec et sur interruption : les tests du Seam A
   écrivent sur la pile, et l'un d'eux redémarre le legacy (#67). Le script
   `scripts/test.ts` prend le verrou du banc, lance `vitest run` avec les
-  arguments reçus, relaie à Vitest un signal d'interruption, puis libère le
-  verrou du banc et rend le code de Vitest. `npx vitest` lancé directement
+  arguments reçus dans son propre groupe de processus, puis libère le verrou
+  du banc et rend le code de Vitest. Interruption : Vitest ne la reçoit qu'une
+  fois, sinon un second `SIGINT` l'arrêterait au milieu de son nettoyage.
+  Ctrl+C n'atteint que `scripts/test.ts` (Vitest n'est pas dans le groupe de
+  premier plan), que npm relaie aussi : `scripts/test.ts` relaie la première
+  interruption reçue (`SIGINT`, `SIGTERM`, `SIGHUP`), une seule fois, et
+  libère le verrou du banc après le nettoyage de Vitest. `npx vitest` lancé directement
   ne le prend pas. Tué par `SIGKILL`, `scripts/test.ts` ne relaie rien :
   Vitest continue seul, et le verrou du banc, orphelin, est repris par le
   prochain outil du banc. Les tests qui lancent de vrais outils du banc
@@ -707,7 +712,9 @@ Vitest du contrat, pas par des candidats.
     empreinte de `oracle.json` conforme.
 - **Seam 3 : le verrou du banc**, par des processus réels : prise, refus,
   prise par `npm test` pendant tout Vitest, refus de `npm test`, libération
-  sur échec et sur interruption (#94) ; reprise d'un verrou dont le PID n'existe plus ;
+  sur échec et sur interruption (Ctrl+C au terminal et sous npm, `SIGINT` et
+  `SIGTERM` seuls : un seul signal reçu par Vitest, verrou du banc libéré
+  après son nettoyage) (#94) ; reprise d'un verrou dont le PID n'existe plus ;
   reprise d'un verrou dont le PID est porté par un processus d'une autre
   heure de démarrage ou d'une autre ligne de commande ; refus de reprendre
   un verrou dont le détenteur vit (les trois valeurs concordent).

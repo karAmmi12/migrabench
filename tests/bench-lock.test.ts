@@ -236,12 +236,26 @@ process.stdin.on("end", () => lock.release());
 // termine avec le code FAKE_VITEST_EXIT, ou attend un signal quand il vaut
 // `wait`.
 describe("npm test holding the bench lock", () => {
-  const FAKE_VITEST = `import { existsSync, readFileSync, writeFileSync } from "node:fs";
+  const FAKE_VITEST = `import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 const lock = process.env.FAKE_VITEST_LOCK;
 writeFileSync(process.env.FAKE_VITEST_SEEN, JSON.stringify({ pid: process.pid, args: process.argv.slice(2), lock: existsSync(lock) ? JSON.parse(readFileSync(lock, "utf8")) : null }));
 const exit = process.env.FAKE_VITEST_EXIT;
 if (exit === "wait") {
-  process.on("SIGINT", () => process.exit(130));
+  // Interrompu : chaque signal reçu est noté ; le premier lance un nettoyage
+  // d'une seconde, à la fin duquel le verrou du banc est relevé.
+  const log = (line) => appendFileSync(process.env.FAKE_VITEST_SIGNALS, line + "\\n");
+  let cleaning = false;
+  for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {
+    process.on(signal, () => {
+      log(signal);
+      if (cleaning) return;
+      cleaning = true;
+      setTimeout(() => {
+        log(\`cleaned lock=\${existsSync(lock) ? "held" : "free"}\`);
+        process.exit(130);
+      }, 1000);
+    });
+  }
   setInterval(() => {}, 1000);
 } else process.exit(Number(exit));
 `;
@@ -250,6 +264,7 @@ if (exit === "wait") {
     root: string;
     file: string;
     seen: string;
+    signals: string;
     env: NodeJS.ProcessEnv;
   }
 
@@ -264,7 +279,14 @@ if (exit === "wait") {
     const state = mkdtempSync(join(tmpdir(), "mb-state-"));
     const file = join(state, "migrabench", "bench-lock");
     const seen = join(root, "seen.json");
-    return { root, file, seen, env: { ...process.env, XDG_STATE_HOME: state, FAKE_VITEST_LOCK: file, FAKE_VITEST_SEEN: seen, FAKE_VITEST_EXIT: String(exit) } };
+    const signals = join(root, "signals.log");
+    return {
+      root,
+      file,
+      seen,
+      signals,
+      env: { ...process.env, XDG_STATE_HOME: state, FAKE_VITEST_LOCK: file, FAKE_VITEST_SEEN: seen, FAKE_VITEST_SIGNALS: signals, FAKE_VITEST_EXIT: String(exit) },
+    };
   }
 
   function npmTest({ root, env }: Repo, args: readonly string[] = []) {
@@ -332,31 +354,44 @@ if (exit === "wait") {
     expect(existsSync(copied.file)).toBe(false);
   });
 
-  // Ctrl+C, ou un signal envoyé au seul processus de `npm test` : Vitest est
-  // arrêté, puis le verrou du banc libéré. Pendant ce temps, les autres outils
-  // du banc sont refusés.
-  for (const signal of ["SIGINT", "SIGTERM"] as const) {
-    it(`refuses the bench tools until interrupted by ${signal}, then stops vitest and releases the bench lock`, async () => {
+  // Interruption. `npm test` est lancé dans son propre groupe de processus,
+  // comme un terminal lance une commande au premier plan : Ctrl+C envoie
+  // SIGINT à tout le groupe, et npm (run-script) le relaie aussi à son enfant.
+  // Vitest doit recevoir le signal une seule fois : un second SIGINT
+  // l'arrêterait au milieu de son nettoyage. Pendant ce temps, les autres
+  // outils du banc sont refusés, et le verrou du banc n'est libéré qu'après le
+  // nettoyage.
+  const interruptions: [name: string, signal: "SIGINT" | "SIGTERM", deliver: (pid: number, signal: NodeJS.Signals) => void][] = [
+    ["Ctrl+C in a terminal", "SIGINT", (pid, signal) => process.kill(-pid, signal)],
+    ["Ctrl+C under npm, which relays SIGINT", "SIGINT", (pid, signal) => (process.kill(-pid, signal), process.kill(pid, signal))],
+    ["SIGINT sent to npm test alone", "SIGINT", (pid, signal) => process.kill(pid, signal)],
+    ["SIGTERM sent to npm test alone", "SIGTERM", (pid, signal) => process.kill(pid, signal)],
+  ];
+  for (const [name, signal, deliver] of interruptions) {
+    it(`refuses the bench tools until interrupted by ${name}, then lets vitest clean up once and releases the bench lock`, async () => {
       const copied = repo("wait");
-      const npm = spawn(process.execPath, [join(copied.root, "scripts", "test.ts")], { cwd: copied.root, env: copied.env, stdio: "ignore" });
+      const npm = spawn(process.execPath, [join(copied.root, "scripts", "test.ts")], { cwd: copied.root, env: copied.env, stdio: "ignore", detached: true });
       holders.push(npm);
+      const pid = npm.pid ?? 0;
       const exited = new Promise<number | null>((resolve) => npm.once("exit", (code) => resolve(code)));
       for (let waited = 0; !existsSync(copied.seen); waited += 50) {
         if (waited > 10_000) throw new Error("vitest was not launched");
         await new Promise((resolve) => setTimeout(resolve, 50));
       }
-      const refused = acquireBenchLock({ file: copied.file, tool: "measure" });
-      expect(refused.ok).toBe(false);
-      if (!refused.ok) expect(refused.message).toContain(`The bench lock is held by test (PID ${npm.pid}`);
-
-      npm.kill(signal);
-
-      expect(await exited).not.toBe(0);
-      expect(existsSync(copied.file)).toBe(false);
       const vitest = readSeen(copied).pid;
-      const vitestAlive = spawnSync("ps", ["-p", String(vitest)]).status === 0;
-      if (vitestAlive) process.kill(vitest, "SIGKILL");
-      expect(vitestAlive).toBe(false);
+      try {
+        const refused = acquireBenchLock({ file: copied.file, tool: "measure" });
+        expect(refused.ok).toBe(false);
+        if (!refused.ok) expect(refused.message).toContain(`The bench lock is held by test (PID ${pid}`);
+
+        deliver(pid, signal);
+
+        expect(await exited).not.toBe(0);
+        expect(readFileSync(copied.signals, "utf8").trim().split("\n")).toEqual([signal, "cleaned lock=held"]);
+        expect(existsSync(copied.file)).toBe(false);
+      } finally {
+        if (spawnSync("ps", ["-p", String(vitest)]).status === 0) process.kill(vitest, "SIGKILL");
+      }
     });
   }
 });

@@ -117,17 +117,6 @@ export function acquireBenchLockOrExit(options: AcquireOptions): Extract<BenchLo
   return lock;
 }
 
-// État du verrou du banc, sans le prendre : libre, tenu, ou orphelin (il
-// serait repris).
-export type BenchLockState = { state: "free" } | { state: "held" | "orphan"; holder: BenchLockHolder };
-
-export function inspectBenchLock(file = BENCH_LOCK_FILE): BenchLockState {
-  const held = readText(file);
-  if (held === undefined) return { state: "free" };
-  const holder = parseHolder(file, held);
-  return { state: isOrphan(holder) ? "orphan" : "held", holder };
-}
-
 // Message de refus : l'outil, son processus et l'heure de prise.
 export function heldMessage({ tool, pid, startedAt, command, host, measureId, takenAt }: BenchLockHolder): string {
   const measure = measureId === undefined ? "" : `, measure ${measureId}`;
