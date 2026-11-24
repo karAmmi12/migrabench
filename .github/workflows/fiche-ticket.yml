@@ -45,12 +45,15 @@ jobs:
 
       # Commande dans package.json : c'est elle que rappelle un échec en local.
       - name: Récupération des têtes de PR
+        id: pull-heads
         if: ${{ !cancelled() }}
         run: npm run fetch:pull-heads
 
-      # Lancée même si la fiche manque : les deux manquements sont signalés ensemble.
+      # Lancée même si la fiche manque : les deux manquements sont signalés
+      # ensemble. Pas sans les têtes de PR : un commit cité y passerait pour
+      # inexistant.
       - name: Chaque case cochée chiffrée cite un état
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.pull-heads.outcome == 'success' }}
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: node scripts/check-test-plan-evidence.ts

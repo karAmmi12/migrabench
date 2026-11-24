@@ -149,7 +149,7 @@ describe("test plan evidence", () => {
 
     it("refuses an ambiguous abbreviated SHA and says so", () => {
       expect(refusedLines(line, () => "ambiguous")).toEqual([
-        { line, reason: "6253696 : SHA abrégé ambigu, il désigne plusieurs objets du dépôt" },
+        { line, reason: "6253696 : SHA abrégé ambigu, il désigne plusieurs commits du dépôt" },
       ]);
     });
 
@@ -172,6 +172,52 @@ describe("test plan evidence", () => {
   });
 
   describe("resolveShaWithGit", () => {
+    // Dépôt fabriqué : 2000 fichiers et 2000 commits au contenu fixe, donc aux
+    // SHA fixes. Parmi eux, des préfixes de 4 caractères partagés (Git en
+    // accepte dès 4), trouvés à l'exécution.
+    function collidingRepository(): { cwd: string; shared: (types: string[]) => string } {
+      const cwd = mkdtempSync(join(tmpdir(), "migrabench-evidence-"));
+      execFileSync("git", ["init", "--quiet", cwd]);
+      const stream: string[] = [];
+      for (let i = 0; i < 2000; i++) {
+        const data = `blob ${i}\n`;
+        stream.push("blob", `data ${Buffer.byteLength(data)}`, data);
+        const message = `commit ${i}\n`;
+        stream.push(
+          "commit refs/heads/main",
+          "committer Bench <bench@example.invalid> 0 +0000",
+          `data ${Buffer.byteLength(message)}`,
+          message,
+        );
+      }
+      execFileSync("git", ["fast-import", "--quiet"], { cwd, input: `${stream.join("\n")}\n` });
+      const objects = execFileSync("git", ["cat-file", "--batch-all-objects", "--batch-check=%(objectname) %(objecttype)"], {
+        cwd,
+        encoding: "utf8",
+      });
+      const byPrefix = new Map<string, string[]>();
+      for (const [name, type] of objects.trim().split("\n").map((line) => line.split(" ") as [string, string])) {
+        byPrefix.set(name.slice(0, 4), [...(byPrefix.get(name.slice(0, 4)) ?? []), type]);
+      }
+      return {
+        cwd,
+        shared: (types) => {
+          const prefix = [...byPrefix].find(([, found]) => [...found].sort().join() === [...types].sort().join())?.[0];
+          if (prefix === undefined) throw new Error(`aucun préfixe partagé par ${types.join(", ")}`);
+          return prefix;
+        },
+      };
+    }
+
+    it("tells a commit, a prefix shared by two commits and a prefix shared by no commit apart", () => {
+      const repository = collidingRepository();
+      const resolve = resolveShaWithGit(repository.cwd);
+      // ^{commit} désigne le seul commit d'un préfixe partagé avec un fichier.
+      expect(resolve(repository.shared(["commit", "blob"]))).toBe("commit");
+      expect(resolve(repository.shared(["commit", "commit"]))).toBe("ambiguous");
+      expect(resolve(repository.shared(["blob", "blob"]))).toBe("missing");
+    });
+
     it("cannot check a commit outside a repository", () => {
       expect(resolveShaWithGit(mkdtempSync(join(tmpdir(), "migrabench-evidence-")))("6253696")).toBe("unavailable");
     });
@@ -185,7 +231,7 @@ describe("test plan evidence", () => {
     });
   });
 
-  it("does not take a SHA written in prose without context for a candidate", () => {
+  it("does not count a SHA written in prose without context", () => {
     expect(uncitedLines("- [x] 143 tests (head 6253696)", () => "commit")).toEqual(["- [x] 143 tests (head 6253696)"]);
   });
 
