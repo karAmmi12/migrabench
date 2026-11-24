@@ -113,7 +113,9 @@ altère une page.
   legacy est celui de Tomcat par défaut, et Tomcat 9 rend par défaut des
   redirections relatives. Le test n'en suppose donc pas la forme : il exige
   l'origine du relais après résolution, puis suit la redirection.
-  > À vérifier : la forme observée du `Location` dans le log de la CI.
+  Le Seam A est vert en CI, mais son log ne montre pas la forme du
+  `Location`.
+  > À vérifier : la forme réelle du `Location` (absolue ou relative).
 - **`captureResponse` avec `node:http`** plutôt que `fetch`, pour garder les
   en-têtes bruts et le corps non décodé (voir « Notions »).
 
@@ -183,9 +185,26 @@ Avec la pile (`docker compose up -d --build --wait`, verrou du banc libre) :
 npx vitest run tests/seam-a/reference-relay.test.ts
 ```
 
-> À vérifier après l'exécution de la CI de la PR : le résultat du fichier
-`tests/seam-a/reference-relay.test.ts` dans le job « Tests », avec le lien
-de l'exécution et son head SHA.
+Observé en CI, dans le job « Tests » de
+https://github.com/karAmmi12/migrabench/actions/runs/45404468177 (tête de la
+PR `ae0f74f`, du 24/11/2026 13:32:23Z au 13:35:33Z, soit 3 min 10 s) :
+`tests/seam-a/reference-relay.test.ts (20 tests)` vert, et pour toute la
+suite `Test Files 62 passed (62)`, `Tests 534 passed (534)`.
+
+Ces tests ne passent que si les hypothèses de la session tiennent sur la
+vraie pile :
+- chaque page sert des liens avec `;jsessionid=`, et chaque valeur a le
+  format exact supposé ;
+- `/recherche.do` pose un cookie de session ;
+- le `Location` de `/enregistrer.do` se résout vers l'origine du relais.
+
+Le log ne montre ni la valeur ni la forme du `Location` : seulement que les
+assertions passent.
+
+Avec `D-0117` ajouté au jeu de données, l'oracle reste à 38 scénarios
+réussis sur 38, et « Proof holds on 5 results », dans
+https://github.com/karAmmi12/migrabench/actions/runs/45404468385, sur la
+même tête.
 
 ```sh
 curl -s -u <utilisateur>:<mot de passe> http://localhost:8080/recherche.do -D - | grep -io 'set-cookie: [^;]*\|;jsessionid=[^?"]*'
