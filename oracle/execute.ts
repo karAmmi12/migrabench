@@ -161,6 +161,9 @@ async function launch({ baseUrl, salt, metadata, outputDir, reportFile }: Prepar
     inherit: true,
     logFile: log,
     allowFailure: true,
+    // Lancé par le runner, Playwright a son propre groupe de processus, que
+    // l'interruption de la mesure arrête en entier (#71).
+    processGroup: true,
   });
   try {
     return await readFile(reportFile, "utf8");

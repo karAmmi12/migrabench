@@ -82,7 +82,4 @@ console.log(values.counted === true ? "Planned to count: written under results/c
 if (salt !== undefined) console.log("Salt imposed: diagnostic measure.");
 if (timeoutCap !== undefined) console.log(`Timeout cap imposed (${timeoutCap} ms): diagnostic measure.`);
 console.log("The stack now runs with this measure's salt: run `npm run stack:up` before `npm test`.");
-// Mesure interrompue (#71) : une commande arrêtée qui tarderait à finir ne
-// retient pas le processus.
-if (result.outcome.reason === "interrupted") process.exit(result.exitCode);
 process.exitCode = result.exitCode;

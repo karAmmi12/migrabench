@@ -17,7 +17,7 @@ import { cp, mkdir, readdir, readFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { citedFileSha256 as digestOf } from "../shared/digest.ts";
 import { spawnCommand } from "../shared/process.ts";
-import { type BuildStep, buildStepOutcome, type BuildStepOutcome, type BuildStepRun } from "./build-outcome.ts";
+import { BUILD_STEPS, type BuildStep, buildStepOutcome, type BuildStepOutcome, type BuildStepRun } from "./build-outcome.ts";
 import { isFetchedWith } from "./candidate-content.ts";
 import { type ContainerUser, dockerUser } from "./container-user.ts";
 import type { Limits } from "./limits.ts";
@@ -127,15 +127,14 @@ export async function buildCandidate({ measureId, image, user, rawDir, copyDir, 
 }
 
 // Conteneur d'une étape de la construction, nommé par la mesure.
-export function buildContainer(measureId: string, step: BuildStep): string {
+function buildContainer(measureId: string, step: BuildStep): string {
   return `migrabench-${measureId}-${step}`;
 }
 
 // Supprime les conteneurs de la construction d'une mesure interrompue (#71) :
 // `docker run`, interrompu, peut laisser le sien en marche.
 export async function removeBuildContainers(measureId: string): Promise<void> {
-  const steps: BuildStep[] = ["fetch", "install", "build"];
-  await spawnCommand("docker", ["rm", "--force", ...steps.map((step) => buildContainer(measureId, step))], { allowFailure: true });
+  await spawnCommand("docker", ["rm", "--force", ...BUILD_STEPS.map((step) => buildContainer(measureId, step))], { allowFailure: true });
 }
 
 async function usageOf(dir: string): Promise<ResourceUsage> {

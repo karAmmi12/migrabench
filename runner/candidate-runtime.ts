@@ -125,7 +125,17 @@ export function candidateContainer({ compose }: Pick<CandidateService, "compose"
 }
 
 // Ajoute les sorties du conteneur au brut de `start`, puis le supprime.
-export async function stopCandidate({ compose, startLog }: CandidateService): Promise<void> {
+// `immediately` : mesure interrompue (#71), le conteneur est tué sans
+// attendre son délai d'arrêt.
+export async function stopCandidate({ compose, startLog }: CandidateService, { immediately = false } = {}): Promise<void> {
   await spawnCommand("docker", [...compose, "logs", "--no-color", "--timestamps", "candidate"], { logFile: startLog, allowFailure: true });
+  if (immediately) return removeCandidate({ compose });
+  await spawnCommand("docker", [...compose, "rm", "--stop", "--force", "candidate"]);
+}
+
+// Tue et supprime le conteneur du service `candidate`, sans relever ses
+// sorties : après une clôture abrégée, le brut de `start` est déjà cité (#71).
+export async function removeCandidate({ compose }: Pick<CandidateService, "compose">): Promise<void> {
+  await spawnCommand("docker", [...compose, "kill", "candidate"], { allowFailure: true });
   await spawnCommand("docker", [...compose, "rm", "--stop", "--force", "candidate"]);
 }
