@@ -206,8 +206,26 @@ puis `Test Files  72 passed (72)` et `Tests  638 passed | 1 skipped (639)`.
 - **`npx vitest` direct** ne prend pas le verrou du banc. Seul le marqueur du
   Seam A (#67) rend alors invalide une mesure qu'il croise.
 - **Vitest hors du groupe de premier plan** : il ne reçoit plus Ctrl+Z ni
-  Ctrl+\ du terminal. Un terminal réglé avec `stty tostop` suspendrait son
-  affichage.
-  > À vérifier : effet de `stty tostop`, non observé pendant la session.
+  Ctrl+\ du terminal.
+- **`stty tostop` ne suspend pas Vitest**, observé au commit `93bc2b3`.
+  `tostop`, désactivé par défaut, suspend (`SIGTTOU`) un processus en
+  arrière-plan qui écrit sur son terminal de contrôle. Or `detached: true`
+  ne fait pas que changer de groupe : il ouvre une nouvelle session
+  (`setsid`). Vitest n'a donc plus de terminal de contrôle, et `tostop` ne le
+  concerne pas. Commande, dans un pseudo-terminal créé par `script`, limitée
+  à 60 s :
+
+  ```sh
+  perl -e 'alarm 60; exec @ARGV' script -q /dev/null bash -c 'stty tostop; stty -a | grep -o "[-]*tostop"; npm test -- tests/bench-lock.test.ts; echo "EXIT=$?"; stty -tostop; stty -a | grep -o "[-]*tostop"' < /dev/null
+  ```
+
+  Observé : `tostop` actif, puis `Tests  25 passed (25)`, `EXIT=0` au bout de
+  7 s, puis `-tostop`. Un `ps` relevé à 3 s montre `node scripts/test.ts` au
+  premier plan du pseudo-terminal (`S+`, `ttys001`), et Vitest chef de sa
+  propre session, sans terminal (`Ss`, `??`). Témoin dans le même
+  pseudo-terminal, pour montrer que `tostop` y agit : avec `set -m`, un job
+  `(sleep 1; echo …) &` est relevé à 3 s dans l'état `T` (suspendu), sans
+  avoir rien écrit. Le même essai sur `tests/check-node-version.test.ts`
+  finit aussi normalement : `Tests  7 passed (7)`, `EXIT=0`.
 - Spec de l'étape 3, section « Verrou du banc » :
   `docs/specs/03-candidate-runner.md`.
