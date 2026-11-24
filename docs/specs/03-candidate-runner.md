@@ -387,8 +387,14 @@ le candidat tourne ensuite (voir les règles des issues).
 
 `PROTOCOL.md` cite le verrou du banc ; cette section le décrit.
 
-- Un fichier à la racine du dépôt, ignoré par Git, créé de façon exclusive.
-  Il contient l'outil (`measure`, `oracle`, `stack-up`), le PID du
+- Un fichier du dossier d'état de l'utilisateur, créé de façon exclusive :
+  `$XDG_STATE_HOME/migrabench/bench-lock`, ou
+  `~/.local/state/migrabench/bench-lock` quand `XDG_STATE_HOME` n'est pas un
+  chemin absolu. Le dossier est créé s'il manque. Le fichier est hors du
+  dépôt, car la pile (projet Compose `migrabench`, ports de l'hôte) est
+  commune à toute la machine : tous les worktrees et tous les clones du dépôt
+  voient le même verrou du banc (#92). Chaque refus donne son chemin. Il
+  contient l'outil (`measure`, `oracle`, `stack-up`), le PID du
   processus qui le tient, l'heure de démarrage de ce processus, sa ligne de
   commande, la machine, l'identifiant de la mesure s'il y en a un et l'heure
   de prise.
