@@ -154,9 +154,33 @@ pas citée.
   - Symptôme : avec `recreateStack` en `up --build`, deux `docker compose
     build legacy archive` de suite, en cache, ont rendu `sha256:b5c20c28…`
     puis `sha256:5c10cb68…` pour le legacy, avec la même date de création.
-  - Cause : non établie. La session n'a pas cherché plus loin.
-    > À vérifier : cause du changement d'identifiant (attestations de
-    > construction, stockage d'images de containerd ?), non étudiée.
+  - Cause, établie après la PR au commit `4ce6633`, arbre propre : les
+    attestations de provenance que BuildKit ajoute par défaut. Le démon
+    utilise le stockage d'images de containerd (`docker info` :
+    `Storage Driver: overlayfs`, `driver-type:
+    io.containerd.snapshotter.v1`, serveur 29.1.3). L'identifiant d'une
+    image y est alors l'empreinte d'un index, qui contient le manifeste de
+    la plateforme et le manifeste de l'attestation, horodatée à chaque
+    construction. Relevé, avec les variables de
+    `scripts/stack-context-env.ts` :
+
+    ```sh
+    export $(node scripts/stack-context-env.ts)
+    docker compose build legacy && docker image inspect -f '{{.Id}}' migrabench-legacy   # deux fois
+    BUILDX_NO_DEFAULT_ATTESTATIONS=1 docker compose build legacy && docker image inspect -f '{{.Id}}' migrabench-legacy   # deux fois
+    docker image ls --tree --all migrabench-legacy
+    ```
+
+    - Deux constructions normales, en cache : `sha256:7dcadc53…`, puis
+      `sha256:9417c0f7…`.
+    - Deux constructions avec `BUILDX_NO_DEFAULT_ATTESTATIONS=1` :
+      `sha256:e3691099…` les deux fois. L'identifiant est alors celui du
+      manifeste lui-même (`docker image ls --tree` : `e3691099e744` en tête
+      comme pour `linux/arm64`).
+    - Deux autres constructions normales : l'identifiant de tête change
+      (`8e0bf8754688`, puis `c76503f30c7e`), mais le manifeste
+      `linux/arm64` reste `a6ec60b22f8b`. Seul l'index qui porte
+      l'attestation change.
   - Résolution : la reconstruction est abandonnée au profit de la
     vérification (voir les choix).
 - **`No such image` dans `npm test`.**
@@ -269,6 +293,12 @@ CI de la PR #105, au commit `5e187e6` (head SHA
 - **#97 (provenance des mesures comptées)** : `imageContexts` relie les
   images aux fichiers d'une copie propre. Une mesure comptée pourrait exiger
   ce lien.
+- **Reconstruire sans attestation** : avec `BUILDX_NO_DEFAULT_ATTESTATIONS=1`,
+  une reconstruction en cache rend le même identifiant d'image (voir les
+  difficultés). Une mesure pourrait alors reconstruire la pile depuis sa
+  copie sans casser `images` dans les preuves de l'oracle. Ce n'est pas
+  appliqué dans ce ticket : à étudier, sur la CI aussi, qui n'a pas été
+  testée.
 - **Limite connue** : l'empreinte couvre aussi des fichiers que les images
   n'utilisent pas (documentation, tests). Une modification de ces fichiers
   demande un `npm run stack:up` avant de mesurer. C'est volontaire (voir les
