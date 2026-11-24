@@ -279,9 +279,12 @@ Les quatre cas, au commit `60f4608` :
 - `install` dont l'état est inconnu : `stack-down-while-candidate`, code 0 ;
 - erreur à la recréation de la pile : `stack-down-while-candidate`, code 0.
 
-> À vérifier après l'exécution de la CI de la PR : jobs « Tests du banc »,
-> « Fiche de formation » et « Étalonnage » : lien de chaque exécution, head
-> SHA, nombre de tests, durée.
+Sur la CI de la PR #106 (head 524606f), tous les jobs sont passés :
+
+- « Tests du banc » : `Test Files 78 passed (78)`, `Tests 675 passed | 1 skipped (676)`, de 21:28:16Z à 21:32:16Z, https://github.com/karAmmi12/migrabench/actions/runs/45491414388 ;
+- « Fiche de formation » : « Fiche trouvée pour #68. » et « Chaque case cochée chiffrée cite un état. », https://github.com/karAmmi12/migrabench/actions/runs/45491414417 ;
+- « Étalonnage » : `Calibration: results/calibration/20261124T212950Z-524606f-ci45491414350.1-1.json`, de 21:28:16Z à 21:32:36Z, https://github.com/karAmmi12/migrabench/actions/runs/45491414350 ;
+- « Oracle » : « Proof holds on 5 results. », de 21:28:16Z à 21:36:00Z, https://github.com/karAmmi12/migrabench/actions/runs/45491414214.
 
 ## Pour aller plus loin
 
