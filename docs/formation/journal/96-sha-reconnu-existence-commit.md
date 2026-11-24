@@ -68,7 +68,8 @@ phrase sur `fetch-depth: 0`.
   s'il restait). Un code en ligne qui n'est qu'un SHA devient `SHA <jeton>`
   dans la prose.
 - **`scripts/check-test-plan-evidence.ts`** : chaque annotation `::error::`
-  donne la raison, puis recopie la ligne.
+  donne la raison, puis recopie la ligne. `tests/check-test-plan-evidence.test.ts`
+  lance le script et attend ces annotations, raison comprise.
 - **`.github/workflows/fiche-ticket.yml`** : le checkout prend l'historique
   complet (`fetch-depth: 0`), puis le pas « Récupération des têtes de PR »
   lance `npm run fetch:pull-heads`. Le contrôle des preuves ne tourne que si
@@ -182,13 +183,27 @@ phrase sur `fetch-depth: 0`.
     commit, and names that SHA » a d'abord été rouge (`Tests  1 failed | 27
     passed (28)`), puis vert après le correctif (`bd3c0d4`).
 
+- **Un test du script oublié, vu seulement par la CI.**
+  - Symptôme : le job `tests` de la PR a échoué
+    ([exécution 45417193370](https://github.com/karAmmi12/migrabench/actions/runs/45417193370),
+    tête `3040146`) : `tests/check-test-plan-evidence.test.ts`, « fails with
+    one ::error:: annotation per uncited line, copying the line »,
+    `Tests  1 failed | 551 passed (552)`.
+  - Cause : ce test attendait l'ancien texte de l'annotation (« Case cochée
+    chiffrée sans état … »). Seuls les deux fichiers de test de
+    `test-plan-evidence.ts` et de `pr-body.ts` avaient été lancés en local, et
+    la recherche des appelants avait porté sur `uncitedLines`, que ce test
+    n'appelle pas : il lance le script.
+  - Résolution : le test attend la raison dans chaque annotation, avec une
+    ligne de plus au commit inexistant `deadbeef` (`58403da`).
+
 ## Vérifier soi-même
 
 ```sh
-npx vitest run tests/test-plan-evidence.test.ts tests/pr-body.test.ts
+npx vitest run tests/check-test-plan-evidence.test.ts tests/test-plan-evidence.test.ts tests/pr-body.test.ts
 ```
 
-Observé sur `bd3c0d4` : `Test Files  2 passed (2)`, `Tests  32 passed (32)`.
+Observé sur `58403da` : `Test Files  3 passed (3)`, `Tests  35 passed (35)`.
 Les deux cas réels exigent les têtes de PR : sinon le test le dit et demande
 `npm run fetch:pull-heads`.
 
@@ -215,15 +230,29 @@ exit 1
 La première ligne, qui cite `6253696` seul, passe.
 
 **Sur la CI de la PR** (workflow « Fiche de formation », job `fiche-ticket`) :
+[exécution 45417886204](https://github.com/karAmmi12/migrabench/actions/runs/45417886204),
+tête `58403da`, 14 s (`startedAt` 14:46:42, `updatedAt` 14:46:56). Le pas
+« Récupération des têtes de PR » réussit et récupère les `refs/pull/*/head`.
+Puis le contrôle accepte le plan de test de sa propre PR :
 
-> À vérifier après l'exécution de la CI de la PR : le lien de l'exécution, son
-> head SHA, la réussite du pas « Récupération des têtes de PR » et la sortie
-> du pas « Chaque case cochée chiffrée cite un état ».
+```text
+Chaque case cochée chiffrée cite un état.
+```
 
-**Sur la CI de la PR** (workflow « Tests du banc », job `tests`) :
+**Sur la CI de la PR** (workflow « Tests du banc », job `tests`, avec la
+pile) : [exécution 45417886312](https://github.com/karAmmi12/migrabench/actions/runs/45417886312),
+tête `58403da` :
 
-> À vérifier après l'exécution de la CI de la PR : le lien de l'exécution, son
-> head SHA, et les lignes `tests/test-plan-evidence.test.ts` et `Tests … passed`.
+```text
+✓  default  tests/test-plan-evidence.test.ts (28 tests)
+✓  default  tests/check-test-plan-evidence.test.ts (3 tests)
+✓  default  tests/pr-body.test.ts (4 tests)
+Test Files  62 passed (62)
+     Tests  552 passed (552)
+```
+
+Les deux cas réels, `6253696` et `bcccdea`, y sont donc joignables : le job
+récupère l'historique complet et les têtes de PR.
 
 ## Pour aller plus loin
 
