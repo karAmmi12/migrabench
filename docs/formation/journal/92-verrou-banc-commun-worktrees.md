@@ -191,8 +191,16 @@ Observé sur `942c9a8` : `Test Files  60 passed (60)`, `Tests  501 passed (501)`
    L'oracle se termine : `Scenarios: 38, passed: 38, failed: 0, unreached: 0`.
    Ensuite, `npm run stack:up` remet la pile au sel de développement.
 
-> À vérifier après l'exécution de la CI de la PR : lien de l'exécution
-> « Tests du banc », head SHA, nombre de fichiers et de tests du job `tests`.
+**Sur la CI de la PR** (workflow « Tests du banc », job `tests`, avec la
+pile) : [exécution 45409105683](https://github.com/karAmmi12/migrabench/actions/runs/45409105683),
+tête `31b5022`. Le `pretest` passe, puis :
+
+```text
+✓  bench-tools  tests/runner/bench-lock-tools.test.ts (6 tests)
+✓  default  tests/bench-lock.test.ts (19 tests)
+Test Files  60 passed (60)
+     Tests  501 passed (501)
+```
 
 ## Pour aller plus loin
 
