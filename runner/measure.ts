@@ -15,12 +15,12 @@
 // Le journal d'accès, le marqueur et les requêtes témoins viennent de #67
 // (runner/access-log.ts, runner/witness.ts).
 import { randomBytes } from "node:crypto";
-import { mkdir, stat, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { executeOracle, type ExecuteOracleResult, listOracle } from "../oracle/execute.ts";
 import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
-import { type AccessLogCheck, checkAccessLog } from "./access-log.ts";
-import { ACCESS_LOG_FILE, sendWitness, type WitnessResult } from "./witness.ts";
+import { checkAccessLog } from "./access-log.ts";
+import { closeAccessLog, sendWitness, witnessEvidence } from "./witness.ts";
 import { readSeamAMarkers } from "../shared/seam-a-marker.ts";
 import { contentDigest } from "./candidate-content.ts";
 import { contractPhase, type ContractPhaseResult } from "./contract-phase.ts";
@@ -230,7 +230,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
             // Requête témoin de début, pile saine et candidat arrêté.
             const name = `start-${startWitnesses.length + 1}`;
             startWitnesses.push(name);
-            const witness = await sendWitness(accessLogDir, marker, name);
+            const witness = await sendWitness(name, { accessLogDir, marker });
             const check = checkAccessLog({ log: witness.log, marker, expected: startWitnesses, seamAMarkers: [] });
             if (check.outcome === "access-log-inactive") {
               startOutcome = check.outcome;
@@ -272,21 +272,9 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
   let accessLog: AccessLogRecord | undefined;
   if (startWitnesses.length === 0) closeClosing();
   else {
-    const witness = await sendWitness(accessLogDir, marker, "end");
-    const check = checkAccessLog({ log: witness.log, marker, expected: [...startWitnesses, "end"], seamAMarkers: readSeamAMarkers() });
-    const raw: Record<string, string> = {};
-    if (await isFile(join(accessLogDir, ACCESS_LOG_FILE))) {
-      // Le legacy reste en marche après la mesure et continue d'écrire dans
-      // son journal (healthcheck) : le brut cité est le journal tel que
-      // contrôlé, figé à la clôture.
-      const closedLog = join(rawDir, ACCESS_LOG_FILE);
-      await writeFile(closedLog, witness.log);
-      const log = await digestOf(closedLog);
-      raw[ACCESS_LOG_FILE] = log;
-      accessLog = { log, lines: check.lines, witnesses: check.witnesses };
-    }
-    if (check.outcome === "ok") closeClosing("ok", raw);
-    else closeClosing(check.outcome, raw, witnessEvidence(witness, check));
+    const closed = await closeAccessLog({ accessLogDir, marker, rawDir, startWitnesses, seamAMarkers: readSeamAMarkers() });
+    accessLog = closed.accessLog;
+    closeClosing(closed.outcome, closed.raw, closed.detail);
   }
   const startPhase = phases.find(({ name }) => name === "start");
   if (startPhase !== undefined && service !== undefined) startPhase.raw["start.log"] = await digestOf(service.startLog);
@@ -325,20 +313,6 @@ class CandidateNotStarted extends Error {
   constructor(outcome: PhaseOutcome<"start">, detail?: string) {
     super(`The candidate did not start: ${outcome}`);
     this.detail = detail;
-  }
-}
-
-// Preuve d'un journal d'accès en défaut : l'échec de l'envoi de la requête
-// témoin, s'il y en a eu un, puis les lignes du journal.
-function witnessEvidence(witness: WitnessResult, check: Exclude<AccessLogCheck, { outcome: "ok" }>): string {
-  return witness.error === undefined ? check.evidence : `${witness.error}\n${check.evidence}`;
-}
-
-async function isFile(path: string): Promise<boolean> {
-  try {
-    return (await stat(path)).isFile();
-  } catch {
-    return false;
   }
 }
 
