@@ -38,6 +38,9 @@ export interface BuildInput {
   limits: Limits;
   // Relève les ressources de chaque étape (`migrabench calibrate` seulement).
   collectUsage?: boolean;
+  // Appelé juste avant le lancement du conteneur de `fetch`, celui de `npm ci` :
+  // une erreur imprévue du runner levée avant reste invalide (#68).
+  onNpmCiLaunch?: () => void;
 }
 
 export interface BuildResult {
@@ -59,7 +62,7 @@ const USAGE = "/usage";
 // code de sortie de la commande est rendu tel quel.
 const USAGE_WRAPPER = `sh -c "$0"; status=$?; cat /sys/fs/cgroup/memory.peak > ${USAGE}/memory.peak; cat /sys/fs/cgroup/cpu.stat > ${USAGE}/cpu.stat; exit $status`;
 
-export async function buildCandidate({ measureId, image, user, rawDir, copyDir, build, limits, collectUsage = false }: BuildInput): Promise<BuildResult> {
+export async function buildCandidate({ measureId, image, user, rawDir, copyDir, build, limits, collectUsage = false, onNpmCiLaunch }: BuildInput): Promise<BuildResult> {
   const startedAt = Date.now();
   const deadline = startedAt + limits.buildTimeoutMs;
   const raw: Record<string, string> = {};
@@ -81,6 +84,7 @@ export async function buildCandidate({ measureId, image, user, rawDir, copyDir, 
     await mkdir(npmLogs, { recursive: true });
     const usageDir = join(rawDir, "usage", step);
     if (collectUsage) await mkdir(usageDir, { recursive: true });
+    if (step === "fetch") onNpmCiLaunch?.();
     const stepStartedAt = Date.now();
     const run = await runStep({
       container: `migrabench-${measureId}-${step}`,

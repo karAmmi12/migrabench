@@ -134,13 +134,14 @@ export async function stackStates(): Promise<ServiceState[]> {
 }
 
 // Sorties de chaque service nommé, ajoutées aux bruts (`stack/<service>.log`) :
-// rend leurs empreintes, par leur chemin dans `rawDir`.
+// rend leurs empreintes, par leur chemin dans `rawDir`. Un relevé en échec
+// n'empêche pas l'issue qu'il accompagne : le brut garde le message.
 export async function saveServiceLogs(rawDir: string, services: readonly StackService[]): Promise<Record<string, string>> {
   const raw: Record<string, string> = {};
   await mkdir(join(rawDir, "stack"), { recursive: true });
   for (const service of services) {
     const path = `stack/${service}.log`;
-    await spawnCommand("docker", ["compose", "logs", "--no-color", "--timestamps", service], { logFile: join(rawDir, path) });
+    await spawnCommand("docker", ["compose", "logs", "--no-color", "--timestamps", service], { logFile: join(rawDir, path), allowFailure: true });
     raw[path] = await digestOf(join(rawDir, path));
   }
   return raw;

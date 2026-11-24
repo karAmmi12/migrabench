@@ -272,10 +272,8 @@ Règles des issues :
   imprévue du runner est comptée comme une panne pendant que le candidat
   tourne (`stack-down-while-candidate`, avec l'erreur en détail).
   Précisions de #68 :
-  - l'erreur est rangée dans la phase en cours ; la construction compte
-    comme lancée dès son ouverture, même si l'erreur précède de peu le
-    conteneur de `npm ci` : dans le doute, l'erreur est comptée contre le
-    candidat (règle 7) ;
+  - l'erreur est rangée dans la phase en cours ; `npm ci` compte comme
+    lancé dès que le runner lance le conteneur de `fetch` ;
   - un `docker run` de la construction dont Docker n'a jamais démarré le
     conteneur (conteneur absent ou `State.StartedAt` à zéro, code `125` en
     général : image absente, démon injoignable) est une erreur du banc. Pour
@@ -342,14 +340,16 @@ Règles des issues :
   d'être recréée et saine, candidat arrêté : un service est tombé s'il n'a
   plus de conteneur, si son conteneur a été remplacé, s'il ne tourne plus,
   s'il a redémarré (démarrage ou nombre de redémarrages changés), ou s'il
-  n'est pas sain. Une `oracle-error` de la même exécution passe devant (#68).
+  n'est pas sain. Elle passe devant une `oracle-error` de la même
+  exécution, que le candidat a pu provoquer en faisant tomber la pile (#68).
 - **`oracle-error`** : erreur de Playwright hors scénario (configuration,
   chargement des fichiers). Un scénario qui échoue n'est jamais une erreur
   de l'oracle. Deux formes : des erreurs dans le rapport de Playwright, ou
   pas de rapport du tout (configuration qui ne se charge pas) ; dans ce
-  second cas, la fin des sorties de Playwright est la preuve, et ses
-  sorties un brut (`oracle-playwright.log`, à côté du dossier `oracle/`, que Playwright vide à son démarrage), et `oracle.executed` est
-  `false`, sans compte des scénarios (#68).
+  second cas, la fin des sorties de Playwright est la preuve, ses sorties
+  sont un brut (`oracle-playwright.log`, à côté du dossier `oracle/`, que
+  Playwright vide à son démarrage), et `oracle.executed` est `false`, sans
+  compte des scénarios (#68).
 - **Candidat qui s'arrête pendant l'oracle** : pas d'issue propre. Les
   scénarios échouent ou ne sont pas atteints, et la mesure est complète.
 - **Oracle non lancé** : si la mesure s'arrête avant la phase 5, le résultat

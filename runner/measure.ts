@@ -30,7 +30,7 @@ import { contentDigest } from "./candidate-content.ts";
 import { contractPhase, type ContractPhaseResult } from "./contract-phase.ts";
 import { candidateName, measureId as measureIdOf } from "./measure-id.ts";
 import { type AccessLogRecord, type CandidateRecord, measureRecord, type OracleRecord } from "./measure-record.ts";
-import type { ExitCode, PhaseName, PhaseOutcome, PhaseRecord, Verdict } from "./verdict.ts";
+import type { ExitCode, PhaseName, PhaseOutcome, PhaseRecord, RunnerErrorOutcome, Verdict } from "./verdict.ts";
 import { citedFileSha256 as digestOf } from "../shared/digest.ts";
 import { acquireBenchLock, type TakenOver } from "../shared/bench-lock.ts";
 import { spawnCommand, stdoutOf } from "../shared/process.ts";
@@ -153,10 +153,9 @@ interface MeasureContext {
 //
 // Erreurs imprévues du runner (#68) : une fois le dossier de la mesure créé,
 // toute erreur est rangée dans la phase en cours, avec l'erreur en détail.
-// Avant la construction, aucun code du candidat n'a tourné :
-// `runner-error-before-candidate`, invalide. Dès la construction (lancement
-// de `npm ci`), `stack-down-while-candidate`, comptée contre le candidat
-// (règle 7). La clôture tourne toujours. Avant le dossier de la mesure, ou si
+// Avant le lancement de `npm ci`, aucun code du candidat n'a tourné :
+// `runner-error-before-candidate`, invalide. Ensuite,
+// `stack-down-while-candidate`, comptée contre le candidat (règle 7). La clôture tourne toujours. Avant le dossier de la mesure, ou si
 // measure.json ne peut pas être écrit, l'erreur reste un plantage (code 1).
 async function measure({ candidate, candidateDir, salt, limits, limitsRecord, startedAt, benchCommit, id, lockRecord, counted }: MeasureContext): Promise<MeasureResult> {
   const phases: PhaseRecord[] = [];
@@ -164,6 +163,9 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
   const phase = tracker.open;
   // Erreur levée hors de toute phase ouverte : rangée dans la clôture.
   let unplaced: string | undefined;
+  // Le conteneur de `npm ci` (`fetch`) a été lancé : une erreur imprévue est
+  // ensuite comptée contre le candidat.
+  let npmCiLaunched = false;
 
   // 1. Préparation. Les fichiers du candidat sont relevés avant le dossier de
   // la mesure : un lien symbolique, ou un fichier illisible, vient du
@@ -231,7 +233,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     // 3. Construction : `npm ci` puis `build`, sans mb-internal ni variable du
     // banc, sous le délai global et les limites (runner/build.ts).
     const closeBuild = phase("build");
-    const build = await buildCandidate({ measureId: id, image: RUNTIME_IMAGE, user: containerUserOfRunner, rawDir, copyDir, build: buildCommand, limits });
+    const build = await buildCandidate({ measureId: id, image: RUNTIME_IMAGE, user: containerUserOfRunner, rawDir, copyDir, build: buildCommand, limits, onNpmCiLaunch: () => (npmCiLaunched = true) });
     if (build.outcome.outcome !== "ok") return void closeBuild(build.outcome.outcome, build.raw, build.outcome.detail);
     closeBuild("ok", build.raw);
 
@@ -292,11 +294,12 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     oracleMetadata = result.metadata;
     oracle = { executed: true, result: await digestOf(result.resultFile), summary: result.summary };
     // Service tombé pendant que le candidat tournait : le résultat de
-    // l'oracle est gardé. Une erreur de l'oracle passe devant : le banc
-    // lui-même était en défaut.
+    // l'oracle est gardé. La panne passe devant une erreur de l'oracle de la
+    // même exécution, que le candidat a pu provoquer en la faisant tomber :
+    // invalider la mesure lui offrirait une seconde chance (règle 7).
     const down = stackDown(stackBefore, await stackStates());
-    if (result.errors > 0) closeOracle?.("oracle-error", {}, result.errorMessages.join("\n"));
-    else if (down !== undefined) closeOracle?.("stack-down-while-candidate", await saveServiceLogs(rawDir, down.services), down.detail);
+    if (down !== undefined) closeOracle?.("stack-down-while-candidate", await saveServiceLogs(rawDir, down.services), down.detail);
+    else if (result.errors > 0) closeOracle?.("oracle-error", {}, result.errorMessages.join("\n"));
     else closeOracle?.();
     const closeGates = phase("gates");
     closeGates();
@@ -306,7 +309,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
   } catch (error) {
     const current = tracker.current();
     if (current === undefined) unplaced = describeError(error);
-    else current.close(runnerErrorOutcome(phases, current.name), {}, describeError(error));
+    else current.close(runnerErrorOutcome(npmCiLaunched), {}, describeError(error));
   }
 
   // 7. Clôture : arrêt du candidat, compte des scénarios si l'oracle n'a pas
@@ -318,7 +321,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     if (service !== undefined) await stopCandidate(service);
     // Oracle non lancé : le compte des scénarios, tous non atteints.
     oracle ??= { executed: false, summary: await listOracle(`${ARTIFACTS_DIR_FROM_ROOT}/${id}/oracle`) };
-    if (unplaced !== undefined) closeClosing(runnerErrorOutcome(phases, "closing"), {}, unplaced);
+    if (unplaced !== undefined) closeClosing(runnerErrorOutcome(npmCiLaunched), {}, unplaced);
     else if (startWitnesses.length === 0) closeClosing();
     else {
       const closed = await closeAccessLog({ accessLogDir, marker, rawDir, startWitnesses, seamAMarkers: readSeamAMarkers() });
@@ -327,7 +330,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     }
   } catch (error) {
     oracle ??= { executed: false };
-    closeClosing(runnerErrorOutcome(phases, "closing"), {}, describeError(error));
+    closeClosing(runnerErrorOutcome(npmCiLaunched), {}, describeError(error));
   }
   const startPhase = phases.find(({ name }) => name === "start");
   if (startPhase !== undefined && service !== undefined && (await isFile(service.startLog))) startPhase.raw["start.log"] = await digestOf(service.startLog);
@@ -359,12 +362,11 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
   return { written: true, measureDir, outcome: record.verdict, exitCode };
 }
 
-// Issue d'une erreur imprévue du runner (#68) : avant la construction, aucun
-// code du candidat n'a tourné ; dès son ouverture (`npm ci`), une panne
-// pendant que le candidat tourne.
-function runnerErrorOutcome(phases: readonly PhaseRecord[], current: PhaseName): "runner-error-before-candidate" | "stack-down-while-candidate" {
-  const launched = current === "build" || current === "start" || current === "oracle" || phases.some(({ name }) => name === "build");
-  return launched ? "stack-down-while-candidate" : "runner-error-before-candidate";
+// Issue d'une erreur imprévue du runner (#68) : avant le lancement de
+// `npm ci`, aucun code du candidat n'a tourné ; ensuite, une panne pendant
+// que le candidat tourne.
+function runnerErrorOutcome(npmCiLaunched: boolean): RunnerErrorOutcome {
+  return npmCiLaunched ? "stack-down-while-candidate" : "runner-error-before-candidate";
 }
 
 // L'erreur en détail : sa pile d'appels, qui commence par son message.

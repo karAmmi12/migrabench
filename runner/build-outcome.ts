@@ -24,6 +24,8 @@ export function registryNetworkError(log: string, registry: string): string | un
   return lines.find((line) => pattern.exec(line)?.[1]?.startsWith(registry));
 }
 
+import type { RunnerErrorOutcome } from "./verdict.ts";
+
 // Étapes de la construction, chacune dans son conteneur :
 // - `fetch` : `npm ci --ignore-scripts`, dans une copie du candidat sans son
 //   `.npmrc`. Seule étape qui a accès au réseau, et aucun code du candidat n'y
@@ -53,7 +55,7 @@ export interface BuildStepRun {
 export type BuildStepOutcome =
   | { outcome: "ok" }
   | {
-      outcome: "build-failed" | "build-timeout" | "build-resource-limit" | "registry-network-error" | "runner-error-before-candidate" | "stack-down-while-candidate";
+      outcome: "build-failed" | "build-timeout" | "build-resource-limit" | "registry-network-error" | RunnerErrorOutcome;
       detail: string;
     };
 

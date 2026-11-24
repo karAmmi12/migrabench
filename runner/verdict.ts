@@ -51,6 +51,10 @@ export const PHASE_OUTCOMES = {
   closing: ["ok", "marker-out-of-place", "access-log-inactive", "runner-error-before-candidate", "stack-down-while-candidate", "interrupted"],
 } as const satisfies Record<PhaseName, readonly ("ok" | FailureOutcome)[]>;
 
+// Issue d'une erreur imprévue du runner (#68) : invalide avant le lancement
+// de `npm ci`, une panne pendant que le candidat tourne ensuite.
+export type RunnerErrorOutcome = "runner-error-before-candidate" | "stack-down-while-candidate";
+
 // Issue d'une phase : une de sa ligne de la table, ou `not-run` si la mesure
 // s'est arrêtée avant elle.
 export type PhaseOutcome<N extends PhaseName = PhaseName> = (typeof PHASE_OUTCOMES)[N][number] | "not-run";

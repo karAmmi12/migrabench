@@ -220,7 +220,9 @@ export async function recreateStack(salt: string, accessLogDir?: string): Promis
   } catch (error) {
     // Sans service malade relevé, ou si le relevé échoue lui aussi, l'erreur
     // reste imprévue : elle n'est pas une preuve.
-    const states = await stackStates();
+    const states = await stackStates().catch((cause: unknown) => {
+      throw new Error(`${(error as Error).message}; then the stack state could not be read: ${(cause as Error).message}`);
+    });
     if (isHealthy(states)) throw error;
     throw new StackFailed(`${(error as Error).message}\n${describeStack(states)}`);
   }
