@@ -99,6 +99,15 @@ describe("dataset", () => {
     expect(dataset.reservations["scenario:sheet-ctrl-s-remis"]).toEqual(["D-0116"]);
   });
 
+  // Le test de redirection du relais renvoie les valeurs actuelles de D-0117 :
+  // il faut un BROUILLON, dont l'enregistrement ne verrouille rien.
+  it("reserves D-0117, BROUILLON, to test:relay-fidelity alone", () => {
+    const dossier = dataset.dossiers.find((entry) => entry.number === "D-0117");
+
+    expect(dossier?.status).toBe("BROUILLON");
+    expect(dataset.reservations["test:relay-fidelity"]).toEqual(["D-0117"]);
+  });
+
   it("reserves only dossiers that exist in the reserved range", () => {
     const reserved = new Set(dataset.dossiers.map((dossier) => dossier.number).filter(isReservedNumber));
 
