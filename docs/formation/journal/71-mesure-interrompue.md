@@ -242,7 +242,15 @@ exit=3
 preparation:ok contract:ok build:interrupted start:not-run oracle:not-run gates:not-run closing:ok
 ```
 
-> À vérifier après l'exécution de la CI de la PR : le lien du job `tests`, son head SHA, et la ligne `Tests … passed` de Vitest pour `tests/runner/interrupted-measure.test.ts` sous Linux (groupes de processus et faux `npx`).
+Dans la CI de la PR #107, sous Linux, au head SHA `0b81f54`
+([tests, exécution 45502579313](https://github.com/karAmmi12/migrabench/actions/runs/45502579313),
+de 22:36:55Z à 22:41:00Z) :
+
+```text
+✓  interrupted  tests/runner/interrupted-measure.test.ts (8 tests) 35850ms
+Test Files  79 passed (79)
+     Tests  683 passed | 1 skipped (684)
+```
 
 ## Pour aller plus loin
 
