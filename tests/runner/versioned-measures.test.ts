@@ -1,17 +1,20 @@
 // Chaque mesure versionnée dans results/counted/ passe le contrôle de
 // oracle/result-check.ts (#73) : règles de #53, `counted: true`, `originMain`
-// connu, `benchCommit` dans son historique, empreinte de oracle.json.
+// connu, `benchCommit` dans son historique, empreinte de oracle.json ; et
+// oracle.json lui-même passe le contrôle des résultats de l'oracle (#53) :
+// l'empreinte prouve qu'il n'a pas changé, pas qu'il est sain.
 //
 // Le même chemin est d'abord éprouvé sur des fixtures : une mesure valide, qui
-// doit passer, une variante à l'empreinte fausse et un dossier sans
-// measure.json (mesure plantée ou interrompue), qui doivent échouer. Tant que
+// doit passer ; une variante à l'empreinte fausse, une variante dont
+// oracle.json a un sel imposé et un dossier sans measure.json (mesure plantée
+// ou interrompue), qui doivent échouer. Tant que
 // results/counted/ est vide, le test le dit (test sauté, nommé) au lieu de
 // passer en silence.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { FETCH_PULL_HEADS, measureEnvironment } from "../../oracle/repository.ts";
-import { checkMeasureResult, formatViolation } from "../../oracle/result-check.ts";
+import { type CheckedResult, checkMeasureResult, checkResult, formatViolation } from "../../oracle/result-check.ts";
 import { cited, sha256 } from "../../shared/digest.ts";
 import { COUNTED_DIR_FROM_ROOT, ROOT } from "../../shared/root.ts";
 
@@ -25,9 +28,14 @@ function checkMeasureDirectory(dir: string): string[] {
   const measureFile = join(ROOT, dir, "measure.json");
   if (!existsSync(measureFile)) return [`${dir}: measure.json is missing (a counted measure that crashed or was interrupted?)`];
   const oracleFile = join(ROOT, dir, "oracle.json");
-  const oracleDigest = existsSync(oracleFile) ? cited(sha256(readFileSync(oracleFile))) : undefined;
+  const oracle = existsSync(oracleFile) ? readFileSync(oracleFile) : undefined;
+  const oracleDigest = oracle === undefined ? undefined : cited(sha256(oracle));
   const violations = checkMeasureResult(JSON.parse(readFileSync(measureFile, "utf8")), oracleDigest, environment);
-  return violations.map((violation) => formatViolation(`${dir}/measure.json`, violation));
+  const oracleViolations = oracle === undefined ? [] : checkResult(JSON.parse(oracle.toString("utf8")) as CheckedResult, environment);
+  return [
+    ...violations.map((violation) => formatViolation(`${dir}/measure.json`, violation)),
+    ...oracleViolations.map((violation) => formatViolation(`${dir}/oracle.json`, violation)),
+  ];
 }
 
 function report(problems: string[]): string {
@@ -46,6 +54,10 @@ describe("check of a versioned measure, on fixtures", () => {
 
   it("fails a measure whose oracle.json is not the one it cites", () => {
     expect(checkMeasureDirectory(`${FIXTURES}/wrong-oracle-digest`)).toEqual([expect.stringContaining("rule oracle:")]);
+  });
+
+  it("fails a measure whose oracle.json does not pass the oracle result check", () => {
+    expect(checkMeasureDirectory(`${FIXTURES}/oracle-salt-imposed`)).toEqual([expect.stringMatching(/oracle\.json: rule saltImposed:/)]);
   });
 
   it("fails a measure directory without measure.json", () => {
