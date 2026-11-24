@@ -3,9 +3,10 @@
 // protection du démarrage tient sur une vraie pile (ADR 0007). Il tente
 // d'écrire dans son code, de lire le socket Docker, de lire ARCHIVE_SALT, et
 // regarde s'il tourne en root ; il reprend le constat de la construction
-// (build.js). Il écrit le constat sur sa sortie, que le runner garde dans le
-// brut `start.log` (lu par `npm run start-report:check -- probe`), et le sert
-// sur PORT à toute requête. Issue attendue : mesure complète, code 0.
+// (build.js), et écrit son environnement pour le contrôle du marqueur (#74).
+// Il écrit le constat sur sa sortie, que le runner garde dans le brut
+// `start.log` (lu par `npm run start-report:check -- probe`), et le sert sur
+// PORT à toute requête. Issue attendue : mesure complète, code 0.
 import { readFileSync, statSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 
@@ -53,6 +54,15 @@ const attempts = [
     if (uid !== 0) throw new Error(`uid ${uid}`);
     return "uid 0";
   }),
+  // Le marqueur de la mesure ne doit jamais arriver jusqu'au candidat (#74).
+  // La sonde ne le connaît pas : elle écrit tout son environnement, et le
+  // contrôle (`start-report:check -- probe … --marker`) l'y cherche. La valeur
+  // d'ARCHIVE_TOKEN est masquée : c'est la valeur témoin du piège n° 2, que le
+  // score cherchera dans les sorties du candidat.
+  {
+    attempt: "read-measure-marker",
+    environment: Object.fromEntries(Object.entries(process.env).map(([name, value]) => [name, name === "ARCHIVE_TOKEN" ? "<masked>" : value])),
+  },
 ];
 
 const report = JSON.stringify({ attempts });
