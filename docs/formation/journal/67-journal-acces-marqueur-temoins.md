@@ -270,7 +270,7 @@ Observé : `Tests  13 passed (13)`.
 npm test -- --reporter=verbose
 ```
 
-Observé après la correction des `groupOrder` : `Tests  632 passed | 1 skipped (633)`.
+Observé au commit `005ac78` (correction des `groupOrder`) : `Tests  632 passed | 1 skipped (633)`.
 Ordre réel des projets, en trois blocs contigus, compté par projet dans la
 sortie : 626 lignes `|default|`, puis 6 `|bench-tools|`, puis 1
 `|legacy-restart|`.
@@ -279,9 +279,9 @@ sortie : 626 lignes `|default|`, puis 6 `|bench-tools|`, puis 1
 npm test -- --maxWorkers=1 --reporter=verbose
 ```
 
-Observé, comme sur le runner de la CI (un seul worker) : le même ordre, 626,
-puis 6, puis 1. Avant la correction : 6 `|bench-tools|`, 1 `|legacy-restart|`,
-puis 626 `|default|`.
+Observé au commit `005ac78`, comme sur le runner de la CI (un seul worker) : le
+même ordre, 626, puis 6, puis 1. Avant la correction, au commit `393b092` : 6
+`|bench-tools|`, 1 `|legacy-restart|`, puis 626 `|default|`.
 
 ```sh
 npx vitest run tests/runner/witness.test.ts
@@ -325,4 +325,14 @@ Observé au commit `1534f75`, arbre propre, mesure
   (`curl`, adresse `0:0:0:0:0:0:0:1`), relevées dans le journal pendant ce
   ticket.
 
-> À vérifier après l'exécution de la CI de la PR : le job des tests (`tests.yml`) passe avec le test `legacy-restart` sur la pile de CI ; relever le lien de l'exécution, son head SHA et la ligne `Tests` du résumé.
+## Résultat de la CI de la PR
+
+Job `tests` (workflow « Tests du banc ») :
+https://github.com/karAmmi12/migrabench/actions/runs/45433704895, head
+`24dfd9a`, de 16:08:52 à 16:12:32 UTC (`startedAt` et `updatedAt` de `gh run view`).
+
+- résumé : `Test Files  72 passed (72)`, `Tests  632 passed | 1 skipped (633)` ;
+- ordre des projets, horodaté dans le journal : fichiers de `default` de
+  16:10:50 à 16:12:04, puis `bench-tools` fini à 16:12:12, puis
+  `legacy-restart` (`tests/seam-a/access-log.test.ts`, sur la pile de CI)
+  fini à 16:12:17.
