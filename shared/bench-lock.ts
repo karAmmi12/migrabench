@@ -1,8 +1,9 @@
-// Verrou du banc (spec de l'étape 3, « Verrou du banc ») : un fichier à la
-// racine du dépôt, ignoré par Git, que prennent `migrabench measure`,
-// `npm run oracle` et `npm run stack:up` pour toute leur durée, et que
-// `pretest` vérifie sans le prendre. Deux outils du banc ne partagent jamais
-// la pile.
+// Verrou du banc (spec de l'étape 3, « Verrou du banc ») : un fichier du
+// dossier d'état de l'utilisateur, hors du dépôt, que prennent `migrabench
+// measure`, `npm run oracle` et `npm run stack:up` pour toute leur durée, et
+// que `pretest` vérifie sans le prendre. Deux outils du banc ne partagent
+// jamais la pile, commune à toute la machine : tous les worktrees et tous les
+// clones du dépôt voient le même verrou du banc (#92).
 //
 // Sans dépendance hors de Node : le module est copié tel quel dans un dépôt
 // temporaire par les tests de `pretest`.
@@ -151,8 +152,8 @@ function isOrphan(holder: BenchLockHolder): boolean {
 // Une garde dont le repreneur est mort pendant sa reprise n'est jamais
 // retirée ici : la retirer sans course exigerait une seconde garde. Le refus
 // demande de la retirer à la main ; un détenteur vivant n'est jamais dépossédé.
-// Commande qui liste les outils du banc en marche, à lancer depuis la racine
-// du dépôt avant de retirer une garde de reprise.
+// Commande qui liste les outils du banc en marche, de toutes les copies du
+// dépôt, avant de retirer une garde de reprise.
 const BENCH_TOOLS_RUNNING = 'pgrep -fl "runner/cli.ts|oracle/cli.ts|scripts/stack-up.ts"';
 
 function takeOver(file: string, orphan: string, text: string): "taken" | "retry" | { message: string; holder: BenchLockHolder } {

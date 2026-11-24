@@ -149,9 +149,15 @@ Pour économiser les minutes de CI (#76) :
 ### Verrou du banc
 
 Deux outils du banc ne partagent jamais la pile. `migrabench measure`,
-`npm run oracle` et `npm run stack:up` prennent le verrou du banc
-(`.bench-lock`, à la racine, ignoré par Git) pour toute leur durée et le
-libèrent à la fin, y compris sur erreur. Le fichier nomme l'outil, son
+`npm run oracle` et `npm run stack:up` prennent le verrou du banc pour toute
+leur durée et le libèrent à la fin, y compris sur erreur.
+
+Le verrou du banc est le fichier `$XDG_STATE_HOME/migrabench/bench-lock`, ou
+`~/.local/state/migrabench/bench-lock` quand `XDG_STATE_HOME` n'est pas un
+chemin absolu. Il est hors du dépôt, car la pile (projet Compose `migrabench`,
+ports de l'hôte) est commune à toute la machine : tous les worktrees et tous
+les clones du dépôt voient le même verrou du banc (#92). Le dossier est créé
+s'il manque, et chaque refus donne le chemin du fichier. Le fichier nomme l'outil, son
 processus (PID, heure de démarrage, ligne de commande), la machine,
 l'identifiant de la mesure s'il y en a un et l'heure de prise. Pendant qu'il
 est tenu, ces trois outils refusent avec le code `4` (`refused-lock`) et un
@@ -166,14 +172,15 @@ prise et la reprise dans `environment.lock` de `measure.json`. Sur une autre
 machine, le verrou du banc n'est jamais repris : le supprimer à la main une
 fois l'outil arrêté.
 
-Si un outil du banc meurt pendant la reprise elle-même, il laisse
-`.bench-lock.takeover`, que les outils du banc ne retirent jamais : un
-détenteur vivant n'est jamais dépossédé. Ils refusent avec les deux commandes
-à lancer depuis la racine du dépôt :
+Si un outil du banc meurt pendant la reprise elle-même, il laisse la garde
+`bench-lock.takeover`, à côté du verrou du banc, que les outils du banc ne
+retirent jamais : un détenteur vivant n'est jamais dépossédé. Ils refusent
+avec les deux commandes à lancer, la seconde avec le chemin complet de la
+garde :
 
 ```sh
 pgrep -fl "runner/cli.ts|oracle/cli.ts|scripts/stack-up.ts"   # aucune sortie attendue
-rm .bench-lock.takeover
+rm ~/.local/state/migrabench/bench-lock.takeover                 # chemin donné par le refus
 ```
 
 ## Lancer l'oracle
