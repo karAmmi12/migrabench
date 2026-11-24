@@ -4,28 +4,37 @@
 // échoue libère le verrou du banc.
 //
 // Sans la pile : un faux `docker`, placé en tête du PATH, remplace Docker. En
-// mode `block`, il ne rend la main qu'à la mort de l'outil qui l'a lancé, qui
+// mode `block`, il signale qu'il est atteint (fichier témoin `reached-<PID de
+// l'outil>`), puis ne rend la main qu'à la mort de l'outil qui l'a lancé, qui
 // garde donc le verrou du banc ; en mode `fail`, il échoue aussitôt. Il note
 // chaque appel, et si le verrou du banc existait à ce moment.
+//
+// Le verrou du banc de ces outils est pris dans un XDG_STATE_HOME temporaire
+// (#92) : il ne gêne ni ne voit le verrou du banc réel de la machine, commun à
+// toutes les copies du dépôt.
 import { type ChildProcess, spawn, spawnSync } from "node:child_process";
 import { chmodSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
 import { DIAGNOSTIC_DIR_FROM_ROOT } from "../../runner/paths.ts";
-import { BENCH_LOCK_FILE, type BenchLockHolder, inspectBenchLock } from "../../shared/bench-lock.ts";
+import { type BenchLockHolder, inspectBenchLock } from "../../shared/bench-lock.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, ROOT } from "../../shared/root.ts";
 
 const HOLD = new URL("../fixtures/bench-lock/hold.ts", import.meta.url).pathname;
 const DEV_SALT = join(ROOT, ".dev-archive-salt");
+
+const STATE_HOME = mkdtempSync(join(tmpdir(), "mb-state-"));
+const LOCK = join(STATE_HOME, "migrabench", "bench-lock");
 
 const stubDir = mkdtempSync(join(tmpdir(), "mb-docker-stub-"));
 const stubLog = join(stubDir, "calls.log");
 writeFileSync(
   join(stubDir, "docker"),
   `#!/bin/sh
-echo "$* lock=$(test -f .bench-lock && echo held || echo free)" >> "${stubLog}"
+echo "$* lock=$(test -f "${LOCK}" && echo held || echo free)" >> "${stubLog}"
 if [ "$DOCKER_STUB_MODE" = block ]; then
+  touch "${stubDir}/reached-$PPID"
   while kill -0 "$PPID" 2>/dev/null; do sleep 0.2; done
 fi
 echo "docker stub: $DOCKER_STUB_MODE" >&2
@@ -36,7 +45,7 @@ chmodSync(join(stubDir, "docker"), 0o755);
 
 function env(mode: "block" | "fail"): NodeJS.ProcessEnv {
   const { ORACLE_SALT: _oracleSalt, ...inherited } = process.env;
-  return { ...inherited, PATH: `${stubDir}:${process.env.PATH}`, DOCKER_STUB_MODE: mode };
+  return { ...inherited, PATH: `${stubDir}:${process.env.PATH}`, DOCKER_STUB_MODE: mode, XDG_STATE_HOME: STATE_HOME };
 }
 
 function stubCalls(): string[] {
@@ -66,24 +75,25 @@ let before: string[];
 let devSalt: string | undefined;
 
 // Lance un outil du banc qui reste bloqué sur Docker, et attend qu'il tienne
-// le verrou du banc.
+// le verrou du banc et ait atteint le faux `docker` : les appels relevés
+// ensuite contiennent déjà les siens.
 async function holding([script, args]: Tool, tool: string): Promise<BenchLockHolder> {
   const child = spawn(process.execPath, [script, ...args], { cwd: ROOT, env: env("block"), stdio: "ignore" });
   started.push(child);
   for (let waited = 0; waited < 10_000; waited += 50) {
-    const lock = inspectBenchLock();
-    if (lock.state === "held" && lock.holder.pid === child.pid) {
+    const lock = inspectBenchLock(LOCK);
+    if (lock.state === "held" && lock.holder.pid === child.pid && existsSync(join(stubDir, `reached-${child.pid}`))) {
       expect(lock.holder.tool).toBe(tool);
       return lock.holder;
     }
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
-  throw new Error(`${script} did not take the bench lock`);
+  throw new Error(`${script} did not take the bench lock and reach Docker`);
 }
 
+afterAll(() => rmSync(STATE_HOME, { recursive: true, force: true }));
+
 beforeEach(() => {
-  // Un outil du banc réel tient le verrou du banc : ces tests ne tournent pas.
-  expect(inspectBenchLock().state).not.toBe("held");
   rmSync(stubLog, { force: true });
   before = entries();
   devSalt = existsSync(DEV_SALT) ? readFileSync(DEV_SALT, "utf8") : undefined;
@@ -98,7 +108,7 @@ afterEach(async () => {
     }),
   );
   // Verrou du banc laissé par un outil tué ici.
-  if (inspectBenchLock().state === "orphan") rmSync(BENCH_LOCK_FILE);
+  if (inspectBenchLock(LOCK).state === "orphan") rmSync(LOCK);
   for (const entry of entries()) if (!before.includes(entry)) rmSync(join(ROOT, entry), { recursive: true, force: true });
 });
 
@@ -118,7 +128,7 @@ describe("bench lock taken by the bench tools", { timeout: 20_000 }, () => {
   it("refuses a measure while npm run stack:up holds it", async () => {
     // Détenteur `stack-up` simulé : le vrai `npm run stack:up` réécrirait le
     // sel de développement relu par les autres tests.
-    const holder = spawn(process.execPath, [HOLD, BENCH_LOCK_FILE, "stack-up"], { stdio: ["pipe", "pipe", "inherit"] });
+    const holder = spawn(process.execPath, [HOLD, LOCK, "stack-up"], { stdio: ["pipe", "pipe", "inherit"] });
     started.push(holder);
     await new Promise((resolve) => holder.stdout?.once("data", resolve));
 
@@ -146,10 +156,9 @@ describe("bench lock taken by the bench tools", { timeout: 20_000 }, () => {
 
   // #72 : l'étalonnage recrée la pile, comme une mesure.
   it("refuses migrabench calibrate while a measure holds it, before any Docker command", async () => {
-    // Détenteur `measure` simulé : une vraie mesure écrirait son dossier sous
-    // results/diagnostic/, que les tests des refus de measure, lancés en
-    // parallèle, surveillent.
-    const holder = spawn(process.execPath, [HOLD, BENCH_LOCK_FILE, "measure"], { stdio: ["pipe", "pipe", "inherit"] });
+    // Détenteur `measure` simulé : le test précédent couvre déjà une vraie
+    // mesure qui tient le verrou du banc.
+    const holder = spawn(process.execPath, [HOLD, LOCK, "measure"], { stdio: ["pipe", "pipe", "inherit"] });
     started.push(holder);
     await new Promise((resolve) => holder.stdout?.once("data", resolve));
 
@@ -176,6 +185,6 @@ describe("bench lock taken by the bench tools", { timeout: 20_000 }, () => {
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("docker stub: fail");
     expect(stubCalls()[0]).toMatch(/^build .* lock=held$/);
-    expect(existsSync(BENCH_LOCK_FILE)).toBe(false);
+    expect(existsSync(LOCK)).toBe(false);
   });
 });

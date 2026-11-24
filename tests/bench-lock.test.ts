@@ -6,7 +6,7 @@ import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFi
 import { hostname, tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { acquireBenchLock, BENCH_LOCK_FILE_FROM_ROOT } from "../shared/bench-lock.ts";
+import { acquireBenchLock } from "../shared/bench-lock.ts";
 
 const HOLD = new URL("./fixtures/bench-lock/hold.ts", import.meta.url).pathname;
 const CHECK = new URL("../scripts/check-bench-lock.ts", import.meta.url).pathname;
@@ -177,58 +177,170 @@ describe("bench lock left mid-way by a crash", () => {
   });
 });
 
-// `pretest` vérifie le verrou du banc à la racine de son dépôt : le contrôle
-// et le module sont copiés dans un dépôt temporaire, dont le fichier du
-// verrou du banc est le cas.
+// #92 : la pile (projet Compose `migrabench`, ports de l'hôte) est commune à
+// toute la machine. Deux copies du dépôt, comme deux worktrees, voient donc le
+// même verrou du banc. Chaque copie a son module, et le détenteur prend le
+// verrou du banc à son emplacement par défaut, sous un XDG_STATE_HOME
+// temporaire.
+describe("bench lock shared by every copy of the repository", () => {
+  const HOLD_DEFAULT = `import { acquireBenchLock } from "./shared/bench-lock.ts";
+const lock = acquireBenchLock({ tool: process.argv[2] });
+if (!lock.ok) {
+  console.error(lock.message);
+  process.exit(4);
+}
+console.log("held");
+process.stdin.resume();
+process.stdin.on("end", () => lock.release());
+`;
+
+  function copy(): string {
+    const root = mkdtempSync(join(tmpdir(), "mb-copy-"));
+    mkdirSync(join(root, "shared"));
+    copyFileSync(MODULE, join(root, "shared", "bench-lock.ts"));
+    writeFileSync(join(root, "hold-default.ts"), HOLD_DEFAULT);
+    return root;
+  }
+
+  function stateEnv(): NodeJS.ProcessEnv {
+    return { ...process.env, XDG_STATE_HOME: mkdtempSync(join(tmpdir(), "mb-state-")) };
+  }
+
+  for (const [holderCopy, takerCopy] of [
+    ["A", "B"],
+    ["B", "A"],
+  ] as const) {
+    it(`refuses a bench tool of copy ${takerCopy} while a bench tool of copy ${holderCopy} holds it`, async () => {
+      const copies = { A: copy(), B: copy() };
+      const env = stateEnv();
+      const holder = spawn(process.execPath, [join(copies[holderCopy], "hold-default.ts"), "measure"], { env, stdio: ["pipe", "pipe", "inherit"] });
+      holders.push(holder);
+      await new Promise((resolve, reject) => {
+        holder.stdout?.once("data", resolve);
+        holder.once("exit", (code) => reject(new Error(`The holder exited with code ${code}`)));
+      });
+
+      const taker = spawnSync(process.execPath, [join(copies[takerCopy], "hold-default.ts"), "oracle"], { env, input: "", encoding: "utf8" });
+
+      expect(taker.status).toBe(4);
+      expect(taker.stderr).toContain(`The bench lock is held by measure (PID ${holder.pid}`);
+      expect(taker.stderr).toContain(`Bench lock: ${join(env.XDG_STATE_HOME ?? "", "migrabench", "bench-lock")}`);
+    });
+  }
+});
+
+// `pretest` vérifie le verrou du banc à son emplacement : le contrôle et le
+// module sont copiés dans un dépôt temporaire, lancés sous un XDG_STATE_HOME
+// temporaire.
 describe("pretest check of the bench lock", () => {
-  function repo(): { root: string; file: string } {
+  function repo(): { root: string; file: string; env: NodeJS.ProcessEnv } {
     const root = mkdtempSync(join(tmpdir(), "mb-pretest-"));
     mkdirSync(join(root, "scripts"));
     mkdirSync(join(root, "shared"));
     copyFileSync(CHECK, join(root, "scripts", "check-bench-lock.ts"));
     copyFileSync(MODULE, join(root, "shared", "bench-lock.ts"));
-    return { root, file: join(root, ".bench-lock") };
+    const state = mkdtempSync(join(tmpdir(), "mb-state-"));
+    return { root, file: join(state, "migrabench", "bench-lock"), env: { ...process.env, XDG_STATE_HOME: state } };
   }
 
-  function pretest(root: string) {
-    const { status, stderr } = spawnSync(process.execPath, [join(root, "scripts", "check-bench-lock.ts")], { encoding: "utf8" });
+  function pretest({ root, env }: { root: string; env: NodeJS.ProcessEnv }) {
+    const { status, stderr } = spawnSync(process.execPath, [join(root, "scripts", "check-bench-lock.ts")], { env, encoding: "utf8" });
     return { status, stderr };
   }
 
   it("lets npm test run when the bench lock is free", () => {
-    expect(pretest(repo().root)).toEqual({ status: 0, stderr: "" });
+    expect(pretest(repo())).toEqual({ status: 0, stderr: "" });
   });
 
   it("refuses npm test while a bench tool holds the bench lock, naming it, without taking it", async () => {
-    const { root, file } = repo();
+    const copied = repo();
+    const { file } = copied;
     const holder = await hold(file, "measure", "20261123T090507Z-454fb76-reference-candidate");
     const held = readFileSync(file, "utf8");
 
-    const outcome = pretest(root);
+    const outcome = pretest(copied);
 
     expect(outcome.status).not.toBe(0);
     expect(outcome.stderr).toContain("npm test");
     expect(outcome.stderr).toContain(`measure (PID ${holder.pid}`);
     expect(outcome.stderr).toContain("20261123T090507Z-454fb76-reference-candidate");
+    expect(outcome.stderr).toContain(`Bench lock: ${file}`);
     expect(readFileSync(file, "utf8")).toBe(held);
   });
 
   it("lets npm test run over an orphan bench lock, which it leaves in place", async () => {
-    const { root, file } = repo();
+    const copied = repo();
+    const { file } = copied;
     await killHard(await hold(file, "oracle"));
     const orphan = readFileSync(file, "utf8");
 
-    expect(pretest(root).status).toBe(0);
+    expect(pretest(copied).status).toBe(0);
     expect(readFileSync(file, "utf8")).toBe(orphan);
   });
 });
 
+// Emplacement du verrou du banc (#92), lu par un processus enfant sous un
+// HOME et un XDG_STATE_HOME temporaires : jamais le dossier d'état réel.
 describe("bench lock file", () => {
-  it("lies at the root of the repository and is ignored by Git, with its drafts and its takeover guard", () => {
-    const paths = [BENCH_LOCK_FILE_FROM_ROOT, `${BENCH_LOCK_FILE_FROM_ROOT}.4242.draft`, `${BENCH_LOCK_FILE_FROM_ROOT}.takeover`];
-    const ignored = spawnSync("git", ["check-ignore", ...paths], { encoding: "utf8" }).stdout.trim().split("\n");
+  // Lance `code` dans un module ES où `lock` est le module du verrou du banc.
+  function inModule(code: string, env: NodeJS.ProcessEnv) {
+    const script = `const lock = await import(process.argv[1]);\n${code}`;
+    return spawnSync(process.execPath, ["--input-type=module", "-e", script, MODULE], { env, encoding: "utf8" });
+  }
 
-    expect(BENCH_LOCK_FILE_FROM_ROOT).toBe(".bench-lock");
-    expect(ignored).toEqual(paths);
+  function envWith(state: string | undefined): { env: NodeJS.ProcessEnv; home: string } {
+    const { XDG_STATE_HOME: _state, ...inherited } = process.env;
+    const home = mkdtempSync(join(tmpdir(), "mb-home-"));
+    return { env: { ...inherited, HOME: home, ...(state === undefined ? {} : { XDG_STATE_HOME: state }) }, home };
+  }
+
+  function lockFileUnder(state: string | undefined): { file: string; home: string } {
+    const { env, home } = envWith(state);
+    const child = inModule("console.log(lock.BENCH_LOCK_FILE);", env);
+    expect(child.stderr).toBe("");
+    return { file: child.stdout.trim(), home };
+  }
+
+  it("lies in $XDG_STATE_HOME/migrabench/ when XDG_STATE_HOME is an absolute path", () => {
+    const state = mkdtempSync(join(tmpdir(), "mb-state-"));
+
+    expect(lockFileUnder(state).file).toBe(join(state, "migrabench", "bench-lock"));
+  });
+
+  it("lies in ~/.local/state/migrabench/ when XDG_STATE_HOME is not set", () => {
+    const { file, home } = lockFileUnder(undefined);
+
+    expect(file).toBe(join(home, ".local", "state", "migrabench", "bench-lock"));
+  });
+
+  it("lies in ~/.local/state/migrabench/ when XDG_STATE_HOME is not an absolute path", () => {
+    for (const state of ["relative/state", ""]) {
+      const { file, home } = lockFileUnder(state);
+
+      expect(file).toBe(join(home, ".local", "state", "migrabench", "bench-lock"));
+    }
+  });
+
+  it("is taken in a directory created when missing", () => {
+    const state = join(mkdtempSync(join(tmpdir(), "mb-state-")), "not-yet");
+    const { env } = envWith(state);
+
+    const child = inModule('const taken = lock.acquireBenchLock({ tool: "oracle" }); console.log(taken.ok); taken.release();', env);
+
+    expect(child.stdout.trim()).toBe("true");
+    expect(existsSync(join(state, "migrabench"))).toBe(true);
+  });
+
+  it("keeps its takeover guard next to it, in the same directory", async () => {
+    const state = mkdtempSync(join(tmpdir(), "mb-state-"));
+    const { env } = envWith(state);
+    const file = join(state, "migrabench", "bench-lock");
+    mkdirSync(join(state, "migrabench"));
+    await killHard(await hold(file, "oracle"));
+    await killHard(await hold(join(state, "migrabench", "bench-lock.takeover"), "measure"));
+
+    const child = inModule('const taken = lock.acquireBenchLock({ tool: "stack-up" }); console.log(taken.ok ? "taken" : taken.message);', env);
+
+    expect(child.stdout).toContain(`rm ${join(state, "migrabench", "bench-lock.takeover")}`);
   });
 });

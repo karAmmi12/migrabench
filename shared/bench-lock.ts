@@ -1,21 +1,29 @@
-// Verrou du banc (spec de l'étape 3, « Verrou du banc ») : un fichier à la
-// racine du dépôt, ignoré par Git, que prennent `migrabench measure`,
-// `npm run oracle` et `npm run stack:up` pour toute leur durée, et que
-// `pretest` vérifie sans le prendre. Deux outils du banc ne partagent jamais
-// la pile.
+// Verrou du banc (spec de l'étape 3, « Verrou du banc ») : un fichier du
+// dossier d'état de l'utilisateur, hors du dépôt, que prennent `migrabench
+// measure`, `npm run oracle` et `npm run stack:up` pour toute leur durée, et
+// que `pretest` vérifie sans le prendre. Deux outils du banc ne partagent
+// jamais la pile, commune à toute la machine : tous les worktrees et tous les
+// clones du dépôt voient le même verrou du banc (#92).
 //
 // Sans dépendance hors de Node : le module est copié tel quel dans un dépôt
 // temporaire par les tests de `pretest`.
 import { spawnSync } from "node:child_process";
-import { linkSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
-import { hostname } from "node:os";
-import { fileURLToPath } from "node:url";
+import { linkSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { homedir, hostname } from "node:os";
+import { dirname, isAbsolute, join } from "node:path";
 
 export type BenchTool = "measure" | "calibrate" | "oracle" | "stack-up";
 
-// Fichier du verrou du banc, à la racine du dépôt.
-export const BENCH_LOCK_FILE_FROM_ROOT = ".bench-lock";
-export const BENCH_LOCK_FILE = fileURLToPath(new URL(`../${BENCH_LOCK_FILE_FROM_ROOT}`, import.meta.url));
+// Fichier du verrou du banc, dans le dossier d'état de l'utilisateur (#92) :
+// la pile est commune à toute la machine, donc à toutes les copies du dépôt.
+// `$XDG_STATE_HOME/migrabench/`, ou `~/.local/state/migrabench/` quand
+// XDG_STATE_HOME n'est pas un chemin absolu (spécification XDG Base Directory).
+export const BENCH_LOCK_FILE = benchLockFile(process.env.XDG_STATE_HOME, homedir());
+
+function benchLockFile(stateHome: string | undefined, home: string): string {
+  const base = stateHome !== undefined && isAbsolute(stateHome) ? stateHome : join(home, ".local", "state");
+  return join(base, "migrabench", "bench-lock");
+}
 
 // Ce qui reconnaît un processus : un PID seul peut être réattribué.
 export interface ProcessIdentity {
@@ -63,6 +71,7 @@ export function acquireBenchLock({ tool, measureId, file = BENCH_LOCK_FILE }: Ac
     takenAt: new Date().toISOString(),
   };
   const text = `${JSON.stringify(holder, null, 2)}\n`;
+  mkdirSync(dirname(file), { recursive: true });
   const taken = (takenOver?: TakenOver): BenchLock => ({
     ok: true,
     holder,
@@ -76,13 +85,13 @@ export function acquireBenchLock({ tool, measureId, file = BENCH_LOCK_FILE }: Ac
     const held = readText(file);
     if (held === undefined) continue;
     const current = parseHolder(file, held);
-    if (!isOrphan(current)) return { ok: false, holder: current, message: heldMessage(current) };
+    if (!isOrphan(current)) return refusal(file, current, heldMessage(current));
     const takeover = takeOver(file, held, text);
     if (takeover === "taken") {
       const { tool: orphanTool, pid, startedAt, command } = current;
       return taken({ tool: orphanTool, pid, startedAt, command });
     }
-    if (takeover !== "retry") return { ok: false, ...takeover };
+    if (takeover !== "retry") return refusal(file, takeover.holder, takeover.message);
   }
   throw new Error(`The bench lock ${file} keeps changing: try again`);
 }
@@ -121,6 +130,16 @@ export function heldMessage({ tool, pid, startedAt, command, host, measureId, ta
   return `The bench lock is held by ${tool} (PID ${pid} on ${host}, started ${startedAt}: ${command}${measure}), taken at ${takenAt}`;
 }
 
+// Ligne qui donne le chemin du verrou du banc, à la fin d'un refus : il est
+// hors du dépôt (#92).
+export function benchLockPathLine(file: string = BENCH_LOCK_FILE): string {
+  return `Bench lock: ${file}`;
+}
+
+function refusal(file: string, holder: BenchLockHolder, message: string): Extract<BenchLock, { ok: false }> {
+  return { ok: false, holder, message: `${message}\n${benchLockPathLine(file)}` };
+}
+
 // Orphelin : sur cette machine, aucun processus ne porte le PID, ou celui qui
 // le porte a une autre heure de démarrage ou une autre ligne de commande. Sur
 // une autre machine, rien ne se vérifie : jamais orphelin.
@@ -137,8 +156,8 @@ function isOrphan(holder: BenchLockHolder): boolean {
 // Une garde dont le repreneur est mort pendant sa reprise n'est jamais
 // retirée ici : la retirer sans course exigerait une seconde garde. Le refus
 // demande de la retirer à la main ; un détenteur vivant n'est jamais dépossédé.
-// Commande qui liste les outils du banc en marche, à lancer depuis la racine
-// du dépôt avant de retirer une garde de reprise.
+// Commande qui liste les outils du banc en marche, de toutes les copies du
+// dépôt, avant de retirer une garde de reprise.
 const BENCH_TOOLS_RUNNING = 'pgrep -fl "runner/cli.ts|oracle/cli.ts|scripts/stack-up.ts"';
 
 function takeOver(file: string, orphan: string, text: string): "taken" | "retry" | { message: string; holder: BenchLockHolder } {
