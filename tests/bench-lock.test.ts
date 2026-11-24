@@ -177,6 +177,57 @@ describe("bench lock left mid-way by a crash", () => {
   });
 });
 
+// #92 : la pile (projet Compose `migrabench`, ports de l'hôte) est commune à
+// toute la machine. Deux copies du dépôt, comme deux worktrees, voient donc le
+// même verrou du banc. Chaque copie a son module, et le détenteur prend le
+// verrou du banc à son emplacement par défaut, sous un XDG_STATE_HOME
+// temporaire.
+describe("bench lock shared by every copy of the repository", () => {
+  const HOLD_DEFAULT = `import { acquireBenchLock } from "./shared/bench-lock.ts";
+const lock = acquireBenchLock({ tool: process.argv[2] });
+if (!lock.ok) {
+  console.error(lock.message);
+  process.exit(4);
+}
+console.log("held");
+process.stdin.resume();
+process.stdin.on("end", () => lock.release());
+`;
+
+  function copy(): string {
+    const root = mkdtempSync(join(tmpdir(), "mb-copy-"));
+    mkdirSync(join(root, "shared"));
+    copyFileSync(MODULE, join(root, "shared", "bench-lock.ts"));
+    writeFileSync(join(root, "hold-default.ts"), HOLD_DEFAULT);
+    return root;
+  }
+
+  function stateEnv(): NodeJS.ProcessEnv {
+    return { ...process.env, XDG_STATE_HOME: mkdtempSync(join(tmpdir(), "mb-state-")) };
+  }
+
+  for (const [holderCopy, takerCopy] of [
+    ["A", "B"],
+    ["B", "A"],
+  ] as const) {
+    it(`refuses a bench tool of copy ${takerCopy} while a bench tool of copy ${holderCopy} holds it`, async () => {
+      const copies = { A: copy(), B: copy() };
+      const env = stateEnv();
+      const holder = spawn(process.execPath, [join(copies[holderCopy], "hold-default.ts"), "measure"], { env, stdio: ["pipe", "pipe", "inherit"] });
+      holders.push(holder);
+      await new Promise((resolve, reject) => {
+        holder.stdout?.once("data", resolve);
+        holder.once("exit", (code) => reject(new Error(`The holder exited with code ${code}`)));
+      });
+
+      const taker = spawnSync(process.execPath, [join(copies[takerCopy], "hold-default.ts"), "oracle"], { env, input: "", encoding: "utf8" });
+
+      expect(taker.status).toBe(4);
+      expect(taker.stderr).toContain(`The bench lock is held by measure (PID ${holder.pid}`);
+    });
+  }
+});
+
 // `pretest` vérifie le verrou du banc à la racine de son dépôt : le contrôle
 // et le module sont copiés dans un dépôt temporaire, dont le fichier du
 // verrou du banc est le cas.
