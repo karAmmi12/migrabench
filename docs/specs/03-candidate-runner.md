@@ -513,7 +513,14 @@ le candidat tourne ensuite (voir les règles des issues).
     `start.log`. `npm run start-report:check -- <probe|reference> <start.log>`
     la vérifie : chaque tentative de la sonde refusée ; pour la référence,
     les cinq variables reçues, `ARCHIVE_SALT` absente, écriture réussie dans
-    le dossier temporaire.
+    le dossier temporaire ;
+  - **sonde d'isolation** (candidat défectueux 5) : elle n'est pas une copie
+    du candidat de référence, faute de relais à garder ; elle sert son
+    constat à toute requête. Une tentative n'y est comptée refusée que sur
+    la preuve du refus : copie en lecture seule (`EROFS`, `EACCES`,
+    `EPERM`), socket Docker absent (`ENOENT` ; l'ouvrir échouerait même
+    monté), appel de la construction échoué sans interface réseau hors de
+    `lo`. Toute autre erreur compte comme non refusée.
 - `BASE_URL` vaut `http://127.0.0.1:<PORT>`.
 - **Arrêt** : à la clôture, et à chaque recréation du legacy (le candidat est
   alors recréé après lui).

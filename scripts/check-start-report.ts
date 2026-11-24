@@ -8,11 +8,11 @@ import { probeReportProblems, referenceReportProblems } from "./start-report.ts"
 
 const CHECKS = { probe: probeReportProblems, reference: referenceReportProblems };
 const [kind, file] = process.argv.slice(2);
-if ((kind !== "probe" && kind !== "reference") || file === undefined) {
+if (kind === undefined || !Object.hasOwn(CHECKS, kind) || file === undefined) {
   console.error("Usage: npm run start-report:check -- <probe|reference> <start.log>");
   process.exit(2);
 }
-const problems = CHECKS[kind](readFileSync(file, "utf8"));
+const problems = CHECKS[kind as keyof typeof CHECKS](readFileSync(file, "utf8"));
 for (const problem of problems) console.error(problem);
 if (problems.length > 0) process.exit(1);
 console.log(`Start report of the ${kind} candidate holds: ${file}`);

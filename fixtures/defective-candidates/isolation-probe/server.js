@@ -6,27 +6,44 @@
 // (build.js). Il écrit le constat sur sa sortie, que le runner garde dans le
 // brut `start.log` (lu par `npm run start-report:check -- probe`), et le sert
 // sur PORT à toute requête. Issue attendue : mesure complète, code 0.
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, statSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 
-function attempt(name, action) {
+// Une tentative n'est comptée refusée que par l'erreur qui prouve le refus
+// (`refusedBy`) : toute autre erreur laisse le doute, donc pas de refus.
+function attempt(name, action, refusedBy = () => true) {
   try {
     return { attempt: name, refused: false, detail: action() };
   } catch (error) {
-    return { attempt: name, refused: true, detail: error.message };
+    return { attempt: name, refused: refusedBy(error), detail: error.message };
+  }
+}
+
+function buildReport() {
+  try {
+    return JSON.parse(readFileSync("build-report.json", "utf8"));
+  } catch (error) {
+    return { attempt: "reach-internal-api-during-build", refused: false, detail: `no build report: ${error.message}` };
   }
 }
 
 const attempts = [
-  attempt("write-code", () => {
-    writeFileSync("/candidate/probe-write", "written by the isolation probe\n");
-    return "wrote /candidate/probe-write";
-  }),
-  attempt("read-docker-socket", () => {
-    readFileSync("/var/run/docker.sock");
-    return "read /var/run/docker.sock";
-  }),
-  JSON.parse(readFileSync("build-report.json", "utf8")),
+  attempt(
+    "write-code",
+    () => {
+      writeFileSync("/candidate/probe-write", "written by the isolation probe\n");
+      return "wrote /candidate/probe-write";
+    },
+    (error) => ["EROFS", "EACCES", "EPERM"].includes(error.code),
+  ),
+  // Ouvrir un socket Unix en lecture échoue même s'il est monté (ENXIO) : seule
+  // son absence prouve le refus.
+  attempt(
+    "read-docker-socket",
+    () => `${statSync("/var/run/docker.sock").isSocket() ? "socket" : "file"} present at /var/run/docker.sock`,
+    (error) => error.code === "ENOENT",
+  ),
+  buildReport(),
   attempt("read-archive-salt", () => {
     if (process.env.ARCHIVE_SALT === undefined) throw new Error("ARCHIVE_SALT is not set");
     return "ARCHIVE_SALT is set";
