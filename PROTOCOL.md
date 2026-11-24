@@ -92,8 +92,8 @@ Le vocabulaire du domaine du legacy et les termes dérivés sont définis dans
   sens.
 - Une requête envoyée à la main au legacy pendant une mesure, sans marqueur
   du banc, n'est pas détectable comme une erreur du banc : elle fait échouer
-  la porte du relais au compte du candidat. Le verrou du banc et le contrôle
-  de `pretest` ne couvrent que les outils du banc.
+  la porte du relais au compte du candidat. Le verrou du banc, que tient
+  aussi `npm test`, ne couvre que les outils du banc.
 - Une panne de la pile du banc pendant que le candidat tourne est comptée
   contre lui, même si elle vient du banc : il aurait pu la provoquer
   (règle 7). Elle est enregistrée comme une catégorie distincte, avec le
