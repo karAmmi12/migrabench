@@ -4,7 +4,7 @@
 // par le port 8081.
 import { describe, expect, it } from "vitest";
 import { UNKNOWN_USER } from "../../scripts/users.ts";
-import { basicAuthHeader, LEGACY_URL, userWithRole } from "./legacy-client.ts";
+import { basicAuthHeader, legacyFetch, userWithRole } from "./legacy-client.ts";
 import { callInternalApi, fetchFromInternal, INTERNAL_API_URL } from "./internal-api-client.ts";
 
 interface Criteria {
@@ -31,7 +31,7 @@ async function searchByScreen(criteria: Criteria): Promise<string[]> {
     filedFrom: toScreenDate(criteria.filedFrom),
     filedTo: toScreenDate(criteria.filedTo),
   });
-  const response = await fetch(`${LEGACY_URL}/rechercher.do?${query}`, {
+  const response = await legacyFetch(`/rechercher.do?${query}`, {
     headers: { Authorization: basicAuthHeader(userWithRole("agent")) },
   });
   expect(response.status).toBe(200);

@@ -61,6 +61,7 @@ describe("defective candidate 1, contract invalid", () => {
       environment: {},
       salt: "5a17",
       saltImposed: false,
+      marker: "a1".repeat(32),
       phases: [phase("preparation"), phase("contract", result.outcome, result.detail), phase("closing")],
       oracle: NOT_RUN,
     });

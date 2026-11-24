@@ -1,6 +1,7 @@
 **/node_modules
 **/target
 .git
+.access-log
 *.har
 playwright-report
 test-results

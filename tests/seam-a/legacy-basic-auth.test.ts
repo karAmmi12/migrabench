@@ -3,11 +3,11 @@
 import { describe, expect, it } from "vitest";
 import { ROLES } from "../../scripts/users.ts";
 import { UNKNOWN_USER } from "../../scripts/users.ts";
-import { basicAuthHeader, LEGACY_URL, userWithRole } from "./legacy-client.ts";
+import { basicAuthHeader, legacyFetch, userWithRole } from "./legacy-client.ts";
 
 describe("legacy page served behind Tomcat BASIC authentication", () => {
   it.each(ROLES)("answers the %s", async (role) => {
-    const response = await fetch(`${LEGACY_URL}/`, {
+    const response = await legacyFetch(`/`, {
       headers: { Authorization: basicAuthHeader(userWithRole(role)) },
     });
 
@@ -16,14 +16,14 @@ describe("legacy page served behind Tomcat BASIC authentication", () => {
   });
 
   it("refuses a request without credentials with a BASIC challenge, not a login screen", async () => {
-    const response = await fetch(`${LEGACY_URL}/`, { redirect: "manual" });
+    const response = await legacyFetch(`/`, { redirect: "manual" });
 
     expect(response.status).toBe(401);
     expect(response.headers.get("www-authenticate")).toMatch(/^Basic realm="migrabench"/);
   });
 
   it("refuses a user absent from the users file", async () => {
-    const response = await fetch(`${LEGACY_URL}/`, {
+    const response = await legacyFetch(`/`, {
       headers: { Authorization: basicAuthHeader(UNKNOWN_USER) },
     });
 

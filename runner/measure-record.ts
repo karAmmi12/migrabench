@@ -2,6 +2,7 @@
 // fonction pure qui assemble le résultat d'une mesure à partir de ce que le
 // runner a relevé, avec son verdict et le code de sortie qui en découle.
 import type { OracleSummary } from "../oracle/collect.ts";
+import type { WitnessPosition } from "./access-log.ts";
 import type { CountedRecord } from "./counted.ts";
 import { PHASES, type PhaseRecord, verdict } from "./verdict.ts";
 
@@ -15,6 +16,14 @@ export interface CandidateRecord {
   start?: string;
 }
 
+// Journal d'accès de la mesure, contrôlé à la clôture (runner/access-log.ts).
+export interface AccessLogRecord {
+  // Empreinte du journal brut.
+  log: string;
+  lines: number;
+  witnesses: WitnessPosition[];
+}
+
 // Oracle non lancé : le compte des scénarios, tous non atteints (`oracle.executed: false`).
 export type OracleRecord = { executed: true; result: string; summary: OracleSummary } | { executed: false; summary: OracleSummary };
 
@@ -24,6 +33,11 @@ export interface MeasureRecordInput {
   environment: Record<string, unknown>;
   salt: string;
   saltImposed: boolean;
+  // Marqueur de la mesure, écrit à la fin seulement : measure.json n'est écrit
+  // qu'une fois, à la clôture.
+  marker: string;
+  // Absent si la pile n'a jamais été recréée (mesure arrêtée avant le démarrage).
+  accessLog?: AccessLogRecord;
   // Phases relevées ; celles qui manquent sont enregistrées `not-run`.
   phases: readonly PhaseRecord[];
   oracle: OracleRecord;
@@ -32,7 +46,7 @@ export interface MeasureRecordInput {
   counted?: CountedRecord;
 }
 
-export function measureRecord({ measureId, candidate, environment, salt, saltImposed, phases, oracle, counted }: MeasureRecordInput) {
+export function measureRecord({ measureId, candidate, environment, salt, saltImposed, marker, accessLog, phases, oracle, counted }: MeasureRecordInput) {
   const recorded = PHASES.map(
     (name): PhaseRecord =>
       phases.find((entry) => entry.name === name) ?? { name, outcome: "not-run", startedAt: "", durationMs: 0, raw: {} },
@@ -47,8 +61,10 @@ export function measureRecord({ measureId, candidate, environment, salt, saltImp
     environment,
     salt,
     saltImposed,
+    marker,
     phases: recorded,
     oracle,
+    ...(accessLog === undefined ? {} : { accessLog }),
     gates: [] as never[],
     verdict: measureVerdict,
   };

@@ -14,15 +14,19 @@ import { dirname, isAbsolute, join } from "node:path";
 
 export type BenchTool = "measure" | "calibrate" | "oracle" | "stack-up";
 
-// Fichier du verrou du banc, dans le dossier d'état de l'utilisateur (#92) :
-// la pile est commune à toute la machine, donc à toutes les copies du dépôt.
+// Dossier d'état du banc, dans celui de l'utilisateur (#92) : la pile est
+// commune à toute la machine, donc à toutes les copies du dépôt.
 // `$XDG_STATE_HOME/migrabench/`, ou `~/.local/state/migrabench/` quand
 // XDG_STATE_HOME n'est pas un chemin absolu (spécification XDG Base Directory).
-export const BENCH_LOCK_FILE = benchLockFile(process.env.XDG_STATE_HOME, homedir());
+// Il porte aussi les marqueurs du Seam A (shared/seam-a-marker.ts, #67).
+export const BENCH_STATE_DIR = benchStateDir(process.env.XDG_STATE_HOME, homedir());
 
-function benchLockFile(stateHome: string | undefined, home: string): string {
+// Fichier du verrou du banc, dans le dossier d'état du banc.
+export const BENCH_LOCK_FILE = join(BENCH_STATE_DIR, "bench-lock");
+
+function benchStateDir(stateHome: string | undefined, home: string): string {
   const base = stateHome !== undefined && isAbsolute(stateHome) ? stateHome : join(home, ".local", "state");
-  return join(base, "migrabench", "bench-lock");
+  return join(base, "migrabench");
 }
 
 // Ce qui reconnaît un processus : un PID seul peut être réattribué.

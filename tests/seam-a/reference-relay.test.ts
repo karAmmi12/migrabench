@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { basicAuthHeader, LEGACY_URL, userWithRole } from "./legacy-client.ts";
+import { basicAuthHeader, LEGACY_URL, SEAM_A_HEADERS, userWithRole } from "./legacy-client.ts";
 import {
   captureResponse,
   compareResponses,
@@ -55,8 +55,10 @@ afterAll(async () => {
   await Promise.all(started.map((server) => new Promise((resolve) => server.close(resolve))));
 });
 
-const AGENT = { Authorization: basicAuthHeader(userWithRole("agent")) };
-const INSTRUCTEUR = { Authorization: basicAuthHeader(userWithRole("instructeur")) };
+// Chaque requête porte le marqueur du Seam A, en direct comme à travers le
+// relais, qui transmet le User-Agent tel quel (#67).
+const AGENT = { ...SEAM_A_HEADERS, Authorization: basicAuthHeader(userWithRole("agent")) };
+const INSTRUCTEUR = { ...SEAM_A_HEADERS, Authorization: basicAuthHeader(userWithRole("instructeur")) };
 
 // Pages des trois écrans pour chaque rôle, servies après authentification.
 // Lectures seules, sur les dossiers partagés. Le legacy ne sert aucune
@@ -74,8 +76,8 @@ const AUTHENTICATED = [
 
 // Refus du legacy : 401 sans identifiants, 404 d'un chemin inconnu.
 const REFUSED = [
-  { name: "root, no credentials", path: "/", headers: {}, status: 401 },
-  { name: "dossier sheet, no credentials", path: "/fiche.do?number=D-0001", headers: {}, status: 401 },
+  { name: "root, no credentials", path: "/", headers: SEAM_A_HEADERS, status: 401 },
+  { name: "dossier sheet, no credentials", path: "/fiche.do?number=D-0001", headers: SEAM_A_HEADERS, status: 401 },
   { name: "unknown path", path: "/favicon.ico", headers: AGENT, status: 404 },
 ] as const;
 

@@ -4,11 +4,11 @@
 // le legacy échoue à la porte du secret et réussit le scénario de l'accusé.
 import { expect, it } from "vitest";
 import { ARCHIVE_TOKEN } from "./archive-client.ts";
-import { basicAuthHeader, LEGACY_URL, userWithRole } from "./legacy-client.ts";
+import { basicAuthHeader, legacyFetch, userWithRole } from "./legacy-client.ts";
 
 // D-0001 : dossier REMIS partagé en lecture.
 it("links a submitted dossier to its receipt, with the witness value in clear", async () => {
-  const screen = await fetch(`${LEGACY_URL}/remise.do?number=D-0001`, {
+  const screen = await legacyFetch(`/remise.do?number=D-0001`, {
     headers: { Authorization: basicAuthHeader(userWithRole("instructeur")) },
   });
   const html = await screen.text();

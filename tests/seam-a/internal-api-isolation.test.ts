@@ -4,7 +4,7 @@
 // du banc, pas un piège : il refuse l'API interne sur le port 8080, avec ou
 // sans identifiants.
 import { describe, expect, it } from "vitest";
-import { basicAuthHeader, LEGACY_URL, userWithRole } from "./legacy-client.ts";
+import { basicAuthHeader, LEGACY_URL, legacyFetch, userWithRole } from "./legacy-client.ts";
 import {
   callInternalApi,
   fetchFromInternal,
@@ -30,7 +30,7 @@ describe("internal API isolation", () => {
   });
 
   it("refuses the internal API on port 8080 from the host, even with credentials", async () => {
-    const response = await fetch(`${LEGACY_URL}${READ_PATH}`, {
+    const response = await legacyFetch(READ_PATH, {
       headers: { Authorization: basicAuthHeader(userWithRole("instructeur")) },
     });
 
