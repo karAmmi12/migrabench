@@ -207,6 +207,8 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
         const result = await executeOracle({
           baseUrl: CANDIDATE_BASE_URL,
           salt: measureSalt,
+          // Tiré par la mesure, sauf ORACLE_SALT : oracle.json le dit comme measure.json.
+          saltImposed: salt !== undefined,
           artifactsDir: `${ARTIFACTS_DIR_FROM_ROOT}/${id}/oracle`,
           resultFile: join(measureDir, "oracle.json"),
           onStackReady: async () => {

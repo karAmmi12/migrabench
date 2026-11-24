@@ -27,6 +27,10 @@ export interface ExecuteOracleOptions {
   baseUrl?: string;
   // Imposé : diagnostic seulement, jamais pour une mesure.
   salt?: string;
+  // Le sel a-t-il été imposé par l'opérateur ? Défaut : vrai dès qu'un sel est
+  // donné. Le runner donne toujours le sel de sa mesure, tiré par elle quand
+  // l'opérateur n'en impose pas : il le dit ici (#73).
+  saltImposed?: boolean;
   // Rappel du runner de l'étape 3 : appelé chaque fois que le legacy et le
   // service d'archivage viennent d'être recréés et sont sains, avant
   // Playwright. Le runner y recrée le service `candidate`. Une erreur du rappel
@@ -49,8 +53,8 @@ export interface ExecuteOracleResult {
   errorMessages: string[];
 }
 
-export async function executeOracle({ baseUrl = DEFAULT_BASE_URL, salt, ...options }: ExecuteOracleOptions = {}): Promise<ExecuteOracleResult> {
-  const prepared = await prepare(baseUrl, salt ?? randomBytes(32).toString("hex"), salt !== undefined, options);
+export async function executeOracle({ baseUrl = DEFAULT_BASE_URL, salt, saltImposed, ...options }: ExecuteOracleOptions = {}): Promise<ExecuteOracleResult> {
+  const prepared = await prepare(baseUrl, salt ?? randomBytes(32).toString("hex"), saltImposed ?? salt !== undefined, options);
   const report = await launch(prepared);
   return collectAndWrite(prepared, report);
 }
