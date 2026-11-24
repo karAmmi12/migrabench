@@ -518,8 +518,8 @@ le candidat tourne ensuite (voir les règles des issues).
     du candidat de référence, faute de relais à garder ; elle sert son
     constat à toute requête. Une tentative n'y est comptée refusée que sur
     la preuve du refus : copie en lecture seule (`EROFS`, `EACCES`,
-    `EPERM`), socket Docker absent (`ENOENT` ; l'ouvrir échouerait même
-    monté), appel de la construction échoué sans interface réseau hors de
+    `EPERM`), socket Docker absent (`ENOENT` ; le lire échouerait même
+    monté, par `EACCES` ou `ENXIO`), appel de la construction échoué sans interface réseau hors de
     `lo`. Toute autre erreur compte comme non refusée.
 - `BASE_URL` vaut `http://127.0.0.1:<PORT>`.
 - **Arrêt** : à la clôture, et à chaque recréation du legacy (le candidat est

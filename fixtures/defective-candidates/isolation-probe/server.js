@@ -36,8 +36,8 @@ const attempts = [
     },
     (error) => ["EROFS", "EACCES", "EPERM"].includes(error.code),
   ),
-  // Ouvrir un socket Unix en lecture échoue même s'il est monté (ENXIO) : seule
-  // son absence prouve le refus.
+  // Lire un socket Unix échoue même s'il est monté (EACCES sans droit sur lui,
+  // ENXIO sinon) : seule son absence prouve le refus.
   attempt(
     "read-docker-socket",
     () => `${statSync("/var/run/docker.sock").isSocket() ? "socket" : "file"} present at /var/run/docker.sock`,
