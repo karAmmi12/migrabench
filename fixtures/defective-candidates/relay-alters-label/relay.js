@@ -13,8 +13,12 @@ export function createRelay(target) {
     const relayed = request(
       { host: target.host, port: target.port, method: incoming.method, path: incoming.url, headers: incoming.rawHeaders },
       (response) => {
+        // Seules les pages HTML qui ont un corps sont réécrites : une réponse
+        // à HEAD, un 204 ou un 304 est relayée telle quelle, comme par le
+        // relais de référence, pour que le libellé reste le seul défaut.
         const contentType = response.headers["content-type"] ?? "";
-        if (!contentType.startsWith("text/html")) {
+        const hasBody = incoming.method !== "HEAD" && response.statusCode !== 204 && response.statusCode !== 304;
+        if (!contentType.startsWith("text/html") || !hasBody) {
           outgoing.writeHead(response.statusCode ?? 502, response.statusMessage, response.rawHeaders);
           response.pipe(outgoing);
           return;

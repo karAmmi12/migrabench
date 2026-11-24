@@ -4,6 +4,7 @@
 // ici dans le processus du test, vers le port publié du legacy : c'est le
 // même code (fixtures/reference-candidate/relay.js) que le candidat lance
 // vers legacy:8080. Prérequis : `docker compose up -d --build --wait`.
+import { readFileSync } from "node:fs";
 import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -22,27 +23,45 @@ interface RelayModule {
 
 // Import par une adresse calculée : relay.js est du JavaScript sans types.
 const RELAY_MODULE = new URL("../../fixtures/reference-candidate/relay.js", import.meta.url).href;
+// Candidat défectueux 6 : le test négatif de la comparaison.
+const ALTERING_RELAY_MODULE = new URL(
+  "../../fixtures/defective-candidates/relay-alters-label/relay.js",
+  import.meta.url,
+).href;
 
-let relay: Server;
+/** Lance le relais du module vers le port publié du legacy ; rend son adresse. */
+async function startRelay(module: string): Promise<{ server: Server; url: string }> {
+  const { createRelay } = (await import(module)) as RelayModule;
+  const legacy = new URL(LEGACY_URL);
+  const server = createRelay({ host: legacy.hostname, port: Number(legacy.port) });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  return { server, url: `http://127.0.0.1:${(server.address() as AddressInfo).port}` };
+}
+
+const started: Server[] = [];
 let relayUrl: string;
+let alteringRelayUrl: string;
 
 beforeAll(async () => {
-  const { createRelay } = (await import(RELAY_MODULE)) as RelayModule;
-  const legacy = new URL(LEGACY_URL);
-  relay = createRelay({ host: legacy.hostname, port: Number(legacy.port) });
-  await new Promise<void>((resolve) => relay.listen(0, "127.0.0.1", resolve));
-  relayUrl = `http://127.0.0.1:${(relay.address() as AddressInfo).port}`;
+  const relay = await startRelay(RELAY_MODULE);
+  started.push(relay.server);
+  relayUrl = relay.url;
+  const altering = await startRelay(ALTERING_RELAY_MODULE);
+  started.push(altering.server);
+  alteringRelayUrl = altering.url;
 });
 
 afterAll(async () => {
-  await new Promise((resolve) => relay.close(resolve));
+  await Promise.all(started.map((server) => new Promise((resolve) => server.close(resolve))));
 });
 
 const AGENT = { Authorization: basicAuthHeader(userWithRole("agent")) };
 const INSTRUCTEUR = { Authorization: basicAuthHeader(userWithRole("instructeur")) };
 
-// Pages des trois écrans pour chaque rôle et une ressource, servies après
-// authentification. Lectures seules, sur les dossiers partagés.
+// Pages des trois écrans pour chaque rôle, servies après authentification.
+// Lectures seules, sur les dossiers partagés. Le legacy ne sert aucune
+// ressource statique (ni feuille de style, ni script, ni image) : la seule
+// réponse hors page est le 404 de Tomcat, comparée avec les refus.
 const AUTHENTICATED = [
   { name: "search screen, agent", path: "/recherche.do", headers: AGENT },
   { name: "search screen, instructeur", path: "/recherche.do", headers: INSTRUCTEUR },
@@ -51,13 +70,13 @@ const AUTHENTICATED = [
   { name: "dossier sheet, instructeur", path: "/fiche.do?number=D-0003", headers: INSTRUCTEUR },
   { name: "submission screen, agent", path: "/remise.do?number=D-0003", headers: AGENT },
   { name: "submission screen, instructeur", path: "/remise.do?number=D-0003", headers: INSTRUCTEUR },
-  { name: "resource", path: "/favicon.ico", headers: AGENT },
 ] as const;
 
-// Refus 401 du legacy, sans identifiants.
+// Refus du legacy : 401 sans identifiants, 404 d'un chemin inconnu.
 const REFUSED = [
-  { name: "root, no credentials", path: "/" },
-  { name: "dossier sheet, no credentials", path: "/fiche.do?number=D-0001" },
+  { name: "root, no credentials", path: "/", headers: {}, status: 401 },
+  { name: "dossier sheet, no credentials", path: "/fiche.do?number=D-0001", headers: {}, status: 401 },
+  { name: "unknown path", path: "/favicon.ico", headers: AGENT, status: 404 },
 ] as const;
 
 function both(path: string, init: CaptureRequest = {}): Promise<[CapturedResponse, CapturedResponse]> {
@@ -81,6 +100,7 @@ describe("reference relay, compared with the legacy served directly", () => {
     it("answers a client without a session cookie like the legacy, session id of the links masked", async () => {
       const [direct, relayed] = await both(path, { headers });
 
+      expect(direct.status).toBe(200);
       expect(sessionIdsOutsideFormat(direct.body)).toEqual([]);
       expect(compareResponses(direct, relayed, { maskSessionIds: true })).toEqual([]);
     });
@@ -94,14 +114,15 @@ describe("reference relay, compared with the legacy served directly", () => {
         captureResponse(`${relayUrl}${path}`, { headers: { ...headers, Cookie: sessionCookie(relayedOpening) } }),
       ]);
 
+      expect(direct.status).toBe(200);
       expect(compareResponses(direct, relayed)).toEqual([]);
     });
   });
 
-  it.each(REFUSED)("refuses like the legacy: $name", async ({ path }) => {
-    const [direct, relayed] = await both(path);
+  it.each(REFUSED)("refuses like the legacy: $name", async ({ path, headers, status }) => {
+    const [direct, relayed] = await both(path, { headers });
 
-    expect(direct.status).toBe(401);
+    expect(direct.status).toBe(status);
     expect(compareResponses(direct, relayed)).toEqual([]);
   });
 
@@ -110,13 +131,28 @@ describe("reference relay, compared with the legacy served directly", () => {
 
     expect(direct.body.toString("latin1")).toContain(";jsessionid=");
   });
+
+  // Test négatif : le candidat défectueux 6 change le libellé « Objet ».
+  it("finds the label changed by defective candidate 6 on the dossier sheet", async () => {
+    const path = "/fiche.do?number=D-0001";
+    const [direct, altered] = await Promise.all([
+      captureResponse(`${LEGACY_URL}${path}`, { headers: AGENT }),
+      captureResponse(`${alteringRelayUrl}${path}`, { headers: AGENT }),
+    ]);
+
+    expect(direct.status).toBe(200);
+    expect(compareResponses(direct, altered, { maskSessionIds: true })).toContainEqual(
+      expect.stringMatching(/^body: first difference at byte \d+/),
+    );
+  });
 });
 
 describe("reference relay, on a real redirect of the legacy", () => {
   // D-0117, BROUILLON, réservé à ce test (test:relay-fidelity dans le jeu de
-  // données). L'enregistrement renvoie ses valeurs actuelles : il ne change
-  // rien, et le test peut tourner sans redémarrage.
-  const RESERVED = { number: "D-0117", applicant: "Martin Leroy", subject: "Demande de branchement d'eau potable" };
+  // données, vérifié par tests/seam-b). L'enregistrement renvoie ses valeurs
+  // actuelles, lues dans le jeu de données : il ne change rien, et le test
+  // peut tourner sans redémarrage.
+  const RESERVED = reservedDossier("D-0117");
 
   it("redirects to the candidate port after a save, and the redirect is followed through the relay", async () => {
     const saved = await captureResponse(`${relayUrl}/enregistrer.do`, {
@@ -126,10 +162,14 @@ describe("reference relay, on a real redirect of the legacy", () => {
     });
 
     expect(saved.status).toBe(302);
-    const location = saved.rawHeaders[saved.rawHeaders.findIndex((value) => value.toLowerCase() === "location") + 1];
+    const locationAt = saved.rawHeaders.findIndex(
+      (value, position) => position % 2 === 0 && value.toLowerCase() === "location",
+    );
+    const location = saved.rawHeaders[locationAt + 1];
+    if (locationAt < 0 || location === undefined) throw new Error("The redirect has no Location header");
     // Absolue (Host d'origine conservé) ou relative, comme Tomcat 9 le fait
     // par défaut : résolue comme le ferait un navigateur.
-    const target = new URL(location ?? "", relayUrl);
+    const target = new URL(location, relayUrl);
     expect(target.origin).toBe(relayUrl);
     expect(target.pathname).toMatch(/^\/fiche\.do(;jsessionid=[0-9A-F]{32})?$/);
     expect(target.searchParams.get("number")).toBe(RESERVED.number);
@@ -141,3 +181,13 @@ describe("reference relay, on a real redirect of the legacy", () => {
     expect(followed.body.toString("utf8")).toContain(RESERVED.number);
   });
 });
+
+/** Numéro, demandeur et objet d'un dossier, tels que le jeu de données les charge. */
+function reservedDossier(number: string): { number: string; applicant: string; subject: string } {
+  const dataset = JSON.parse(
+    readFileSync(new URL("../../fixtures/legacy-app/src/main/resources/dossiers.json", import.meta.url), "utf8"),
+  ) as { dossiers: { number: string; applicant: string; subject: string }[] };
+  const dossier = dataset.dossiers.find((entry) => entry.number === number);
+  if (!dossier) throw new Error(`No dossier ${number} in the dataset`);
+  return { number: dossier.number, applicant: dossier.applicant, subject: dossier.subject };
+}

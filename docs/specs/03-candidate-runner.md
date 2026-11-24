@@ -531,6 +531,10 @@ le candidat tourne ensuite (voir les règles des issues).
 
   Cette exception ne vaut que pour la vérification de fidélité du relais du
   candidat de référence. Elle ne s'applique jamais à la mesure d'un candidat.
+
+  **Ressources** (précisé par #70) : le legacy ne sert aucune ressource
+  statique (ni feuille de style, ni script, ni image). La seule réponse hors
+  page comparée est le `404` de Tomcat sur un chemin inconnu.
 - Il obtient 100 % à l'oracle (règle 6). À l'étape 4, il échoue aux mêmes
   portes que le legacy, plus la porte du relais, dont il est le test
   négatif : son journal d'accès contient des requêtes hors marqueur.
