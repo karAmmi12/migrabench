@@ -13,7 +13,9 @@
 // (git rev-parse --verify <sha>^{commit} : un préfixe partagé par un commit et
 // un arbre désigne le commit). Un commit inexistant, un SHA abrégé partagé par
 // plusieurs commits ou une vérification impossible refusent la case, avec la
-// raison. Il suffit d'un SHA cité qui désigne un commit. Un nombre (20261121)
+// raison. Chaque SHA cité doit désigner un commit, même à côté d'un vrai
+// commit ou d'un lien de job de CI : une preuve fausse en partie est
+// refusée. Le lien de job de CI n'est pas vérifié. Un nombre (20261121)
 // ou un mot (defaced) hors de ces contextes n'est pas un SHA cité ; un SHA
 // écrit en prose sans contexte non plus.
 //
@@ -60,16 +62,11 @@ export function refusedLines(body: string, resolveSha: ResolveSha = resolveShaWi
     if (!CHECKED_BOX.test(text)) return;
     // Le numéro de l'élément de liste n'est pas un nombre mesuré.
     const content = text.replace(CHECKED_BOX, "");
-    if (!NUMBER.test(content) || CI_RUN.test(content)) return;
-    const reason = shaRefusal(content, resolveSha);
+    if (!NUMBER.test(content)) return;
+    const reason = refusal(content, resolveSha);
     if (reason !== undefined) refused.push({ line, reason });
   });
   return refused;
-}
-
-// Les seules lignes refusées, sans leur raison.
-export function uncitedLines(body: string, resolveSha?: ResolveSha): string[] {
-  return refusedLines(body, resolveSha).map((refused) => refused.line);
 }
 
 // Un code en ligne qui n'est qu'un SHA devient « SHA <jeton> », un SHA cité
@@ -80,17 +77,17 @@ function proseOfCode(code: string): string | undefined {
   return undefined;
 }
 
-// undefined si un SHA cité désigne un commit réel, la raison du refus sinon.
-function shaRefusal(prose: string, resolveSha: ResolveSha): string | undefined {
+// undefined si la ligne cite un état et que chacun de ses SHA désigne un
+// commit réel, la raison du refus sinon.
+function refusal(prose: string, resolveSha: ResolveSha): string | undefined {
   const citedShas = new Set([...prose.matchAll(CITED_SHA)].map((match) => (match[1] ?? match[2]!).toLowerCase()));
-  if (citedShas.size === 0) return NO_STATE;
+  if (citedShas.size === 0 && !CI_RUN.test(prose)) return NO_STATE;
   const reasons: string[] = [];
   for (const sha of citedShas) {
     const resolution = resolveSha(sha);
-    if (resolution === "commit") return undefined;
-    reasons.push(`${sha} : ${REASONS[resolution]}`);
+    if (resolution !== "commit") reasons.push(`${sha} : ${REASONS[resolution]}`);
   }
-  return reasons.join(" ; ");
+  return reasons.length > 0 ? reasons.join(" ; ") : undefined;
 }
 
 const REASONS: Record<Exclude<ShaResolution, "commit">, string> = {
