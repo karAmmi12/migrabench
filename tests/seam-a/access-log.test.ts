@@ -66,8 +66,9 @@ describe("legacy access log", { timeout: 120_000 }, () => {
     expect(after[0]).toMatch(
       new RegExp(`^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d{3}[+-]\\d{4} \\S+:8080 \\S+ "GET /access-log-after-restart-${run} HTTP/1\\.1" \\d{3} "migrabench-seam-a/${SEAM_A_MARKER}"$`),
     );
-    // La requête du port 8081 a bien été servie, mais n'est pas journalisée.
-    expect(internal.status).toBe(404);
+    // La requête du port 8081 a bien été servie (401 sans identifiants, comme
+    // tout chemin hors de l'API interne), mais n'est pas journalisée.
+    expect(internal.status).toBe(401);
     expect(await readFile(file, "utf8")).not.toContain(`/access-log-internal-${run}`);
   });
 });
