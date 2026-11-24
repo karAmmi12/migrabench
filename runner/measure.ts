@@ -12,15 +12,20 @@
 // préparation, libéré à la fin de la mesure, y compris sur erreur.
 // Les délais et limites du dernier étalonnage de CI viennent de #72
 // (runner/calibration-results.ts).
+// Le journal d'accès, le marqueur et les requêtes témoins viennent de #67
+// (runner/access-log.ts, runner/witness.ts).
 import { randomBytes } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { executeOracle, type ExecuteOracleResult, listOracle } from "../oracle/execute.ts";
 import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
+import { type AccessLogCheck, checkAccessLog } from "./access-log.ts";
+import { ACCESS_LOG_FILE, sendWitness, type WitnessResult } from "./witness.ts";
+import { readSeamAMarkers } from "../shared/seam-a-marker.ts";
 import { contentDigest } from "./candidate-content.ts";
 import { contractPhase, type ContractPhaseResult } from "./contract-phase.ts";
 import { candidateName, measureId as measureIdOf } from "./measure-id.ts";
-import { type CandidateRecord, measureRecord, type OracleRecord } from "./measure-record.ts";
+import { type AccessLogRecord, type CandidateRecord, measureRecord, type OracleRecord } from "./measure-record.ts";
 import type { ExitCode, PhaseName, PhaseOutcome, PhaseRecord, Verdict } from "./verdict.ts";
 import { citedFileSha256 as digestOf } from "../shared/digest.ts";
 import { acquireBenchLock, type TakenOver } from "../shared/bench-lock.ts";
@@ -155,6 +160,14 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
   await mkdir(measureDir);
   await mkdir(rawDir, { recursive: true });
   const measureSalt = salt ?? randomBytes(32).toString("hex");
+  // Marqueur de la mesure : jamais transmis au candidat, écrit dans
+  // measure.json à la fin seulement. Le journal d'accès du legacy est écrit
+  // dans le dossier des bruts, qui survit aux recréations de la pile.
+  const marker = randomBytes(32).toString("hex");
+  const accessLogDir = join(rawDir, "access-log");
+  await mkdir(accessLogDir);
+  // Requêtes témoins de début envoyées, une par recréation de la pile.
+  const startWitnesses: string[] = [];
   const files = await candidateFiles(candidateDir);
   const candidateRecord: CandidateRecord = { path: candidate, contentDigest: contentDigest(files) };
   const copyDir = join(rawDir, "candidate");
@@ -211,8 +224,18 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
           saltImposed: salt !== undefined,
           artifactsDir: `${ARTIFACTS_DIR_FROM_ROOT}/${id}/oracle`,
           resultFile: join(measureDir, "oracle.json"),
+          accessLogDir,
           onStackReady: async () => {
             await stopCandidate(described);
+            // Requête témoin de début, pile saine et candidat arrêté.
+            const name = `start-${startWitnesses.length + 1}`;
+            startWitnesses.push(name);
+            const witness = await sendWitness(accessLogDir, marker, name);
+            const check = checkAccessLog({ log: witness.log, marker, expected: startWitnesses, seamAMarkers: [] });
+            if (check.outcome === "access-log-inactive") {
+              startOutcome = check.outcome;
+              throw new CandidateNotStarted(check.outcome, witnessEvidence(witness, check));
+            }
             await startCandidate(described);
             startOutcome = await waitUntilReady(described, limits.readyTimeoutMs);
             if (startOutcome !== "ok") throw new CandidateNotStarted(startOutcome);
@@ -231,7 +254,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
           await stopCandidate(described);
           throw error;
         }
-        closeStart(startOutcome);
+        closeStart(startOutcome, {}, error.detail);
       }
     }
   }
@@ -242,9 +265,24 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
   // 7. Clôture : arrêt du candidat, measure.json écrit. Après un garde-fou ou
   // un contrat invalide, aucun service `candidate` n'a été décrit : rien à
   // arrêter.
+  // Puis requête témoin de fin et contrôle du journal d'accès, si la pile a
+  // été recréée.
   const closeClosing = phase("closing");
   if (service !== undefined) await stopCandidate(service);
-  closeClosing();
+  let accessLog: AccessLogRecord | undefined;
+  if (startWitnesses.length === 0) closeClosing();
+  else {
+    const witness = await sendWitness(accessLogDir, marker, "end");
+    const check = checkAccessLog({ log: witness.log, marker, expected: [...startWitnesses, "end"], seamAMarkers: readSeamAMarkers() });
+    const raw: Record<string, string> = {};
+    if (await isFile(join(accessLogDir, ACCESS_LOG_FILE))) {
+      const log = await digestOf(join(accessLogDir, ACCESS_LOG_FILE));
+      raw[`access-log/${ACCESS_LOG_FILE}`] = log;
+      accessLog = { log, lines: check.lines, witnesses: check.witnesses };
+    }
+    if (check.outcome === "ok") closeClosing("ok", raw);
+    else closeClosing(check.outcome, raw, witnessEvidence(witness, check));
+  }
   const startPhase = phases.find(({ name }) => name === "start");
   if (startPhase !== undefined && service !== undefined) startPhase.raw["start.log"] = await digestOf(service.startLog);
 
@@ -265,6 +303,8 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     },
     salt: measureSalt,
     saltImposed: salt !== undefined,
+    marker,
+    ...(accessLog === undefined ? {} : { accessLog }),
     phases,
     oracle,
     ...(counted === undefined ? {} : { counted }),
@@ -274,9 +314,26 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
 }
 
 // Levée par le rappel pour arrêter l'exécution de l'oracle avant Playwright.
+// `detail` : la preuve d'une issue qui rend la mesure invalide.
 class CandidateNotStarted extends Error {
-  constructor(outcome: PhaseOutcome<"start">) {
+  readonly detail: string | undefined;
+  constructor(outcome: PhaseOutcome<"start">, detail?: string) {
     super(`The candidate did not start: ${outcome}`);
+    this.detail = detail;
+  }
+}
+
+// Preuve d'un journal d'accès en défaut : l'échec de l'envoi de la requête
+// témoin, s'il y en a eu un, puis les lignes du journal.
+function witnessEvidence(witness: WitnessResult, check: Exclude<AccessLogCheck, { outcome: "ok" }>): string {
+  return witness.error === undefined ? check.evidence : `${witness.error}\n${check.evidence}`;
+}
+
+async function isFile(path: string): Promise<boolean> {
+  try {
+    return (await stat(path)).isFile();
+  } catch {
+    return false;
   }
 }
 

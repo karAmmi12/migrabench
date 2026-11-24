@@ -35,6 +35,7 @@ const COMPLETED: MeasureRecordInput = {
   environment: { benchCommit: "454fb76", runtimeImage: "sha256:bb", composeOverride: "sha256:cc", port: 8100 },
   salt: "5a17",
   saltImposed: false,
+  marker: "a1".repeat(32),
   phases: [
     phase("preparation"),
     phase("contract"),
@@ -47,7 +48,23 @@ const COMPLETED: MeasureRecordInput = {
   oracle: { executed: true, result: "sha256:ff", summary: SUMMARY },
 };
 
+const MARKER = COMPLETED.marker;
+const ACCESS_LOG = { log: "sha256:ab", lines: 57, witnesses: [{ name: "start-1", line: 3 }, { name: "end", line: 57 }] };
+
 describe("measureRecord", () => {
+  it("records the marker of the measure and its access log: digest, line count, witness positions", () => {
+    const { record } = measureRecord({ ...COMPLETED, marker: MARKER, accessLog: ACCESS_LOG });
+
+    expect(record).toMatchObject({ marker: MARKER, accessLog: ACCESS_LOG });
+  });
+
+  it("records no access log when the stack was never recreated", () => {
+    const { record } = measureRecord({ ...COMPLETED, marker: MARKER });
+
+    expect(record.marker).toBe(MARKER);
+    expect(record).not.toHaveProperty("accessLog");
+  });
+
   it("records a measure planned to count with counted: true and the origin/main commit used", () => {
     const { record } = measureRecord({ ...COMPLETED, counted: { originMain: "802178c0e1b2c3d4e5f60718293a4b5c6d7e8f90" } });
 

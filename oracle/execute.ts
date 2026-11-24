@@ -36,6 +36,9 @@ export interface ExecuteOracleOptions {
   // Playwright. Le runner y recrée le service `candidate`. Une erreur du rappel
   // arrête l'exécution avant Playwright.
   onStackReady?: () => Promise<void>;
+  // Dossier du journal d'accès du legacy, chemin absolu sur l'hôte : celui des
+  // bruts de la mesure (#67). Défaut : celui de docker-compose.yml.
+  accessLogDir?: string;
   // Dossier des bruts, depuis la racine du dépôt ; défaut : un dossier propre
   // à l'exécution sous .oracle-artifacts/.
   artifactsDir?: string;
@@ -93,12 +96,12 @@ async function prepare(
   baseUrl: string,
   salt: string,
   saltImposed: boolean,
-  { onStackReady, artifactsDir, resultFile }: Pick<ExecuteOracleOptions, "onStackReady" | "artifactsDir" | "resultFile">,
+  { onStackReady, accessLogDir, artifactsDir, resultFile }: Pick<ExecuteOracleOptions, "onStackReady" | "accessLogDir" | "artifactsDir" | "resultFile">,
 ): Promise<PreparedExecution> {
   const startedAt = new Date();
   // Lu avant la pile : un rang invalide arrête l'exécution avant toute mesure.
   const ciRun = ciRunOf(process.env);
-  await recreateStack(salt);
+  await recreateStack(salt, accessLogDir);
   await onStackReady?.();
   const benchCommit = await stdoutOf("git", ["rev-parse", "HEAD"]);
   // Sortie brute, sans trim : une entrée commence par un espace (` M chemin`).
@@ -167,10 +170,11 @@ export async function listOracle(artifactsDir: string): Promise<OracleSummary> {
 
 // Recrée le legacy et le service d'archivage et attend qu'ils soient sains.
 // Le sel passe par l'environnement du shell, jamais par .env (que lit aussi le
-// legacy). Partagé avec `migrabench calibrate`.
-export async function recreateStack(salt: string): Promise<void> {
+// legacy). Partagé avec `migrabench calibrate`. Le journal d'accès du legacy va
+// dans `accessLogDir` s'il est donné (MB_ACCESS_LOG_DIR de docker-compose.yml).
+export async function recreateStack(salt: string, accessLogDir?: string): Promise<void> {
   await spawnCommand("docker", ["compose", "up", "--detach", "--force-recreate", "--no-build", "--wait", ...SERVICES], {
-    env: { ARCHIVE_SALT: salt },
+    env: { ARCHIVE_SALT: salt, ...(accessLogDir === undefined ? {} : { MB_ACCESS_LOG_DIR: accessLogDir }) },
     inherit: true,
   });
 }
