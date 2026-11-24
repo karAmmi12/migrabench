@@ -1,11 +1,15 @@
 // Copie du relais du candidat de référence, avec un seul défaut : dans les
-// pages HTML du legacy, le libellé du champ « Objet » devient « Sujet ». Le
+// pages HTML du legacy, le libellé du champ « Demandeur » devient
+// « Requérant », sur l'écran de recherche et sur la fiche. Ce libellé n'est le
+// marqueur d'atteinte d'aucun écran pour l'oracle (« Numéro » pour la
+// recherche, « Objet » pour la fiche) : les scénarios qui s'en servent sont
+// atteints, puis échouent, au lieu d'être non atteints. Le
 // corps de ces pages est lu en entier pour être réécrit : `Content-Length`
 // est recalculé et `Transfer-Encoding` retiré, pour que le navigateur reçoive
 // une réponse bien formée et que seul le libellé soit faux.
 import { createServer, request } from "node:http";
 
-const LABEL = { from: ">Objet</label>", to: ">Sujet</label>" };
+const LABEL = { from: ">Demandeur</label>", to: ">Requérant</label>" };
 
 /** Un serveur HTTP, pas encore à l'écoute, qui relaie vers `target`. */
 export function createRelay(target) {

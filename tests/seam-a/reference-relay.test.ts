@@ -132,7 +132,7 @@ describe("reference relay, compared with the legacy served directly", () => {
     expect(direct.body.toString("latin1")).toContain(";jsessionid=");
   });
 
-  // Test négatif : le candidat défectueux 6 change le libellé « Objet ».
+  // Test négatif : le candidat défectueux 6 change le libellé « Demandeur ».
   it("finds the label changed by defective candidate 6 on the dossier sheet", async () => {
     const path = "/fiche.do?number=D-0001";
     const [direct, altered] = await Promise.all([
