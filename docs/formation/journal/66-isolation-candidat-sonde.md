@@ -163,7 +163,11 @@ npm run typecheck && npm test
 # Tests  607 passed | 1 skipped (608)
 ```
 
-> À vérifier après l'exécution de la CI de la PR : le lien de l'exécution, son head SHA et le résultat des jobs.
+Sur la CI de la PR #101 (head 9e5f5c0), tous les jobs sont passés :
+
+- « Tests du banc » : `Test Files 68 passed (68)`, `Tests 607 passed | 1 skipped (608)`, de 15:28:37Z à 15:31:37Z, https://github.com/karAmmi12/migrabench/actions/runs/45425945598 ;
+- « Fiche de formation » : « Fiche trouvée pour #66. » et « Chaque case cochée chiffrée cite un état. », https://github.com/karAmmi12/migrabench/actions/runs/45425945634 ;
+- « Étalonnage » : cinq relevés du candidat d'étalonnage, démarré sous les nouvelles limites, sans erreur, de 15:28:37Z à 15:32:50Z, https://github.com/karAmmi12/migrabench/actions/runs/45425945385.
 
 ## Pour aller plus loin
 
