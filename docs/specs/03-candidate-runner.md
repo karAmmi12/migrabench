@@ -337,8 +337,11 @@ Règles des issues :
   - `SIGKILL` arrête le runner sans mesure, et laisse un verrou du banc
     orphelin.
 
-  En CI, le processus d'entrée d'une étape `run` est le shell : il doit
-  transmettre le signal au runner (`exec npm run migrabench -- …`).
+  En CI, le processus d'entrée d'une étape `run` est le shell, qui ne
+  transmet pas le signal à la commande qu'il attend : une étape de mesure
+  qui doit rester interruptible par l'annulation du job se lance avec
+  `exec` (`exec npm run migrabench -- …`), npm relayant `SIGINT` et
+  `SIGTERM` au runner (#94).
 - **`stack-failed-before-candidate`** : le legacy ou le service d'archivage
   n'est pas sain avant le démarrage du candidat, ou pendant un redémarrage
   où le candidat est arrêté. Relevée quand `docker compose up --wait` échoue
