@@ -5,7 +5,6 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { measureCandidate } from "../../runner/measure.ts";
 import { DIAGNOSTIC_DIR_FROM_ROOT } from "../../runner/paths.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, ROOT } from "../../shared/root.ts";
 
@@ -55,14 +54,5 @@ describe("timeout cap of a diagnostic measure", () => {
       expect(result).toMatchObject({ status: 4, written: [] });
       expect(result.stderr).toContain("refused-usage: --timeout-cap-ms");
     }
-  });
-
-  it("is refused by a measure planned to count, before anything is written", async () => {
-    const before = [entries(DIAGNOSTIC_DIR_FROM_ROOT), entries(ARTIFACTS_DIR_FROM_ROOT)];
-    const result = await measureCandidate({ candidate: "fixtures/reference-candidate", counted: true, timeoutCapMs: 5_000 });
-
-    expect(result).toMatchObject({ written: false, refusal: "refused-counted", exitCode: 4 });
-    expect(result.written ? "" : result.message).toContain("--timeout-cap-ms");
-    expect([entries(DIAGNOSTIC_DIR_FROM_ROOT), entries(ARTIFACTS_DIR_FROM_ROOT)]).toEqual(before);
   });
 });

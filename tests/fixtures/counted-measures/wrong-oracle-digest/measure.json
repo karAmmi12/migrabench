@@ -1,0 +1,23 @@
+{
+  "format": 1,
+  "measureId": "20261124T150000Z-29e779b-reference-candidate",
+  "counted": true,
+  "originMain": "802178cd06a89237e2514b152af69587424372b3",
+  "candidate": {
+    "path": "fixtures/reference-candidate",
+    "contentDigest": "sha256:0000000000000000000000000000000000000000000000000000000000000001",
+    "contract": 1,
+    "start": "node server.js"
+  },
+  "environment": {
+    "benchCommit": "29e779b0c5898c8bf43dff9d493bd4adf58b758e",
+    "worktree": "clean",
+    "node": "v22.23.5"
+  },
+  "salt": "5a17",
+  "saltImposed": false,
+  "oracle": {
+    "executed": true,
+    "result": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  }
+}

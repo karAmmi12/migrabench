@@ -11,6 +11,11 @@ export const ROOT = fileURLToPath(new URL("..", import.meta.url)).replace(/\/$/,
 // ou par mesure, ignoré par Git (ADR 0005).
 export const ARTIFACTS_DIR_FROM_ROOT = ".oracle-artifacts";
 
+// Mesures prévues pour compter, un dossier par mesure, versionné : invalides
+// comprises (#73). Les mesures de diagnostic vont sous results/diagnostic/,
+// ignoré par Git (runner/paths.ts).
+export const COUNTED_DIR_FROM_ROOT = "results/counted";
+
 // Valeurs du banc de .env (horloge figée, valeur témoin).
 export async function readBenchEnv(): Promise<Record<string, string | undefined>> {
   return parseEnv(await readFile(join(ROOT, ".env"), "utf8"));

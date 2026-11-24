@@ -38,6 +38,22 @@ describe("worktree state", () => {
     expect(worktreeState(status("?? results/oracle-copy/a.json"))).toBe("dirty");
   });
 
+  // #73 : la même exception, étroite, pour les mesures prévues pour compter.
+  it("stays clean with a new, untracked counted measure in results/counted", () => {
+    expect(worktreeState(status("?? results/counted/20261124T150000Z-29e779b-reference-candidate/measure.json"))).toBe("clean");
+  });
+
+  it("is dirty when an earlier counted measure is modified, deleted or staged", () => {
+    expect(worktreeState(status(" M results/counted/20261124T150000Z-29e779b-reference-candidate/measure.json"))).toBe("dirty");
+    expect(worktreeState(status(" D results/counted/20261124T150000Z-29e779b-reference-candidate/oracle.json"))).toBe("dirty");
+    expect(worktreeState(status("A  results/counted/20261124T150000Z-29e779b-reference-candidate/measure.json"))).toBe("dirty");
+  });
+
+  it("is dirty with an untracked file outside results/counted", () => {
+    expect(worktreeState(status("?? results/counted-copy/a/measure.json"))).toBe("dirty");
+    expect(worktreeState(status("?? results/measure.json"))).toBe("dirty");
+  });
+
   it("is dirty when an earlier result is renamed (with -z, the source path follows the entry)", () => {
     expect(worktreeState(status("R  results/oracle/b.json", "results/oracle/a.json"))).toBe("dirty");
   });

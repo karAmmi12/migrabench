@@ -48,6 +48,16 @@ const COMPLETED: MeasureRecordInput = {
 };
 
 describe("measureRecord", () => {
+  it("records a measure planned to count with counted: true and the origin/main commit used", () => {
+    const { record } = measureRecord({ ...COMPLETED, counted: { originMain: "802178c0e1b2c3d4e5f60718293a4b5c6d7e8f90" } });
+
+    expect(record).toMatchObject({ counted: true, originMain: "802178c0e1b2c3d4e5f60718293a4b5c6d7e8f90" });
+  });
+
+  it("records no originMain for a diagnostic measure", () => {
+    expect(measureRecord(COMPLETED).record).not.toHaveProperty("originMain");
+  });
+
   it("records a diagnostic measure, with its format, identifier, candidate, environment and salt", () => {
     const { record } = measureRecord(COMPLETED);
 
