@@ -142,17 +142,22 @@ banc ». Les durées sont lues dans
 La CI teste le commit de fusion de la PR dans `main`. Le nombre de fichiers
 de test vient du journal de l'étape `Tests`.
 
-| État | Exécution | Tête de la PR | Fichiers de test | Job `tests` | Étape `Tests` |
-| --- | --- | --- | --- | --- | --- |
-| avant | [45282567598](https://github.com/karAmmi12/migrabench/actions/runs/45282567598) | `527ee6d` (PR #88) | 56 | 2 min 34 s | 72 s |
-| avant | [45285926481](https://github.com/karAmmi12/migrabench/actions/runs/45285926481), tentative 2 | `9a43cb2` (PR #87) | 60 | 2 min 35 s | 63 s |
+| État | Exécution | Tête de la PR | Fichiers de test | Job `tests` | Étape `Tests` | `Duration` de Vitest | `bench-lock-tools.test.ts` |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| avant | [45282567598](https://github.com/karAmmi12/migrabench/actions/runs/45282567598) | `527ee6d` (PR #88) | 56 | 2 min 34 s | 72 s | 71,67 s | 4685 ms |
+| avant | [45285926481](https://github.com/karAmmi12/migrabench/actions/runs/45285926481), tentative 2 | `9a43cb2` (PR #87) | 60 | 2 min 35 s | 63 s | 62,05 s | 5814 ms |
+| après | [45402570763](https://github.com/karAmmi12/migrabench/actions/runs/45402570763) | `ed14c54` (PR #91) | 60 | 2 min 45 s | 81 s | 80,26 s | 7830 ms |
 
-La deuxième ligne a les mêmes 60 fichiers que cette PR : c'est elle qui sert
-de point de comparaison. Une seule exécution de chaque côté ne mesure pas la
-variation d'une exécution à l'autre.
+Exécution de la PR : `Test Files  60 passed (60)`, `Tests  495 passed (495)`.
 
-> À vérifier après l'exécution de la CI de la PR : lien de l'exécution « Tests
-> du banc », head SHA, durée du job `tests` et de son étape `Tests`.
+Lecture : face à la ligne `9a43cb2`, qui a les mêmes 60 fichiers, la
+`Duration` de Vitest passe de 62,05 s à 80,26 s, soit 18,21 s de plus. Le
+fichier mis en série dure 7830 ms : il ne peut expliquer qu'une partie de cet
+écart, et seulement s'il ne recouvrait plus rien d'autre. Le reste est de la
+variation d'une exécution à l'autre : la ligne `527ee6d`, avec moins de
+fichiers, durait déjà 71,67 s. Une seule exécution de chaque côté ne permet pas
+de séparer le coût de la série de cette variation. Il faudrait plusieurs
+exécutions de chaque côté.
 
 ## Pour aller plus loin
 
