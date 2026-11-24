@@ -19,6 +19,6 @@ describe("stripCode", () => {
   });
 
   it("keeps the content of the inline code a caller chooses to keep", () => {
-    expect(stripCode("commit `62bd7cd`, sortie `143 passed`", (code) => code === "62bd7cd")).toEqual("commit 62bd7cd, sortie  ");
+    expect(stripCode("commit `62bd7cd`, sortie `143 passed`", (code) => (code === "62bd7cd" ? code : undefined))).toEqual("commit 62bd7cd, sortie  ");
   });
 });

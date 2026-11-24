@@ -1,43 +1,126 @@
 // Preuves du plan de test d'une PR (#54) : chaque case cochée (`- [x]`) qui
 // contient un nombre cite l'état où il a été obtenu (règle « Une preuve cite
-// l'état exact » de CLAUDE.md), un SHA de commit ou un lien de job de CI
-// (actions/runs/<id>).
+// l'état exact » de CLAUDE.md), un commit réel du dépôt ou un lien de job de
+// CI (actions/runs/<id>).
+//
+// Un SHA est reconnu par l'existence du commit, pas par sa forme (#96). Un
+// candidat est un jeton de 7 à 40 caractères hexadécimaux dans l'un de ces
+// contextes :
+// - un code en ligne qui n'est que ce jeton (`6253696`) ;
+// - après le mot « commit » ou « SHA » (commit bcccdea) ;
+// - dans un lien de commit (…/commit/<sha>, …/commits/<sha>).
+// Il ne compte que s'il désigne sans ambiguïté un commit réel du dépôt. Un
+// commit inexistant, un SHA abrégé ambigu ou une vérification impossible
+// refusent la case, avec la raison. Un nombre (20261121) ou un mot (defaced)
+// hors de ces contextes n'est pas un candidat ; un SHA écrit en prose sans
+// contexte non plus.
 //
 // Le code est retiré d'abord (stripCode, comme pour la vérification de fiche).
-// Seule exception, un code en ligne qui n'est qu'un SHA (`2efc6c3`) ou qu'un
-// lien de job de CI : c'est ainsi que les PR citent un état, il compte.
+// Seules exceptions, un code en ligne qui n'est qu'un SHA, qu'un lien de
+// commit ou qu'un lien de job de CI : c'est ainsi que les PR citent un état.
+import { spawnSync } from "node:child_process";
 import { stripCode } from "./pr-body.ts";
+
+// Résolution d'un SHA dans le dépôt.
+export type ShaResolution = "commit" | "missing" | "ambiguous" | "unavailable";
+export type ResolveSha = (sha: string) => ShaResolution;
+
+export interface RefusedLine {
+  // La ligne telle qu'écrite dans le corps de la PR.
+  line: string;
+  reason: string;
+}
 
 // Case cochée d'une liste à puces (-, *, +) ou numérotée (1., 1)).
 const CHECKED_BOX = /^[ \t]*(?:[-*+]|\d+[.)])[ \t]+\[[xX]\][ \t]/;
-// Un SHA : 7 à 40 caractères hexadécimaux, dont au moins une lettre et un
-// chiffre, pour ne pas prendre un long nombre (20261121) ou un mot (defaced).
-const SHA = "(?=[0-9a-f]*[a-f])(?=[0-9a-f]*[0-9])[0-9a-f]{7,40}";
-const SHA_ALONE = new RegExp(`^${SHA}$`);
-const SHA_IN_PROSE = new RegExp(`(?<![\\w-])${SHA}(?![\\w-])`);
+const HEX_TOKEN = "[0-9a-fA-F]{7,40}";
+const SHA_ALONE = new RegExp(`^${HEX_TOKEN}$`);
+const COMMIT_LINK_ALONE = new RegExp(`^(?:https?:\\/\\/\\S*)?\\/commits?\\/${HEX_TOKEN}$`);
+// Les candidats dans la prose : après « commit » ou « SHA », ou dans un lien de commit.
+const CANDIDATE = new RegExp(
+  `(?<![\\w-])(?:commit|sha)\\s+(${HEX_TOKEN})(?![\\w-])|\\/commits?\\/(${HEX_TOKEN})(?![\\w-])`,
+  "gi",
+);
 // Un lien de job de CI, et un code en ligne qui n'est que ce lien.
 const CI_RUN = /actions\/runs\/\d+/;
 const CI_RUN_ALONE = /^(?:https?:\/\/\S*\/)?actions\/runs\/\d+\S*$/;
 // Un nombre isolé (143, 14/14, 2,5) : R2, D-0999, v22 ou #41 sont des identifiants.
 const NUMBER = /(?<![\w.,/#-])\d+(?:[.,/]\d+)*(?![\w-])/;
 
-// Cases cochées chiffrées qui ne citent aucun état, telles qu'écrites.
-export function uncitedLines(body: string): string[] {
+const NO_STATE = "aucun état cité (SHA d'un commit du dépôt ou lien de job de CI actions/runs/<id>)";
+
+// Cases cochées chiffrées refusées, telles qu'écrites, avec la raison.
+export function refusedLines(body: string, resolveSha: ResolveSha = resolveShaWithGit()): RefusedLine[] {
   const lines = body.split(/\r?\n/);
-  const prose = stripCode(body, isCitation).split(/\r?\n/);
-  return lines.filter((line, index) => {
+  const prose = stripCode(body, citation).split(/\r?\n/);
+  const refused: RefusedLine[] = [];
+  lines.forEach((line, index) => {
     const text = prose[index] ?? "";
-    if (!CHECKED_BOX.test(text)) return false;
+    if (!CHECKED_BOX.test(text)) return;
     // Le numéro de l'élément de liste n'est pas un nombre mesuré.
     const content = text.replace(CHECKED_BOX, "");
-    return NUMBER.test(content) && !citesState(content);
+    if (!NUMBER.test(content) || CI_RUN.test(content)) return;
+    const reason = shaRefusal(content, resolveSha);
+    if (reason !== undefined) refused.push({ line, reason });
   });
+  return refused;
 }
 
-function isCitation(code: string): boolean {
-  return SHA_ALONE.test(code) || CI_RUN_ALONE.test(code);
+// Les seules lignes refusées, sans leur raison.
+export function uncitedLines(body: string, resolveSha?: ResolveSha): string[] {
+  return refusedLines(body, resolveSha).map((refused) => refused.line);
 }
 
-function citesState(prose: string): boolean {
-  return SHA_IN_PROSE.test(prose) || CI_RUN.test(prose);
+// Un code en ligne qui n'est qu'un SHA devient « SHA <jeton> », un candidat
+// dans la prose ; un lien de commit ou de job de CI reste tel quel.
+function citation(code: string): string | undefined {
+  if (SHA_ALONE.test(code)) return `SHA ${code}`;
+  if (COMMIT_LINK_ALONE.test(code) || CI_RUN_ALONE.test(code)) return code;
+  return undefined;
+}
+
+// undefined si un candidat désigne un commit réel, la raison du refus sinon.
+function shaRefusal(prose: string, resolveSha: ResolveSha): string | undefined {
+  const candidates = new Set([...prose.matchAll(CANDIDATE)].map((match) => (match[1] ?? match[2]!).toLowerCase()));
+  if (candidates.size === 0) return NO_STATE;
+  const reasons: string[] = [];
+  for (const sha of candidates) {
+    const resolution = resolveSha(sha);
+    if (resolution === "commit") return undefined;
+    reasons.push(`${sha} : ${REASONS[resolution]}`);
+  }
+  return reasons.join(" ; ");
+}
+
+const REASONS: Record<Exclude<ShaResolution, "commit">, string> = {
+  missing: "ce commit n'existe pas dans le dépôt",
+  ambiguous: "SHA abrégé ambigu, il désigne plusieurs objets du dépôt",
+  unavailable:
+    "vérification impossible (Git absent, hors d'un dépôt ou historique incomplet : il faut fetch-depth: 0 et npm run fetch:pull-heads)",
+};
+
+// Résolution par le Git du dépôt de cwd. L'historique doit être complet : un
+// clone superficiel rend « unavailable », jamais « missing ». Les commits d'une
+// PR fusionnée en squash ne sont joignables que par la tête de leur PR
+// (npm run fetch:pull-heads).
+export function resolveShaWithGit(cwd: string = process.cwd()): ResolveSha {
+  let completeHistory: boolean | undefined;
+  return (sha) => {
+    completeHistory ??= git(cwd, "rev-parse", "--is-shallow-repository")?.stdout.trim() === "false";
+    if (!completeHistory) return "unavailable";
+    const commit = git(cwd, "rev-parse", "--verify", "--quiet", `${sha}^{commit}`);
+    if (commit === undefined) return "unavailable";
+    if (commit.status === 0) return "commit";
+    // Échec : le SHA abrégé désigne-t-il plusieurs objets, ou aucun commit ?
+    const objects = git(cwd, "rev-parse", `--disambiguate=${sha}`);
+    if (objects === undefined || objects.status !== 0) return "unavailable";
+    return objects.stdout.split("\n").filter(Boolean).length > 1 ? "ambiguous" : "missing";
+  };
+}
+
+// undefined si Git ne s'est pas lancé ou a échoué autrement que par un refus (code 0 ou 1).
+function git(cwd: string, ...args: string[]): { status: number; stdout: string } | undefined {
+  const result = spawnSync("git", args, { cwd, encoding: "utf8" });
+  if (result.error !== undefined || result.status === null || result.status > 1) return undefined;
+  return { status: result.status, stdout: result.stdout };
 }

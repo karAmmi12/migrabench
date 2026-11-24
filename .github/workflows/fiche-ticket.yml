@@ -3,7 +3,9 @@
 # apporte sa fiche de formation docs/formation/journal/N-*.md, rédigée avec
 # /fiche-ticket.
 # Chaque case cochée du plan de test qui contient un nombre cite l'état où il
-# a été obtenu, un SHA de commit ou un lien de job de CI (#54).
+# a été obtenu, un commit réel du dépôt ou un lien de job de CI (#54). Le
+# commit est vérifié par Git (#96) : il faut l'historique complet et les têtes
+# de PR, seules à joindre les commits d'une PR fusionnée en squash.
 # Les deux contrôles lisent le corps de la PR, nettoyé de son code par la même
 # fonction (scripts/pr-body.ts).
 name: Fiche de formation
@@ -26,7 +28,10 @@ jobs:
   fiche-ticket:
     runs-on: ubuntu-24.04
     steps:
+      # Historique complet : un clone superficiel rend chaque SHA invérifiable.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
       # Node de .nvmrc : les scripts sont en TypeScript, lancés sans compilation.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -37,6 +42,11 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: node scripts/check-training-sheet.ts
+
+      # Commande dans package.json : c'est elle que rappelle un échec en local.
+      - name: Récupération des têtes de PR
+        if: ${{ !cancelled() }}
+        run: npm run fetch:pull-heads
 
       # Lancée même si la fiche manque : les deux manquements sont signalés ensemble.
       - name: Chaque case cochée chiffrée cite un état

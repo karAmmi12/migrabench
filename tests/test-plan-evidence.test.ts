@@ -1,10 +1,14 @@
 // Contrôle des preuves du plan de test d'une PR (#54) : chaque case cochée
-// qui contient un nombre cite un état, un SHA ou une exécution de CI.
+// qui contient un nombre cite un état, un commit réel du dépôt (#96) ou une
+// exécution de CI.
 // Les corps réels des PR #41, #44, #48 et #50 sont copiés sous
 // tests/fixtures/test-plans/ (gh pr view <N> --json body).
-import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { uncitedLines } from "../scripts/test-plan-evidence.ts";
+import { refusedLines, resolveShaWithGit, type ShaResolution, uncitedLines } from "../scripts/test-plan-evidence.ts";
 
 function prBody(number: number): string {
   return readFileSync(new URL(`fixtures/test-plans/pr${number}.md`, import.meta.url), "utf8");
@@ -73,6 +77,36 @@ describe("test plan evidence", () => {
     expect(uncitedLines("- [x] Fermé par #41, suite de #39")).toEqual([]);
   });
 
+  // Cas réels (#96), résolus par le vrai Git du dépôt : 6253696 n'a que des
+  // chiffres (#93), bcccdea que des lettres (#88). bcccdea n'est joignable que
+  // par la tête de la PR #88.
+  describe("a real commit cited by a SHA of digits only or letters only", () => {
+    function expectReachable(sha: string): void {
+      expect(
+        resolveShaWithGit()(sha),
+        `commit ${sha} introuvable localement : il faut l'historique complet et les têtes de PR (npm run fetch:pull-heads)`,
+      ).toBe("commit");
+    }
+
+    it("accepts the line of #93 citing `6253696`", () => {
+      expectReachable("6253696");
+      expect(
+        uncitedLines(
+          "- [x] Tests sans pile, rouges d'abord, verts sur `6253696` : `tests/relay-fidelity.test.ts` et `tests/seam-b/dataset.test.ts`, 27 tests.",
+        ),
+      ).toEqual([]);
+    });
+
+    it("accepts the line of #88 citing commit bcccdea", () => {
+      expectReachable("bcccdea");
+      expect(
+        uncitedLines(
+          "- [x] `environment.lock` dans un vrai `measure.json` : mesure du candidat de référence au commit bcccdea, arbre propre, `completed`, 38 réussis sur 38, `environment.lock` = `{ \"takenAt\": \"2026-11-23T22:43:24.598Z\" }` (prise, sans reprise). Une seconde mesure lancée pendant celle-ci : code 4, `refused-lock`, rien d'écrit.",
+        ),
+      ).toEqual([]);
+    });
+  });
+
   it("does not take a long number or an all-letter hex word for a commit SHA", () => {
     const lines = [
       "- [x] 143 tests le 20261121",
@@ -80,7 +114,79 @@ describe("test plan evidence", () => {
       "- [x] 143 tests defaced",
       "- [x] 143 tests, commit `deadbeef`",
     ];
-    expect(uncitedLines(lines.join("\n"))).toEqual(lines);
+    expect(refusedLines(lines.join("\n"))).toEqual([
+      { line: lines[0], reason: expect.stringMatching(/^aucun état cité/) },
+      { line: lines[1], reason: "20261121 : ce commit n'existe pas dans le dépôt" },
+      { line: lines[2], reason: expect.stringMatching(/^aucun état cité/) },
+      { line: lines[3], reason: "deadbeef : ce commit n'existe pas dans le dépôt" },
+    ]);
+  });
+
+  // Test négatif de la porte : le seul « SHA » de la case n'existe pas.
+  it("refuses a checked line whose only SHA names no commit of the repository", () => {
+    const line = "- [x] `npm test` : 143 tests, commit `0123456789abcdef0123456789abcdef01234567`";
+    expect(refusedLines(line)).toEqual([
+      { line, reason: "0123456789abcdef0123456789abcdef01234567 : ce commit n'existe pas dans le dépôt" },
+    ]);
+  });
+
+  it("counts a commit link, in prose or alone in inline code", () => {
+    expect(
+      uncitedLines(
+        [
+          "- [x] 143 tests sur [ce commit](https://github.com/karAmmi12/migrabench/commit/6253696)",
+          "- [x] 143 tests sur `https://github.com/karAmmi12/migrabench/pull/93/commits/6253696`",
+        ].join("\n"),
+      ),
+    ).toEqual([]);
+  });
+
+  // Ni l'ambiguïté (deux objets réels qui partagent 7 caractères : ~2^28
+  // essais) ni une panne de Git ne se fabriquent sur le vrai dépôt : la
+  // résolution est passée au contrôle.
+  describe("with a given SHA resolution", () => {
+    const line = "- [x] `npm test` : 143 tests, commit `6253696`";
+
+    it("refuses an ambiguous abbreviated SHA and says so", () => {
+      expect(refusedLines(line, () => "ambiguous")).toEqual([
+        { line, reason: "6253696 : SHA abrégé ambigu, il désigne plusieurs objets du dépôt" },
+      ]);
+    });
+
+    it("refuses the line when the commit cannot be checked, and says so", () => {
+      expect(refusedLines(line, () => "unavailable")).toEqual([
+        { line, reason: expect.stringMatching(/^6253696 : vérification impossible/) },
+      ]);
+    });
+
+    it("needs no resolution for a CI run link", () => {
+      expect(
+        refusedLines("- [x] 143 tests, commit `6253696`, [CI](https://github.com/o/r/actions/runs/1)", () => "unavailable"),
+      ).toEqual([]);
+    });
+
+    it("accepts the line when one of its SHAs names a commit", () => {
+      const resolutions: Record<string, ShaResolution> = { "1111111": "missing", "6253696": "commit" };
+      expect(refusedLines("- [x] 143 tests, commit 1111111 puis `6253696`", (sha) => resolutions[sha]!)).toEqual([]);
+    });
+  });
+
+  describe("resolveShaWithGit", () => {
+    it("cannot check a commit outside a repository", () => {
+      expect(resolveShaWithGit(mkdtempSync(join(tmpdir(), "migrabench-evidence-")))("6253696")).toBe("unavailable");
+    });
+
+    // Un clone superficiel ne voit pas les commits anciens : il ne peut pas
+    // dire qu'un commit n'existe pas.
+    it("cannot check a commit in a shallow clone", () => {
+      const clone = join(mkdtempSync(join(tmpdir(), "migrabench-evidence-")), "shallow");
+      execFileSync("git", ["clone", "--quiet", "--depth", "1", `file://${process.cwd()}`, clone]);
+      expect(resolveShaWithGit(clone)("6253696")).toBe("unavailable");
+    });
+  });
+
+  it("does not take a SHA written in prose without context for a candidate", () => {
+    expect(uncitedLines("- [x] 143 tests (head 6253696)", () => "commit")).toEqual(["- [x] 143 tests (head 6253696)"]);
   });
 
   it("reads checked boxes of numbered lists and boxes followed by a tab", () => {

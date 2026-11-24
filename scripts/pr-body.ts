@@ -11,12 +11,13 @@ const INLINE_CODE = /(?<!`)(`+)(?!`)([\s\S]+?)(?<!`)\1(?!`)/g;
 
 // Retire les blocs délimités, puis le code en ligne. Chaque ligne du corps
 // reste à sa place (un retrait garde ses retours à la ligne), pour qu'un
-// contrôle puisse recopier la ligne d'origine. keepSpan choisit les codes en
-// ligne dont le contenu reste, sans ses backticks.
-export function stripCode(body: string, keepSpan: (code: string) => boolean = () => false): string {
+// contrôle puisse recopier la ligne d'origine. rewriteSpan choisit les codes
+// en ligne qui restent, et le texte qui les remplace (son contenu sans
+// backticks, ou une réécriture) ; undefined les retire.
+export function stripCode(body: string, rewriteSpan: (code: string) => string | undefined = () => undefined): string {
   return body
     .replace(FENCED_BLOCK, (block) => newlinesOf(block))
-    .replace(INLINE_CODE, (span, _ticks, code: string) => (keepSpan(code.trim()) ? code.trim() : ` ${newlinesOf(span)}`));
+    .replace(INLINE_CODE, (span, _ticks, code: string) => rewriteSpan(code.trim()) ?? ` ${newlinesOf(span)}`);
 }
 
 function newlinesOf(text: string): string {
