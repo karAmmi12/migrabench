@@ -421,13 +421,14 @@ le candidat tourne ensuite (voir les règles des issues).
 - **Limite** (`PROTOCOL.md`) : il ne couvre que les outils du banc. Une
   requête envoyée à la main au legacy pendant une mesure fait échouer la
   porte du relais au compte du candidat.
-- **Limite connue, jusqu'à #67** : `npm test` vérifie le verrou du banc à
-  son démarrage, sans le prendre. Une mesure lancée pendant un `npm test`
-  déjà en cours n'est donc pas refusée. Tant que le marqueur du Seam A
-  (section « Journal d'accès ») n'existe pas, les requêtes des tests du
-  Seam A, sans marqueur, font alors échouer la porte du relais au compte du
-  candidat (étape 4). Ne pas lancer de mesure pendant `npm test`. Cette
-  limite disparaît avec #67 : la mesure sera rendue invalide.
+- **`npm test` pendant une mesure** : `npm test` vérifie le verrou du banc
+  à son démarrage, sans le prendre (#94). Une mesure lancée pendant un
+  `npm test` déjà en cours n'est donc pas refusée, mais les requêtes des
+  tests du Seam A portent le marqueur du Seam A (section « Journal
+  d'accès ») : la mesure est rendue invalide (`marker-out-of-place`), au
+  lieu de compter contre le candidat. Le test du Seam A qui redémarre le
+  legacy (#67) fait, lui, échouer les scénarios en cours avant que la
+  mesure soit rendue invalide : un run perdu, cité sur #94.
 - Le mot seul « verrou » désigne le verrou d'un champ du dossier
   (`GLOSSARY.md`) : on écrit toujours « verrou du banc ».
 
@@ -459,9 +460,28 @@ le candidat tourne ensuite (voir les règles des issues).
   marqueur du Seam A pendant une mesure rend la mesure invalide
   (`marker-out-of-place`, la ligne en preuve), au lieu de faire échouer la
   porte du relais au compte du candidat : un `npm test` lancé pendant une
-  mesure est un incident du banc. Le runner reconnaît ce marqueur sans que
-  le candidat puisse en recevoir ni en fabriquer un ; le moyen (où
-  `npm test` l'enregistre, comment le runner le relit) est fixé par #67.
+  mesure est un incident du banc. Le moyen (#67) :
+  - la configuration globale de Vitest tire le marqueur (32 octets
+    aléatoires en hexadécimal) et l'enregistre comme un fichier vide, nommé
+    par le marqueur, dans `seam-a-markers/` du dossier d'état du banc, à
+    côté du verrou du banc : commun à toute la machine, hors du dépôt donc
+    hors de la copie du candidat. Les marqueurs de plus de sept jours sont
+    purgés à l'enregistrement suivant ;
+  - les requêtes des tests du Seam A vers le legacy le portent dans leur
+    `User-Agent` (`migrabench-seam-a/<marqueur>`) : la réponse du legacy ne
+    change pas, et un relais fidèle le transmet tel quel ;
+  - le runner relit ce dossier à la clôture. Le candidat ne le voit pas, et
+    un marqueur qu'il inventerait n'y figure pas.
+- **Requête témoin** : `GET /migrabench-witness/<marqueur>/<moment>`, où le
+  moment est `start-1`, `start-2`… (une par recréation de la pile) puis
+  `end`. Seul ce chemin exact, avec le marqueur de la mesure, compte comme
+  requête témoin : un chemin de requête témoin au marqueur inventé ou d'une
+  autre mesure est ignoré. Toute autre ligne qui porte le marqueur, où que
+  ce soit (chemin, `User-Agent`), est hors de son moment.
+- **`accessLog`** : empreinte du journal (`log`), nombre de lignes
+  (`lines`), et numéro de ligne de chaque requête témoin (`witnesses`).
+  Absent si la pile n'a jamais été recréée (mesure arrêtée avant le
+  démarrage).
 - Les autres lignes ne sont pas jugées à l'étape 3 : c'est la porte du
   relais (étape 4) qui les lit.
 
