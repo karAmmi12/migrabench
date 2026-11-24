@@ -191,24 +191,25 @@ machine (projet Compose `migrabench`) : la dernière copie du dépôt qui les a
 construites, un autre worktree par exemple, n'est pas forcément celle qui
 mesure (#102). Chaque image porte donc le label
 `org.migrabench.context-digest` : l'empreinte de son contexte de
-construction (son Dockerfile, `.dockerignore` et les fichiers que ses `COPY`
-prennent), calculée sur la copie qui construit par
-`oracle/stack-images.ts`. `npm run stack:up` le pose ; un `docker compose
-build` à la main le pose avec les variables de
-`node scripts/stack-context-env.ts` (c'est ce que fait la CI), et sans elles
-le laisse vide.
+construction, c'est-à-dire tout le dépôt moins ce que `.dockerignore`
+exclut, calculée par `oracle/stack-images.ts` sur la copie qui construit.
+`npm run stack:up` le pose ; un `docker compose build` à la main le pose avec
+les variables de `node scripts/stack-context-env.ts` (c'est ce que fait la
+CI), et sans elles le laisse vide.
 
-Une mesure, `npm run oracle` et `migrabench calibrate` recréent la pile sans
-la reconstruire, puis comparent le label de chaque image en cours à
-l'empreinte calculée sur leur propre copie ; une mesure vérifie aussi les
-images construites dès sa préparation, avant tout code du candidat. S'ils
-diffèrent, ils refusent de
-tourner contre elle : l'oracle et l'étalonnage s'arrêtent sur l'erreur
-`Stack images not built from this copy of the repository`, qui nomme chaque
-service ; une mesure est invalide, `stack-failed-before-candidate`, avec ce
-message pour preuve. Relancer `npm run stack:up` depuis la copie qui mesure.
-Les empreintes vérifiées sont relevées dans l'environnement du résultat
-(`imageContexts`), à côté de l'identifiant des images (`images`).
+Une mesure, `npm run oracle` et `migrabench calibrate` comparent le label de
+chaque image à l'empreinte calculée sur leur propre copie : une mesure dès
+sa préparation, avant tout code du candidat, puis tous les trois à chaque
+recréation de la pile, qu'ils ne reconstruisent pas. S'ils diffèrent, ils
+refusent de tourner contre elle : l'oracle et l'étalonnage s'arrêtent sur
+l'erreur `Stack images not built from this copy of the repository`, qui
+nomme chaque service et donne le remède ; une mesure est invalide,
+`stack-not-from-this-copy`, avec ce message pour preuve. Remède : relancer
+`npm run stack:up` depuis la copie qui mesure. Toute modification d'un
+fichier du dépôt hors `.dockerignore`, documentation comprise, le demande
+aussi : le contrôle est volontairement large. Les empreintes vérifiées sont
+relevées dans l'environnement du résultat (`imageContexts`), à côté de
+l'identifiant des images (`images`).
 
 ## Lancer l'oracle
 

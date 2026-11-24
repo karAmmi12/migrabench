@@ -188,7 +188,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
       throw error;
     },
   );
-  if (notFromCopy !== undefined) closePreparation("stack-failed-before-candidate", {}, notFromCopy);
+  if (notFromCopy !== undefined) closePreparation("stack-not-from-this-copy", {}, notFromCopy);
   else if (shortfall === undefined) closePreparation();
   else closePreparation("runner-error-before-candidate", {}, shortfall);
 
@@ -265,7 +265,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
         // Pile recréée sur des images d'une autre copie du dépôt (#102) :
         // avant tout code du candidat, un incident du banc.
         if (error instanceof StackNotFromCopy) {
-          closeStart("stack-failed-before-candidate", {}, error.message);
+          closeStart("stack-not-from-this-copy", {}, error.message);
         } else if (error instanceof CandidateNotStarted) {
           closeStart(startOutcome, {}, error.detail);
         } else {

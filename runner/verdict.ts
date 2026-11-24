@@ -11,6 +11,7 @@ export type PhaseName = (typeof PHASES)[number];
 export const INVALIDITY_CAUSES = [
   "registry-network-error",
   "stack-failed-before-candidate",
+  "stack-not-from-this-copy",
   "access-log-inactive",
   "oracle-error",
   "marker-out-of-place",
@@ -38,10 +39,10 @@ type FailureOutcome = (typeof FAILURES)[FailureCategory][number];
 // erreur imprévue du runner dès le lancement de `npm ci`), et les portes,
 // vides à l'étape 3, n'ont que `ok` et `not-run`.
 export const PHASE_OUTCOMES = {
-  preparation: ["ok", "runner-error-before-candidate", "stack-failed-before-candidate", "interrupted"],
+  preparation: ["ok", "runner-error-before-candidate", "stack-not-from-this-copy", "interrupted"],
   contract: ["ok", "contract-invalid", "runner-error-before-candidate", "interrupted"],
   build: ["ok", "build-failed", "build-timeout", "build-resource-limit", "registry-network-error", "stack-down-while-candidate", "interrupted"],
-  start: ["ok", "stack-failed-before-candidate", "access-log-inactive", "start-exited", "start-not-ready", "stack-down-while-candidate", "interrupted"],
+  start: ["ok", "stack-failed-before-candidate", "stack-not-from-this-copy", "access-log-inactive", "start-exited", "start-not-ready", "stack-down-while-candidate", "interrupted"],
   oracle: ["ok", "oracle-error", "stack-down-while-candidate", "interrupted"],
   gates: ["ok"],
   closing: ["ok", "marker-out-of-place", "access-log-inactive", "stack-down-while-candidate", "interrupted"],

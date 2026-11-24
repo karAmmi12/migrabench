@@ -1,6 +1,8 @@
 // Images de la pile construites depuis la copie du dépôt (#102) : l'empreinte
-// du contexte de construction d'un service, portée par le label de son image.
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+// du contexte de construction, portée par le label de chaque image. Elle prend
+// tout le contexte, moins ce que .dockerignore exclut, avec la sémantique de
+// Docker : un fichier qu'aucun COPY ne cite la change aussi.
+import { mkdtemp, mkdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -13,27 +15,21 @@ async function put(path: string, content: string): Promise<void> {
   await writeFile(join(root, path), content);
 }
 
+// Empreinte avant et après `change` : rend les deux.
+async function around(change: () => Promise<void>): Promise<[string, string]> {
+  const before = await contextDigest(root);
+  await change();
+  return [before, await contextDigest(root)];
+}
+
 beforeEach(async () => {
-  root = await mkdtemp(join(tmpdir(), "mb-stack-images-"));
-  await put(".dockerignore", "**/node_modules\n**/target\n*.har\n");
-  await put(
-    "app/Dockerfile",
-    [
-      "# Contexte : racine.",
-      "FROM node:22 AS users",
-      "COPY shared/users.json \\",
-      "     users.json",
-      "FROM tomcat:9",
-      "COPY --from=users /work/out.xml /etc/out.xml",
-      "COPY --chown=1000 app/src src",
-      "RUN echo done",
-      "",
-    ].join("\n"),
-  );
-  await put("shared/users.json", "[]");
+  root = await mkdtemp(join(tmpdir(), "mb-stack-context-"));
+  await put(".dockerignore", ["**/node_modules", "**/target", "*.har", "results", "/.oracle-artifacts", "docs/*.md", "!docs/KEEP.md", ""].join("\n"));
+  await put("app/Dockerfile", "FROM tomcat:9\nCOPY app/src src\n");
   await put("app/src/Main.java", "class Main {}");
-  await put("app/src/web/index.jsp", "<p>");
-  await put("unrelated.txt", "x");
+  await put("scripts/users.ts", "export {};");
+  await put("docs/KEEP.md", "kept");
+  await put("docs/notes.md", "notes");
 });
 
 afterEach(async () => {
@@ -42,46 +38,60 @@ afterEach(async () => {
 
 describe("contextDigest", () => {
   it("is a cited SHA-256, stable for the same content", async () => {
-    const digest = await contextDigest(root, "app/Dockerfile");
+    const digest = await contextDigest(root);
     expect(digest).toMatch(/^sha256:[0-9a-f]{64}$/);
-    expect(await contextDigest(root, "app/Dockerfile")).toBe(digest);
+    expect(await contextDigest(root)).toBe(digest);
   });
 
-  it("changes when a file copied by the Dockerfile changes, at any depth", async () => {
-    const before = await contextDigest(root, "app/Dockerfile");
-    await put("app/src/web/index.jsp", "<p>changed");
-    expect(await contextDigest(root, "app/Dockerfile")).not.toBe(before);
+  it("changes when a file of the context that no COPY cites changes", async () => {
+    const [before, after] = await around(() => put("scripts/users.ts", "export const changed = 1;"));
+    expect(after).not.toBe(before);
   });
 
-  it("changes when a single copied file changes, or when the Dockerfile changes", async () => {
-    const before = await contextDigest(root, "app/Dockerfile");
-    await put("shared/users.json", "[{}]");
-    const afterUsers = await contextDigest(root, "app/Dockerfile");
-    expect(afterUsers).not.toBe(before);
-    await put("app/Dockerfile", "FROM tomcat:9\nCOPY shared/users.json users.json\nCOPY app/src src\n");
-    expect(await contextDigest(root, "app/Dockerfile")).not.toBe(afterUsers);
+  it("changes when a file is added anywhere in the context, or when a file moves", async () => {
+    const [before, added] = await around(() => put("unrelated.txt", "x"));
+    expect(added).not.toBe(before);
+    await rm(join(root, "unrelated.txt"));
+    await put("other/unrelated.txt", "x");
+    expect(await contextDigest(root)).not.toBe(added);
   });
 
-  it("changes when a file is added under a copied directory", async () => {
-    const before = await contextDigest(root, "app/Dockerfile");
-    await put("app/src/Other.java", "class Other {}");
-    expect(await contextDigest(root, "app/Dockerfile")).not.toBe(before);
+  it("changes when the Dockerfile or .dockerignore changes", async () => {
+    const [before, dockerfile] = await around(() => put("app/Dockerfile", "FROM tomcat:9\n"));
+    expect(dockerfile).not.toBe(before);
+    const [, dockerignore] = await around(() => put(".dockerignore", "**/node_modules\n"));
+    expect(dockerignore).not.toBe(dockerfile);
   });
 
-  it("ignores files the Dockerfile does not copy, and those .dockerignore leaves out", async () => {
-    const before = await contextDigest(root, "app/Dockerfile");
-    await put("unrelated.txt", "y");
-    await put("app/src/target/classes/Main.class", "bytes");
-    await put("app/src/node_modules/x/index.js", "module");
-    expect(await contextDigest(root, "app/Dockerfile")).toBe(before);
+  it("changes when a symbolic link changes its target", async () => {
+    await symlink("Main.java", join(root, "app/src/link"));
+    const [before, after] = await around(async () => {
+      await rm(join(root, "app/src/link"));
+      await symlink("Other.java", join(root, "app/src/link"));
+    });
+    expect(after).not.toBe(before);
   });
 
-  it("refuses a COPY form it cannot read, rather than miss a source", async () => {
-    await put("app/Dockerfile", 'FROM tomcat:9\nCOPY ["app/src", "src"]\n');
-    await expect(contextDigest(root, "app/Dockerfile")).rejects.toThrow(/COPY/);
-    await put("app/Dockerfile", "FROM tomcat:9\nCOPY app/src/*.java src/\n");
-    await expect(contextDigest(root, "app/Dockerfile")).rejects.toThrow(/COPY/);
-    await put("app/Dockerfile", "FROM tomcat:9\nADD app/src src\n");
-    await expect(contextDigest(root, "app/Dockerfile")).rejects.toThrow(/ADD/);
+  it("ignores what .dockerignore excludes: a directory with all it holds, at any depth with **", async () => {
+    const [before, after] = await around(async () => {
+      await put("app/src/target/classes/Main.class", "bytes");
+      await put("fixtures/x/node_modules/y/index.js", "module");
+      await put("results/diagnostic/m/measure.json", "{}");
+      await put(".oracle-artifacts/m/trace.zip", "zip");
+      await put("trace.har", "har");
+    });
+    expect(after).toBe(before);
+  });
+
+  it("anchors a pattern without ** at the root of the context, as Docker does", async () => {
+    const [before, after] = await around(() => put("sub/trace.har", "har"));
+    expect(after).not.toBe(before);
+  });
+
+  it("keeps a file that an exception pattern brings back", async () => {
+    const [before, excluded] = await around(() => put("docs/notes.md", "changed"));
+    expect(excluded).toBe(before);
+    const [, kept] = await around(() => put("docs/KEEP.md", "changed"));
+    expect(kept).not.toBe(excluded);
   });
 });

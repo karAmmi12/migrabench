@@ -3,42 +3,75 @@
 // Compose `migrabench`) : la dernière copie du dépôt qui les a construites
 // n'est pas forcément celle qui recrée la pile. Chaque image porte donc un
 // label, l'empreinte du contexte de construction de son service, posé au
-// build (docker-compose.yml) ; la pile recréée est refusée si le label d'une
-// image en cours diffère de l'empreinte calculée sur la copie.
-import { readdir, readFile, stat } from "node:fs/promises";
-import { join, relative } from "node:path";
+// build (docker-compose.yml) ; une image dont le label diffère de l'empreinte
+// calculée sur la copie est refusée.
+//
+// L'empreinte prend tout le contexte de construction, moins ce que
+// .dockerignore exclut, avec la sémantique de Docker (@balena/dockerignore,
+// portage de son implémentation). Les fichiers ne sont pas déduits des COPY :
+// un contrôle plus large qui refuse parfois pour rien vaut mieux qu'un
+// contrôle qui rate un fichier sans le dire.
+import type { Dirent } from "node:fs";
+import { lstat, readdir, readFile, readlink } from "node:fs/promises";
+import { join } from "node:path";
+import dockerignoreModule from "@balena/dockerignore";
 import { cited, sha256 } from "../shared/digest.ts";
 import { spawnCommand, stdoutOf } from "../shared/process.ts";
 import { ROOT } from "../shared/root.ts";
 
+// Paquet CommonJS : sous NodeNext, ses types placent la fabrique sous
+// `default`, où son module la remet aussi.
+const ignore = dockerignoreModule.default;
+
 // Label de l'image : l'empreinte du contexte de construction de son service.
 export const CONTEXT_LABEL = "org.migrabench.context-digest";
 
-// Services recréés à chaque exécution complète, leur Dockerfile depuis la
-// racine du dépôt (contexte de construction), et la variable de
+// Services recréés à chaque exécution complète, leur contexte de construction
+// depuis la racine du dépôt (celui de docker-compose.yml), et la variable de
 // docker-compose.yml qui porte l'empreinte jusqu'au label.
 export const STACK_SERVICES = {
-  legacy: { dockerfile: "fixtures/legacy-app/Dockerfile", env: "MB_LEGACY_CONTEXT_DIGEST" },
-  archive: { dockerfile: "fixtures/archive-service/Dockerfile", env: "MB_ARCHIVE_CONTEXT_DIGEST" },
+  legacy: { context: ".", env: "MB_LEGACY_CONTEXT_DIGEST" },
+  archive: { context: ".", env: "MB_ARCHIVE_CONTEXT_DIGEST" },
 } as const;
 export type StackService = keyof typeof STACK_SERVICES;
 export const SERVICES = Object.keys(STACK_SERVICES) as StackService[];
 
-// Empreinte du contexte de construction d'un Dockerfile : le Dockerfile, le
-// .dockerignore, et chaque fichier que ses COPY prennent dans le contexte
-// (pas ceux `--from` d'une autre étape), hors ce que .dockerignore exclut.
-// Liste triée de « chemin depuis la racine, empreinte », hachée. Une forme de
-// COPY que la fonction ne sait pas lire est refusée plutôt qu'une source
-// manquée.
-export async function contextDigest(root: string, dockerfile: string): Promise<string> {
-  const ignore = await dockerignore(root);
-  const paths = new Set<string>([dockerfile, ".dockerignore"]);
-  for (const source of copySources(await readFile(join(root, dockerfile), "utf8"), dockerfile)) {
-    for (const path of await filesUnder(root, source, ignore)) paths.add(path);
-  }
-  const lines = [];
-  for (const path of [...paths].sort()) lines.push(`${path}\0${sha256(await readFile(join(root, path)))}\n`);
-  return cited(sha256(lines.join("")));
+// Remède à une pile construite depuis une autre copie du dépôt.
+export const STACK_REMEDY = "run `npm run stack:up` from this copy of the repository";
+
+// Empreinte d'un contexte de construction : chaque entrée que Docker enverrait
+// (fichier, lien symbolique non suivi), hors .dockerignore, triée par chemin,
+// avec l'empreinte de son contenu ou de sa cible ; la liste est hachée.
+export async function contextDigest(contextDir: string): Promise<string> {
+  const dockerignore = await readFile(join(contextDir, ".dockerignore"), "utf8").catch((error: NodeJS.ErrnoException) => {
+    if (error.code === "ENOENT") return "";
+    throw error;
+  });
+  const ignored = ignore().add(dockerignore);
+  // Sans motif d'exception, un dossier exclu l'est avec tout son contenu :
+  // inutile d'y descendre (node_modules, .git).
+  const prune = !dockerignore.split(/\r?\n/).some((line) => line.trim().startsWith("!"));
+  const lines: string[] = [];
+  const walk = async (dir: string): Promise<void> => {
+    const entries: Dirent[] = await readdir(join(contextDir, dir), { withFileTypes: true });
+    for (const entry of entries) {
+      const path = dir === "" ? entry.name : `${dir}/${entry.name}`;
+      const excluded = ignored.ignores(path);
+      if (entry.isDirectory()) {
+        if (!(excluded && prune)) await walk(path);
+      } else if (excluded) {
+        continue;
+      } else if (entry.isSymbolicLink()) {
+        lines.push(`${path}\0link\0${sha256(await readlink(join(contextDir, path)))}\n`);
+      } else if (entry.isFile()) {
+        lines.push(`${path}\0file\0${sha256(await readFile(join(contextDir, path)))}\n`);
+      } else {
+        throw new Error(`Unsupported entry in the build context: ${path} (${(await lstat(join(contextDir, path))).mode.toString(8)})`);
+      }
+    }
+  };
+  await walk("");
+  return cited(sha256(lines.sort().join("")));
 }
 
 // Empreinte du contexte de construction de chaque service de la pile.
@@ -47,7 +80,7 @@ export type StackContextDigests = Record<StackService, string>;
 // Empreinte du contexte de chaque service de la pile, sur la copie du dépôt.
 export async function stackContextDigests(root = ROOT): Promise<StackContextDigests> {
   const digests = {} as StackContextDigests;
-  for (const service of SERVICES) digests[service] = await contextDigest(root, STACK_SERVICES[service].dockerfile);
+  for (const service of SERVICES) digests[service] = await contextDigest(join(root, STACK_SERVICES[service].context));
   return digests;
 }
 
@@ -56,11 +89,12 @@ export function contextDigestEnv(digests: StackContextDigests): Record<string, s
   return Object.fromEntries(SERVICES.map((service) => [STACK_SERVICES[service].env, digests[service]]));
 }
 
-// Images de la pile qui ne viennent pas de la copie : incident du banc,
-// jamais imputable au candidat. Le message est la preuve.
+// Images de la pile construites depuis une autre copie du dépôt : incident du
+// banc, jamais imputable au candidat (cause `stack-not-from-this-copy`). Le
+// message est la preuve, et donne le remède.
 export class StackNotFromCopy extends Error {
   constructor(mismatches: readonly string[]) {
-    super(`Stack images not built from this copy of the repository: ${mismatches.join("; ")}`);
+    super(`Stack images not built from this copy of the repository: ${mismatches.join("; ")}. Remedy: ${STACK_REMEDY}.`);
     this.name = "StackNotFromCopy";
   }
 }
@@ -109,55 +143,4 @@ function check(expected: StackContextDigests, inspected: Record<StackService, In
     else if (label !== expected[service]) mismatches.push(`${service} image ${found.image} carries ${label}, this copy gives ${expected[service]}`);
   }
   if (mismatches.length > 0) throw new StackNotFromCopy(mismatches);
-}
-
-// Sources des COPY d'un Dockerfile lues dans le contexte, chemins depuis sa racine.
-function copySources(text: string, dockerfile: string): string[] {
-  const sources = [];
-  const instructions = text
-    .replace(/\\\r?\n/g, " ")
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line !== "" && !line.startsWith("#"));
-  for (const instruction of instructions) {
-    const [keyword = "", ...args] = instruction.split(/\s+/);
-    const upper = keyword.toUpperCase();
-    if (upper === "ADD") throw new Error(`${dockerfile}: ADD is not supported, use COPY: ${instruction}`);
-    if (upper !== "COPY") continue;
-    const flags = args.filter((arg) => arg.startsWith("--"));
-    if (flags.some((flag) => flag.startsWith("--from="))) continue;
-    const paths = args.filter((arg) => !arg.startsWith("--"));
-    const unreadable = paths.length < 2 || paths.some((path) => /[[\]*?"]/.test(path));
-    if (unreadable) throw new Error(`${dockerfile}: unsupported COPY form, sources must be plain paths: ${instruction}`);
-    sources.push(...paths.slice(0, -1).map((path) => path.replace(/^\.\//, "").replace(/\/$/, "")));
-  }
-  return sources;
-}
-
-// Motifs de .dockerignore, en expressions régulières sur un chemin depuis la
-// racine : `**/` pour toute profondeur, `*` dans un segment.
-async function dockerignore(root: string): Promise<RegExp[]> {
-  const text = await readFile(join(root, ".dockerignore"), "utf8");
-  return text
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line !== "" && !line.startsWith("#"))
-    .map((pattern) => {
-      if (pattern.startsWith("!")) throw new Error(`.dockerignore: exception patterns are not supported: ${pattern}`);
-      const body = pattern
-        .replace(/^\/+|\/+$/g, "")
-        .split("**/")
-        .map((part) => part.replace(/[.+^${}()|[\]\\?]/g, "\\$&").replace(/\*/g, "[^/]*"))
-        .join("(?:.*/)?");
-      return new RegExp(`^${body}$`);
-    });
-}
-
-async function filesUnder(root: string, source: string, ignore: readonly RegExp[]): Promise<string[]> {
-  if (ignore.some((pattern) => pattern.test(source))) return [];
-  const path = join(root, source);
-  if (!(await stat(path)).isDirectory()) return [source];
-  const files = [];
-  for (const entry of await readdir(path)) files.push(...(await filesUnder(root, relative(root, join(path, entry)), ignore)));
-  return files;
 }

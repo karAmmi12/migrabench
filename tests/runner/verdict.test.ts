@@ -39,8 +39,10 @@ describe("verdict", () => {
 
   it.each([
     ["preparation", "runner-error-before-candidate"],
-    // Images de la pile qui ne viennent pas de la copie, vues dès la préparation (#102).
-    ["preparation", "stack-failed-before-candidate"],
+    // Images de la pile construites depuis une autre copie du dépôt (#102) :
+    // vues à la préparation, ou sur les conteneurs à la recréation de la pile.
+    ["preparation", "stack-not-from-this-copy"],
+    ["start", "stack-not-from-this-copy"],
     ["contract", "runner-error-before-candidate"],
     ["build", "registry-network-error"],
     ["start", "stack-failed-before-candidate"],
