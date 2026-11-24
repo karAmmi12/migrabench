@@ -309,7 +309,39 @@ Règles des issues :
   libère le verrou du banc. Une mesure comptée interrompue est versionnée
   comme les autres, et le rapport la signale toujours. Le candidat ne peut
   pas l'envoyer : il n'a accès ni au processus du runner ni au socket
-  Docker.
+  Docker. Mise en œuvre (#71) :
+  - la phase en cours est fermée `interrupted`, preuve `Interrupted by
+    <signal>`. Les commandes qu'elle a lancées reçoivent le signal, et elle
+    ne peut plus en lancer. Playwright, lancé par le runner, a son propre
+    groupe de processus, arrêté en entier. Les phases interrompues ont
+    2 secondes pour finir, puis ce qui reste est tué ;
+  - le résultat de l'oracle est figé au signal : un oracle interrompu
+    n'écrit ni `oracle.json` ni `oracle.executed: true`. Son résultat
+    collecté, s'il y en a un, reste dans les bruts. La liste des scénarios
+    de la clôture a son propre dossier, `oracle-list/` : le dossier d'un
+    oracle lancé garde ses bruts partiels ;
+  - la clôture supprime les conteneurs de la construction et tue le
+    candidat sans attendre son délai d'arrêt. Un signal reçu entre deux
+    phases ou pendant la clôture est rangé dans la clôture ;
+  - **échéance** : à l'annulation d'un job, GitHub Actions envoie `SIGINT`
+    au processus d'entrée de l'étape, `SIGTERM` 7 500 ms plus tard, puis tue
+    l'arbre de processus 2 500 ms après (« Workflow cancellation
+    reference »). `measure.json` est donc écrit au plus 5 000 ms après le
+    premier signal : passé ce délai, ou au second signal (`SIGINT` ou
+    `SIGTERM`), la clôture est abrégée (`closing` `interrupted`, avec la
+    raison en détail), `measure.json` est écrit aussitôt, puis le candidat
+    est supprimé. Le même signal reçu moins d'une seconde après le premier
+    est le doublon du relais de npm sous Ctrl+C, pas un second signal ;
+  - `measure.json` est écrit de façon atomique : fichier temporaire, puis
+    renommage ;
+  - `SIGKILL` arrête le runner sans mesure, et laisse un verrou du banc
+    orphelin.
+
+  En CI, le processus d'entrée d'une étape `run` est le shell, qui ne
+  transmet pas le signal à la commande qu'il attend : une étape de mesure
+  qui doit rester interruptible par l'annulation du job se lance avec
+  `exec` (`exec npm run migrabench -- …`), npm relayant `SIGINT` et
+  `SIGTERM` au runner (#94).
 - **`stack-failed-before-candidate`** : le legacy ou le service d'archivage
   n'est pas sain avant le démarrage du candidat, ou pendant un redémarrage
   où le candidat est arrêté. Relevée quand `docker compose up --wait` échoue

@@ -16,8 +16,10 @@
 // (runner/access-log.ts, runner/witness.ts).
 // Les pannes de la pile et les erreurs imprévues du runner, rangées dans une
 // mesure, viennent de #68 (oracle/stack-state.ts).
+// La mesure interrompue vient de #71 (runner/interruption.ts).
 import { randomBytes } from "node:crypto";
-import { mkdir, stat, writeFile } from "node:fs/promises";
+import { renameSync } from "node:fs";
+import { mkdir, rename, stat, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import { executeOracle, type ExecuteOracleResult, listOracle, OracleError, StackFailed } from "../oracle/execute.ts";
 import { SERVICES, stackContextDigests, StackNotFromCopy, verifyBuiltImages } from "../oracle/stack-images.ts";
@@ -33,11 +35,12 @@ import { type AccessLogRecord, type CandidateRecord, measureRecord, type OracleR
 import type { ExitCode, PhaseName, PhaseOutcome, PhaseRecord, RunnerErrorOutcome, Verdict } from "./verdict.ts";
 import { citedFileSha256 as digestOf } from "../shared/digest.ts";
 import { acquireBenchLock, type TakenOver } from "../shared/bench-lock.ts";
-import { spawnCommand, stdoutOf } from "../shared/process.ts";
+import { interruptibleCommands, spawnCommand, stdoutOf } from "../shared/process.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, COUNTED_DIR_FROM_ROOT, ROOT } from "../shared/root.ts";
 import { type CountedRecord, countedPreconditions } from "./counted.ts";
 import { countedGitFacts } from "./counted-facts.ts";
-import { buildCandidate } from "./build.ts";
+import { buildCandidate, removeBuildContainers } from "./build.ts";
+import { type Interruption, interruptionDetail, watchInterruption } from "./interruption.ts";
 import { appliedCalibration } from "./calibration-results.ts";
 import {
   buildRuntimeImage,
@@ -48,6 +51,7 @@ import {
   type CandidateService,
   copyCandidate,
   isDirectory,
+  removeCandidate,
   RUNTIME_IMAGE,
   startCandidate,
   stopCandidate,
@@ -122,9 +126,13 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
   const id = measureIdOf(startedAt, benchCommit, candidate);
   const lock = acquireBenchLock({ tool: "measure", measureId: id });
   if (!lock.ok) return refused(lock.message, "refused-lock");
+  // Dès le verrou du banc pris, SIGINT et SIGTERM interrompent la mesure au
+  // lieu d'arrêter le processus (#71).
+  const interruption = watchInterruption();
   try {
-    return await measure({ candidate, candidateDir, salt, limits, limitsRecord, startedAt, benchCommit, id, lockRecord: lockRecord(lock.holder.takenAt, lock.takenOver), counted: countedRecord });
+    return await measure({ candidate, candidateDir, salt, limits, limitsRecord, startedAt, benchCommit, id, lockRecord: lockRecord(lock.holder.takenAt, lock.takenOver), counted: countedRecord, interruption });
   } finally {
+    interruption.dispose();
     lock.release();
   }
 }
@@ -147,7 +155,26 @@ interface MeasureContext {
   lockRecord: ReturnType<typeof lockRecord>;
   // Prévue pour compter : le commit de origin/main vérifié.
   counted: CountedRecord | undefined;
+  interruption: Interruption;
 }
+
+// Ce que la clôture a relevé (#71).
+interface ClosingResult {
+  oracle: OracleRecord;
+  outcome?: PhaseOutcome<"closing">;
+  raw?: Record<string, string>;
+  detail?: string | undefined;
+  accessLog?: AccessLogRecord;
+}
+
+// Résultat collecté de l'oracle, dans le dossier des bruts, avant sa
+// promotion en oracle.json.
+const COLLECTED_RESULT = "oracle-result.json";
+
+// Délai laissé aux phases interrompues pour finir, leurs commandes arrêtées,
+// avant la clôture : une part de l'échéance de measure.json
+// (runner/interruption.ts), le reste allant à la clôture.
+const INTERRUPTED_PHASES_GRACE_MS = 2_000;
 
 // Phases 1 à 7, sous le verrou du banc.
 //
@@ -157,7 +184,13 @@ interface MeasureContext {
 // `runner-error-before-candidate`, invalide. Ensuite,
 // `stack-down-while-candidate`, comptée contre le candidat (règle 7). La clôture tourne toujours. Avant le dossier de la mesure, ou si
 // measure.json ne peut pas être écrit, l'erreur reste un plantage (code 1).
-async function measure({ candidate, candidateDir, salt, limits, limitsRecord, startedAt, benchCommit, id, lockRecord, counted }: MeasureContext): Promise<MeasureResult> {
+//
+// Mesure interrompue (#71) : la phase en cours est fermée `interrupted`, les
+// commandes qu'elle a lancées reçoivent le signal et elle ne peut plus en
+// lancer ; les conteneurs de la construction sont supprimés, puis la clôture
+// tourne comme toujours et arrête le candidat. Un signal reçu entre les
+// phases ou pendant la clôture est rangé dans la clôture.
+async function measure({ candidate, candidateDir, salt, limits, limitsRecord, startedAt, benchCommit, id, lockRecord, counted, interruption }: MeasureContext): Promise<MeasureResult> {
   const phases: PhaseRecord[] = [];
   const tracker = startPhases(phases);
   const phase = tracker.open;
@@ -256,7 +289,9 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
         // Tiré par la mesure, sauf ORACLE_SALT : oracle.json le dit comme measure.json.
         saltImposed: salt !== undefined,
         artifactsDir: `${ARTIFACTS_DIR_FROM_ROOT}/${id}/oracle`,
-        resultFile: join(measureDir, "oracle.json"),
+        // Écrit d'abord dans le dossier des bruts : seule la phase le promeut
+        // en oracle.json, si la mesure n'est pas interrompue (#71).
+        resultFile: join(rawDir, COLLECTED_RESULT),
         accessLogDir,
         onStackReady: async () => {
           await stopCandidate(described);
@@ -286,13 +321,19 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
       // Playwright n'a écrit aucun rapport (#68) : oracle non exécuté, sans
       // compte des scénarios, que la liste ne donnerait pas non plus.
       if (error instanceof OracleError && closeOracle !== undefined) {
-        oracle = { executed: false };
+        if (interruption.signal() === undefined) oracle = { executed: false };
         return void closeOracle("oracle-error", { [relative(rawDir, error.log)]: await digestOf(error.log) }, error.message);
       }
       throw error;
     }
+    const resultDigest = await digestOf(result.resultFile);
+    // Résultat de l'oracle figé dès le signal (#71) : la vérification et la
+    // promotion sont synchrones, aucun signal ne s'intercale. Interrompue, la
+    // phase garde le résultat collecté dans ses bruts, jamais dans la mesure.
+    if (interruption.signal() !== undefined) return;
+    renameSync(result.resultFile, join(measureDir, "oracle.json"));
     oracleMetadata = result.metadata;
-    oracle = { executed: true, result: await digestOf(result.resultFile), summary: result.summary };
+    oracle = { executed: true, result: resultDigest, summary: result.summary };
     // Service tombé pendant que le candidat tournait : le résultat de
     // l'oracle est gardé. La panne passe devant une erreur de l'oracle de la
     // même exécution, que le candidat a pu provoquer en la faisant tomber :
@@ -304,34 +345,75 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     const closeGates = phase("gates");
     closeGates();
   };
-  try {
-    await runPhases();
-  } catch (error) {
-    const current = tracker.current();
-    if (current === undefined) unplaced = describeError(error);
-    else current.close(runnerErrorOutcome(npmCiLaunched), {}, describeError(error));
+  const commands = interruptibleCommands(runPhases);
+  // Une erreur levée après l'interruption en est la suite : elle n'est pas rangée.
+  const phasesDone = commands.result.then(
+    () => undefined,
+    (error: unknown) => {
+      if (interruption.signal() !== undefined) return;
+      const current = tracker.current();
+      if (current === undefined) unplaced = describeError(error);
+      else current.close(runnerErrorOutcome(npmCiLaunched), {}, describeError(error));
+    },
+  );
+  // Raison d'écrire measure.json sans attendre : second signal ou échéance.
+  let cutShort: string | undefined;
+  void interruption.cutShort.then((reason) => (cutShort = reason));
+  const signal = await Promise.race([phasesDone, interruption.received]);
+  // L'interruption a-t-elle été rangée dans une phase avant la clôture ?
+  let interruptionPlaced = false;
+  if (signal !== undefined) {
+    commands.interrupt(signal);
+    interruptionPlaced = tracker.interrupt(interruptionDetail(signal));
+    let grace: NodeJS.Timeout | undefined;
+    await Promise.race([phasesDone, interruption.cutShort, new Promise((resolve) => (grace = setTimeout(resolve, INTERRUPTED_PHASES_GRACE_MS)))]);
+    clearTimeout(grace);
+    // Ce qui tourne encore, Playwright et son groupe compris, est arrêté.
+    commands.kill();
   }
 
   // 7. Clôture : arrêt du candidat, compte des scénarios si l'oracle n'a pas
-  // été lancé, puis requête témoin de fin et contrôle du journal d'accès si
-  // la pile a été recréée. Une erreur y est rangée comme ailleurs.
-  const closeClosing = phase("closing");
-  let accessLog: AccessLogRecord | undefined;
-  try {
-    if (service !== undefined) await stopCandidate(service);
-    // Oracle non lancé : le compte des scénarios, tous non atteints.
-    oracle ??= { executed: false, summary: await listOracle(`${ARTIFACTS_DIR_FROM_ROOT}/${id}/oracle`) };
-    if (unplaced !== undefined) closeClosing(runnerErrorOutcome(npmCiLaunched), {}, unplaced);
-    else if (startWitnesses.length === 0) closeClosing();
-    else {
+  // été lancé ou a été interrompu, puis requête témoin de fin et contrôle du
+  // journal d'accès si la pile a été recréée. Une erreur y est rangée comme
+  // ailleurs. Mesure interrompue : les conteneurs de la construction sont
+  // supprimés, le candidat est arrêté sans attendre, et la clôture est
+  // abrégée au second signal ou à l'échéance (runner/interruption.ts).
+  const openedClosing = phase("closing");
+  // Un signal reçu sans phase où le ranger : la clôture est interrompue, et
+  // garde son propre détail à la suite de la preuve.
+  const closeClosing: ClosePhase<"closing"> = (outcome, raw, detail) => {
+    const received = interruption.signal();
+    if (received === undefined || interruptionPlaced) return openedClosing(outcome, raw, detail);
+    openedClosing("interrupted", raw, [interruptionDetail(received), ...(detail === undefined ? [] : [detail])].join("\n"));
+  };
+  // La clôture rend ce qu'elle a relevé : abrégée, elle ne touche plus à la mesure.
+  const closingWork = async (): Promise<ClosingResult> => {
+    let closingOracle = oracle;
+    try {
+      const interrupted = interruption.signal() !== undefined;
+      if (interrupted && npmCiLaunched) await removeBuildContainers(id);
+      if (service !== undefined) await stopCandidate(service, { immediately: interrupted });
+      // Oracle non lancé ou interrompu : le compte des scénarios, tous non
+      // atteints. La liste a son propre dossier : celui d'un oracle lancé
+      // garde ses bruts partiels tels quels (#71).
+      closingOracle ??= { executed: false, summary: await listOracle(`${ARTIFACTS_DIR_FROM_ROOT}/${id}/oracle-list`) };
+      if (unplaced !== undefined) return { oracle: closingOracle, outcome: runnerErrorOutcome(npmCiLaunched), detail: unplaced };
+      if (startWitnesses.length === 0) return { oracle: closingOracle };
       const closed = await closeAccessLog({ accessLogDir, marker, rawDir, startWitnesses, seamAMarkers: readSeamAMarkers() });
-      accessLog = closed.accessLog;
-      closeClosing(closed.outcome, closed.raw, closed.detail);
+      return { oracle: closingOracle, outcome: closed.outcome, raw: closed.raw, detail: closed.detail, ...(closed.accessLog === undefined ? {} : { accessLog: closed.accessLog }) };
+    } catch (error) {
+      return { oracle: closingOracle ?? { executed: false }, outcome: runnerErrorOutcome(npmCiLaunched), detail: describeError(error) };
     }
-  } catch (error) {
-    oracle ??= { executed: false };
-    closeClosing(runnerErrorOutcome(npmCiLaunched), {}, describeError(error));
-  }
+  };
+  const cut = (reason: string): ClosingResult => ({ oracle: oracle ?? { executed: false }, outcome: "interrupted", detail: reason });
+  let closing: ClosingResult;
+  if (cutShort === undefined) {
+    const closingCommands = interruptibleCommands(closingWork);
+    const done = await Promise.race([closingCommands.result, interruption.cutShort]);
+    if (typeof done === "string") closingCommands.kill();
+    closing = typeof done === "string" ? cut(done) : done;
+  } else closing = cut(cutShort);
+  closeClosing(closing.outcome, closing.raw, closing.detail);
   const startPhase = phases.find(({ name }) => name === "start");
   if (startPhase !== undefined && service !== undefined && (await isFile(service.startLog))) startPhase.raw["start.log"] = await digestOf(service.startLog);
 
@@ -353,12 +435,22 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     salt: measureSalt,
     saltImposed: salt !== undefined,
     marker,
-    ...(accessLog === undefined ? {} : { accessLog }),
+    ...(closing.accessLog === undefined ? {} : { accessLog: closing.accessLog }),
     phases,
-    oracle,
+    oracle: closing.oracle,
     ...(counted === undefined ? {} : { counted }),
   });
-  await writeFile(join(measureDir, "measure.json"), `${JSON.stringify(record, null, 2)}\n`);
+  // Écriture atomique : un fichier temporaire, puis renommé. Un arrêt pendant
+  // l'écriture ne laisse jamais un measure.json à moitié écrit (#71).
+  const measureFile = join(measureDir, "measure.json");
+  await writeFile(`${measureFile}.partial`, `${JSON.stringify(record, null, 2)}\n`);
+  await rename(`${measureFile}.partial`, measureFile);
+  // Clôture abrégée : le candidat et les conteneurs de la construction sont
+  // supprimés une fois measure.json écrit.
+  if (cutShort !== undefined) {
+    if (npmCiLaunched) await removeBuildContainers(id);
+    if (service !== undefined) await removeCandidate(service);
+  }
   return { written: true, measureDir, outcome: record.verdict, exitCode };
 }
 
@@ -398,13 +490,20 @@ class CandidateNotStarted extends Error {
 type ClosePhase<N extends PhaseName> = (outcome?: PhaseOutcome<N>, raw?: Record<string, string>, detail?: string) => void;
 
 // Phases ouvertes par `open` ; `current` rend la phase ouverte et pas encore
-// fermée, pour y ranger une erreur imprévue (#68).
+// fermée, pour y ranger une erreur imprévue (#68). `interrupt` ferme la phase
+// en cours `interrupted` et rend vrai s'il y en avait une (#71) : ensuite, les
+// phases interrompues ne peuvent plus ni se fermer ni en ouvrir une autre.
+// Seule la clôture s'ouvre encore.
 function startPhases(phases: PhaseRecord[]) {
   let current: { name: PhaseName; close: ClosePhase<PhaseName> } | undefined;
+  let interrupted = false;
   const open = <N extends PhaseName>(name: N): ClosePhase<N> => {
+    if (interrupted && name !== "closing") throw new Error(`Phase ${name} not opened: the measure is interrupted`);
     const startedAt = new Date();
     const entry = { name, close: undefined as unknown as ClosePhase<PhaseName> };
+    const closing = interrupted;
     const close: ClosePhase<N> = (outcome = "ok", raw = {}, detail) => {
+      if (interrupted && !closing) return;
       phases.push({
         name,
         outcome,
@@ -419,5 +518,11 @@ function startPhases(phases: PhaseRecord[]) {
     current = entry;
     return close;
   };
-  return { open, current: () => current };
+  const interrupt = (detail: string): boolean => {
+    const entry = current;
+    entry?.close("interrupted", {}, detail);
+    interrupted = true;
+    return entry !== undefined;
+  };
+  return { open, current: () => current, interrupt };
 }

@@ -32,7 +32,8 @@ import type { RunnerErrorOutcome } from "./verdict.ts";
 //   tourne : une erreur réseau y vient du registre, jamais du candidat ;
 // - `install` : `npm ci --offline`, scripts d'installation actifs, sans réseau ;
 // - `build` : la commande de construction déclarée, sans réseau.
-export type BuildStep = "fetch" | "install" | "build";
+export const BUILD_STEPS = ["fetch", "install", "build"] as const;
+export type BuildStep = (typeof BUILD_STEPS)[number];
 
 export interface BuildStepRun {
   step: BuildStep;

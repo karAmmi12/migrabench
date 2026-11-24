@@ -6,6 +6,8 @@
 // abaisse les délais de construction et de disponibilité, pour le diagnostic
 // seulement (runner/limits.ts). `--counted` prévoit la mesure pour compter
 // (#73) : refusée hors d'un état publié, écrite sous results/counted/.
+// SIGINT ou SIGTERM pendant la mesure l'interrompt : mesure invalide,
+// `interrupted`, code 3 (#71).
 //
 // `migrabench calibrate [--readings <n>]` : commande mince sur calibrateCandidate
 // (runner/calibrate.ts). Imprime le fichier du résultat d'étalonnage.
