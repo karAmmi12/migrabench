@@ -7,7 +7,8 @@ import { ROOT } from "./root.ts";
 export interface SpawnOptions {
   // Variables ajoutées à l'environnement du processus courant.
   env?: Record<string, string>;
-  // Sorties affichées dans le terminal au lieu d'être capturées.
+  // Sorties affichées dans le terminal au lieu d'être capturées ; avec
+  // `logFile`, affichées et ajoutées au fichier.
   inherit?: boolean;
   // Fichier où ajouter la sortie standard et la sortie d'erreur mêlées (brut d'une phase).
   logFile?: string;
@@ -17,7 +18,7 @@ export interface SpawnOptions {
 
 export interface SpawnResult {
   code: number;
-  // Sortie standard capturée, vide avec `inherit`.
+  // Sortie standard capturée, vide avec `inherit` seul.
   stdout: string;
 }
 
@@ -27,7 +28,8 @@ export function spawnCommand(
   { env = {}, inherit = false, logFile, allowFailure = false }: SpawnOptions = {},
 ): Promise<SpawnResult> {
   return new Promise((resolve, reject) => {
-    const output = inherit ? "inherit" : "pipe";
+    const tee = inherit && logFile !== undefined;
+    const output = inherit && !tee ? "inherit" : "pipe";
     const child = spawn(command, args, { cwd: ROOT, env: { ...process.env, ...env }, stdio: ["ignore", output, output] });
     const log = logFile === undefined ? undefined : createWriteStream(logFile, { flags: "a" });
     let stdout = "";
@@ -35,10 +37,12 @@ export function spawnCommand(
     child.stdout?.on("data", (chunk: Buffer) => {
       stdout += chunk.toString();
       log?.write(chunk);
+      if (tee) process.stdout.write(chunk);
     });
     child.stderr?.on("data", (chunk: Buffer) => {
       stderr += chunk.toString();
       log?.write(chunk);
+      if (tee) process.stderr.write(chunk);
     });
     child.on("error", reject);
     child.on("close", (code) => {

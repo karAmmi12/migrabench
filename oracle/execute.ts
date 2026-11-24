@@ -14,6 +14,7 @@ import { type CiRun, ciRunOf, resultFileName, timestamp } from "./ci-run.ts";
 import { artifactPaths, collect, type OracleSummary, unreachedSummary } from "./collect.ts";
 import { DEFAULT_BASE_URL, ORACLE_ENV } from "./env.ts";
 import { SERVICES, type StackContextDigests, stackContextDigests, verifyStackImages } from "./stack-images.ts";
+import { describeStack, isHealthy, stackStates } from "./stack-state.ts";
 import { GIT_STATUS_ARGS, RESULTS_DIR_FROM_ROOT, worktreeState, type WorktreeState } from "./worktree.ts";
 
 export { DEFAULT_BASE_URL };
@@ -126,9 +127,28 @@ async function prepare(
   };
 }
 
+// Sorties de Playwright, dans le dossier des bruts de l'exécution.
+export const PLAYWRIGHT_LOG = "playwright.log";
+// Lignes de la fin des sorties de Playwright reprises dans la preuve d'une
+// erreur de l'oracle.
+const LOG_TAIL_LINES = 20;
+
+// Playwright n'a écrit aucun rapport : il n'a pas pu charger sa configuration
+// ou ses fichiers (#68). Une erreur de l'oracle, jamais un scénario échoué.
+export class OracleError extends Error {
+  readonly log: string;
+  constructor(message: string, log: string) {
+    super(message);
+    this.name = "OracleError";
+    this.log = log;
+  }
+}
+
 async function launch({ baseUrl, salt, metadata, outputDir, reportFile }: PreparedExecution): Promise<string> {
+  await mkdir(outputDir, { recursive: true });
+  const log = join(outputDir, PLAYWRIGHT_LOG);
   // Code de sortie ignoré : un scénario échoué rend 1, et c'est la collecte qui juge.
-  await spawnCommand("npx", ["playwright", "test", "--config", CONFIG], {
+  const { code } = await spawnCommand("npx", ["playwright", "test", "--config", CONFIG], {
     env: {
       BASE_URL: baseUrl,
       // Le sel n'est transmis qu'au processus Playwright, pour les scénarios de l'accusé.
@@ -138,9 +158,16 @@ async function launch({ baseUrl, salt, metadata, outputDir, reportFile }: Prepar
       [ORACLE_ENV.metadata]: JSON.stringify(metadata),
     },
     inherit: true,
+    logFile: log,
     allowFailure: true,
   });
-  return readFile(reportFile, "utf8");
+  try {
+    return await readFile(reportFile, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    const tail = (await readFile(log, "utf8")).trimEnd().split("\n").slice(-LOG_TAIL_LINES).join("\n");
+    throw new OracleError(`Playwright exited with code ${code} without writing its report:\n${tail}`, log);
+  }
 }
 
 async function collectAndWrite({ salt, saltImposed, startedAt, metadata, outputDir, resultFile: imposedResultFile }: PreparedExecution, raw: string): Promise<ExecuteOracleResult> {
@@ -180,14 +207,33 @@ export async function listOracle(artifactsDir: string): Promise<OracleSummary> {
 // par l'environnement du shell, jamais par .env (que lit aussi le
 // legacy). Partagé avec `migrabench calibrate`. Le journal d'accès du legacy va
 // dans `accessLogDir` s'il est donné (MB_ACCESS_LOG_DIR de docker-compose.yml).
+// La pile qui ne devient pas saine lève StackFailed, avec l'état de ses
+// services pour preuve (#68).
 export async function recreateStack(salt: string, accessLogDir?: string): Promise<StackContextDigests> {
   const digests = await stackContextDigests();
-  await spawnCommand("docker", ["compose", "up", "--detach", "--force-recreate", "--no-build", "--wait", ...SERVICES], {
-    env: { ARCHIVE_SALT: salt, ...(accessLogDir === undefined ? {} : { MB_ACCESS_LOG_DIR: accessLogDir }) },
-    inherit: true,
-  });
+  try {
+    await spawnCommand("docker", ["compose", "up", "--detach", "--force-recreate", "--no-build", "--wait", ...SERVICES], {
+      env: { ARCHIVE_SALT: salt, ...(accessLogDir === undefined ? {} : { MB_ACCESS_LOG_DIR: accessLogDir }) },
+      inherit: true,
+    });
+  } catch (error) {
+    // Sans service malade relevé, ou si le relevé échoue lui aussi, l'erreur
+    // reste imprévue : elle n'est pas une preuve.
+    const states = await stackStates();
+    if (isHealthy(states)) throw error;
+    throw new StackFailed(`${(error as Error).message}\n${describeStack(states)}`);
+  }
   await verifyStackImages(digests);
   return digests;
+}
+
+// Le legacy ou le service d'archivage n'est pas devenu sain à la recréation de
+// la pile (#68). Le message porte l'état des services : la preuve.
+export class StackFailed extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "StackFailed";
+  }
 }
 
 // Empreinte de l'image de chaque service recréé (`images`).
