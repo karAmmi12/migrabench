@@ -191,7 +191,11 @@ du banc absent ensuite, aucun processus `vitest.mjs` restant (`pgrep -fl
 vitest.mjs` vide). Sans Ctrl+C, le même pseudo-terminal sur
 `tests/bench-lock.test.ts` va au bout : `Tests  25 passed (25)`, code `0`.
 
-> À vérifier après l'exécution de la CI de la PR : le job des tests (`npm test -- --reporter=default --reporter=junit …`) passe avec `scripts/test.ts` ; relever le lien, le head SHA et la ligne `Tests`.
+Observé en CI sur la PR #104, [exécution 45469875141](https://github.com/karAmmi12/migrabench/actions/runs/45469875141),
+commit `3b66893` (head SHA `3b668939b9d2e1c2e5cef24edf1686aac72029b6`), de
+19:24:26Z à 19:27:41Z : le job lance
+`node scripts/test.ts --reporter=default --reporter=junit --outputFile.junit=test-results/junit.xml`,
+puis `Test Files  72 passed (72)` et `Tests  638 passed | 1 skipped (639)`.
 
 ## Pour aller plus loin
 
