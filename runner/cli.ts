@@ -76,7 +76,7 @@ if (!result.written) {
 console.log();
 console.log(`Measure: ${relative(process.cwd(), result.measureDir)}`);
 console.log(`Outcome: ${result.outcome.category} (${result.outcome.reason})`);
-console.log(values.counted === true ? "Planned to count: versioned under results/counted/." : "Diagnostic measure.");
+console.log(values.counted === true ? "Planned to count: written under results/counted/, to be versioned." : "Diagnostic measure.");
 if (salt !== undefined) console.log("Salt imposed: diagnostic measure.");
 if (timeoutCap !== undefined) console.log(`Timeout cap imposed (${timeoutCap} ms): diagnostic measure.`);
 console.log("The stack now runs with this measure's salt: run `npm run stack:up` before `npm test`.");

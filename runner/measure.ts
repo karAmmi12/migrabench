@@ -26,7 +26,7 @@ import { citedFileSha256 as digestOf } from "../shared/digest.ts";
 import { acquireBenchLock, type TakenOver } from "../shared/bench-lock.ts";
 import { spawnCommand, stdoutOf } from "../shared/process.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, COUNTED_DIR_FROM_ROOT, ROOT } from "../shared/root.ts";
-import { countedPreconditions } from "./counted.ts";
+import { type CountedRecord, countedPreconditions } from "./counted.ts";
 import { countedGitFacts } from "./counted-facts.ts";
 import { buildCandidate } from "./build.ts";
 import { appliedCalibration } from "./calibration-results.ts";
@@ -96,7 +96,7 @@ export async function measureCandidate({ candidate, counted = false, salt, timeo
   // Prévue pour compter : un état publié, après les refus d'options et avant
   // le verrou du banc. Le sel et le plafond des délais imposés restent permis
   // en diagnostic.
-  let countedRecord: { originMain: string } | undefined;
+  let countedRecord: CountedRecord | undefined;
   if (counted) {
     const preconditions = countedPreconditions({
       ...(await countedGitFacts(ROOT)),
@@ -137,7 +137,7 @@ interface MeasureContext {
   id: string;
   lockRecord: ReturnType<typeof lockRecord>;
   // Prévue pour compter : le commit de origin/main vérifié.
-  counted: { originMain: string } | undefined;
+  counted: CountedRecord | undefined;
 }
 
 // Phases 1 à 7, sous le verrou du banc.

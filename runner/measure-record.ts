@@ -2,6 +2,7 @@
 // fonction pure qui assemble le résultat d'une mesure à partir de ce que le
 // runner a relevé, avec son verdict et le code de sortie qui en découle.
 import type { OracleSummary } from "../oracle/collect.ts";
+import type { CountedRecord } from "./counted.ts";
 import { PHASES, type PhaseRecord, verdict } from "./verdict.ts";
 
 export const MEASURE_FORMAT = 1;
@@ -28,7 +29,7 @@ export interface MeasureRecordInput {
   oracle: OracleRecord;
   // Mesure prévue pour compter (#73) : le commit de origin/main utilisé pour
   // vérifier ses préconditions. Absent : mesure de diagnostic.
-  counted?: { originMain: string };
+  counted?: CountedRecord;
 }
 
 export function measureRecord({ measureId, candidate, environment, salt, saltImposed, phases, oracle, counted }: MeasureRecordInput) {

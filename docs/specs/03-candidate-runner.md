@@ -158,7 +158,9 @@ candidat de référence obtient 100 % dans une mesure comptée.
   C'est la seule définition de « invalide ».
 - **Préconditions de `--counted`** (fonction pure) : prend les faits Git
   (arbre propre, `HEAD`, `origin/main` après `fetch`, atteignabilité) et la
-  présence d'un sel imposé, rend toutes les conditions manquantes.
+  présence d'un sel imposé, rend toutes les conditions manquantes. Si le
+  `fetch` échoue, l'atteignabilité de `HEAD` ne se vérifie pas : seul le
+  `fetch` manqué est nommé (#73).
 - **Verrou du banc** : prise, refus, reprise d'un verrou orphelin, libération.
   Partagé par `migrabench measure`, `npm run oracle`, `npm run stack:up` et
   le contrôle de `pretest`.

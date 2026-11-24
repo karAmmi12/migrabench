@@ -27,7 +27,14 @@ const DESCRIPTIONS: Readonly<Record<CountedCondition, string>> = {
   "no-calibration": "no calibration result is versioned in results/calibration/",
 };
 
-export type CountedPreconditions = { ok: true; originMain: string } | { ok: false; missing: CountedCondition[]; message: string };
+// Ce qu'une mesure prévue pour compter enregistre de ses préconditions
+// (measure.json, `originMain`).
+export interface CountedRecord {
+  // Commit de origin/main utilisé pour la vérification.
+  originMain: string;
+}
+
+export type CountedPreconditions = ({ ok: true } & CountedRecord) | { ok: false; missing: CountedCondition[]; message: string };
 
 export function countedPreconditions(facts: CountedFacts): CountedPreconditions {
   const missing: CountedCondition[] = [];

@@ -6,15 +6,16 @@ import { promisify } from "node:util";
 import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
 import type { CountedFacts } from "./counted.ts";
 
-const run = promisify(execFile);
+const execFileAsync = promisify(execFile);
 
-// Un fetch qui ne répond pas devient un fetch manqué, nommé dans le refus.
-const FETCH_TIMEOUT_MS = 60_000;
+// Délai de chaque commande Git : un fetch qui ne répond pas devient un fetch
+// manqué, nommé dans le refus.
+const GIT_TIMEOUT_MS = 60_000;
 
 export type CountedGitFacts = Pick<CountedFacts, "worktreeClean" | "originMain" | "headReachable">;
 
 export async function countedGitFacts(cwd: string): Promise<CountedGitFacts> {
-  const git = (...args: string[]) => run("git", args, { cwd, encoding: "utf8", timeout: FETCH_TIMEOUT_MS });
+  const git = (...args: string[]) => execFileAsync("git", args, { cwd, encoding: "utf8", timeout: GIT_TIMEOUT_MS });
   const worktreeClean = worktreeState((await git(...GIT_STATUS_ARGS)).stdout) === "clean";
   let originMain: string | undefined;
   try {

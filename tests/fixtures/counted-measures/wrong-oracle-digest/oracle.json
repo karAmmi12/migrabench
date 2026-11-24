@@ -1,4 +1,3 @@
 {
-  "fixture": "oracle.json of a counted measure (#73)",
-  "summary": { "scenarios": 38, "passed": 38, "failed": 0, "unreached": 0 }
+  "fixture": "oracle.json of a counted measure, written for the check tests (#73), not produced by a run"
 }

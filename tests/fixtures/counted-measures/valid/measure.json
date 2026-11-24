@@ -18,7 +18,6 @@
   "saltImposed": false,
   "oracle": {
     "executed": true,
-    "result": "sha256:88833238606f8399903d73fe45ef78873f8dcbbadcde0c676be21e16fff77ce8",
-    "summary": { "scenarios": 38, "passed": 38, "failed": 0, "unreached": 0 }
+    "result": "sha256:0b24a2e81883a103d5e1b7e48bd4132f1a8ffbcfeaaace1c2f13cf91a5430055"
   }
 }
