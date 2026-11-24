@@ -55,9 +55,9 @@ de Vitest cite `groupOrder`.
     `8081` ;
   - `ENV UMASK=0022` rend le fichier lisible par le runner ;
   - `TRAPS.md` ajoute la section « Hors pièges : journal d'accès du banc ».
-- **`docker-compose.yml`** monte
-  `${MB_ACCESS_LOG_DIR:-./.oracle-artifacts/access-log}` sur
-  `/usr/local/tomcat/logs/migrabench`.
+- **`docker-compose.yml`** monte `${MB_ACCESS_LOG_DIR:-./.access-log}` sur
+  `/usr/local/tomcat/logs/migrabench` (`.access-log/` ignoré par Git et par
+  Docker).
 - **`runner/access-log.ts`** : fonction pure `checkAccessLog`, réutilisée par
   la porte du relais. Elle rend `ok`, `access-log-inactive` ou
   `marker-out-of-place`, avec le nombre de lignes, la position des requêtes
@@ -205,6 +205,22 @@ de Vitest cite `groupOrder`.
     `ENOENT: no such file or directory, open '…/mb-raw-…/access.log'` ;
   - les défauts retirés (fichier comparé à sa copie avec `cmp`), les 5 tests
     repassent.
+- **CI de la PR #103 en échec, seulement sous Linux** :
+  - *Symptôme* : les jobs `tests` et `oracle` échouent avec
+    `EACCES: permission denied, mkdir '/home/runner/work/migrabench/migrabench/.oracle-artifacts/…'`
+    (exécutions https://github.com/karAmmi12/migrabench/actions/runs/45430426095
+    et https://github.com/karAmmi12/migrabench/actions/runs/45430426232). Dans
+    le job `tests`, 2 tests de `bench-lock-tools` échouent.
+  - *Cause* : le dossier par défaut du journal était
+    `./.oracle-artifacts/access-log`. En CI, `docker compose up` tourne avant
+    toute création de `.oracle-artifacts/`, et le démon Docker, qui tourne en
+    root, crée lui-même la source manquante d'un montage. Le dossier
+    `.oracle-artifacts/` appartenait donc à root. Sur macOS, Docker Desktop
+    crée ces dossiers au nom de l'utilisateur : l'échec ne se voyait pas en
+    local.
+  - *Résolution* : le dossier par défaut devient `./.access-log/`, ignoré par
+    Git et par Docker. Une mesure crée elle-même le dossier de son journal
+    avant de recréer la pile.
 - **Relecture** :
   - la relecture de la spec craignait trois marqueurs par `npm test` (un par
     projet). Compté : un marqueur par exécution, avec un projet comme avec
