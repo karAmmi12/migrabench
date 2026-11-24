@@ -495,6 +495,32 @@ le candidat tourne ensuite (voir les règles des issues).
   `PORT`, `LEGACY_API_URL`, `ARCHIVE_URL`, `ARCHIVE_TOKEN`, `USERS_FILE`,
   sans socket Docker, sans privilège supplémentaire, limites de mémoire, de
   CPU et de processus. Jamais `ARCHIVE_SALT` ni le marqueur.
+  Précisé par #66 :
+  - **sans privilège supplémentaire** : toutes les capacités retirées
+    (`cap_drop: ALL`) et `no-new-privileges` ; aucun montage hors de la
+    copie et de `USERS_FILE` ;
+  - **limites du démarrage** : mémoire (sans échange au-delà) et CPU
+    reprennent les limites de la construction, et le nombre de processus
+    vaut 256. C'est une **limite provisoire de conception, pas un relevé** :
+    l'étalonnage ne relève le démarrage que jusqu'à la disponibilité, bien
+    en dessous de la charge de l'oracle. L'étalonnage du démarrage sous
+    cette charge est l'objet de #100. Ces limites sont enregistrées dans
+    `environment.limits.start`, marquées `provisional: true` et
+    `source: "build-limits"` ;
+  - **constat de démarrage** : le candidat de référence et le candidat
+    défectueux 5 écrivent sur leur sortie une ligne
+    `migrabench start report <JSON>`, que le runner garde dans le brut
+    `start.log`. `npm run start-report:check -- <probe|reference> <start.log>`
+    la vérifie : chaque tentative de la sonde refusée ; pour la référence,
+    les cinq variables reçues, `ARCHIVE_SALT` absente, écriture réussie dans
+    le dossier temporaire ;
+  - **sonde d'isolation** (candidat défectueux 5) : elle n'est pas une copie
+    du candidat de référence, faute de relais à garder ; elle sert son
+    constat à toute requête. Une tentative n'y est comptée refusée que sur
+    la preuve du refus : copie en lecture seule (`EROFS`, `EACCES`,
+    `EPERM`), socket Docker absent (`ENOENT` ; le lire échouerait même
+    monté, par `EACCES` ou `ENXIO`), appel de la construction échoué sans interface réseau hors de
+    `lo`. Toute autre erreur compte comme non refusée.
 - `BASE_URL` vaut `http://127.0.0.1:<PORT>`.
 - **Arrêt** : à la clôture, et à chaque recréation du legacy (le candidat est
   alors recréé après lui).

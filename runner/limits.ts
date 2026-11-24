@@ -57,7 +57,7 @@ export function measureLimits({ safetyCap, calibration, timeoutCapMs }: MeasureL
     calibration === undefined
       ? { provisional: true, source: "safety-cap" }
       : { provisional: false, source: "calibration", calibration: { file: calibration.file, digest: calibration.digest }, multiples: calibration.multiples };
-  if (timeoutCapMs === undefined) return { limits: base, record: { ...source, ...base } };
+  if (timeoutCapMs === undefined) return { limits: base, record: { ...source, ...base, start: startRecord(base) } };
   if (!Number.isInteger(timeoutCapMs) || timeoutCapMs <= 0) {
     throw new Error("--timeout-cap-ms must be a positive whole number of milliseconds");
   }
@@ -68,7 +68,29 @@ export function measureLimits({ safetyCap, calibration, timeoutCapMs }: MeasureL
     buildTimeoutMs: Math.min(base.buildTimeoutMs, timeoutCapMs),
     readyTimeoutMs: Math.min(base.readyTimeoutMs, timeoutCapMs),
   };
-  return { limits, record: { ...source, ...limits, imposedTimeoutCapMs: timeoutCapMs } };
+  return { limits, record: { ...source, ...limits, imposedTimeoutCapMs: timeoutCapMs, start: startRecord(limits) } };
+}
+
+// Nombre de processus du service `candidate`, paramètre déclaré du banc : il
+// borne un candidat qui se multiplie, sans gêner un serveur Node.
+export const START_PIDS = 256;
+
+// Limites du service `candidate` au démarrage (précisé par #66).
+export interface StartLimits {
+  memoryBytes: number;
+  cpus: number;
+  pids: number;
+}
+
+// Limite provisoire de conception, pas un relevé : l'étalonnage ne relève le
+// démarrage que jusqu'à la disponibilité, bien en dessous de ce que demande la
+// charge de l'oracle (#100). Mémoire et CPU reprennent ceux de la construction.
+export function startLimits({ buildMemoryBytes, buildCpus }: Limits): StartLimits {
+  return { memoryBytes: buildMemoryBytes, cpus: buildCpus, pids: START_PIDS };
+}
+
+function startRecord(limits: Limits) {
+  return { provisional: true, source: "build-limits", ...startLimits(limits) };
 }
 
 // Garde-fou d'une mesure : Docker refuse un `--cpus` supérieur au nombre de CPU

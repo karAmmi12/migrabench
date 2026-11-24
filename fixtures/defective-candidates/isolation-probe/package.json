@@ -1,0 +1,7 @@
+{
+  "name": "isolation-probe",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Candidat défectueux 5 du banc : sonde d'isolation, sert le constat de ses tentatives.",
+  "type": "module"
+}
