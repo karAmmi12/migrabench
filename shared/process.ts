@@ -20,6 +20,8 @@ export interface SpawnResult {
   code: number;
   // Sortie standard capturée, vide avec `inherit` seul.
   stdout: string;
+  // Sortie d'erreur capturée, vide avec `inherit` seul.
+  stderr: string;
 }
 
 export function spawnCommand(
@@ -47,7 +49,7 @@ export function spawnCommand(
     child.on("error", reject);
     child.on("close", (code) => {
       const done = () => {
-        if (code === 0 || allowFailure) resolve({ code: code ?? 1, stdout });
+        if (code === 0 || allowFailure) resolve({ code: code ?? 1, stdout, stderr });
         else reject(new Error(`${command} ${args.join(" ")} exited with code ${code}${stderr === "" ? "" : `: ${stderr.trim()}`}`));
       };
       if (log === undefined) done();

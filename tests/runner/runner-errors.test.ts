@@ -95,12 +95,14 @@ describe("unexpected runner errors", { timeout: 120_000 }, () => {
     expect(record.oracle).toMatchObject({ executed: false, summary: { unreached: 38 } });
   });
 
-  it("make the measure invalid when Docker never starts the fetch container: npm ci was not launched", () => {
+  // Code 125 sans conteneur créé : comme avec le vrai Docker, `docker inspect`
+  // échoue ensuite, et l'état du conteneur est inconnu.
+  it("make the measure invalid when the fetch container state is unknown: npm ci was not launched", () => {
     const { status, record, phases } = measure("fetch-125");
 
     expect(status).toBe(3);
     expect(record.verdict).toMatchObject({ category: "invalid", reason: "runner-error-before-candidate" });
-    expect(record.verdict.evidence).toContain(DOCKER_ERROR);
+    expect(record.verdict.evidence).toBe("fetch container state unknown: docker inspect failed (docker run exited with code 125): Error: No such object");
     expect(phases.slice(0, 3)).toEqual(["preparation:ok", "contract:ok", "build:runner-error-before-candidate"]);
   });
 
@@ -110,7 +112,7 @@ describe("unexpected runner errors", { timeout: 120_000 }, () => {
     expect(status).toBe(0);
     expect(record.verdict).toEqual({ category: "stack-down-while-candidate", reason: "stack-down-while-candidate" });
     expect(phases.slice(0, 4)).toEqual(["preparation:ok", "contract:ok", "build:stack-down-while-candidate", "start:not-run"]);
-    expect(detail("build")).toContain(DOCKER_ERROR);
+    expect(detail("build")).toBe("install container state unknown: docker inspect failed (docker run exited with code 125): Error: No such object");
   });
 
   it("count an error thrown after npm ci as a stack failure while the candidate runs, with the error in detail", () => {

@@ -37,10 +37,14 @@ export type BuildStep = "fetch" | "install" | "build";
 export interface BuildStepRun {
   step: BuildStep;
   exitCode: number;
-  // Docker a démarré le conteneur de l'étape (#68). Sinon, `docker run` a
-  // échoué de lui-même (code 125 : image absente, démon injoignable), et
-  // aucune commande de l'étape n'a tourné.
-  started: boolean;
+  // État du conteneur de l'étape, relevé par `docker inspect` (#68) :
+  // - `started` : Docker l'a démarré ;
+  // - `never-started` : créé mais jamais démarré, `docker run` a échoué de
+  //   lui-même (code 125 : option refusée, montage impossible), et aucune
+  //   commande de l'étape n'a tourné ;
+  // - `inspectFailed` : `docker inspect` a échoué (conteneur absent, démon
+  //   injoignable), avec sa sortie : l'état est inconnu.
+  container: "started" | "never-started" | { inspectFailed: string };
   // Arrêtée par le banc : le délai global de construction est écoulé.
   timedOut: boolean;
   // Tuée par la limite de mémoire du conteneur.
@@ -61,15 +65,14 @@ export type BuildStepOutcome =
 
 // Un délai ou une limite dépassés sont toujours un échec du candidat (règle 7) ;
 // seule une erreur du registre pendant `fetch`, prouvée, rend la mesure invalide.
-// Un conteneur que Docker n'a jamais démarré est une erreur du banc (#68) :
-// avant le lancement de `npm ci` pour `fetch`, une panne pendant que le
-// candidat tourne ensuite.
-export function buildStepOutcome({ step, exitCode, started, timedOut, oomKilled, npmLog, log }: BuildStepRun, registry: string): BuildStepOutcome {
-  if (!started) {
-    return {
-      outcome: step === "fetch" ? "runner-error-before-candidate" : "stack-down-while-candidate",
-      detail: `Docker did not start the ${step} container (docker run exited with code ${exitCode}): ${log.trim()}`,
-    };
+// Un conteneur que Docker n'a jamais démarré, ou dont l'état n'a pas pu être
+// relevé, est une erreur du banc (#68) : avant le lancement de `npm ci` pour
+// `fetch`, une panne pendant que le candidat tourne ensuite.
+export function buildStepOutcome({ step, exitCode, container, timedOut, oomKilled, npmLog, log }: BuildStepRun, registry: string): BuildStepOutcome {
+  if (container !== "started") {
+    const outcome = step === "fetch" ? "runner-error-before-candidate" : "stack-down-while-candidate";
+    if (container === "never-started") return { outcome, detail: `Docker did not start the ${step} container (docker run exited with code ${exitCode}): ${log.trim()}` };
+    return { outcome, detail: `${step} container state unknown: docker inspect failed (docker run exited with code ${exitCode}): ${container.inspectFailed.trim()}` };
   }
   if (timedOut) return { outcome: "build-timeout", detail: `${step} was stopped: the global build timeout ran out` };
   if (oomKilled) return { outcome: "build-resource-limit", detail: `${step} was killed: memory limit reached` };

@@ -274,21 +274,35 @@ Règles des issues :
   Précisions de #68 :
   - l'erreur est rangée dans la phase en cours ; `npm ci` compte comme
     lancé dès que le runner lance le conteneur de `fetch` ;
-  - un `docker run` de la construction dont Docker n'a jamais démarré le
-    conteneur (conteneur absent ou `State.StartedAt` à zéro, code `125` en
-    général : image absente, démon injoignable) est une erreur du banc. Pour
-    `fetch`, `npm ci` n'a pas été lancé : `runner-error-before-candidate`.
-    Pour `install` et `build`, panne pendant que le candidat tourne. Le code
-    seul ne suffit pas : la commande `build` du candidat peut rendre `125`
-    dans un conteneur démarré, et c'est alors `build-failed` ;
+  - l'état du conteneur de chaque étape de la construction est relevé par
+    `docker inspect` avant sa suppression. Un conteneur créé mais jamais
+    démarré (`State.StartedAt` à zéro) est une erreur du banc. Un
+    `docker inspect` en échec (conteneur absent, par exemple après un code
+    `125` : image absente, démon injoignable) en est une aussi, et la preuve
+    dit « état du conteneur inconnu : `docker inspect` a échoué », avec sa
+    sortie, sans le confondre avec un conteneur jamais démarré. Pour `fetch`,
+    c'est le runner qui échoue avant `npm ci` :
+    `runner-error-before-candidate`. Pour `install` et `build`, panne
+    pendant que le candidat tourne. Le code seul ne suffit pas : la commande
+    `build` du candidat peut rendre `125` dans un conteneur démarré, et
+    c'est alors `build-failed` ;
   - en clôture, une erreur d'une mesure arrêtée avant la construction (la
     liste des scénarios qui échoue, par exemple) est
     `runner-error-before-candidate` ; elle ne change pas la catégorie, déjà
     décidée par la phase qui a arrêté la mesure ;
-  - la liste des fichiers du candidat et leur empreinte sont relevées avant
-    la création du dossier de la mesure. Une erreur à ce moment (lien
-    symbolique, fichier illisible) peut venir du candidat : elle reste un
-    plantage, code `1`, et ne rend jamais la mesure invalide.
+  - voir la règle des défauts des fichiers du candidat, ci-dessous : ils
+    ne sont jamais une erreur du runner.
+- **Défauts des fichiers du candidat** (#68) : un défaut des fichiers
+  fournis par le candidat est une contract-failure ; seul ce que le
+  candidat ne peut ni fournir ni fabriquer rend la mesure invalide
+  (règle 7). Sont des défauts : un lien symbolique, un fichier ou un dossier
+  illisible (relevés à la préparation, ni suivis ni copiés), un
+  `candidate.json`, `package.json` ou `package-lock.json` illisible ou qui
+  est un dossier. La phase du contrat les cite comme manquements
+  (`contract-invalid`). Ni un plantage (code `1`, aucune mesure écrite :
+  le candidat échapperait à la mesure), ni `runner-error-before-candidate`
+  (invalide : le candidat le fabriquerait). `candidate.contentDigest` ne
+  porte que les fichiers lisibles.
 - **`interrupted`** : la mesure reçoit `SIGINT` ou `SIGTERM`, ou le job de CI
   est annulé, quelle que soit la phase. Le runner arrête le candidat, écrit
   `measure.json` avec les phases déjà faites, invalide pour cette cause, et
@@ -733,8 +747,9 @@ mesure invalide.
 | 8 | pile d'une autre copie | candidat de référence, mesuré sous un faux `docker` qui rend pour les images de la pile un label étranger à la copie (#102) | `stack-not-from-this-copy` en préparation, ni construction ni pile recréée | invalide | `3` |
 
 Les variantes de contrat (`candidate.json` absent, JSON mal formé, champ
-manquant, source Git, chemin hors du candidat) sont couvertes par les tests
-Vitest du contrat, pas par des candidats.
+manquant, source Git, chemin hors du candidat, et depuis #68 lien
+symbolique, fichier illisible, `candidate.json` qui est un dossier) sont
+couvertes par les tests Vitest du contrat, pas par des candidats.
 
 ## Décisions de test
 

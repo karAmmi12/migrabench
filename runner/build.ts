@@ -17,7 +17,7 @@ import { cp, mkdir, readdir, readFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { citedFileSha256 as digestOf } from "../shared/digest.ts";
 import { spawnCommand } from "../shared/process.ts";
-import { type BuildStep, buildStepOutcome, type BuildStepOutcome } from "./build-outcome.ts";
+import { type BuildStep, buildStepOutcome, type BuildStepOutcome, type BuildStepRun } from "./build-outcome.ts";
 import { isFetchedWith } from "./candidate-content.ts";
 import { type ContainerUser, dockerUser } from "./container-user.ts";
 import type { Limits } from "./limits.ts";
@@ -137,7 +137,7 @@ const NEVER_STARTED = "0001-01-01";
 
 interface StepRun {
   exitCode: number;
-  started: boolean;
+  container: BuildStepRun["container"];
   timedOut: boolean;
   oomKilled: boolean;
 }
@@ -145,8 +145,9 @@ interface StepRun {
 // Lance un conteneur nommé et l'arrête au délai global : `docker kill` est
 // répété chaque seconde, au cas où le conteneur n'existerait pas encore au
 // premier essai. Le conteneur est gardé jusqu'au relevé de `OOMKilled` et de
-// son démarrage : un conteneur absent, ou jamais démarré (`StartedAt` à zéro),
-// dit que `docker run` a échoué de lui-même (#68).
+// son démarrage : un conteneur jamais démarré (`StartedAt` à zéro) dit que
+// `docker run` a échoué de lui-même ; un `docker inspect` en échec laisse son
+// état inconnu, avec la sortie de `docker inspect` (#68).
 async function runStep({ container, deadline, logFile, args }: { container: string; deadline: number; logFile: string; args: string[] }): Promise<StepRun> {
   let timedOut = false;
   let killer: NodeJS.Timeout | undefined;
@@ -159,8 +160,9 @@ async function runStep({ container, deadline, logFile, args }: { container: stri
   try {
     const { code } = await spawnCommand("docker", ["run", "--name", container, ...args], { logFile, allowFailure: true });
     const inspect = await spawnCommand("docker", ["inspect", "--format", "{{.State.OOMKilled}} {{.State.StartedAt}}", container], { allowFailure: true });
-    const [oomKilled, startedAt] = inspect.code === 0 ? inspect.stdout.trim().split(" ") : [];
-    return { exitCode: code, started: startedAt !== undefined && !startedAt.startsWith(NEVER_STARTED), timedOut, oomKilled: oomKilled === "true" };
+    if (inspect.code !== 0) return { exitCode: code, container: { inspectFailed: `${inspect.stderr}${inspect.stdout}` }, timedOut, oomKilled: false };
+    const [oomKilled, startedAt = ""] = inspect.stdout.trim().split(" ");
+    return { exitCode: code, container: startedAt.startsWith(NEVER_STARTED) ? "never-started" : "started", timedOut, oomKilled: oomKilled === "true" };
   } finally {
     clearTimeout(timer);
     clearInterval(killer);
