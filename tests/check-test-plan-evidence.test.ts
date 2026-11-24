@@ -1,6 +1,6 @@
 // Le script du job « Fiche de formation » (#54) : lit le corps de la PR dans
-// PR_BODY, recopie chaque ligne en défaut dans une annotation ::error:: et
-// sort en échec.
+// PR_BODY, recopie chaque ligne refusée dans une annotation ::error::, avec
+// la raison (#96), et sort en échec.
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { describe, expect, it } from "vitest";
@@ -19,13 +19,21 @@ async function check(body: string): Promise<{ code: number; stdout: string }> {
 }
 
 describe("check-test-plan-evidence script", () => {
-  it("fails with one ::error:: annotation per uncited line, copying the line", async () => {
-    const outcome = await check(["- [x] `npm test` : 143 tests", "- [x] 100% des scénarios", "- [x] `npm test` : 143 tests, commit `62bd7cd`"].join("\n"));
+  it("fails with one ::error:: annotation per refused line, giving the reason and copying the line", async () => {
+    const outcome = await check(
+      [
+        "- [x] `npm test` : 143 tests",
+        "- [x] 100% des scénarios",
+        "- [x] `npm test` : 143 tests, commit `62bd7cd`",
+        "- [x] `npm test` : 143 tests, commit `deadbeef`",
+      ].join("\n"),
+    );
     expect(outcome).toEqual({
       code: 1,
       stdout: [
-        "::error::Case cochée chiffrée sans état (SHA de commit ou lien de job de CI actions/runs/<id>) : - [x] `npm test` : 143 tests",
-        "::error::Case cochée chiffrée sans état (SHA de commit ou lien de job de CI actions/runs/<id>) : - [x] 100%25 des scénarios",
+        "::error::Case cochée chiffrée refusée, aucun état cité (SHA d'un commit du dépôt ou lien de job de CI actions/runs/<id>) : - [x] `npm test` : 143 tests",
+        "::error::Case cochée chiffrée refusée, aucun état cité (SHA d'un commit du dépôt ou lien de job de CI actions/runs/<id>) : - [x] 100%25 des scénarios",
+        "::error::Case cochée chiffrée refusée, deadbeef : ce commit n'existe pas dans le dépôt : - [x] `npm test` : 143 tests, commit `deadbeef`",
         "",
       ].join("\n"),
     });
