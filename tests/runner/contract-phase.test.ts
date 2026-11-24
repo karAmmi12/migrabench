@@ -1,7 +1,7 @@
 // Phase 2 d'une mesure, le contrat (spec de l'étape 3, « Phases d'une mesure
 // et leurs issues ») : lecture du dossier copié du candidat, puis issue de la
 // phase. Les candidats de fixtures/ sont lus tels quels, sans Docker.
-import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -108,15 +108,37 @@ describe("reading the candidate directory", () => {
     expect(result).toEqual({ outcome: "contract-invalid", candidate: {}, detail: "candidate.json: file is missing" });
   });
 
-  it("gives runner-error-before-candidate with the error when a file cannot be read", async () => {
+  // #68 : un défaut des fichiers fournis par le candidat est une
+  // contract-failure ; seul ce que le candidat ne peut ni fournir ni fabriquer
+  // rend la mesure invalide (règle 7).
+  it("takes a candidate.json that is a directory for a contract failure, not a runner error", async () => {
     const dir = await candidateDir({ "package.json": PACKAGE_JSON, "package-lock.json": PACKAGE_LOCK });
     await mkdir(join(dir, "candidate.json"));
 
     const result = await contractPhase(dir);
 
-    expect(result.outcome).toBe("runner-error-before-candidate");
-    if (result.outcome !== "runner-error-before-candidate") return;
+    expect(result.outcome).toBe("contract-invalid");
+    if (result.outcome !== "contract-invalid") return;
     expect(result.candidate).toEqual({});
-    expect(result.detail).toMatch(/^candidate\.json: .*EISDIR/);
+    expect(result.detail).toMatch(/^candidate\.json: cannot be read: .*EISDIR/);
+  });
+
+  it.skipIf(process.getuid?.() === 0)("takes an unreadable candidate.json for a contract failure", async () => {
+    const dir = await candidateDir({ "candidate.json": '{ "contract": 1, "start": "node server.js" }', "package.json": PACKAGE_JSON, "package-lock.json": PACKAGE_LOCK });
+    await chmod(join(dir, "candidate.json"), 0o000);
+
+    const result = await contractPhase(dir);
+
+    expect(result.outcome).toBe("contract-invalid");
+    if (result.outcome !== "contract-invalid") return;
+    expect(result.detail).toMatch(/^candidate\.json: cannot be read: .*EACCES/);
+  });
+
+  it("cites each defect of the candidate's files, found when they were listed, as a contract failure", async () => {
+    const dir = await candidateDir({ "candidate.json": '{ "contract": 1, "start": "node server.js" }', "package.json": PACKAGE_JSON, "package-lock.json": PACKAGE_LOCK });
+
+    const result = await contractPhase(dir, ["The candidate contains a symbolic link: link.js"]);
+
+    expect(result).toEqual({ outcome: "contract-invalid", candidate: {}, detail: "The candidate contains a symbolic link: link.js" });
   });
 });

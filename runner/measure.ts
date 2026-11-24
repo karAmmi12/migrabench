@@ -167,12 +167,12 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
   // ensuite comptée contre le candidat.
   let npmCiLaunched = false;
 
-  // 1. Préparation. Les fichiers du candidat sont relevés avant le dossier de
-  // la mesure : un lien symbolique, ou un fichier illisible, vient du
-  // candidat, et ne doit jamais devenir une erreur du runner, invalide.
+  // 1. Préparation. Un lien symbolique ou un fichier illisible du candidat
+  // n'est pas copié : c'est un défaut de ses fichiers, cité par le contrat
+  // (contract-failure), jamais une erreur du runner (#68).
   const closePreparation = phase("preparation");
   const worktree = worktreeState((await spawnCommand("git", [...GIT_STATUS_ARGS])).stdout);
-  const files = await candidateFiles(candidateDir);
+  const { files, defects } = await candidateFiles(candidateDir);
   const candidateRecord: CandidateRecord = { path: candidate, contentDigest: contentDigest(files) };
   const measureDir = join(ROOT, counted === undefined ? DIAGNOSTIC_DIR_FROM_ROOT : COUNTED_DIR_FROM_ROOT, id);
   const rawDir = join(ROOT, ARTIFACTS_DIR_FROM_ROOT, id);
@@ -223,7 +223,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     // lus dans la copie (runner/contract-phase.ts). Invalide, il arrête la
     // mesure avant tout code du candidat : ni construction, ni démarrage.
     const closeContract = phase("contract");
-    const contract = await contractPhase(copyDir);
+    const contract = await contractPhase(copyDir, defects);
     Object.assign(candidateRecord, contract.candidate);
     if (contract.outcome !== "ok") return void closeContract(contract.outcome, {}, contract.detail);
     const { build: buildCommand, start } = contract.candidate;
