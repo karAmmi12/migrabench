@@ -4,6 +4,7 @@
 // le fetch de son Node 22. Prérequis : `docker compose up -d --build --wait`.
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { SEAM_A_HEADERS } from "./legacy-client.ts";
 
 // Adresse vue depuis mb-internal, la même que LEGACY_API_URL pour la couche
 // serveur du candidat (ADR 0004).
@@ -33,10 +34,12 @@ fetch(url, JSON.parse(request)).then(
 
 const execFileAsync = promisify(execFile);
 
-/** Requête HTTP émise depuis mb-internal. Rejette si la connexion échoue. */
+/** Requête HTTP émise depuis mb-internal, avec le marqueur du Seam A.
+ * Rejette si la connexion échoue. */
 export async function fetchFromInternal(url: string, request: InternalRequest = {}): Promise<InternalResponse> {
+  const marked = { ...request, headers: { ...SEAM_A_HEADERS, ...request.headers } };
   const { stdout } = await execFileAsync("docker", [
-    "compose", "exec", "-T", "archive", "node", "-e", PROBE, url, JSON.stringify(request),
+    "compose", "exec", "-T", "archive", "node", "-e", PROBE, url, JSON.stringify(marked),
   ]);
   return JSON.parse(stdout) as InternalResponse;
 }

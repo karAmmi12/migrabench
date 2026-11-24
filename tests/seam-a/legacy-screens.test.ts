@@ -3,7 +3,7 @@
 // l'oracle (spec de l'étape 1, « Décisions de test »).
 import { describe, expect, it } from "vitest";
 import { ROLES } from "../../scripts/users.ts";
-import { basicAuthHeader, LEGACY_URL, userWithRole } from "./legacy-client.ts";
+import { basicAuthHeader, legacyFetch, userWithRole } from "./legacy-client.ts";
 
 // Dossier partagé en lecture : ces tests ne font que des GET.
 const SCREENS = [
@@ -13,7 +13,7 @@ const SCREENS = [
 
 describe.each(SCREENS)("$name screen", ({ path, title }) => {
   it.each(ROLES)("answers the %s", async (role) => {
-    const response = await fetch(`${LEGACY_URL}${path}`, {
+    const response = await legacyFetch(`${path}`, {
       headers: { Authorization: basicAuthHeader(userWithRole(role)) },
     });
 
@@ -22,7 +22,7 @@ describe.each(SCREENS)("$name screen", ({ path, title }) => {
   });
 
   it("refuses a request without credentials", async () => {
-    const response = await fetch(`${LEGACY_URL}${path}`, { redirect: "manual" });
+    const response = await legacyFetch(`${path}`, { redirect: "manual" });
 
     expect(response.status).toBe(401);
   });
