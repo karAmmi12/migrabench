@@ -495,7 +495,10 @@ le candidat tourne ensuite (voir les règles des issues).
   écrit en Node sans dépendance, avec un `candidate.json` sans `build`.
 - Il conserve l'en-tête `Host` d'origine, pour que les redirections du
   legacy visent le port du candidat ; à défaut, il réécrit les `Location`.
-  Testé sur une redirection réelle du legacy à travers le relais.
+  Testé sur une redirection réelle du legacy à travers le relais : le
+  `Location`, absolu ou relatif, est résolu contre l'adresse du relais comme
+  le ferait un navigateur, doit en avoir l'origine, puis est suivi à travers
+  le relais (précisé par #70).
 - Il ne modifie rien : un test compare, pour un ensemble de requêtes
   (pages des trois écrans, ressources, refus `401`), les en-têtes et les
   corps reçus à travers le relais et directement du legacy. Les corps sont
@@ -511,6 +514,23 @@ le candidat tourne ensuite (voir les règles des issues).
 
   Tout autre en-tête, `Content-Length` compris, doit être identique. Un
   en-tête ajouté ou retiré par le relais fait échouer le test.
+
+  **Identifiant de session des liens** (précisé par #70) : à un client sans
+  cookie de session, Tomcat réécrit les liens avec `;jsessionid=<valeur>`.
+  La réponse directe et la réponse relayée ouvrent chacune leur session :
+  leurs corps diffèrent donc par cette valeur, même à travers un relais
+  parfait. Le test compare chaque requête deux fois :
+  - **sans cookie** : seule la valeur de `;jsessionid=<valeur>`, au format
+    exact produit par le legacy, est remplacée par un jeton fixe des deux
+    côtés, puis les corps sont comparés octet par octet. Le nombre et la
+    position des occurrences, et tout le reste du lien (hôte, chemin,
+    paramètres), restent comparés. Le test exige que chaque occurrence d'une
+    vraie réponse du legacy ait ce format ;
+  - **dans une session ouverte** (cookie renvoyé) : plus de réécriture,
+    comparaison stricte, sans masque.
+
+  Cette exception ne vaut que pour la vérification de fidélité du relais du
+  candidat de référence. Elle ne s'applique jamais à la mesure d'un candidat.
 - Il obtient 100 % à l'oracle (règle 6). À l'étape 4, il échoue aux mêmes
   portes que le legacy, plus la porte du relais, dont il est le test
   négatif : son journal d'accès contient des requêtes hors marqueur.
