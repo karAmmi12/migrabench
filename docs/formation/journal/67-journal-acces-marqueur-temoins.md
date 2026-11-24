@@ -63,9 +63,12 @@ de Vitest cite `groupOrder`.
   `marker-out-of-place`, avec le nombre de lignes, la position des requêtes
   témoins, et les lignes en preuve. `witnessPath` et `isWitnessLine` donnent
   le chemin `/migrabench-witness/<marqueur>/<moment>`.
-- **`runner/witness.ts`** : `sendWitness` envoie la requête témoin depuis
-  l'hôte sur `127.0.0.1:8080`, puis relit le journal jusqu'à y voir sa ligne
-  (5 s au plus).
+- **`runner/witness.ts`** :
+  - `sendWitness` envoie la requête témoin depuis l'hôte sur `127.0.0.1:8080`,
+    puis relit le journal jusqu'à y voir sa ligne (5 s au plus). L'adresse et
+    le délai sont des options, pour les tests ;
+  - `closeAccessLog` fait la clôture : requête témoin `end`, contrôle, et
+    journal figé dans `access.log` des bruts.
 - **`runner/measure.ts`** :
   - à la préparation, le marqueur est tiré et `access-log/` est créé dans les
     bruts ;
@@ -73,8 +76,7 @@ de Vitest cite `groupOrder`.
     (`oracle/execute.ts`, option `accessLogDir`) ;
   - dans le rappel `onStackReady` : requête témoin `start-N`, puis contrôle.
     Si elle manque : `access-log-inactive` en phase `start` ;
-  - à la clôture : requête témoin `end`, contrôle complet, journal figé dans
-    `access.log` des bruts ;
+  - à la clôture : `closeAccessLog` ;
   - `marker` et `accessLog` sont écrits dans `measure.json`
     (`runner/measure-record.ts`).
 - **Marqueur du Seam A** :
@@ -87,6 +89,8 @@ de Vitest cite `groupOrder`.
     référence.
 - **Tests** :
   - `tests/runner/access-log.test.ts` (13 tests) ;
+  - `tests/runner/witness.test.ts` (5 tests), contre un faux legacy HTTP qui
+    écrit sa ligne de journal après avoir répondu ;
   - `tests/seam-a-marker.test.ts` (4 tests) ;
   - `tests/runner/measure-record.test.ts` (+2) ;
   - `tests/seam-a/access-log.test.ts`, dans le projet Vitest
@@ -123,6 +127,16 @@ de Vitest cite `groupOrder`.
 - **Test du redémarrage dans son propre groupe Vitest** (`legacy-restart`,
   `groupOrder: 2`), distinct de `bench-tools` (`groupOrder: 1`, #90) : deux
   projets d'un même groupe tourneraient en parallèle. Consigne de l'humain.
+- **Fusion de `main` après #66** (PR #101) : fusion sans conflit textuel.
+  #66 modifiait seulement l'appel `candidateService({ …, limits })` de
+  `runner/measure.ts` (et de `runner/calibrate.ts`), loin du rappel et de la
+  clôture. La ligne de #66 est gardée telle quelle, à côté des ajouts de ce
+  ticket.
+- **Image de la pile d'un autre commit : issue #102 plutôt que correctif ici.**
+  La mesure invalide de `58a4759` (voir les difficultés) montre qu'une mesure
+  peut tourner contre des images construites ailleurs. La correction touche
+  la préparation de toutes les mesures, hors du périmètre du journal d'accès.
+  Ouverte sur consigne de l'humain.
 - **#94 non corrigée** : seulement un commentaire sur #94, qui cite le
   redémarrage du legacy par `npm test` (consigne de l'humain).
 - **Valve d'accès d'origine de l'image Tomcat laissée en place** : modification
@@ -177,6 +191,20 @@ de Vitest cite `groupOrder`.
 - **Ordre des projets invisible** : sans terminal, le rapporteur par défaut de
   Vitest n'affiche que le résumé. L'ordre a été relevé avec
   `--reporter=verbose`.
+- **Tests de `witness.ts` et du journal figé ajoutés après coup** : la
+  relecture des normes a relevé que le correctif `b980f53` et
+  `runner/witness.ts` n'avaient pas de test, contre la règle « TDD sur le
+  runner » de `CLAUDE.md`. Les tests ont été écrits ensuite (`1534f75`), et
+  chacun a été vérifié par un défaut volontaire, retiré après :
+  - défaut n° 1, plus d'attente de la ligne dans `sendWitness` (boucle
+    désactivée) : 2 tests échouent, `waits for the witness line that the
+    legacy writes after its response` et `cites the access log as checked,
+    frozen…` ;
+  - défaut n° 2, le journal vivant cité au lieu d'être figé (plus de copie
+    dans les bruts) : 1 test échoue, celui du journal figé, avec
+    `ENOENT: no such file or directory, open '…/mb-raw-…/access.log'` ;
+  - les défauts retirés (fichier comparé à sa copie avec `cmp`), les 5 tests
+    repassent.
 - **Relecture** :
   - la relecture de la spec craignait trois marqueurs par `npm test` (un par
     projet). Compté : un marqueur par exécution, avec un projet comme avec
@@ -199,10 +227,17 @@ Observé : `Tests  13 passed (13)`.
 npm test -- --reporter=verbose
 ```
 
-Observé au commit `d20fb06` : `Test Files  70 passed (70)`, `Tests  611 passed | 1 skipped (612)`.
-Ordre réel des projets, en trois blocs contigus, compté par projet dans la
-sortie : 605 lignes `|default|`, puis 6 `|bench-tools|`, puis 1
-`|legacy-restart|`.
+Observé au commit `1534f75`, après la fusion de `main` : `Test Files  72 passed (72)`,
+`Tests  632 passed | 1 skipped (633)`. Ordre réel des projets, en trois blocs
+contigus, compté par projet dans la sortie : 626 lignes `|default|`, puis 6
+`|bench-tools|`, puis 1 `|legacy-restart|`. Même ordre au commit `d20fb06`,
+avant la fusion (605, 6, 1).
+
+```sh
+npx vitest run tests/runner/witness.test.ts
+```
+
+Observé : `Tests  5 passed (5)`.
 
 ```sh
 docker compose exec -T legacy grep -c mbInternalApi conf/server.xml
@@ -214,14 +249,14 @@ Observé : `1` avec l'image de cette branche (`0` avec une image sans la valve).
 npm run migrabench -- measure --candidate fixtures/reference-candidate
 ```
 
-Observé au commit `d20fb06`, arbre propre, mesure
-`20261124T152758Z-d20fb06-reference-candidate` :
+Observé au commit `1534f75`, arbre propre, mesure
+`20261124T155020Z-1534f75-reference-candidate` :
 
 - sortie : `Outcome: completed (ok)`, code `0` ;
 - oracle : 38 scénarios réussis, 0 non atteint ;
-- `accessLog` : `{"log":"sha256:724475b0…","lines":195,"witnesses":[{"name":"start-1","line":2},{"name":"end","line":195}]}` ;
+- `accessLog` : `{"log":"sha256:8666d6fe…","lines":195,"witnesses":[{"name":"start-1","line":2},{"name":"end","line":195}]}` ;
 - `shasum -a 256` de `.oracle-artifacts/<mesure>/access.log` rend la même
-  empreinte, `724475b0db24…` ;
+  empreinte, `8666d6fef1c9…` ;
 - avec `M` = le `marker` de `measure.json`, `grep -c $M` sur ce fichier
   rend `2`, `grep -vc $M` rend `193` (requêtes hors marqueur), et
   `grep -c $M` sur `compose.candidate.yml` rend `0`.
@@ -230,6 +265,8 @@ Observé au commit `d20fb06`, arbre propre, mesure
 
 - **#74** : la mesure du candidat de référence et des candidats défectueux en
   CI. La mesure de ce ticket a été faite en local, en diagnostic.
+- **#102** : la mesure doit tourner contre une pile construite depuis son
+  propre commit.
 - **#94** : `npm test` ne tient pas le verrou du banc. Le commentaire ajouté
   par ce ticket montre que le test du redémarrage du legacy peut faire perdre
   un run.
@@ -237,7 +274,5 @@ Observé au commit `d20fb06`, arbre propre, mesure
   lignes hors marqueur. Il lui faudra écarter les lignes du `healthcheck`
   (`curl`, adresse `0:0:0:0:0:0:0:1`), relevées dans le journal pendant ce
   ticket.
-- **ADR 0004** : le candidat peut joindre le port `8080`. Le journal d'accès
-  est la façon de le détecter sans le fermer.
 
 > À vérifier après l'exécution de la CI de la PR : le job des tests (`tests.yml`) passe avec le test `legacy-restart` sur la pile de CI ; relever le lien de l'exécution, son head SHA et la ligne `Tests` du résumé.
