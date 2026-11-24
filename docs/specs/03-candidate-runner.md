@@ -479,7 +479,10 @@ le candidat tourne ensuite (voir les règles des issues).
   autre mesure est ignoré. Toute autre ligne qui porte le marqueur, où que
   ce soit (chemin, `User-Agent`), est hors de son moment.
 - **`accessLog`** : empreinte du journal (`log`), nombre de lignes
-  (`lines`), et numéro de ligne de chaque requête témoin (`witnesses`).
+  (`lines`), et numéro de ligne de chaque requête témoin (`witnesses`). Le
+  journal cité est celui que la clôture a contrôlé, figé dans `access.log`
+  du dossier des bruts : le legacy reste en marche après la mesure et
+  continue d'écrire dans `access-log/`.
   Absent si la pile n'a jamais été recréée (mesure arrêtée avant le
   démarrage).
 - Les autres lignes ne sont pas jugées à l'étape 3 : c'est la porte du

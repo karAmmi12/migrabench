@@ -276,8 +276,13 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     const check = checkAccessLog({ log: witness.log, marker, expected: [...startWitnesses, "end"], seamAMarkers: readSeamAMarkers() });
     const raw: Record<string, string> = {};
     if (await isFile(join(accessLogDir, ACCESS_LOG_FILE))) {
-      const log = await digestOf(join(accessLogDir, ACCESS_LOG_FILE));
-      raw[`access-log/${ACCESS_LOG_FILE}`] = log;
+      // Le legacy reste en marche après la mesure et continue d'écrire dans
+      // son journal (healthcheck) : le brut cité est le journal tel que
+      // contrôlé, figé à la clôture.
+      const closedLog = join(rawDir, ACCESS_LOG_FILE);
+      await writeFile(closedLog, witness.log);
+      const log = await digestOf(closedLog);
+      raw[ACCESS_LOG_FILE] = log;
       accessLog = { log, lines: check.lines, witnesses: check.witnesses };
     }
     if (check.outcome === "ok") closeClosing("ok", raw);
