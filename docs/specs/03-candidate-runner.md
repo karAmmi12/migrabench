@@ -441,8 +441,9 @@ le candidat tourne ensuite (voir les règles des issues).
   il survit aux redémarrages du legacy pendant la mesure, et chaque mesure a
   le sien.
 - **Marqueur** : 32 octets aléatoires en hexadécimal, tirés à la préparation,
-  jamais transmis au candidat ni au legacy, écrits dans `measure.json` à la
-  fin seulement.
+  jamais transmis au candidat, ni au legacy autrement que par le chemin des
+  requêtes témoins (ni variable, ni fichier), écrits dans `measure.json` à
+  la fin seulement.
 - **Requêtes témoins** : le runner envoie depuis l'hôte une requête `GET`
   sur le port publié du legacy, dont le chemin porte le marqueur, à deux
   moments : après que la pile est saine et avant le démarrage du candidat ;
@@ -484,7 +485,8 @@ le candidat tourne ensuite (voir les règles des issues).
   du dossier des bruts : le legacy reste en marche après la mesure et
   continue d'écrire dans `access-log/`.
   Absent si la pile n'a jamais été recréée (mesure arrêtée avant le
-  démarrage).
+  démarrage), ou si le legacy n'a jamais créé son journal : la mesure est
+  alors `access-log-inactive`.
 - Les autres lignes ne sont pas jugées à l'étape 3 : c'est la porte du
   relais (étape 4) qui les lit.
 

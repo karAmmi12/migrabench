@@ -9,6 +9,13 @@ export function witnessPath(marker: string, name: string): string {
   return `/migrabench-witness/${marker}/${name}`;
 }
 
+// La ligne est-elle la requête témoin `name` de la mesure de `marker` ? Seul
+// le chemin exact compte : un autre marqueur, inventé ou d'une autre mesure,
+// ne fait pas une requête témoin.
+export function isWitnessLine(entry: string, marker: string, name: string): boolean {
+  return requestPath(entry) === witnessPath(marker, name);
+}
+
 export interface AccessLogInput {
   // Contenu du journal brut.
   log: string;
@@ -41,12 +48,9 @@ export function checkAccessLog({ log, marker, expected, seamAMarkers }: AccessLo
     return { outcome: "marker-out-of-place", lines: lines.length, witnesses: [], evidence: ["Lines carrying a Seam A marker during the measure:", ...seamA].join("\n") };
   }
   const witnesses: WitnessPosition[] = [];
-  // Une requête témoin n'est reconnue que par son chemin exact, avec le
-  // marqueur de la mesure : un autre marqueur, inventé ou d'une autre mesure,
-  // ne compte pas.
   let from = 0;
   for (const name of expected) {
-    const index = lines.findIndex((entry, at) => at >= from && requestPath(entry) === witnessPath(marker, name));
+    const index = lines.findIndex((entry, at) => at >= from && isWitnessLine(entry, marker, name));
     if (index === -1) {
       return { outcome: "access-log-inactive", lines: lines.length, witnesses, evidence: inactiveEvidence(name, lines, marker) };
     }

@@ -4,7 +4,7 @@
 // fonction pure de runner/access-log.ts.
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { witnessPath } from "./access-log.ts";
+import { isWitnessLine, witnessPath } from "./access-log.ts";
 
 // Port publié du legacy (docker-compose.yml), seul port journalisé.
 const LEGACY_PUBLISHED_URL = "http://127.0.0.1:8080";
@@ -32,7 +32,8 @@ export async function sendWitness(accessLogDir: string, marker: string, name: st
   }
   const deadline = Date.now() + WITNESS_LINE_TIMEOUT_MS;
   let log = await readAccessLog(accessLogDir);
-  while (error === undefined && !log.includes(` ${path} `) && Date.now() < deadline) {
+  const seen = (content: string) => content.split("\n").some((entry) => isWitnessLine(entry, marker, name));
+  while (error === undefined && !seen(log) && Date.now() < deadline) {
     await new Promise((resolve) => setTimeout(resolve, 100));
     log = await readAccessLog(accessLogDir);
   }
@@ -40,7 +41,7 @@ export async function sendWitness(accessLogDir: string, marker: string, name: st
 }
 
 // Journal d'accès de la mesure, vide tant que le legacy n'y a rien écrit.
-export async function readAccessLog(accessLogDir: string): Promise<string> {
+async function readAccessLog(accessLogDir: string): Promise<string> {
   try {
     return await readFile(join(accessLogDir, ACCESS_LOG_FILE), "utf8");
   } catch (error) {

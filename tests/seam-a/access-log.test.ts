@@ -12,6 +12,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { describe, expect, it } from "vitest";
+import { ACCESS_LOG_FILE } from "../../runner/witness.ts";
 import { ROOT } from "../../shared/root.ts";
 import { fetchFromInternal, INTERNAL_API_URL } from "./internal-api-client.ts";
 import { legacyFetch, SEAM_A_MARKER } from "./legacy-client.ts";
@@ -32,7 +33,7 @@ async function accessLogFile(): Promise<string> {
   const mounts = JSON.parse(await docker("inspect", "--format", "{{json .Mounts}}", container)) as { Source: string; Destination: string }[];
   const mount = mounts.find(({ Destination }) => Destination === LOG_DIR_IN_CONTAINER);
   if (mount === undefined) throw new Error(`The legacy container mounts nothing on ${LOG_DIR_IN_CONTAINER}`);
-  return join(mount.Source, "access.log");
+  return join(mount.Source, ACCESS_LOG_FILE);
 }
 
 // Lignes du journal qui portent `token`, une fois au moins une écrite : la
