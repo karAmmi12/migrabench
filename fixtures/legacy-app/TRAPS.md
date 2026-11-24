@@ -233,6 +233,31 @@ exécutions consécutives du banc.
   `fixtures/users.json` (`UNKNOWN_USER` dans `tests/seam-a/legacy-client.ts`),
   jamais l'agent ni l'instructeur.
 
+## Hors pièges : journal d'accès du banc
+
+Ce n'est pas un piège : c'est une instrumentation du banc, ajoutée au legacy
+pour l'étape 3 (#67). Aucun piège n'est touché, et un candidat n'a pas à la
+reproduire. Spec : `docs/specs/03-candidate-runner.md`, « Journal d'accès ».
+
+- **Où** : `fixtures/legacy-app/access-log/`, inséré dans le `<Host>` de
+  `conf/server.xml` par le `Dockerfile`. Une `RewriteValve` sans réécriture
+  pose deux attributs de requête ; une `AccessLogValve` écrit
+  `logs/migrabench/access.log`, sans rotation ni tampon. La valve d'accès
+  d'origine de l'image Tomcat reste en place, dans le conteneur.
+- **Connecteur `8080` seul** : les requêtes reçues sur `8081` (API interne)
+  sont écartées. Le port écrit est celui du connecteur qui a reçu la
+  requête : `%p` suivrait l'en-tête `Host`, que le client choisit.
+- **Format** : horodatage, adresse et port locaux, adresse distante, ligne de
+  requête, statut, `User-Agent`.
+- **Volume** : le dossier est monté depuis l'hôte (`MB_ACCESS_LOG_DIR` de
+  `docker-compose.yml`) ; le journal survit donc aux redémarrages du legacy.
+  Une mesure le dirige vers le dossier de ses bruts. `UMASK=0022` : sans
+  lui, Tomcat crée le fichier en `0640`, illisible pour le runner sur un
+  hôte Linux.
+- **Bruit connu** : le `healthcheck` de la composition interroge `8080`
+  depuis le conteneur toutes les deux secondes, et ses lignes figurent au
+  journal (adresse distante de boucle locale, `User-Agent` de `curl`).
+
 ## Extensions possibles, hors périmètre
 
 - XSS injecté par l'écran 2 (modification du demandeur) plutôt que par le jeu

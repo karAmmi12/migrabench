@@ -26,4 +26,14 @@ COPY --from=build /build/target/ROOT.war /usr/local/tomcat/webapps/ROOT.war
 # Le grep fait échouer le build si l'insertion rate.
 RUN sed -i 's|<Connector port="8080" protocol="HTTP/1.1"|<Connector port="8081" protocol="HTTP/1.1" connectionTimeout="20000" maxParameterCount="1000" />\n    &|' conf/server.xml \
  && grep -q '<Connector port="8081"' conf/server.xml
+# Journal d'accès du banc (#67), instrumentation et non piège (TRAPS.md) :
+# connecteur 8080 seul, en ajout dans logs/migrabench/access.log, que le banc
+# monte depuis l'hôte (docker-compose.yml). UMASK 0022 : Tomcat crée ses
+# journaux en 0640 par défaut, illisibles pour le runner sur un hôte Linux.
+ENV UMASK=0022
+COPY fixtures/legacy-app/access-log/rewrite.config conf/Catalina/localhost/rewrite.config
+COPY fixtures/legacy-app/access-log/access-log-valve.xml /tmp/access-log-valve.xml
+RUN sed -i '/<\/Host>/e cat /tmp/access-log-valve.xml' conf/server.xml \
+ && rm /tmp/access-log-valve.xml \
+ && grep -q 'conditionUnless="mbInternalApi"' conf/server.xml
 EXPOSE 8080 8081

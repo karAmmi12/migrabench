@@ -17,6 +17,12 @@ services:
     # passées telles quelles au conteneur : une variable du shell ne peut pas
     # les remplacer. Sans FROZEN_DATE, le legacy refuse de démarrer.
     env_file: .env
+    # Journal d'accès du banc (#67) : connecteur 8080 seul, écrit en ajout sur
+    # l'hôte, il survit aux redémarrages du legacy. Une mesure le dirige vers
+    # le dossier de ses bruts (MB_ACCESS_LOG_DIR) ; sinon, un dossier ignoré
+    # par Git de la copie du dépôt qui a lancé la pile.
+    volumes:
+      - ${MB_ACCESS_LOG_DIR:-./.oracle-artifacts/access-log}:/usr/local/tomcat/logs/migrabench
     healthcheck:
       # Prêt quand l'application déployée exige l'authentification (401).
       test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/ | grep -q 401"]

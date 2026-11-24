@@ -1,0 +1,12 @@
+        <!-- Journal d'accès du banc (#67) : instrumentation, pas un piège
+             (TRAPS.md, « Hors pièges : journal d'accès »). Connecteur 8080
+             seul : la RewriteValve marque les requêtes reçues sur 8081, que
+             la valve d'accès écarte. Le port écrit est celui du connecteur,
+             relevé par la RewriteValve : %p suivrait l'en-tête Host, que le
+             client choisit. Sans tampon : chaque ligne est écrite dès que la
+             requête est servie, et le runner la relit aussitôt. -->
+        <Valve className="org.apache.catalina.valves.rewrite.RewriteValve" />
+        <Valve className="org.apache.catalina.valves.AccessLogValve"
+               directory="logs/migrabench" prefix="access" suffix=".log"
+               rotatable="false" buffered="false" conditionUnless="mbInternalApi"
+               pattern="%{yyyy-MM-dd'T'HH:mm:ss.SSSZ}t %A:%{mbLocalPort}r %a &quot;%r&quot; %s &quot;%{User-Agent}i&quot;" />
