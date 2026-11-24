@@ -15,9 +15,29 @@ export interface CapturedResponse {
  * comparaison. Liste fermée de la spec. */
 const HOP_BY_HOP = new Set(["connection", "keep-alive", "proxy-connection", "te", "trailer", "transfer-encoding", "upgrade"]);
 
+/** L'identifiant de session que Tomcat 9 ajoute aux liens d'une page servie
+ * sans cookie de session : 16 octets en hexadécimal majuscule, sans
+ * `jvmRoute` (server.xml par défaut de l'image du legacy). Le test du Seam A
+ * vérifie ce format sur une vraie réponse. */
+const SESSION_ID_IN_LINK = /;jsessionid=[0-9A-F]{32}(?![0-9A-Za-z])/g;
+const MASKED_SESSION_ID = ";jsessionid=<session>";
+
+export interface CompareOptions {
+  /** Remplace par un jeton fixe la seule valeur de `;jsessionid=<valeur>`
+   * dans les deux corps avant de les comparer octet par octet : le nombre et
+   * la position des occurrences, et tout le reste du lien, restent comparés.
+   * Exception propre à la fidélité du relais de référence, dont les deux
+   * côtés ouvrent chacun leur session ; jamais pour la mesure d'un candidat. */
+  maskSessionIds?: boolean;
+}
+
 /** Les différences entre la réponse directe et la réponse relayée, une phrase
  * par différence ; vide si le relais n'a rien modifié. */
-export function compareResponses(direct: CapturedResponse, relayed: CapturedResponse): string[] {
+export function compareResponses(
+  direct: CapturedResponse,
+  relayed: CapturedResponse,
+  options: CompareOptions = {},
+): string[] {
   const differences: string[] = [];
   if (direct.status !== relayed.status) {
     differences.push(`status: ${direct.status} direct, ${relayed.status} relayed`);
@@ -37,10 +57,12 @@ export function compareResponses(direct: CapturedResponse, relayed: CapturedResp
       differences.push(`header ${name}: [${directValues.join(", ")}] direct, [${relayedValues.join(", ")}] relayed`);
     }
   }
-  if (!direct.body.equals(relayed.body)) {
+  const directBody = options.maskSessionIds ? maskSessionIds(direct.body) : direct.body;
+  const relayedBody = options.maskSessionIds ? maskSessionIds(relayed.body) : relayed.body;
+  if (!directBody.equals(relayedBody)) {
     differences.push(
-      `body: first difference at byte ${firstDifference(direct.body, relayed.body)} ` +
-        `(${direct.body.length} bytes direct, ${relayed.body.length} relayed)`,
+      `body: first difference at byte ${firstDifference(directBody, relayedBody)} ` +
+        `(${directBody.length} bytes direct, ${relayedBody.length} relayed)`,
     );
   }
   return differences;
@@ -50,6 +72,21 @@ export function compareResponses(direct: CapturedResponse, relayed: CapturedResp
  * et ses attributs restent comparés. */
 function cookieForm(setCookie: string): string {
   return setCookie.replace(/^([^=;]*)=[^;]*/, "$1=…");
+}
+
+/** Les valeurs de `;jsessionid=` du corps que le masque laisserait telles
+ * quelles, parce qu'elles sortent du format exact : le Seam A exige qu'il n'y
+ * en ait aucune dans une vraie réponse du legacy. */
+export function sessionIdsOutsideFormat(body: Buffer): string[] {
+  return [...body.toString("latin1").matchAll(/;jsessionid=([^?#"'&;\s]*)/g)]
+    .filter((match) => !new RegExp(`^${SESSION_ID_IN_LINK.source}$`).test(match[0]))
+    .map((match) => match[1] ?? "");
+}
+
+/** Le corps, chaque valeur de `;jsessionid=` au format exact remplacée par le
+ * même jeton. Le latin1 rend chaque octet tel quel, aller et retour. */
+function maskSessionIds(body: Buffer): Buffer {
+  return Buffer.from(body.toString("latin1").replace(SESSION_ID_IN_LINK, MASKED_SESSION_ID), "latin1");
 }
 
 function firstDifference(left: Buffer, right: Buffer): number {
