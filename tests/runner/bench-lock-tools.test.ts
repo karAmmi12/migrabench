@@ -18,7 +18,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
 import { DIAGNOSTIC_DIR_FROM_ROOT } from "../../runner/paths.ts";
-import { type BenchLockHolder, inspectBenchLock } from "../../shared/bench-lock.ts";
+import { acquireBenchLock, type BenchLockHolder } from "../../shared/bench-lock.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, ROOT } from "../../shared/root.ts";
 
 const HOLD = new URL("../fixtures/bench-lock/hold.ts", import.meta.url).pathname;
@@ -74,21 +74,25 @@ const started: ChildProcess[] = [];
 let before: string[];
 let devSalt: string | undefined;
 
-// Lance un outil du banc qui reste bloqué sur Docker, et attend qu'il tienne
-// le verrou du banc et ait atteint le faux `docker` : les appels relevés
-// ensuite contiennent déjà les siens.
+// Lance un outil du banc qui reste bloqué sur Docker, et attend qu'il ait
+// atteint le faux `docker` : les appels relevés ensuite contiennent déjà les
+// siens. Il prend le verrou du banc avant toute commande Docker : une prise
+// tentée ensuite est refusée, et le refus nomme le détenteur. Pas de prise
+// tentée avant : elle pourrait devancer l'outil.
 async function holding([script, args]: Tool, tool: string): Promise<BenchLockHolder> {
   const child = spawn(process.execPath, [script, ...args], { cwd: ROOT, env: env("block"), stdio: "ignore" });
   started.push(child);
-  for (let waited = 0; waited < 10_000; waited += 50) {
-    const lock = inspectBenchLock(LOCK);
-    if (lock.state === "held" && lock.holder.pid === child.pid && existsSync(join(stubDir, `reached-${child.pid}`))) {
-      expect(lock.holder.tool).toBe(tool);
-      return lock.holder;
-    }
+  for (let waited = 0; !existsSync(join(stubDir, `reached-${child.pid}`)); waited += 50) {
+    if (waited > 10_000) throw new Error(`${script} did not reach Docker`);
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
-  throw new Error(`${script} did not take the bench lock and reach Docker`);
+  const probe = acquireBenchLock({ file: LOCK, tool: "measure" });
+  if (probe.ok) {
+    probe.release();
+    throw new Error(`${script} reached Docker without holding the bench lock`);
+  }
+  expect(probe.holder).toMatchObject({ tool, pid: child.pid });
+  return probe.holder;
 }
 
 afterAll(() => rmSync(STATE_HOME, { recursive: true, force: true }));
@@ -107,8 +111,9 @@ afterEach(async () => {
       return exited;
     }),
   );
-  // Verrou du banc laissé par un outil tué ici.
-  if (inspectBenchLock(LOCK).state === "orphan") rmSync(LOCK);
+  // Verrou du banc laissé par un outil tué ici : repris, puis libéré.
+  const left = acquireBenchLock({ file: LOCK, tool: "measure" });
+  if (left.ok) left.release();
   for (const entry of entries()) if (!before.includes(entry)) rmSync(join(ROOT, entry), { recursive: true, force: true });
 });
 

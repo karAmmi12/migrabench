@@ -1,18 +1,18 @@
 // Verrou du banc (spec de l'étape 3, « Verrou du banc ») : un fichier du
 // dossier d'état de l'utilisateur, hors du dépôt, que prennent `migrabench
-// measure`, `npm run oracle` et `npm run stack:up` pour toute leur durée, et
-// que `pretest` vérifie sans le prendre. Deux outils du banc ne partagent
+// measure`, `migrabench calibrate`, `npm run oracle`, `npm run stack:up` et
+// `npm test` (#94) pour toute leur durée. Deux outils du banc ne partagent
 // jamais la pile, commune à toute la machine : tous les worktrees et tous les
 // clones du dépôt voient le même verrou du banc (#92).
 //
 // Sans dépendance hors de Node : le module est copié tel quel dans un dépôt
-// temporaire par les tests de `pretest`.
+// temporaire par les tests de `npm test` (scripts/test.ts).
 import { spawnSync } from "node:child_process";
 import { linkSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { homedir, hostname } from "node:os";
 import { dirname, isAbsolute, join } from "node:path";
 
-export type BenchTool = "measure" | "calibrate" | "oracle" | "stack-up";
+export type BenchTool = "measure" | "calibrate" | "oracle" | "stack-up" | "test";
 
 // Dossier d'état du banc, dans celui de l'utilisateur (#92) : la pile est
 // commune à toute la machine, donc à toutes les copies du dépôt.
@@ -117,17 +117,6 @@ export function acquireBenchLockOrExit(options: AcquireOptions): Extract<BenchLo
   return lock;
 }
 
-// État du verrou du banc, sans le prendre (`pretest`) : libre, tenu, ou
-// orphelin (il serait repris).
-export type BenchLockState = { state: "free" } | { state: "held" | "orphan"; holder: BenchLockHolder };
-
-export function inspectBenchLock(file = BENCH_LOCK_FILE): BenchLockState {
-  const held = readText(file);
-  if (held === undefined) return { state: "free" };
-  const holder = parseHolder(file, held);
-  return { state: isOrphan(holder) ? "orphan" : "held", holder };
-}
-
 // Message de refus : l'outil, son processus et l'heure de prise.
 export function heldMessage({ tool, pid, startedAt, command, host, measureId, takenAt }: BenchLockHolder): string {
   const measure = measureId === undefined ? "" : `, measure ${measureId}`;
@@ -162,7 +151,7 @@ function isOrphan(holder: BenchLockHolder): boolean {
 // demande de la retirer à la main ; un détenteur vivant n'est jamais dépossédé.
 // Commande qui liste les outils du banc en marche, de toutes les copies du
 // dépôt, avant de retirer une garde de reprise.
-const BENCH_TOOLS_RUNNING = 'pgrep -fl "runner/cli.ts|oracle/cli.ts|scripts/stack-up.ts"';
+const BENCH_TOOLS_RUNNING = 'pgrep -fl "runner/cli.ts|oracle/cli.ts|scripts/stack-up.ts|scripts/test.ts"';
 
 function takeOver(file: string, orphan: string, text: string): "taken" | "retry" | { message: string; holder: BenchLockHolder } {
   const guard = `${file}.takeover`;

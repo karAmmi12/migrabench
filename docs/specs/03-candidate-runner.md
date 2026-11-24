@@ -163,7 +163,7 @@ candidat de référence obtient 100 % dans une mesure comptée.
   `fetch` manqué est nommé (#73).
 - **Verrou du banc** : prise, refus, reprise d'un verrou orphelin, libération.
   Partagé par `migrabench measure`, `npm run oracle`, `npm run stack:up` et
-  le contrôle de `pretest`.
+  `npm test` (#94).
 - **Journal d'accès** : lecture du journal brut d'une mesure, repérage des
   deux requêtes témoins par le marqueur, contrôle de leur moment. La porte
   du relais (étape 4) le réutilise.
@@ -398,16 +398,32 @@ le candidat tourne ensuite (voir les règles des issues).
   dépôt, car la pile (projet Compose `migrabench`, ports de l'hôte) est
   commune à toute la machine : tous les worktrees et tous les clones du dépôt
   voient le même verrou du banc (#92). Chaque refus donne son chemin. Il
-  contient l'outil (`measure`, `oracle`, `stack-up`), le PID du
+  contient l'outil (`measure`, `calibrate`, `oracle`, `stack-up`, `test`), le PID du
   processus qui le tient, l'heure de démarrage de ce processus, sa ligne de
   commande, la machine, l'identifiant de la mesure s'il y en a un et l'heure
   de prise.
-- **Le prennent** : `migrabench measure`, `npm run oracle`,
-  `npm run stack:up`, pour toute leur durée.
-- **Le vérifie sans le prendre** : `pretest` (avant `npm test`), qui refuse
-  si le verrou est tenu, car les tests du Seam A écrivent sur la pile.
-- **Refus** : code `4` pour `migrabench measure`, avec l'outil, le processus
-  et l'heure de prise dans le message.
+- **Le prennent** : `migrabench measure`, `migrabench calibrate`,
+  `npm run oracle`, `npm run stack:up`, pour toute leur durée.
+- **`npm test` le prend aussi** (#94), outil `test`, du lancement de Vitest
+  à sa fin, y compris sur échec et sur interruption : les tests du Seam A
+  écrivent sur la pile, et l'un d'eux redémarre le legacy (#67). Le script
+  `scripts/test.ts` prend le verrou du banc, lance `vitest run` avec les
+  arguments reçus dans son propre groupe de processus, puis libère le verrou
+  du banc et rend le code de Vitest. Interruption : Vitest ne la reçoit qu'une
+  fois, sinon un second `SIGINT` l'arrêterait au milieu de son nettoyage.
+  Ctrl+C n'atteint que `scripts/test.ts` (Vitest n'est pas dans le groupe de
+  premier plan), que npm relaie aussi : `scripts/test.ts` relaie la première
+  interruption reçue (`SIGINT`, `SIGTERM`, `SIGHUP`), une seule fois, et
+  libère le verrou du banc après le nettoyage de Vitest. `npx vitest` lancé directement
+  ne le prend pas. Tué par `SIGKILL`, `scripts/test.ts` ne relaie rien :
+  Vitest continue seul, et le verrou du banc, orphelin, est repris par le
+  prochain outil du banc. Les tests qui lancent de vrais outils du banc
+  (`tests/runner/bench-lock-tools.test.ts`, `counted-measure.test.ts`) leur
+  donnent un `XDG_STATE_HOME` temporaire depuis #92 : ils ne voient pas le
+  verrou du banc que tient `npm test`.
+- **Refus** : code `4` (`refused-lock`), pour tous les outils qui le
+  prennent, avec l'outil, le processus et l'heure de prise dans le message.
+  `npm test` refuse avant de lancer Vitest.
 - **Verrou orphelin** : sur la même machine, le verrou est repris seulement
   si aucun processus ne porte le PID enregistré, ou si le processus qui le
   porte a une autre heure de démarrage ou une autre ligne de commande. Les
@@ -421,14 +437,11 @@ le candidat tourne ensuite (voir les règles des issues).
 - **Limite** (`PROTOCOL.md`) : il ne couvre que les outils du banc. Une
   requête envoyée à la main au legacy pendant une mesure fait échouer la
   porte du relais au compte du candidat.
-- **`npm test` pendant une mesure** : `npm test` vérifie le verrou du banc
-  à son démarrage, sans le prendre (#94). Une mesure lancée pendant un
-  `npm test` déjà en cours n'est donc pas refusée, mais les requêtes des
-  tests du Seam A portent le marqueur du Seam A (section « Journal
-  d'accès ») : la mesure est rendue invalide (`marker-out-of-place`), au
-  lieu de compter contre le candidat. Le test du Seam A qui redémarre le
-  legacy (#67) fait, lui, échouer les scénarios en cours avant que la
-  mesure soit rendue invalide : un run perdu, cité sur #94.
+- **`npm test` et une mesure** : l'un refuse l'autre (#94). Seul un
+  `npx vitest` lancé directement pendant une mesure passe le verrou du
+  banc : ses requêtes du Seam A portent le marqueur du Seam A (section
+  « Journal d'accès »), et la mesure est rendue invalide
+  (`marker-out-of-place`) au lieu de compter contre le candidat.
 - Le mot seul « verrou » désigne le verrou d'un champ du dossier
   (`GLOSSARY.md`) : on écrit toujours « verrou du banc ».
 
@@ -460,8 +473,9 @@ le candidat tourne ensuite (voir les règles des issues).
   requêtes des tests du Seam A vers le legacy. Une ligne qui porte un
   marqueur du Seam A pendant une mesure rend la mesure invalide
   (`marker-out-of-place`, la ligne en preuve), au lieu de faire échouer la
-  porte du relais au compte du candidat : un `npm test` lancé pendant une
-  mesure est un incident du banc. Le moyen (#67) :
+  porte du relais au compte du candidat : des tests du Seam A lancés pendant
+  une mesure sans le verrou du banc (`npx vitest` direct, #94) sont un
+  incident du banc. Le moyen (#67) :
   - la configuration globale de Vitest tire le marqueur (32 octets
     aléatoires en hexadécimal) et l'enregistre comme un fichier vide, nommé
     par le marqueur, dans `seam-a-markers/` du dossier d'état du banc, à
@@ -697,7 +711,10 @@ Vitest du contrat, pas par des candidats.
     ou ancêtre de lui,
     empreinte de `oracle.json` conforme.
 - **Seam 3 : le verrou du banc**, par des processus réels : prise, refus,
-  refus de `pretest` ; reprise d'un verrou dont le PID n'existe plus ;
+  prise par `npm test` pendant tout Vitest, refus de `npm test`, libération
+  sur échec et sur interruption (Ctrl+C au terminal et sous npm, `SIGINT` et
+  `SIGTERM` seuls : un seul signal reçu par Vitest, verrou du banc libéré
+  après son nettoyage) (#94) ; reprise d'un verrou dont le PID n'existe plus ;
   reprise d'un verrou dont le PID est porté par un processus d'une autre
   heure de démarrage ou d'une autre ligne de commande ; refus de reprendre
   un verrou dont le détenteur vit (les trois valeurs concordent).

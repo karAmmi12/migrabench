@@ -149,8 +149,10 @@ Pour économiser les minutes de CI (#76) :
 ### Verrou du banc
 
 Deux outils du banc ne partagent jamais la pile. `migrabench measure`,
-`npm run oracle` et `npm run stack:up` prennent le verrou du banc pour toute
-leur durée et le libèrent à la fin, y compris sur erreur.
+`migrabench calibrate`, `npm run oracle`, `npm run stack:up` et `npm test`
+prennent le verrou du banc pour toute leur durée et le libèrent à la fin, y
+compris sur erreur et sur interruption. `npm test` le tient pendant toute
+l'exécution de Vitest (#94) ; `npx vitest` lancé directement ne le prend pas.
 
 Le verrou du banc est le fichier `$XDG_STATE_HOME/migrabench/bench-lock`, ou
 `~/.local/state/migrabench/bench-lock` quand `XDG_STATE_HOME` n'est pas un
@@ -160,9 +162,9 @@ les clones du dépôt voient le même verrou du banc (#92). Le dossier est cré�
 s'il manque, et chaque refus donne le chemin du fichier. Le fichier nomme l'outil, son
 processus (PID, heure de démarrage, ligne de commande), la machine,
 l'identifiant de la mesure s'il y en a un et l'heure de prise. Pendant qu'il
-est tenu, ces trois outils refusent avec le code `4` (`refused-lock`) et un
-message qui nomme le détenteur. `npm test` refuse aussi (script `pretest`),
-sans prendre le verrou du banc.
+est tenu, les autres outils du banc refusent avec le code `4` (`refused-lock`)
+et un message qui nomme le détenteur. Limite : si `npm test` est tué par
+`SIGKILL`, Vitest continue seul, sans tenir le verrou du banc.
 
 Un verrou du banc orphelin, laissé par un processus mort, est repris par le
 prochain outil du banc : sur la même machine seulement, et seulement si aucun
@@ -178,7 +180,7 @@ retirent jamais : un détenteur vivant n'est jamais dépossédé. Ils refusent
 avec les deux commandes à lancer :
 
 ```sh
-pgrep -fl "runner/cli.ts|oracle/cli.ts|scripts/stack-up.ts"   # aucune sortie attendue
+pgrep -fl "runner/cli.ts|oracle/cli.ts|scripts/stack-up.ts|scripts/test.ts"   # aucune sortie attendue
 rm "${XDG_STATE_HOME:-$HOME/.local/state}/migrabench/bench-lock.takeover"
 ```
 

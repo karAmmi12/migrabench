@@ -1,6 +1,6 @@
 // Verrou du banc (spec de l'étape 3, « Verrou du banc », Seam 3), par des
-// processus réels : prise, refus, refus de `pretest`, reprise d'un verrou du
-// banc orphelin, refus de déposséder un détenteur vivant.
+// processus réels : prise, refus, prise par `npm test` (#94), reprise d'un
+// verrou du banc orphelin, refus de déposséder un détenteur vivant.
 import { type ChildProcess, spawn, spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { hostname, tmpdir } from "node:os";
@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { acquireBenchLock } from "../shared/bench-lock.ts";
 
 const HOLD = new URL("./fixtures/bench-lock/hold.ts", import.meta.url).pathname;
-const CHECK = new URL("../scripts/check-bench-lock.ts", import.meta.url).pathname;
+const NPM_TEST = new URL("../scripts/test.ts", import.meta.url).pathname;
 const MODULE = new URL("../shared/bench-lock.ts", import.meta.url).pathname;
 
 function lockFile(): string {
@@ -170,7 +170,7 @@ describe("bench lock left mid-way by a crash", () => {
     // Les deux commandes exactes : vérifier qu'aucun outil du banc ne tourne,
     // puis retirer la garde.
     if (!lock.ok) {
-      expect(lock.message).toContain('pgrep -fl "runner/cli.ts|oracle/cli.ts|scripts/stack-up.ts"');
+      expect(lock.message).toContain('pgrep -fl "runner/cli.ts|oracle/cli.ts|scripts/stack-up.ts|scripts/test.ts"');
       expect(lock.message).toContain(`rm ${file}.takeover`);
     }
     expect(readFileSync(`${file}.takeover`, "utf8")).toBe(guard);
@@ -229,54 +229,171 @@ process.stdin.on("end", () => lock.release());
   }
 });
 
-// `pretest` vérifie le verrou du banc à son emplacement : le contrôle et le
-// module sont copiés dans un dépôt temporaire, lancés sous un XDG_STATE_HOME
-// temporaire.
-describe("pretest check of the bench lock", () => {
-  function repo(): { root: string; file: string; env: NodeJS.ProcessEnv } {
-    const root = mkdtempSync(join(tmpdir(), "mb-pretest-"));
-    mkdirSync(join(root, "scripts"));
-    mkdirSync(join(root, "shared"));
-    copyFileSync(CHECK, join(root, "scripts", "check-bench-lock.ts"));
-    copyFileSync(MODULE, join(root, "shared", "bench-lock.ts"));
-    const state = mkdtempSync(join(tmpdir(), "mb-state-"));
-    return { root, file: join(state, "migrabench", "bench-lock"), env: { ...process.env, XDG_STATE_HOME: state } };
+// `npm test` (scripts/test.ts) prend le verrou du banc pour toute la durée de
+// Vitest (#94). Le script et le module sont copiés dans un dépôt temporaire, à
+// côté d'un faux Vitest, lancés sous un XDG_STATE_HOME temporaire. Le faux
+// Vitest note ses arguments et le verrou du banc tel qu'il le voit, puis se
+// termine avec le code FAKE_VITEST_EXIT, ou attend un signal quand il vaut
+// `wait`.
+describe("npm test holding the bench lock", () => {
+  const FAKE_VITEST = `import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+const lock = process.env.FAKE_VITEST_LOCK;
+writeFileSync(process.env.FAKE_VITEST_SEEN, JSON.stringify({ pid: process.pid, args: process.argv.slice(2), lock: existsSync(lock) ? JSON.parse(readFileSync(lock, "utf8")) : null }));
+const exit = process.env.FAKE_VITEST_EXIT;
+if (exit === "wait") {
+  // Interrompu : chaque signal reçu est noté ; le premier lance un nettoyage
+  // d'une seconde, à la fin duquel le verrou du banc est relevé.
+  const log = (line) => appendFileSync(process.env.FAKE_VITEST_SIGNALS, line + "\\n");
+  let cleaning = false;
+  for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {
+    process.on(signal, () => {
+      log(signal);
+      if (cleaning) return;
+      cleaning = true;
+      setTimeout(() => {
+        log(\`cleaned lock=\${existsSync(lock) ? "held" : "free"}\`);
+        process.exit(130);
+      }, 1000);
+    });
+  }
+  setInterval(() => {}, 1000);
+} else process.exit(Number(exit));
+`;
+
+  interface Repo {
+    root: string;
+    file: string;
+    seen: string;
+    signals: string;
+    env: NodeJS.ProcessEnv;
   }
 
-  function pretest({ root, env }: { root: string; env: NodeJS.ProcessEnv }) {
-    const { status, stderr } = spawnSync(process.execPath, [join(root, "scripts", "check-bench-lock.ts")], { env, encoding: "utf8" });
+  function repo(exit: number | "wait", vitest = true): Repo {
+    const root = mkdtempSync(join(tmpdir(), "mb-npm-test-"));
+    mkdirSync(join(root, "scripts"));
+    mkdirSync(join(root, "shared"));
+    mkdirSync(join(root, "node_modules", "vitest"), { recursive: true });
+    copyFileSync(NPM_TEST, join(root, "scripts", "test.ts"));
+    copyFileSync(MODULE, join(root, "shared", "bench-lock.ts"));
+    if (vitest) writeFileSync(join(root, "node_modules", "vitest", "vitest.mjs"), FAKE_VITEST);
+    const state = mkdtempSync(join(tmpdir(), "mb-state-"));
+    const file = join(state, "migrabench", "bench-lock");
+    const seen = join(root, "seen.json");
+    const signals = join(root, "signals.log");
+    return {
+      root,
+      file,
+      seen,
+      signals,
+      env: { ...process.env, XDG_STATE_HOME: state, FAKE_VITEST_LOCK: file, FAKE_VITEST_SEEN: seen, FAKE_VITEST_SIGNALS: signals, FAKE_VITEST_EXIT: String(exit) },
+    };
+  }
+
+  function npmTest({ root, env }: Repo, args: readonly string[] = []) {
+    const { status, stderr } = spawnSync(process.execPath, [join(root, "scripts", "test.ts"), ...args], { cwd: root, env, encoding: "utf8" });
     return { status, stderr };
   }
 
-  it("lets npm test run when the bench lock is free", () => {
-    expect(pretest(repo())).toEqual({ status: 0, stderr: "" });
+  function readSeen({ seen }: Repo): { pid: number; args: string[]; lock: Record<string, unknown> | null } {
+    return JSON.parse(readFileSync(seen, "utf8"));
+  }
+
+  it("holds the bench lock as the tool test while vitest runs, then releases it", () => {
+    const copied = repo(0);
+
+    const outcome = npmTest(copied, ["tests/one.test.ts", "--reporter=default"]);
+
+    expect(outcome).toEqual({ status: 0, stderr: "" });
+    const { args, lock } = readSeen(copied);
+    expect(args).toEqual(["run", "tests/one.test.ts", "--reporter=default"]);
+    expect(lock).toMatchObject({ tool: "test", host: hostname() });
+    expect(existsSync(copied.file)).toBe(false);
   });
 
-  it("refuses npm test while a bench tool holds the bench lock, naming it, without taking it", async () => {
-    const copied = repo();
+  it("releases the bench lock after failing tests, keeping the exit code of vitest", () => {
+    const copied = repo(1);
+
+    expect(npmTest(copied).status).toBe(1);
+    expect(readSeen(copied).lock).toMatchObject({ tool: "test" });
+    expect(existsSync(copied.file)).toBe(false);
+  });
+
+  it("refuses to run while a bench tool holds the bench lock, naming it, without launching vitest", async () => {
+    const copied = repo(0);
     const { file } = copied;
     const holder = await hold(file, "measure", "20261123T090507Z-454fb76-reference-candidate");
     const held = readFileSync(file, "utf8");
 
-    const outcome = pretest(copied);
+    const outcome = npmTest(copied);
 
-    expect(outcome.status).not.toBe(0);
-    expect(outcome.stderr).toContain("npm test");
+    expect(outcome.status).toBe(4);
+    expect(outcome.stderr).toContain("refused-lock: The bench lock is held by measure");
     expect(outcome.stderr).toContain(`measure (PID ${holder.pid}`);
     expect(outcome.stderr).toContain("20261123T090507Z-454fb76-reference-candidate");
     expect(outcome.stderr).toContain(`Bench lock: ${file}`);
+    expect(existsSync(copied.seen)).toBe(false);
     expect(readFileSync(file, "utf8")).toBe(held);
   });
 
-  it("lets npm test run over an orphan bench lock, which it leaves in place", async () => {
-    const copied = repo();
-    const { file } = copied;
-    await killHard(await hold(file, "oracle"));
-    const orphan = readFileSync(file, "utf8");
+  it("takes over an orphan bench lock, saying so, and releases it at the end", async () => {
+    const copied = repo(0);
+    await killHard(await hold(copied.file, "oracle"));
 
-    expect(pretest(copied).status).toBe(0);
-    expect(readFileSync(file, "utf8")).toBe(orphan);
+    const outcome = npmTest(copied);
+
+    expect(outcome.status).toBe(0);
+    expect(outcome.stderr).toContain("Took over an orphan bench lock of oracle");
+    expect(readSeen(copied).lock).toMatchObject({ tool: "test" });
+    expect(existsSync(copied.file)).toBe(false);
   });
+
+  it("releases the bench lock when vitest cannot be launched", () => {
+    const copied = repo(0, false);
+
+    expect(npmTest(copied).status).not.toBe(0);
+    expect(existsSync(copied.file)).toBe(false);
+  });
+
+  // Interruption. `npm test` est lancé dans son propre groupe de processus,
+  // comme un terminal lance une commande au premier plan : Ctrl+C envoie
+  // SIGINT à tout le groupe, et npm (run-script) le relaie aussi à son enfant.
+  // Vitest doit recevoir le signal une seule fois : un second SIGINT
+  // l'arrêterait au milieu de son nettoyage. Pendant ce temps, les autres
+  // outils du banc sont refusés, et le verrou du banc n'est libéré qu'après le
+  // nettoyage.
+  const interruptions: [name: string, signal: "SIGINT" | "SIGTERM", deliver: (pid: number, signal: NodeJS.Signals) => void][] = [
+    ["Ctrl+C in a terminal", "SIGINT", (pid, signal) => process.kill(-pid, signal)],
+    ["Ctrl+C under npm, which relays SIGINT", "SIGINT", (pid, signal) => (process.kill(-pid, signal), process.kill(pid, signal))],
+    ["SIGINT sent to npm test alone", "SIGINT", (pid, signal) => process.kill(pid, signal)],
+    ["SIGTERM sent to npm test alone", "SIGTERM", (pid, signal) => process.kill(pid, signal)],
+  ];
+  for (const [name, signal, deliver] of interruptions) {
+    it(`refuses the bench tools until interrupted by ${name}, then lets vitest clean up once and releases the bench lock`, async () => {
+      const copied = repo("wait");
+      const npm = spawn(process.execPath, [join(copied.root, "scripts", "test.ts")], { cwd: copied.root, env: copied.env, stdio: "ignore", detached: true });
+      holders.push(npm);
+      const pid = npm.pid ?? 0;
+      const exited = new Promise<number | null>((resolve) => npm.once("exit", (code) => resolve(code)));
+      for (let waited = 0; !existsSync(copied.seen); waited += 50) {
+        if (waited > 10_000) throw new Error("vitest was not launched");
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      const vitest = readSeen(copied).pid;
+      try {
+        const refused = acquireBenchLock({ file: copied.file, tool: "measure" });
+        expect(refused.ok).toBe(false);
+        if (!refused.ok) expect(refused.message).toContain(`The bench lock is held by test (PID ${pid}`);
+
+        deliver(pid, signal);
+
+        expect(await exited).not.toBe(0);
+        expect(readFileSync(copied.signals, "utf8").trim().split("\n")).toEqual([signal, "cleaned lock=held"]);
+        expect(existsSync(copied.file)).toBe(false);
+      } finally {
+        if (spawnSync("ps", ["-p", String(vitest)]).status === 0) process.kill(vitest, "SIGKILL");
+      }
+    });
+  }
 });
 
 // Emplacement du verrou du banc (#92), lu par un processus enfant sous un
