@@ -11,6 +11,7 @@ const INPUT = {
   usersFile: "/repo/fixtures/users.json",
   start: "node server.js",
   archiveToken: "mbtemoin-test",
+  limits: { memoryBytes: 665_845_760, cpus: 1.5, pids: 256 },
 };
 
 function service() {
@@ -56,5 +57,23 @@ describe("candidateCompose", () => {
 
   it("joins mb-internal and default", () => {
     expect(service().networks).toEqual(["default", "mb-internal"]);
+  });
+
+  it("applies the memory, CPU and process limits, with no swap beyond the memory limit", () => {
+    expect(service().mem_limit).toBe(665_845_760);
+    expect(service().memswap_limit).toBe(665_845_760);
+    expect(service().cpus).toBe(1.5);
+    expect(service().pids_limit).toBe(256);
+  });
+
+  it("grants no extra privilege: every capability dropped, no new privileges", () => {
+    expect(service().cap_drop).toEqual(["ALL"]);
+    expect(service().security_opt).toEqual(["no-new-privileges:true"]);
+    expect(service()).not.toHaveProperty("privileged");
+    expect(service()).not.toHaveProperty("cap_add");
+  });
+
+  it("mounts nothing but the candidate copy and USERS_FILE, so never the Docker socket", () => {
+    expect(service().volumes).toEqual([`${INPUT.copyDir}:/candidate:ro`, "/repo/fixtures/users.json:/run/migrabench/users.json:ro"]);
   });
 });

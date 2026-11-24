@@ -17,6 +17,7 @@
     "premigrabench": "node scripts/check-node-version.mjs",
     "migrabench": "node runner/cli.ts",
     "oracle:proof": "node scripts/check-oracle-proof.ts",
+    "start-report:check": "node scripts/check-start-report.ts",
     "fetch:pull-heads": "git fetch --no-tags origin '+refs/pull/*/head:refs/remotes/origin/pull/*'"
   },
   "devDependencies": {

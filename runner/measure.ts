@@ -209,7 +209,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     // 4 et 5. Pile et démarrage, puis oracle. L'exécution complète de l'étape 2
     // recrée le legacy et le service d'archivage, puis rappelle le runner, qui
     // recrée le service `candidate` et attend sa disponibilité.
-    const described = await candidateService({ rawDir, copyDir, user, start });
+    const described = await candidateService({ rawDir, copyDir, user, start, limits });
     service = described;
 
     if (build.outcome.outcome === "ok") {

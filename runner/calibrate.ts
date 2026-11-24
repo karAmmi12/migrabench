@@ -86,7 +86,7 @@ export async function calibrateCandidate({ readings = CALIBRATION_READINGS }: Ca
     if (build.outcome.outcome !== "ok") throw new Error(`Calibration reading ${reading}: ${build.outcome.outcome}: ${build.outcome.detail}`);
 
     // Pile recréée comme pour une mesure, puis le candidat démarré seul.
-    const service = await candidateService({ rawDir, copyDir, user, start: startCommand });
+    const service = await candidateService({ rawDir, copyDir, user, start: startCommand, limits });
     await recreateStack(randomBytes(32).toString("hex"));
     let start: CalibrationReading["start"];
     try {
