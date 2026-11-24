@@ -92,6 +92,12 @@ jobs:
           echo "::add-mask::$salt"
           echo "ARCHIVE_SALT=$salt" >> "$GITHUB_ENV"
 
+      # Empreinte du contexte de construction de chaque image, posée en label
+      # au build : une mesure, l'oracle et l'étalonnage refusent une pile dont
+      # les images ne viennent pas de cette copie du dépôt (#102).
+      - name: Empreintes des contextes de la pile
+        run: node scripts/stack-context-env.ts >> "$GITHUB_ENV"
+
       # --wait attend que les healthchecks du legacy et du service
       # d'archivage passent ; il échoue si l'un d'eux ne passe pas.
       - name: Construction et démarrage de la pile

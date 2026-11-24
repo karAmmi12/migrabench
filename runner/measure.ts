@@ -18,6 +18,7 @@ import { randomBytes } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { executeOracle, type ExecuteOracleResult, listOracle } from "../oracle/execute.ts";
+import { StackNotFromCopy } from "../oracle/stack-images.ts";
 import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
 import { checkAccessLog } from "./access-log.ts";
 import { closeAccessLog, sendWitness, witnessEvidence } from "./witness.ts";
@@ -250,11 +251,16 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
         const closeGates = phase("gates");
         closeGates();
       } catch (error) {
-        if (!(error instanceof CandidateNotStarted)) {
+        // Pile recréée sur des images d'une autre copie du dépôt (#102) :
+        // avant tout code du candidat, un incident du banc.
+        if (error instanceof StackNotFromCopy) {
+          closeStart("stack-failed-before-candidate", {}, error.message);
+        } else if (error instanceof CandidateNotStarted) {
+          closeStart(startOutcome, {}, error.detail);
+        } else {
           await stopCandidate(described);
           throw error;
         }
-        closeStart(startOutcome, {}, error.detail);
       }
     }
   }

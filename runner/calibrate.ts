@@ -74,6 +74,8 @@ export async function calibrateCandidate({ readings = CALIBRATION_READINGS }: Ca
   const { limits, record: limitsRecord } = measureLimits({ safetyCap: SAFETY_CAP });
 
   const recorded = [];
+  // Empreintes des contextes de la pile, vérifiées à chaque recréation (#102).
+  let imageContexts: Awaited<ReturnType<typeof recreateStack>> | undefined;
   for (let reading = 1; reading <= readings; reading++) {
     console.log(`Calibration reading ${reading}/${readings}`);
     const rawDir = join(ROOT, artifacts, `reading-${reading}`);
@@ -87,7 +89,7 @@ export async function calibrateCandidate({ readings = CALIBRATION_READINGS }: Ca
 
     // Pile recréée comme pour une mesure, puis le candidat démarré seul.
     const service = await candidateService({ rawDir, copyDir, user, start: startCommand, limits });
-    await recreateStack(randomBytes(32).toString("hex"));
+    imageContexts = await recreateStack(randomBytes(32).toString("hex"));
     let start: CalibrationReading["start"];
     try {
       await startCandidate(service);
@@ -132,6 +134,7 @@ export async function calibrateCandidate({ readings = CALIBRATION_READINGS }: Ca
       node: process.version,
       ...(await browserVersions()),
       images: await stackImages(),
+      imageContexts,
       frozenDate: env.FROZEN_DATE ?? null,
       baseUrl: CANDIDATE_BASE_URL,
       artifacts,

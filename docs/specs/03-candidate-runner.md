@@ -281,6 +281,11 @@ Règles des issues :
 - **`stack-failed-before-candidate`** : le legacy ou le service d'archivage
   n'est pas sain avant le démarrage du candidat, ou pendant un redémarrage
   où le candidat est arrêté.
+  C'est aussi l'issue quand la pile recréée tourne sur des images qui ne
+  viennent pas de la copie du dépôt qui mesure (#102) : le label
+  `org.migrabench.context-digest` d'une image en cours diffère de
+  l'empreinte de son contexte de construction calculée sur la copie. La
+  preuve nomme le service, l'image, le label trouvé et l'empreinte attendue.
 - **`stack-down-while-candidate`** : à la fin de l'oracle, et après chaque
   porte à l'étape 4, le runner relève l'état des conteneurs `legacy` et
   `archive` (arrêt, redémarrage, santé). Une panne survenue pendant que le
@@ -331,8 +336,8 @@ de la mesure>/`, cités par empreinte (ADR 0005).
     est invalide ;
   - `build` et `start` : commandes déclarées.
 - **`environment`** : les métadonnées de l'étape 2 (`benchCommit`,
-  `worktree`, `node`, `chromium`, `playwright`, `images`, `frozenDate`,
-  `baseUrl`, `artifacts`, `ciRun`), plus :
+  `worktree`, `node`, `chromium`, `playwright`, `images`, `imageContexts`,
+  `frozenDate`, `baseUrl`, `artifacts`, `ciRun`), plus :
   - `runtimeImage` : empreinte de l'image d'exécution du banc ;
   - `composeOverride` : empreinte de la composition complémentaire générée ;
   - `port` : port imposé ;
