@@ -10,6 +10,7 @@ import { readBenchEnv, ROOT } from "../shared/root.ts";
 import { candidateCompose } from "./candidate-compose.ts";
 import { type CandidateFile, isCopied } from "./candidate-content.ts";
 import type { ContainerUser } from "./container-user.ts";
+import { type Limits, startLimits } from "./limits.ts";
 import type { PhaseOutcome } from "./verdict.ts";
 
 // Port imposé au candidat, publié sur 127.0.0.1.
@@ -67,12 +68,12 @@ export interface CandidateService {
   startLog: string;
 }
 
-export async function candidateService({ rawDir, copyDir, user, start }: { rawDir: string; copyDir: string; user: ContainerUser; start: string }): Promise<CandidateService> {
+export async function candidateService({ rawDir, copyDir, user, start, limits }: { rawDir: string; copyDir: string; user: ContainerUser; start: string; limits: Limits }): Promise<CandidateService> {
   const overrideFile = join(rawDir, "compose.candidate.yml");
   const env = await readBenchEnv();
   await writeFile(
     overrideFile,
-    `${JSON.stringify(candidateCompose({ image: RUNTIME_IMAGE, user, port: CANDIDATE_PORT, copyDir, usersFile: join(ROOT, "fixtures", "users.json"), start, archiveToken: env.ARCHIVE_TOKEN ?? "" }), null, 2)}\n`,
+    `${JSON.stringify(candidateCompose({ image: RUNTIME_IMAGE, user, port: CANDIDATE_PORT, copyDir, usersFile: join(ROOT, "fixtures", "users.json"), start, archiveToken: env.ARCHIVE_TOKEN ?? "", limits: startLimits(limits) }), null, 2)}\n`,
   );
   return { compose: ["compose", "--file", COMPOSE_FILE, "--file", overrideFile], composeOverride: await digestOf(overrideFile), startLog: join(rawDir, "start.log") };
 }
