@@ -35,7 +35,9 @@ invalide, au lieu de compter contre le candidat.
   [Vitest, globalSetup](https://vitest.dev/config/globalsetup)
 - **Projets et `sequence.groupOrder` de Vitest** : les projets d'un même
   `groupOrder` tournent en parallèle ; les groupes tournent l'un après
-  l'autre, dans l'ordre croissant. —
+  l'autre, dans l'ordre croissant. Exception relevée dans le code de
+  Vitest 5 (`groupSpecs`) : avec un seul worker, les fichiers d'un projet en
+  `groupOrder` 0 vont dans un groupe séquentiel placé après tous les autres. —
   [Vitest, sequence](https://vitest.dev/config/sequence),
   [Vitest, Test Projects](https://vitest.dev/guide/projects)
 
@@ -94,7 +96,9 @@ de Vitest cite `groupOrder`.
   - `tests/seam-a-marker.test.ts` (4 tests) ;
   - `tests/runner/measure-record.test.ts` (+2) ;
   - `tests/seam-a/access-log.test.ts`, dans le projet Vitest
-    `legacy-restart` (`groupOrder: 2`).
+    `legacy-restart`.
+- **`vitest.config.ts`** : trois projets aux `groupOrder` explicites,
+  `default` (1), `bench-tools` (2, #90), `legacy-restart` (3).
 - **Spec** (`docs/specs/03-candidate-runner.md`) :
   - la « Limite connue, jusqu'à #67 » est remplacée ;
   - le moyen du marqueur du Seam A est décrit ;
@@ -125,8 +129,11 @@ de Vitest cite `groupOrder`.
 - **Journal figé à la clôture** dans les bruts, plutôt que de citer le journal
   vivant, qui continue de grossir (voir les difficultés).
 - **Test du redémarrage dans son propre groupe Vitest** (`legacy-restart`,
-  `groupOrder: 2`), distinct de `bench-tools` (`groupOrder: 1`, #90) : deux
+  `groupOrder: 3`), distinct de `bench-tools` (`groupOrder: 2`, #90) : deux
   projets d'un même groupe tourneraient en parallèle. Consigne de l'humain.
+- **`default` en `groupOrder: 1` plutôt que 0** : en 0, il passe en dernier
+  avec un seul worker (voir les difficultés). Aucun projet ne reste en 0, et
+  l'ordre déclaré vaut quel que soit le nombre de workers.
 - **Fusion de `main` après #66** (PR #101) : fusion sans conflit textuel.
   #66 modifiait seulement l'appel `candidateService({ …, limits })` de
   `runner/measure.ts` (et de `runner/calibrate.ts`), loin du rappel et de la
@@ -221,6 +228,26 @@ de Vitest cite `groupOrder`.
   - *Résolution* : le dossier par défaut devient `./.access-log/`, ignoré par
     Git et par Docker. Une mesure crée elle-même le dossier de son journal
     avant de recréer la pile.
+- **Ordre des projets différent en CI** :
+  - *Symptôme* : dans le job `tests` de la deuxième exécution
+    (https://github.com/karAmmi12/migrabench/actions/runs/45431413514, head
+    393b092), Vitest démarre à 15:59:05. `bench-tools` finit à 15:59:13,
+    `legacy-restart` à 15:59:18, puis les fichiers de `default` de 15:59:22 à
+    16:00:38. C'est l'ordre inverse de celui relevé en local.
+  - *Cause* : `groupSpecs` de Vitest 5
+    (`node_modules/vitest/dist/chunks/index.Di8au7q4.js`). Quand `maxWorkers`
+    vaut 1, ce qui est le cas sur le runner de la CI, les fichiers d'un projet
+    isolé en `groupOrder` 0 vont dans un groupe séquentiel ajouté après tous
+    les groupes numérotés. Les groupes ne se chevauchaient pas : l'isolement
+    tenait. Mais `bench-lock-tools`, comme `legacy-restart`, tournait avant
+    `default` en CI, contrairement à ce que disent le commentaire de #90 et sa
+    fiche.
+  - *Reproduction* : `npm test -- --maxWorkers=1 --reporter=verbose` en
+    local, au commit 393b092 : 6 `|bench-tools|`, puis 1 `|legacy-restart|`,
+    puis 626 `|default|`.
+  - *Résolution* : `groupOrder` explicites, 1, 2 et 3. Même commande ensuite :
+    626 `|default|`, puis 6 `|bench-tools|`, puis 1 `|legacy-restart|`, et le
+    même ordre sans `--maxWorkers=1`.
 - **Relecture** :
   - la relecture de la spec craignait trois marqueurs par `npm test` (un par
     projet). Compté : un marqueur par exécution, avec un projet comme avec
@@ -243,11 +270,18 @@ Observé : `Tests  13 passed (13)`.
 npm test -- --reporter=verbose
 ```
 
-Observé au commit `1534f75`, après la fusion de `main` : `Test Files  72 passed (72)`,
-`Tests  632 passed | 1 skipped (633)`. Ordre réel des projets, en trois blocs
-contigus, compté par projet dans la sortie : 626 lignes `|default|`, puis 6
-`|bench-tools|`, puis 1 `|legacy-restart|`. Même ordre au commit `d20fb06`,
-avant la fusion (605, 6, 1).
+Observé après la correction des `groupOrder` : `Tests  632 passed | 1 skipped (633)`.
+Ordre réel des projets, en trois blocs contigus, compté par projet dans la
+sortie : 626 lignes `|default|`, puis 6 `|bench-tools|`, puis 1
+`|legacy-restart|`.
+
+```sh
+npm test -- --maxWorkers=1 --reporter=verbose
+```
+
+Observé, comme sur le runner de la CI (un seul worker) : le même ordre, 626,
+puis 6, puis 1. Avant la correction : 6 `|bench-tools|`, 1 `|legacy-restart|`,
+puis 626 `|default|`.
 
 ```sh
 npx vitest run tests/runner/witness.test.ts
