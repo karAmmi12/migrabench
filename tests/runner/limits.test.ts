@@ -4,7 +4,7 @@
 // diagnostic des délais : une valeur imposée, qui ne peut que réduire les
 // délais, enregistrée comme telle.
 import { describe, expect, it } from "vitest";
-import { cpuShortfall, measureLimits } from "../../runner/limits.ts";
+import { cpuShortfall, measureLimits, startLimits } from "../../runner/limits.ts";
 
 const CAP = { buildTimeoutMs: 600_000, readyTimeoutMs: 60_000, buildMemoryBytes: 4_294_967_296, buildCpus: 2 };
 const CALIBRATION = {
@@ -19,7 +19,7 @@ describe("measureLimits", () => {
     const { limits, record } = measureLimits({ safetyCap: CAP });
 
     expect(limits).toEqual(CAP);
-    expect(record).toEqual({ provisional: true, source: "safety-cap", ...CAP });
+    expect(record).toEqual({ provisional: true, source: "safety-cap", ...CAP, start: { provisional: true, source: "build-limits", memoryBytes: 4_294_967_296, cpus: 2, pids: 256 } });
   });
 
   it("applies the limits of a calibration result, citing its file, its digest and its multiples", () => {
@@ -35,6 +35,7 @@ describe("measureLimits", () => {
       readyTimeoutMs: 4_000,
       buildMemoryBytes: 1_048_576_000,
       buildCpus: 3.6,
+      start: { provisional: true, source: "build-limits", memoryBytes: 1_048_576_000, cpus: 3.6, pids: 256 },
     });
   });
 
@@ -50,6 +51,7 @@ describe("measureLimits", () => {
       buildMemoryBytes: 4_294_967_296,
       buildCpus: 2,
       imposedTimeoutCapMs: 5_000,
+      start: { provisional: true, source: "build-limits", memoryBytes: 4_294_967_296, cpus: 2, pids: 256 },
     });
   });
 
@@ -89,5 +91,26 @@ describe("cpuShortfall", () => {
   it("has nothing to report when the machine has as many CPUs as the limit, or more", () => {
     expect(cpuShortfall({ ...CAP, buildCpus: 2 }, 2)).toBeUndefined();
     expect(cpuShortfall({ ...CAP, buildCpus: 2.26 }, 14)).toBeUndefined();
+  });
+});
+
+// Limites du service `candidate` au démarrage (précisé par #66) : une limite
+// provisoire de conception, pas un relevé. L'étalonnage ne relève le
+// démarrage que jusqu'à la disponibilité, pas sous la charge de l'oracle
+// (#100) : mémoire et CPU reprennent ceux de la construction, et le nombre de
+// processus est un paramètre déclaré.
+describe("startLimits", () => {
+  it("takes the memory and CPU of the build, and 256 processes", () => {
+    expect(startLimits({ ...CAP, buildMemoryBytes: 665_845_760, buildCpus: 1.5 })).toEqual({ memoryBytes: 665_845_760, cpus: 1.5, pids: 256 });
+  });
+
+  it("is recorded with the limits of the measure, marked as a provisional design limit taken from the build", () => {
+    expect(measureLimits({ safetyCap: CAP, calibration: CALIBRATION }).record.start).toEqual({
+      provisional: true,
+      source: "build-limits",
+      memoryBytes: 1_048_576_000,
+      cpus: 3.6,
+      pids: 256,
+    });
   });
 });
