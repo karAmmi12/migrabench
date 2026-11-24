@@ -27,14 +27,14 @@ altère une page.
   liens que l'application encode, ce que font les balises Struts
   `html:link` et `html:form`. Les fiches #3, #5 et #8 l'ont déjà rencontré.
   — [Tomcat 9 : SessionIdGenerator](https://tomcat.apache.org/tomcat-9.0-doc/config/sessionidgenerator.html)
-  > À vérifier : le format réel de la valeur dans une réponse du legacy.
-  Le test suppose 32 caractères hexadécimaux en majuscules, le format par
-  défaut de Tomcat 9, et échoue si une vraie réponse en sort.
+  Sur le legacy, la valeur relevée a 32 caractères hexadécimaux en
+  majuscules, et c'est celle du cookie `JSESSIONID` posé par la même réponse
+  (voir « Vérifier soi-même »).
 - **Redirections relatives de Tomcat** : l'attribut `useRelativeRedirects`
   du `Context` décide si un `Location` est absolu ou relatif. —
   [Tomcat 9 : The Context Container](https://tomcat.apache.org/tomcat-9.0-doc/config/context.html)
-  > À vérifier : la forme réelle du `Location` renvoyé par
-  `/enregistrer.do`. Le test accepte les deux formes.
+  Sur le legacy, `/enregistrer.do` renvoie un `Location` relatif, qui porte
+  l'identifiant de session : `/fiche.do;jsessionid=…?number=D-0117`.
 
 ## Ce qui a été construit
 
@@ -72,7 +72,8 @@ altère une page.
 - `fixtures/defective-candidates/relay-alters-label/` : le **candidat
   défectueux 6**.
   - C'est une copie du relais de référence. Dans les pages HTML, il remplace
-    `>Objet</label>` par `>Sujet</label>` et recalcule `Content-Length`.
+    `>Demandeur</label>` par `>Requérant</label>`, sur l'écran de recherche
+    et sur la fiche, et recalcule `Content-Length`.
   - Les réponses à `HEAD`, les `204` et les `304` sont relayées telles
     quelles, pour que le libellé reste le seul défaut.
 - `fixtures/legacy-app/src/main/resources/dossiers.json` : `D-0117`,
@@ -113,9 +114,13 @@ altère une page.
   legacy est celui de Tomcat par défaut, et Tomcat 9 rend par défaut des
   redirections relatives. Le test n'en suppose donc pas la forme : il exige
   l'origine du relais après résolution, puis suit la redirection.
-  Le Seam A est vert en CI, mais son log ne montre pas la forme du
-  `Location`.
-  > À vérifier : la forme réelle du `Location` (absolue ou relative).
+  Le relevé par `curl` montre un `Location` relatif : c'est le navigateur,
+  et le test, qui le résolvent vers le port du relais.
+- **Le libellé « Demandeur » pour le candidat 6**, plutôt que « Objet »,
+  choisi après une première mesure (voir « Difficultés »). « Objet » est le
+  marqueur d'atteinte de la fiche pour l'oracle, et « Numéro » celui de la
+  recherche. « Demandeur » ne marque aucun écran : les scénarios qui s'en
+  servent sont atteints, puis échouent.
 - **`captureResponse` avec `node:http`** plutôt que `fetch`, pour garder les
   en-têtes bruts et le corps non décodé (voir « Notions »).
 
@@ -138,8 +143,21 @@ altère une page.
     n'avait pas le droit de lancer Docker.
   - Résolution : format déduit de la configuration (Tomcat 9.0.124,
     `server.xml` par défaut, sans `jvmRoute`). Le Seam A exige que chaque
-    occurrence d'une vraie réponse ait ce format.
-  > À vérifier : une valeur réelle, relevée par `curl` sur `/recherche.do`.
+    occurrence d'une vraie réponse ait ce format. Il est passé en CI, et le
+    relevé par `curl` (après #92) l'a confirmé : 32 caractères
+    hexadécimaux en majuscules.
+- **Le candidat 6 de départ ne faisait échouer aucun scénario.**
+  - Symptôme : sa mesure sur `c042b61` était complète (`completed`, code
+    `0`), mais avec 18 réussis, 0 échoué et 20 non atteints. Les 20 étaient
+    tous les scénarios de la fiche et de la remise, chacun arrêté par le
+    délai de 30 s.
+  - Cause : il remplaçait « Objet ». Or l'oracle juge la fiche atteinte
+    quand le champ « Objet » est visible (`reachSheet`,
+    `oracle/support.ts`), et les scénarios de la remise passent par la
+    fiche. Sans marque d'atteinte, `statusOf` (`oracle/collect.ts`) range
+    le scénario en « non atteint », pas en « échoué ».
+  - Résolution : le candidat 6 change « Demandeur », qui ne marque aucun
+    écran (commit `45abfc8`). Mesure suivante : 13 échoués, 0 non atteint.
 - **Attendu faux dans un test du masque.** Le test « chemin d'un lien
   réécrit changé » attendait `155 bytes direct, 156 relayed`, alors que la
   fonction rendait `116` et `117`. L'attendu avait été compté sur les corps
@@ -206,22 +224,49 @@ réussis sur 38, et « Proof holds on 5 results », dans
 https://github.com/karAmmi12/migrabench/actions/runs/45404468385, sur la
 même tête.
 
+Relevé direct sur le legacy (utilisateur et mot de passe d'un agent : voir
+`fixtures/users.json`) :
+
 ```sh
-curl -s -u <utilisateur>:<mot de passe> http://localhost:8080/recherche.do -D - | grep -io 'set-cookie: [^;]*\|;jsessionid=[^?"]*'
+curl -s -u <utilisateur>:<mot de passe> -D - -o recherche.html http://localhost:8080/recherche.do
+grep -o ';jsessionid=[^?"&]*' recherche.html | sort | uniq -c
+curl -s -u <utilisateur>:<mot de passe> -D - -o /dev/null \
+  --data-urlencode number=D-0117 --data-urlencode "applicant=Martin Leroy" \
+  --data-urlencode "subject=Demande de branchement d'eau potable" \
+  http://localhost:8080/enregistrer.do
 ```
 
-> À vérifier : que `/recherche.do` pose un cookie de session
-(`Set-Cookie: JSESSIONID=…`), et le format réel de la valeur de
-`;jsessionid=` dans les liens. Utilisateur et mot de passe : voir
-`fixtures/users.json`.
+Observé sur `c042b61` (`main` fusionnée, avec #92), pile démarrée par
+`npm run stack:up`, le 24/11/2026 à 14:15:31 GMT :
+
+```text
+HTTP/1.1 200
+Set-Cookie: JSESSIONID=2AFA2E4928DE8C34997CFCE6C6922DB9; Path=/; HttpOnly
+Content-Length: 2604
+   1 ;jsessionid=2AFA2E4928DE8C34997CFCE6C6922DB9
+HTTP/1.1 302
+Set-Cookie: JSESSIONID=C8DE4DD6433A0453259A686FE2E520F9; Path=/; HttpOnly
+Location: /fiche.do;jsessionid=C8DE4DD6433A0453259A686FE2E520F9?number=D-0117
+```
+
+Mesure du candidat 6 :
 
 ```sh
 npm run migrabench -- measure --candidate fixtures/defective-candidates/relay-alters-label
 ```
 
-> À vérifier : mesure du candidat 6. Attendu par la spec : `completed`,
-code `0`, au moins un scénario échoué dans `oracle.json`. Pas encore
-lancée : la pile était utilisée par une autre session.
+Observé sur `45abfc8`, arbre propre (mesure de diagnostic
+`20261124T141826Z-45abfc8-defective-candidates-relay-alters-label`) :
+code de sortie `0`, `Outcome: completed (ok)`. Les sept phases sont `ok`
+(`preparation`, `contract`, `build`, `start`, `oracle`, `gates`, `closing`).
+Résumé de l'oracle dans `measure.json` : 38 scénarios, 25 réussis,
+13 échoués, 0 non atteint. Chaque échec vient du libellé changé : soit
+`getByLabel(/^\s*Demandeur(\s*[:*])*\s*$/)` en échec
+(`sheet-content`, `sheet-tab-order`…), soit le délai de 30 s dépassé en
+attendant ce champ (`search-applicant-accents`, `sheet-save-brouillon`…).
+
+La première mesure, sur `c042b61` avec le libellé « Objet », donnait
+18 réussis, 0 échoué et 20 non atteints (voir « Difficultés »).
 
 ## Pour aller plus loin
 
@@ -233,6 +278,8 @@ lancée : la pile était utilisée par une autre session.
 - Étape 4 : la porte du relais, dont le candidat de référence est le test
   négatif (son journal d'accès contient des requêtes hors marqueur).
 - #92, « Verrou du banc : un verrou pris dans un worktree n'est pas vu
-  depuis un autre » (ouverte) : tant qu'elle n'est pas fusionnée, deux
-  sessions sur deux worktrees peuvent lancer la pile en même temps. C'est ce
-  qui a empêché de vérifier ce ticket en local.
+  depuis un autre », fusionnée par #95 : le verrou du banc est désormais
+  dans `~/.local/state/migrabench/bench-lock`, commun à toutes les copies du
+  dépôt. Avant elle, deux sessions sur deux worktrees pouvaient lancer la
+  pile en même temps, ce qui a retardé les vérifications locales de ce
+  ticket.
