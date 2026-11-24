@@ -2,6 +2,7 @@
 // de référence ») : une réponse du legacy reçue à travers le relais doit être
 // celle reçue directement, pour que le 100 % du relais soit celui du legacy
 // (règle 6 de PROTOCOL.md).
+import { request } from "node:http";
 
 /** Une réponse telle qu'elle arrive : en-têtes bruts (noms et valeurs en
  * alternance, doublons compris) et corps non décodé. */
@@ -9,6 +10,30 @@ export interface CapturedResponse {
   status: number;
   rawHeaders: readonly string[];
   body: Buffer;
+}
+
+export interface CaptureRequest {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: string;
+}
+
+/** Envoie une requête sur une connexion neuve et rend la réponse brute : ni
+ * redirection suivie, ni corps décodé, ni en-tête fusionné (contrairement à
+ * `fetch`). */
+export function captureResponse(url: string, init: CaptureRequest = {}): Promise<CapturedResponse> {
+  return new Promise((resolve, reject) => {
+    const outgoing = request(url, { method: init.method ?? "GET", headers: init.headers ?? {}, agent: false }, (response) => {
+      const chunks: Buffer[] = [];
+      response.on("data", (chunk: Buffer) => chunks.push(chunk));
+      response.on("end", () =>
+        resolve({ status: response.statusCode ?? 0, rawHeaders: response.rawHeaders, body: Buffer.concat(chunks) }),
+      );
+      response.on("error", reject);
+    });
+    outgoing.on("error", reject);
+    outgoing.end(init.body);
+  });
 }
 
 /** Propres à une connexion (hop-by-hop, au sens de HTTP) : exclus de la
