@@ -348,7 +348,7 @@ Règles des issues :
   de l'oracle. Deux formes : des erreurs dans le rapport de Playwright, ou
   pas de rapport du tout (configuration qui ne se charge pas) ; dans ce
   second cas, la fin des sorties de Playwright est la preuve, et ses
-  sorties un brut (`oracle/playwright.log`), et `oracle.executed` est
+  sorties un brut (`oracle-playwright.log`, à côté du dossier `oracle/`, que Playwright vide à son démarrage), et `oracle.executed` est
   `false`, sans compte des scénarios (#68).
 - **Candidat qui s'arrête pendant l'oracle** : pas d'issue propre. Les
   scénarios échouent ou ne sont pas atteints, et la mesure est complète.

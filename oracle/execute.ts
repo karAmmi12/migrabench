@@ -127,8 +127,9 @@ async function prepare(
   };
 }
 
-// Sorties de Playwright, dans le dossier des bruts de l'exécution.
-export const PLAYWRIGHT_LOG = "playwright.log";
+// Sorties de Playwright, à côté du dossier des bruts de l'exécution :
+// Playwright vide ce dossier à son démarrage.
+const PLAYWRIGHT_LOG_SUFFIX = "-playwright.log";
 // Lignes de la fin des sorties de Playwright reprises dans la preuve d'une
 // erreur de l'oracle.
 const LOG_TAIL_LINES = 20;
@@ -145,8 +146,8 @@ export class OracleError extends Error {
 }
 
 async function launch({ baseUrl, salt, metadata, outputDir, reportFile }: PreparedExecution): Promise<string> {
-  await mkdir(outputDir, { recursive: true });
-  const log = join(outputDir, PLAYWRIGHT_LOG);
+  await mkdir(dirname(outputDir), { recursive: true });
+  const log = `${outputDir}${PLAYWRIGHT_LOG_SUFFIX}`;
   // Code de sortie ignoré : un scénario échoué rend 1, et c'est la collecte qui juge.
   const { code } = await spawnCommand("npx", ["playwright", "test", "--config", CONFIG], {
     env: {
