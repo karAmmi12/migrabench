@@ -4,7 +4,8 @@
 // échoue libère le verrou du banc.
 //
 // Sans la pile : un faux `docker`, placé en tête du PATH, remplace Docker. En
-// mode `block`, il ne rend la main qu'à la mort de l'outil qui l'a lancé, qui
+// mode `block`, il signale qu'il est atteint (fichier témoin `reached-<PID de
+// l'outil>`), puis ne rend la main qu'à la mort de l'outil qui l'a lancé, qui
 // garde donc le verrou du banc ; en mode `fail`, il échoue aussitôt. Il note
 // chaque appel, et si le verrou du banc existait à ce moment.
 import { type ChildProcess, spawn, spawnSync } from "node:child_process";
@@ -26,6 +27,7 @@ writeFileSync(
   `#!/bin/sh
 echo "$* lock=$(test -f .bench-lock && echo held || echo free)" >> "${stubLog}"
 if [ "$DOCKER_STUB_MODE" = block ]; then
+  touch "${stubDir}/reached-$PPID"
   while kill -0 "$PPID" 2>/dev/null; do sleep 0.2; done
 fi
 echo "docker stub: $DOCKER_STUB_MODE" >&2
@@ -66,19 +68,20 @@ let before: string[];
 let devSalt: string | undefined;
 
 // Lance un outil du banc qui reste bloqué sur Docker, et attend qu'il tienne
-// le verrou du banc.
+// le verrou du banc et ait atteint le faux `docker` : les appels relevés
+// ensuite contiennent déjà les siens.
 async function holding([script, args]: Tool, tool: string): Promise<BenchLockHolder> {
   const child = spawn(process.execPath, [script, ...args], { cwd: ROOT, env: env("block"), stdio: "ignore" });
   started.push(child);
   for (let waited = 0; waited < 10_000; waited += 50) {
     const lock = inspectBenchLock();
-    if (lock.state === "held" && lock.holder.pid === child.pid) {
+    if (lock.state === "held" && lock.holder.pid === child.pid && existsSync(join(stubDir, `reached-${child.pid}`))) {
       expect(lock.holder.tool).toBe(tool);
       return lock.holder;
     }
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
-  throw new Error(`${script} did not take the bench lock`);
+  throw new Error(`${script} did not take the bench lock and reach Docker`);
 }
 
 beforeEach(() => {
@@ -146,9 +149,8 @@ describe("bench lock taken by the bench tools", { timeout: 20_000 }, () => {
 
   // #72 : l'étalonnage recrée la pile, comme une mesure.
   it("refuses migrabench calibrate while a measure holds it, before any Docker command", async () => {
-    // Détenteur `measure` simulé : une vraie mesure écrirait son dossier sous
-    // results/diagnostic/, que les tests des refus de measure, lancés en
-    // parallèle, surveillent.
+    // Détenteur `measure` simulé : le test précédent couvre déjà une vraie
+    // mesure qui tient le verrou du banc.
     const holder = spawn(process.execPath, [HOLD, BENCH_LOCK_FILE, "measure"], { stdio: ["pipe", "pipe", "inherit"] });
     started.push(holder);
     await new Promise((resolve) => holder.stdout?.once("data", resolve));
