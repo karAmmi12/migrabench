@@ -169,3 +169,27 @@ exécutions de chaque côté.
 - **Spec de l'étape 3, « Verrou du banc »**, et la fiche
   [`69-verrou-du-banc.md`](69-verrou-du-banc.md) : ce que les outils du banc
   se refusent l'un l'autre.
+
+> **Erratum (découvert dans #67)**
+>
+> L'affirmation « `bench-lock-tools` passe après tous les autres fichiers » de
+> la section « Ce qui a été construit » n'était vraie qu'en local, avec
+> plusieurs workers. Avec un seul worker, cas du runner de la CI, Vitest 5
+> range les fichiers d'un projet en `groupOrder` 0 dans un groupe séquentiel
+> placé après tous les groupes numérotés (`groupSpecs` de Vitest 5). Le
+> projet `default`, sans `groupOrder` donc en 0, passait ainsi **après**
+> `bench-tools`. Les groupes ne se chevauchaient pas : `bench-lock-tools`
+> tournait bien seul.
+>
+> - **Constat** : job `tests` de
+>   https://github.com/karAmmi12/migrabench/actions/runs/45431413514 (head
+>   393b092). `bench-tools` finit à 15:59:13, puis les fichiers de `default`
+>   finissent de 15:59:22 à 16:00:38. Reproduit en local au commit 393b092
+>   par `npm test -- --maxWorkers=1 --reporter=verbose`.
+> - **Correctif** (#67, commit 005ac78) : `groupOrder` explicites dans
+>   `vitest.config.ts`, `default` en 1, `bench-tools` en 2, `legacy-restart`
+>   en 3.
+> - **Preuve** : job `tests` de
+>   https://github.com/karAmmi12/migrabench/actions/runs/45433704895 (head
+>   24dfd9a). Les fichiers de `default` finissent de 16:10:50 à 16:12:04,
+>   puis `bench-tools` à 16:12:12, puis `legacy-restart` à 16:12:17.
