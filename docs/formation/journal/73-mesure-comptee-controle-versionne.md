@@ -205,8 +205,20 @@ Observé sur `e11f402` : `Outcome: completed (ok)`, `Diagnostic measure.`
 Son `oracle.json` porte `"saltImposed":false`, et le contrôle de #53 rend `[]`.
 `measure.json` donne 38 scénarios, 38 réussis.
 
-> À vérifier après l'exécution de la CI de la PR : lien de l'exécution
-> « Tests du banc », head SHA, nombre de fichiers et de tests du job `tests`.
+**Sur la CI de la PR** (workflow « Tests du banc », job `tests`, avec la
+pile) : [exécution 45416956184](https://github.com/karAmmi12/migrabench/actions/runs/45416956184),
+tête `d074b96`.
+
+```text
+✓  default  tests/runner/counted-measure.test.ts (2 tests)
+✓  default  tests/runner/versioned-measures.test.ts (5 tests | 1 skipped)
+Test Files  67 passed (67)
+     Tests  579 passed | 1 skipped (580)
+```
+
+La CI teste le commit de fusion de la PR dans `main`. Entre-temps, `main` a
+reçu `d026fd5` (#70, PR #93), d'où plus de fichiers et de tests qu'en local
+sur `e11f402`. Les jobs `oracle` et `proof` sont verts aussi.
 
 ## Pour aller plus loin
 
