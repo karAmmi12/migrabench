@@ -149,9 +149,8 @@ describe("bench lock taken by the bench tools", { timeout: 20_000 }, () => {
 
   // #72 : l'étalonnage recrée la pile, comme une mesure.
   it("refuses migrabench calibrate while a measure holds it, before any Docker command", async () => {
-    // Détenteur `measure` simulé : une vraie mesure écrirait son dossier sous
-    // results/diagnostic/, que les tests des refus de measure, lancés en
-    // parallèle, surveillent.
+    // Détenteur `measure` simulé : le test précédent couvre déjà une vraie
+    // mesure qui tient le verrou du banc.
     const holder = spawn(process.execPath, [HOLD, BENCH_LOCK_FILE, "measure"], { stdio: ["pipe", "pipe", "inherit"] });
     started.push(holder);
     await new Promise((resolve) => holder.stdout?.once("data", resolve));
