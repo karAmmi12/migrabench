@@ -241,10 +241,25 @@ Suite complète : `npm test` a rendu `Test Files  75 passed (75)` et
 `Tests  654 passed | 1 skipped (655)`. L'arbre était celui commité ensuite
 en `770eb25`, sans modification entre la suite et le commit.
 
-> À vérifier après l'exécution de la CI de la PR : jobs `tests`, `oracle`,
-> `proof` et `calibration` verts, avec des images construites sous les labels
-> de `scripts/stack-context-env.ts` (lien de l'exécution, head SHA, nombre de
-> tests).
+CI de la PR #105, au commit `5e187e6` (head SHA
+`5e187e6b1d44d47d451416b87cf395fe3dc2069f`), tous les jobs sont verts :
+
+- [Tests du banc, exécution 45478549578](https://github.com/karAmmi12/migrabench/actions/runs/45478549578),
+  de 20:13:37Z à 20:16:58Z : `Test Files  75 passed (75)`,
+  `Tests  654 passed | 1 skipped (655)`. On y trouve
+  `tests/seam-a/stack-images.test.ts (5 tests)` et, dans le groupe
+  `foreign-stack`, `tests/runner/stack-not-from-this-copy.test.ts (1 test)`.
+- [Oracle, exécution 45478549695](https://github.com/karAmmi12/migrabench/actions/runs/45478549695),
+  de 20:13:37Z à 20:21:53Z : jobs `oracle` et `proof` verts. La preuve, sur
+  des images construites une fois avec leur label, rend
+  `Proof holds on 5 results.` Les cinq exécutions partagent donc
+  `images.legacy`.
+- [Étalonnage, exécution 45478549814](https://github.com/karAmmi12/migrabench/actions/runs/45478549814),
+  de 20:13:37Z à 20:17:58Z : construction avec
+  `MB_LEGACY_CONTEXT_DIGEST: sha256:05e5e61c…`, puis
+  `Calibration: results/calibration/20261124T201507Z-5e187e6-ci45478549814.1-1.json`.
+  L'empreinte diffère de celle observée en local (`sha256:35668442…`) : le
+  commit `5e187e6` ajoute cette fiche, qui fait partie du contexte.
 
 ## Pour aller plus loin
 
