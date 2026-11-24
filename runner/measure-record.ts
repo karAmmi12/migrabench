@@ -25,7 +25,8 @@ export interface AccessLogRecord {
 }
 
 // Oracle non lancé : le compte des scénarios, tous non atteints (`oracle.executed: false`).
-export type OracleRecord = { executed: true; result: string; summary: OracleSummary } | { executed: false; summary: OracleSummary };
+// Sans compte si Playwright n'a pu ni exécuter ni lister les scénarios (#68).
+export type OracleRecord = { executed: true; result: string; summary: OracleSummary } | { executed: false; summary?: OracleSummary };
 
 export interface MeasureRecordInput {
   measureId: string;

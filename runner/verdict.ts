@@ -37,16 +37,23 @@ type FailureOutcome = (typeof FAILURES)[FailureCategory][number];
 // Issues possibles de chaque phase (table de la spec) : `interrupted` dans
 // toute phase, `stack-down-while-candidate` à partir de la construction (une
 // erreur imprévue du runner dès le lancement de `npm ci`), et les portes,
-// vides à l'étape 3, n'ont que `ok` et `not-run`.
+// vides à l'étape 3, n'ont que `ok` et `not-run`. `runner-error-before-candidate`
+// reste possible en construction (Docker n'a pas démarré le conteneur de
+// `fetch` : `npm ci` n'a pas été lancé) et en clôture (mesure arrêtée avant la
+// construction) (#68).
 export const PHASE_OUTCOMES = {
   preparation: ["ok", "runner-error-before-candidate", "stack-not-from-this-copy", "interrupted"],
   contract: ["ok", "contract-invalid", "runner-error-before-candidate", "interrupted"],
-  build: ["ok", "build-failed", "build-timeout", "build-resource-limit", "registry-network-error", "stack-down-while-candidate", "interrupted"],
+  build: ["ok", "build-failed", "build-timeout", "build-resource-limit", "registry-network-error", "runner-error-before-candidate", "stack-down-while-candidate", "interrupted"],
   start: ["ok", "stack-failed-before-candidate", "stack-not-from-this-copy", "access-log-inactive", "start-exited", "start-not-ready", "stack-down-while-candidate", "interrupted"],
   oracle: ["ok", "oracle-error", "stack-down-while-candidate", "interrupted"],
   gates: ["ok"],
-  closing: ["ok", "marker-out-of-place", "access-log-inactive", "stack-down-while-candidate", "interrupted"],
+  closing: ["ok", "marker-out-of-place", "access-log-inactive", "runner-error-before-candidate", "stack-down-while-candidate", "interrupted"],
 } as const satisfies Record<PhaseName, readonly ("ok" | FailureOutcome)[]>;
+
+// Issue d'une erreur imprévue du runner (#68) : invalide avant le lancement
+// de `npm ci`, une panne pendant que le candidat tourne ensuite.
+export type RunnerErrorOutcome = "runner-error-before-candidate" | "stack-down-while-candidate";
 
 // Issue d'une phase : une de sa ligne de la table, ou `not-run` si la mesure
 // s'est arrêtée avant elle.

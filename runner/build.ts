@@ -17,7 +17,7 @@ import { cp, mkdir, readdir, readFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { citedFileSha256 as digestOf } from "../shared/digest.ts";
 import { spawnCommand } from "../shared/process.ts";
-import { type BuildStep, buildStepOutcome, type BuildStepOutcome } from "./build-outcome.ts";
+import { type BuildStep, buildStepOutcome, type BuildStepOutcome, type BuildStepRun } from "./build-outcome.ts";
 import { isFetchedWith } from "./candidate-content.ts";
 import { type ContainerUser, dockerUser } from "./container-user.ts";
 import type { Limits } from "./limits.ts";
@@ -38,6 +38,9 @@ export interface BuildInput {
   limits: Limits;
   // Relève les ressources de chaque étape (`migrabench calibrate` seulement).
   collectUsage?: boolean;
+  // Appelé juste avant le lancement du conteneur de `fetch`, celui de `npm ci` :
+  // une erreur imprévue du runner levée avant reste invalide (#68).
+  onNpmCiLaunch?: () => void;
 }
 
 export interface BuildResult {
@@ -59,7 +62,7 @@ const USAGE = "/usage";
 // code de sortie de la commande est rendu tel quel.
 const USAGE_WRAPPER = `sh -c "$0"; status=$?; cat /sys/fs/cgroup/memory.peak > ${USAGE}/memory.peak; cat /sys/fs/cgroup/cpu.stat > ${USAGE}/cpu.stat; exit $status`;
 
-export async function buildCandidate({ measureId, image, user, rawDir, copyDir, build, limits, collectUsage = false }: BuildInput): Promise<BuildResult> {
+export async function buildCandidate({ measureId, image, user, rawDir, copyDir, build, limits, collectUsage = false, onNpmCiLaunch }: BuildInput): Promise<BuildResult> {
   const startedAt = Date.now();
   const deadline = startedAt + limits.buildTimeoutMs;
   const raw: Record<string, string> = {};
@@ -81,6 +84,7 @@ export async function buildCandidate({ measureId, image, user, rawDir, copyDir, 
     await mkdir(npmLogs, { recursive: true });
     const usageDir = join(rawDir, "usage", step);
     if (collectUsage) await mkdir(usageDir, { recursive: true });
+    if (step === "fetch") onNpmCiLaunch?.();
     const stepStartedAt = Date.now();
     const run = await runStep({
       container: `migrabench-${measureId}-${step}`,
@@ -115,7 +119,7 @@ export async function buildCandidate({ measureId, image, user, rawDir, copyDir, 
       raw[relative(rawDir, path)] = await digestOf(path);
       npmLog += await readFile(path, "utf8");
     }
-    const outcome = buildStepOutcome({ step, ...run, npmLog }, NPM_REGISTRY);
+    const outcome = buildStepOutcome({ step, ...run, npmLog, log: await readFile(join(rawDir, output), "utf8") }, NPM_REGISTRY);
     if (outcome.outcome !== "ok") return result(outcome);
     recorded.push({ step, durationMs, ...(collectUsage ? { usage: await usageOf(usageDir) } : {}) });
   }
@@ -128,15 +132,22 @@ async function usageOf(dir: string): Promise<ResourceUsage> {
   return cgroupUsage({ memoryPeak, cpuStat });
 }
 
+// `State.StartedAt` d'un conteneur créé mais jamais démarré.
+const NEVER_STARTED = "0001-01-01";
+
 interface StepRun {
   exitCode: number;
+  container: BuildStepRun["container"];
   timedOut: boolean;
   oomKilled: boolean;
 }
 
 // Lance un conteneur nommé et l'arrête au délai global : `docker kill` est
 // répété chaque seconde, au cas où le conteneur n'existerait pas encore au
-// premier essai. Le conteneur est gardé jusqu'au relevé de `OOMKilled`.
+// premier essai. Le conteneur est gardé jusqu'au relevé de `OOMKilled` et de
+// son démarrage : un conteneur jamais démarré (`StartedAt` à zéro) dit que
+// `docker run` a échoué de lui-même ; un `docker inspect` en échec laisse son
+// état inconnu, avec la sortie de `docker inspect` (#68).
 async function runStep({ container, deadline, logFile, args }: { container: string; deadline: number; logFile: string; args: string[] }): Promise<StepRun> {
   let timedOut = false;
   let killer: NodeJS.Timeout | undefined;
@@ -148,8 +159,10 @@ async function runStep({ container, deadline, logFile, args }: { container: stri
   }, Math.max(0, deadline - Date.now()));
   try {
     const { code } = await spawnCommand("docker", ["run", "--name", container, ...args], { logFile, allowFailure: true });
-    const inspect = await spawnCommand("docker", ["inspect", "--format", "{{.State.OOMKilled}}", container], { allowFailure: true });
-    return { exitCode: code, timedOut, oomKilled: inspect.stdout.trim() === "true" };
+    const inspect = await spawnCommand("docker", ["inspect", "--format", "{{.State.OOMKilled}} {{.State.StartedAt}}", container], { allowFailure: true });
+    if (inspect.code !== 0) return { exitCode: code, container: { inspectFailed: `${inspect.stderr}${inspect.stdout}` }, timedOut, oomKilled: false };
+    const [oomKilled, startedAt = ""] = inspect.stdout.trim().split(" ");
+    return { exitCode: code, container: startedAt.startsWith(NEVER_STARTED) ? "never-started" : "started", timedOut, oomKilled: oomKilled === "true" };
   } finally {
     clearTimeout(timer);
     clearInterval(killer);

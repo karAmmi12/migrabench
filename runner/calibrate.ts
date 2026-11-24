@@ -62,10 +62,10 @@ export async function calibrateCandidate({ readings = CALIBRATION_READINGS }: Ca
   const artifacts = `${ARTIFACTS_DIR_FROM_ROOT}/${id}`;
 
   const candidateDir = join(ROOT, CALIBRATION_CANDIDATE);
-  const files = await candidateFiles(candidateDir);
+  const { files, defects } = await candidateFiles(candidateDir);
   // Le même contrat qu'une mesure (runner/contract-phase.ts) : le candidat
   // d'étalonnage doit être un candidat valide.
-  const contract = await contractPhase(candidateDir);
+  const contract = await contractPhase(candidateDir, defects);
   if (contract.outcome !== "ok") throw new Error(`The calibration candidate breaks the contract: ${contract.outcome}: ${contract.detail}`);
   const { contract: version, build: buildCommand, start: startCommand } = contract.candidate;
   if (version === undefined || startCommand === undefined) throw new Error("A valid contract declares its version and start");

@@ -34,22 +34,41 @@ export async function isDirectory(path: string): Promise<boolean> {
   }
 }
 
-// Fichiers copiés du candidat, avec leur empreinte. Un lien symbolique pourrait
-// faire copier un fichier hors du candidat : il est refusé.
-export async function candidateFiles(candidateDir: string): Promise<CandidateFile[]> {
+// Fichiers copiés du candidat, avec leur empreinte, et défauts de ses
+// fichiers (#68). Un lien symbolique pourrait faire copier un fichier hors du
+// candidat : il n'est ni suivi ni copié. Un fichier ou un dossier illisible
+// n'est pas copié non plus. Chaque défaut est cité par la phase du contrat :
+// une contract-failure, jamais une erreur du runner, que le candidat
+// pourrait fabriquer pour échapper à la mesure (règle 7).
+export async function candidateFiles(candidateDir: string): Promise<{ files: CandidateFile[]; defects: string[] }> {
   const files: CandidateFile[] = [];
+  const defects: string[] = [];
+  const unreadable = (path: string, error: unknown) => defects.push(`The candidate file cannot be read: ${path} (${(error as Error).message})`);
   const walk = async (dir: string): Promise<void> => {
-    for (const entry of await readdir(dir, { withFileTypes: true })) {
+    let entries;
+    try {
+      entries = await readdir(dir, { withFileTypes: true });
+    } catch (error) {
+      unreadable(relative(candidateDir, dir).split("\\").join("/") || ".", error);
+      return;
+    }
+    for (const entry of entries) {
       const full = join(dir, entry.name);
       const path = relative(candidateDir, full).split("\\").join("/");
       if (!isCopied(path)) continue;
-      if (entry.isSymbolicLink()) throw new Error(`The candidate contains a symbolic link: ${path}`);
-      if (entry.isDirectory()) await walk(full);
-      else if (entry.isFile()) files.push({ path, sha256: await fileSha256(full) });
+      if (entry.isSymbolicLink()) defects.push(`The candidate contains a symbolic link: ${path}`);
+      else if (entry.isDirectory()) await walk(full);
+      else if (entry.isFile()) {
+        try {
+          files.push({ path, sha256: await fileSha256(full) });
+        } catch (error) {
+          unreadable(path, error);
+        }
+      }
     }
   };
   await walk(candidateDir);
-  return files;
+  return { files, defects };
 }
 
 export async function copyCandidate(candidateDir: string, files: readonly CandidateFile[], copyDir: string): Promise<void> {

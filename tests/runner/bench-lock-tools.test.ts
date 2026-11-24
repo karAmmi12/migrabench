@@ -60,8 +60,8 @@ function entries(): string[] {
 
 // Outil du banc lancé à la racine du dépôt, sous le faux `docker`.
 function run(script: string, args: readonly string[], mode: "block" | "fail") {
-  const { status, stderr } = spawnSync(process.execPath, [script, ...args], { cwd: ROOT, env: env(mode), encoding: "utf8" });
-  return { status, stderr };
+  const { status, stdout, stderr } = spawnSync(process.execPath, [script, ...args], { cwd: ROOT, env: env(mode), encoding: "utf8" });
+  return { status, stdout, stderr };
 }
 
 type Tool = readonly [script: string, args: readonly string[]];
@@ -187,8 +187,10 @@ describe("bench lock taken by the bench tools", { timeout: 20_000 }, () => {
   it("is released after a measure that fails, having been held while it ran", () => {
     const result = run(...MEASURE, "fail");
 
-    expect(result.status).toBe(1);
-    expect(result.stderr).toContain("docker stub: fail");
+    // Docker en échec à la préparation : une erreur du runner rangée dans une
+    // mesure invalide (#68).
+    expect(result.status).toBe(3);
+    expect(result.stdout).toContain("Outcome: invalid (runner-error-before-candidate)");
     expect(stubCalls()[0]).toMatch(/^build .* lock=held$/);
     expect(existsSync(LOCK)).toBe(false);
   });

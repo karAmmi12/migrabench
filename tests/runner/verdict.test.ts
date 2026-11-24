@@ -82,11 +82,21 @@ describe("verdict", () => {
 
   it("makes a runner error before npm ci invalid, and a runner error from npm ci on a stack failure while the candidate runs", () => {
     expect(verdict(stoppedAt("contract", "runner-error-before-candidate", "TypeError: boom")).exitCode).toBe(3);
-    expect(() => verdict(stoppedAt("build", "runner-error-before-candidate", "TypeError: boom"))).toThrow(/runner-error-before-candidate.*build/);
+    // #68 : Docker refuse de lancer le conteneur de `fetch` (code 125, conteneur
+    // jamais démarré) : `npm ci` n'a pas été lancé.
+    expect(verdict(stoppedAt("build", "runner-error-before-candidate", "docker run exited with code 125")).exitCode).toBe(3);
     expect(verdict(stoppedAt("build", "stack-down-while-candidate"))).toEqual({
       verdict: { category: "stack-down-while-candidate", reason: "stack-down-while-candidate" },
       exitCode: 0,
     });
+  });
+
+  // #68 : la clôture d'une mesure arrêtée avant `npm ci` (la liste des
+  // scénarios en échec, par exemple) n'a fait tourner aucun code du candidat.
+  it("accepts a runner error before npm ci in the closing, without hiding the outcome that stopped the measure", () => {
+    const phases = [...stoppedAt("contract", "contract-invalid").slice(0, -1), phase("closing", "runner-error-before-candidate", "Error: list failed")];
+
+    expect(verdict(phases)).toEqual({ verdict: { category: "contract-failure", reason: "contract-invalid" }, exitCode: 0 });
   });
 
   it("never makes a network error outside the imposed registry invalid: it is a failed build", () => {

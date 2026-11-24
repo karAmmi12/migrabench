@@ -24,6 +24,8 @@ export function registryNetworkError(log: string, registry: string): string | un
   return lines.find((line) => pattern.exec(line)?.[1]?.startsWith(registry));
 }
 
+import type { RunnerErrorOutcome } from "./verdict.ts";
+
 // Étapes de la construction, chacune dans son conteneur :
 // - `fetch` : `npm ci --ignore-scripts`, dans une copie du candidat sans son
 //   `.npmrc`. Seule étape qui a accès au réseau, et aucun code du candidat n'y
@@ -35,21 +37,43 @@ export type BuildStep = "fetch" | "install" | "build";
 export interface BuildStepRun {
   step: BuildStep;
   exitCode: number;
+  // État du conteneur de l'étape, relevé par `docker inspect` (#68) :
+  // - `started` : Docker l'a démarré ;
+  // - `never-started` : créé mais jamais démarré, `docker run` a échoué de
+  //   lui-même (code 125 : option refusée, montage impossible), et aucune
+  //   commande de l'étape n'a tourné ;
+  // - `inspectFailed` : `docker inspect` a échoué (conteneur absent, démon
+  //   injoignable), avec sa sortie : l'état est inconnu.
+  container: "started" | "never-started" | { inspectFailed: string };
   // Arrêtée par le banc : le délai global de construction est écoulé.
   timedOut: boolean;
   // Tuée par la limite de mémoire du conteneur.
   oomKilled: boolean;
   // Journal de npm de l'étape, vide pour `build`.
   npmLog: string;
+  // Sorties de `docker run` pour l'étape : le message de Docker s'il n'a pas
+  // démarré le conteneur.
+  log: string;
 }
 
 export type BuildStepOutcome =
   | { outcome: "ok" }
-  | { outcome: "build-failed" | "build-timeout" | "build-resource-limit" | "registry-network-error"; detail: string };
+  | {
+      outcome: "build-failed" | "build-timeout" | "build-resource-limit" | "registry-network-error" | RunnerErrorOutcome;
+      detail: string;
+    };
 
 // Un délai ou une limite dépassés sont toujours un échec du candidat (règle 7) ;
 // seule une erreur du registre pendant `fetch`, prouvée, rend la mesure invalide.
-export function buildStepOutcome({ step, exitCode, timedOut, oomKilled, npmLog }: BuildStepRun, registry: string): BuildStepOutcome {
+// Un conteneur que Docker n'a jamais démarré, ou dont l'état n'a pas pu être
+// relevé, est une erreur du banc (#68) : avant le lancement de `npm ci` pour
+// `fetch`, une panne pendant que le candidat tourne ensuite.
+export function buildStepOutcome({ step, exitCode, container, timedOut, oomKilled, npmLog, log }: BuildStepRun, registry: string): BuildStepOutcome {
+  if (container !== "started") {
+    const outcome = step === "fetch" ? "runner-error-before-candidate" : "stack-down-while-candidate";
+    if (container === "never-started") return { outcome, detail: `Docker did not start the ${step} container (docker run exited with code ${exitCode}): ${log.trim()}` };
+    return { outcome, detail: `${step} container state unknown: docker inspect failed (docker run exited with code ${exitCode}): ${container.inspectFailed.trim()}` };
+  }
   if (timedOut) return { outcome: "build-timeout", detail: `${step} was stopped: the global build timeout ran out` };
   if (oomKilled) return { outcome: "build-resource-limit", detail: `${step} was killed: memory limit reached` };
   if (exitCode === 0) return { outcome: "ok" };

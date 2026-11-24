@@ -235,11 +235,11 @@ relever le journal d'accès et libérer le verrou du banc.
 | 0 | **Refus préalables** : options, `--counted`, verrou du banc | `refused-usage`, `refused-counted`, `refused-lock` | aucune mesure (rien n'est écrit) |
 | 1 | **Préparation** : verrou du banc pris, identifiant de la mesure, sel et marqueur tirés, environnement relevé, copie du candidat, images de la pile vérifiées | `ok`, `runner-error-before-candidate`, `stack-not-from-this-copy` | invalide |
 | 2 | **Contrat** : `candidate.json`, `package.json`, sources du `package-lock.json` | `ok`, `contract-invalid`, `runner-error-before-candidate` | échec au contrat ; invalide pour la dernière |
-| 3 | **Construction** : `npm ci` puis `build`, conteneur sans `mb-internal`, délai et limites | `ok`, `build-failed`, `build-timeout`, `build-resource-limit`, `registry-network-error`, `stack-down-while-candidate` | échec du candidat ; invalide pour `registry-network-error` ; panne de la pile pour la dernière |
+| 3 | **Construction** : `npm ci` puis `build`, conteneur sans `mb-internal`, délai et limites | `ok`, `build-failed`, `build-timeout`, `build-resource-limit`, `registry-network-error`, `runner-error-before-candidate`, `stack-down-while-candidate` | échec du candidat ; invalide pour `registry-network-error` et `runner-error-before-candidate` ; panne de la pile pour la dernière |
 | 4 | **Pile et démarrage** : legacy et service d'archivage recréés et sains, requête témoin de début, service `candidate` recréé, attente de disponibilité | `ok`, `stack-failed-before-candidate`, `stack-not-from-this-copy`, `access-log-inactive`, `start-exited`, `start-not-ready`, `stack-down-while-candidate` | invalide pour les trois premières ; panne de la pile pour la dernière ; échec du candidat pour les autres |
 | 5 | **Oracle** : exécution complète de l'étape 2 sur `BASE_URL` | `ok`, `oracle-error`, `stack-down-while-candidate` | complète ; invalide pour `oracle-error` ; panne de la pile pour la dernière |
 | 6 | **Portes** : vide à l'étape 3, branchées à l'étape 4 | `ok`, `not-run` | — |
-| 7 | **Clôture** : arrêt du candidat, requête témoin de fin, journal d'accès relevé et contrôlé, `measure.json` écrit, verrou du banc libéré | `ok`, `marker-out-of-place`, `access-log-inactive`, `stack-down-while-candidate` | invalide ; panne de la pile pour la dernière |
+| 7 | **Clôture** : arrêt du candidat, requête témoin de fin, journal d'accès relevé et contrôlé, `measure.json` écrit, verrou du banc libéré | `ok`, `marker-out-of-place`, `access-log-inactive`, `runner-error-before-candidate`, `stack-down-while-candidate` | invalide ; panne de la pile pour la dernière |
 
 Les phases 1 à 5 et 7 peuvent aussi rendre `interrupted` (invalide, voir les
 règles). `stack-down-while-candidate` apparaît dans les phases 3 à 7, hors
@@ -271,6 +271,38 @@ Règles des issues :
   Dès le lancement de `npm ci`, scripts d'installation compris, une erreur
   imprévue du runner est comptée comme une panne pendant que le candidat
   tourne (`stack-down-while-candidate`, avec l'erreur en détail).
+  Précisions de #68 :
+  - l'erreur est rangée dans la phase en cours ; `npm ci` compte comme
+    lancé dès que le runner lance le conteneur de `fetch` ;
+  - l'état du conteneur de chaque étape de la construction est relevé par
+    `docker inspect` avant sa suppression. Un conteneur créé mais jamais
+    démarré (`State.StartedAt` à zéro) est une erreur du banc. Un
+    `docker inspect` en échec (conteneur absent, par exemple après un code
+    `125` : image absente, démon injoignable) en est une aussi, et la preuve
+    dit « état du conteneur inconnu : `docker inspect` a échoué », avec sa
+    sortie, sans le confondre avec un conteneur jamais démarré. Pour `fetch`,
+    c'est le runner qui échoue avant `npm ci` :
+    `runner-error-before-candidate`. Pour `install` et `build`, panne
+    pendant que le candidat tourne. Le code seul ne suffit pas : la commande
+    `build` du candidat peut rendre `125` dans un conteneur démarré, et
+    c'est alors `build-failed` ;
+  - en clôture, une erreur d'une mesure arrêtée avant la construction (la
+    liste des scénarios qui échoue, par exemple) est
+    `runner-error-before-candidate` ; elle ne change pas la catégorie, déjà
+    décidée par la phase qui a arrêté la mesure ;
+  - voir la règle des défauts des fichiers du candidat, ci-dessous : ils
+    ne sont jamais une erreur du runner.
+- **Défauts des fichiers du candidat** (#68) : un défaut des fichiers
+  fournis par le candidat est une contract-failure ; seul ce que le
+  candidat ne peut ni fournir ni fabriquer rend la mesure invalide
+  (règle 7). Sont des défauts : un lien symbolique, un fichier ou un dossier
+  illisible (relevés à la préparation, ni suivis ni copiés), un
+  `candidate.json`, `package.json` ou `package-lock.json` illisible ou qui
+  est un dossier. La phase du contrat les cite comme manquements
+  (`contract-invalid`). Ni un plantage (code `1`, aucune mesure écrite :
+  le candidat échapperait à la mesure), ni `runner-error-before-candidate`
+  (invalide : le candidat le fabriquerait). `candidate.contentDigest` ne
+  porte que les fichiers lisibles.
 - **`interrupted`** : la mesure reçoit `SIGINT` ou `SIGTERM`, ou le job de CI
   est annulé, quelle que soit la phase. Le runner arrête le candidat, écrit
   `measure.json` avec les phases déjà faites, invalide pour cette cause, et
@@ -280,7 +312,13 @@ Règles des issues :
   Docker.
 - **`stack-failed-before-candidate`** : le legacy ou le service d'archivage
   n'est pas sain avant le démarrage du candidat, ou pendant un redémarrage
-  où le candidat est arrêté.
+  où le candidat est arrêté. Relevée quand `docker compose up --wait` échoue
+  à la recréation de la pile et qu'un service n'est pas en marche et sain.
+  La preuve est l'état de chaque service relevé par `docker inspect`
+  (statut, code de sortie, santé, dernier healthcheck, démarrage,
+  redémarrages) ; les sorties des services sont des bruts
+  (`stack/<service>.log`). Sans service malade relevé, l'échec reste une
+  erreur imprévue du runner (#68).
 - **`stack-not-from-this-copy`** : images de la pile construites depuis une
   autre copie du dépôt ; remède : `npm run stack:up` (#102). Les images de
   la pile sont communes à toute la machine : la dernière copie du dépôt qui
@@ -312,15 +350,27 @@ Règles des issues :
   `archive` (arrêt, redémarrage, santé). Une panne survenue pendant que le
   candidat tourne est comptée contre lui, dans sa catégorie, avec le service
   tombé et ses sorties. L'oracle a quand même produit son résultat, qui est
-  gardé.
+  gardé. Le relevé de la fin est comparé à celui pris quand la pile venait
+  d'être recréée et saine, candidat arrêté : un service est tombé s'il n'a
+  plus de conteneur, si son conteneur a été remplacé, s'il ne tourne plus,
+  s'il a redémarré (démarrage ou nombre de redémarrages changés), ou s'il
+  n'est pas sain. Elle passe devant une `oracle-error` de la même
+  exécution, que le candidat a pu provoquer en faisant tomber la pile (#68).
 - **`oracle-error`** : erreur de Playwright hors scénario (configuration,
   chargement des fichiers). Un scénario qui échoue n'est jamais une erreur
-  de l'oracle.
+  de l'oracle. Deux formes : des erreurs dans le rapport de Playwright, ou
+  pas de rapport du tout (configuration qui ne se charge pas) ; dans ce
+  second cas, la fin des sorties de Playwright est la preuve, ses sorties
+  sont un brut (`oracle-playwright.log`, à côté du dossier `oracle/`, que
+  Playwright vide à son démarrage), et `oracle.executed` est `false`, sans
+  compte des scénarios (#68).
 - **Candidat qui s'arrête pendant l'oracle** : pas d'issue propre. Les
   scénarios échouent ou ne sont pas atteints, et la mesure est complète.
 - **Oracle non lancé** : si la mesure s'arrête avant la phase 5, le résultat
   le dit explicitement (`oracle.executed: false`) et compte les 38 scénarios
-  comme non atteints. Les portes de l'étape 4 seront non évaluables.
+  comme non atteints. Les portes de l'étape 4 seront non évaluables. Si
+  Playwright ne peut pas lister les scénarios, `oracle.summary` est absent,
+  et l'erreur est rangée en clôture (#68).
 - **Classement** : la première issue autre que `ok` décide de la catégorie ;
   seule l'interruption passe devant, invalide quelle que soit la phase. Une
   issue invalide relevée après un échec du candidat (en clôture, par exemple
@@ -377,7 +427,8 @@ de la mesure>/`, cités par empreinte (ADR 0005).
   `npm ci`, de `build` et de `start`, journal de npm, sorties d'un service
   tombé).
 - **`oracle`** : `executed` ; si vrai, empreinte de `oracle.json` et copie de
-  son `summary` ; sinon le compte des scénarios, tous non atteints.
+  son `summary` ; sinon le compte des scénarios, tous non atteints, absent
+  si Playwright n'a pu ni les exécuter ni les lister (#68).
 - **`accessLog`** : empreinte du journal d'accès de la mesure, nombre de
   lignes, position des deux requêtes témoins.
 - **`gates`** : liste vide à l'étape 3, remplie à l'étape 4.
@@ -692,12 +743,13 @@ mesure invalide.
 | 4 | jamais disponible | `start` qui tourne sans écouter sur `PORT` | `start-not-ready`, oracle non lancé | échec du candidat | `0` |
 | 5 | sonde d'isolation | `start` qui écoute sur `PORT` et sert le constat de ses tentatives : écrire dans son code, lire le socket Docker, joindre l'hôte de l'API interne pendant la construction, lire `ARCHIVE_SALT`, tourner en root | mesure complète ; le constat, lu par le test, montre chaque tentative refusée | complète | `0` |
 | 6 | relais qui altère un libellé | relais du candidat de référence qui change un libellé de champ dans les pages du legacy | mesure complète, au moins un scénario échoué | complète | `0` |
-| 7 | pile volontairement cassée | candidat de référence, mesuré pendant que le test empêche le legacy de devenir sain | `stack-failed-before-candidate` | invalide | `3` |
+| 7 | pile volontairement cassée | candidat de référence, mesuré pendant que le test empêche le legacy de devenir sain (`tests/fixtures/broken-stack/`, ajouté par `COMPOSE_FILE`) | `stack-failed-before-candidate` | invalide | `3` |
 | 8 | pile d'une autre copie | candidat de référence, mesuré sous un faux `docker` qui rend pour les images de la pile un label étranger à la copie (#102) | `stack-not-from-this-copy` en préparation, ni construction ni pile recréée | invalide | `3` |
 
 Les variantes de contrat (`candidate.json` absent, JSON mal formé, champ
-manquant, source Git, chemin hors du candidat) sont couvertes par les tests
-Vitest du contrat, pas par des candidats.
+manquant, source Git, chemin hors du candidat, et depuis #68 lien
+symbolique, fichier illisible, `candidate.json` qui est un dossier) sont
+couvertes par les tests Vitest du contrat, pas par des candidats.
 
 ## Décisions de test
 
