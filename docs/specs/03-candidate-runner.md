@@ -636,6 +636,15 @@ le candidat tourne ensuite (voir les règles des issues).
 
   Un script d'installation ou une commande `build` qui tente une requête
   réseau échoue donc toujours : `build-failed`, échec du candidat.
+
+  Précisé par #112 : au délai global, `docker kill` vise le conteneur de
+  l'étape, chaque seconde. Il ne vise pas le client `docker run`, qui peut
+  rester bloqué après la fin du conteneur. Le client est donc tué par
+  SIGKILL s'il n'a pas rendu la main 5 s après le délai (paramètre déclaré
+  du banc, `BUILD_CLIENT_GRACE_MS`, pas une mesure). Chaque essai de
+  `docker kill`, avec son code et sa sortie, et la mise à mort du client
+  sont notés, datés, dans le brut `<étape>-timeout.log`, présent seulement
+  quand le délai a expiré.
 - **Démarrage** : service `candidate` de la composition complémentaire,
   même image, utilisateur non-root, copie montée en lecture seule, dossier
   temporaire en écriture, `USERS_FILE` monté en lecture seule, réseaux
