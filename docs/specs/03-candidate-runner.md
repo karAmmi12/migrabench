@@ -647,7 +647,11 @@ le candidat tourne ensuite (voir les règles des issues).
   `docker rm --force`. Chaque essai de
   `docker kill`, avec son code et sa sortie, et la mise à mort du client
   sont notés, datés, dans le brut `<étape>-timeout.log`, présent seulement
-  quand le délai a expiré.
+  quand le délai a expiré. Un client tué avant que Docker ait démarré le
+  conteneur, ou dont le conteneur n'a pas pu être inspecté, garde la
+  catégorie de #68 ; son détail dit que le client `docker run` a été tué
+  après le délai de construction, et non son code de sortie, qui ne dit
+  alors rien.
 - **Démarrage** : service `candidate` de la composition complémentaire,
   même image, utilisateur non-root, copie montée en lecture seule, dossier
   temporaire en écriture, `USERS_FILE` monté en lecture seule, réseaux

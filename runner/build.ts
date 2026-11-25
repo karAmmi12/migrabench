@@ -153,6 +153,7 @@ interface StepRun {
   exitCode: number;
   container: BuildStepRun["container"];
   timedOut: boolean;
+  clientKilled: boolean;
   oomKilled: boolean;
 }
 
@@ -210,9 +211,10 @@ async function runStep({ container, deadline, logFile, timeoutLog, args }: { con
   try {
     const { code } = await spawnCommand("docker", ["run", "--name", container, ...args], { logFile, allowFailure: true, abort: client.signal });
     const inspect = await spawnCommand("docker", ["inspect", "--format", "{{.State.OOMKilled}} {{.State.StartedAt}}", container], { allowFailure: true });
-    if (inspect.code !== 0) return { exitCode: code, container: { inspectFailed: `${inspect.stderr}${inspect.stdout}` }, timedOut, oomKilled: false };
+    const clientKilled = client.signal.aborted;
+    if (inspect.code !== 0) return { exitCode: code, container: { inspectFailed: `${inspect.stderr}${inspect.stdout}` }, timedOut, clientKilled, oomKilled: false };
     const [oomKilled, startedAt = ""] = inspect.stdout.trim().split(" ");
-    return { exitCode: code, container: startedAt.startsWith(NEVER_STARTED) ? "never-started" : "started", timedOut, oomKilled: oomKilled === "true" };
+    return { exitCode: code, container: startedAt.startsWith(NEVER_STARTED) ? "never-started" : "started", timedOut, clientKilled, oomKilled: oomKilled === "true" };
   } finally {
     clearTimeout(timer);
     clearInterval(killer);
