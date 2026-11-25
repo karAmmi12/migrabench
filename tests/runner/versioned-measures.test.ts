@@ -4,30 +4,34 @@
 // oracle.json lui-même passe le contrôle des résultats de l'oracle (#53) :
 // l'empreinte prouve qu'il n'a pas changé, pas qu'il est sain.
 //
-// Le même chemin est d'abord éprouvé sur des fixtures : une mesure valide, qui
-// doit passer ; une variante à l'empreinte fausse, une variante dont
-// oracle.json a un sel imposé et un dossier sans measure.json (mesure plantée
-// ou interrompue), qui doivent échouer. Tant que
-// results/counted/ est vide, le test le dit (test sauté, nommé) au lieu de
-// passer en silence.
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+// Le même chemin est d'abord éprouvé sur la copie d'une vraie mesure comptée
+// (exécution 45624689673, tests/fixtures/ci45624689673/PROVENANCE.md), qui
+// doit passer, puis sur des variantes de cette copie, écrites dans un dossier
+// temporaire : une empreinte fausse, un oracle.json au sel imposé et un
+// dossier sans measure.json (mesure plantée ou interrompue), qui doivent
+// échouer. Tant que results/counted/ est vide, le test le dit (test sauté,
+// nommé) au lieu de passer en silence.
+import { existsSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { isAbsolute, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { FETCH_PULL_HEADS, measureEnvironment } from "../../oracle/repository.ts";
 import { type CheckedResult, checkMeasureResult, checkResult, formatViolation } from "../../oracle/result-check.ts";
 import { cited, sha256 } from "../../shared/digest.ts";
 import { COUNTED_DIR_FROM_ROOT, ROOT } from "../../shared/root.ts";
+import { MEASURES, readFixture } from "../real-fixtures.ts";
 
-const FIXTURES = "tests/fixtures/counted-measures";
 const environment = measureEnvironment(new URL("../../", import.meta.url));
 
 // Manquements d'un dossier de mesure : son measure.json et, s'il existe, son
 // oracle.json. Un dossier sans measure.json est un manquement : une mesure
-// prévue pour compter ne disparaît jamais (récit 23).
+// prévue pour compter ne disparaît jamais (récit 23). `dir` : relatif à la
+// racine du dépôt, ou absolu.
 function checkMeasureDirectory(dir: string): string[] {
-  const measureFile = join(ROOT, dir, "measure.json");
+  const path = isAbsolute(dir) ? dir : join(ROOT, dir);
+  const measureFile = join(path, "measure.json");
   if (!existsSync(measureFile)) return [`${dir}: measure.json is missing (a counted measure that crashed or was interrupted?)`];
-  const oracleFile = join(ROOT, dir, "oracle.json");
+  const oracleFile = join(path, "oracle.json");
   const oracle = existsSync(oracleFile) ? readFileSync(oracleFile) : undefined;
   const oracleDigest = oracle === undefined ? undefined : cited(sha256(oracle));
   const violations = checkMeasureResult(JSON.parse(readFileSync(measureFile, "utf8")), oracleDigest, environment);
@@ -45,23 +49,46 @@ function report(problems: string[]): string {
   return `${problems.join("\n")}${hint}`;
 }
 
-describe("check of a versioned measure, on fixtures", () => {
-  it("passes a valid measure planned to count", () => {
-    const problems = checkMeasureDirectory(`${FIXTURES}/valid`);
+// La vraie mesure comptée : son measure.json et son oracle.json, tels qu'écrits par le banc.
+const REAL = `tests/fixtures/${MEASURES.reference.results}`;
+const REAL_MEASURE = readFixture(`${MEASURES.reference.results}/measure.json`);
+const REAL_ORACLE = readFixture(`${MEASURES.reference.results}/oracle.json`);
+
+// Dossier temporaire d'une variante : `files` y est écrit tel quel.
+function variant(files: Record<string, string>): string {
+  const dir = mkdtempSync(join(tmpdir(), "mb-counted-measure-"));
+  for (const [name, content] of Object.entries(files)) writeFileSync(join(dir, name), content);
+  return dir;
+}
+
+describe("check of a versioned measure, on a real measure and its variants", () => {
+  it("passes the real counted measure", () => {
+    const problems = checkMeasureDirectory(REAL);
 
     expect(problems, report(problems)).toEqual([]);
   });
 
   it("fails a measure whose oracle.json is not the one it cites", () => {
-    expect(checkMeasureDirectory(`${FIXTURES}/wrong-oracle-digest`)).toEqual([expect.stringContaining("rule oracle:")]);
+    const measure = JSON.parse(REAL_MEASURE) as { oracle: { result: string } };
+    measure.oracle.result = cited("0".repeat(64));
+
+    expect(checkMeasureDirectory(variant({ "measure.json": JSON.stringify(measure), "oracle.json": REAL_ORACLE }))).toEqual([expect.stringContaining("rule oracle:")]);
   });
 
+  // L'oracle.json au sel imposé est cité par son empreinte : seule sa propre
+  // règle échoue.
   it("fails a measure whose oracle.json does not pass the oracle result check", () => {
-    expect(checkMeasureDirectory(`${FIXTURES}/oracle-salt-imposed`)).toEqual([expect.stringMatching(/oracle\.json: rule saltImposed:/)]);
+    const oracle = JSON.parse(REAL_ORACLE) as { config: { metadata: Record<string, unknown> } };
+    oracle.config.metadata.saltImposed = true;
+    const oracleText = JSON.stringify(oracle);
+    const measure = JSON.parse(REAL_MEASURE) as { oracle: { result: string } };
+    measure.oracle.result = cited(sha256(oracleText));
+
+    expect(checkMeasureDirectory(variant({ "measure.json": JSON.stringify(measure), "oracle.json": oracleText }))).toEqual([expect.stringMatching(/oracle\.json: rule saltImposed:/)]);
   });
 
   it("fails a measure directory without measure.json", () => {
-    expect(checkMeasureDirectory(`${FIXTURES}/no-measure-json`)).toEqual([expect.stringContaining("measure.json is missing")]);
+    expect(checkMeasureDirectory(variant({ "oracle.json": REAL_ORACLE }))).toEqual([expect.stringContaining("measure.json is missing")]);
   });
 });
 
