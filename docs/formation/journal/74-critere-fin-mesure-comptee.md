@@ -94,6 +94,9 @@ le README d'`actions/checkout` mentionne `fetch-depth: 0`.
   (#109) : étalonnage fait en CI sur `main`.
 - **`results/counted/`** (cette PR) : les trois mesures comptées du candidat
   de référence, faites sur `main` (voir « Difficultés »).
+- **`tests/runner/counted-measure.test.ts`** (cette PR) : le test de
+  `--counted` compare `results/counted/` avec les mesures déjà versionnées,
+  au lieu de l'attendre vide.
 - **`tests/fixtures/measure-cases/20261125T133422Z-52303ae-reference-candidate/`**
   (#114) : copie d'une vraie mesure comptée. Les tests de `caseProblems` en
   dérivent leurs variantes.
@@ -217,6 +220,15 @@ le README d'`actions/checkout` mentionne `fetch-depth: 0`.
 - **Étapes « Panne de ».** Dans les mêmes exécutions, les trois étapes
   `Panne de #68, …` s'appelaient toutes « Panne de » : le ` #` ouvrait un
   commentaire YAML. Noms mis entre guillemets (#114).
+- **Test `counted-measure` rouge une fois les mesures versionnées.** Le job
+  `tests` de cette PR ([exécution 45636668767](https://github.com/karAmmi12/migrabench/actions/runs/45636668767),
+  commit c47d653) a échoué sur 2 tests de
+  `tests/runner/counted-measure.test.ts`. Ce test copie le banc,
+  `results/counted/` compris, et attendait ce dossier vide avant sa mesure :
+  c'était vrai tant qu'aucune mesure comptée n'était versionnée. La suite
+  complète n'avait pas été relancée sur cette branche avant l'ouverture de la
+  PR. Le test compare désormais avec le contenu de `results/counted/` avant
+  la mesure (commit 402bdb4) : 2 rouges sans le correctif, 2 verts avec.
 - **Contrôle de la fiche en échec sur #110** : une case cochée chiffrée ne
   citait aucun commit. Plan de test corrigé avec les SHA.
 
@@ -235,6 +247,14 @@ Les trois mesures comptées passent le contrôle des mesures versionnées
 ✓ … > 20261125T140819Z-889e111-reference-candidate passes the measure check
 Tests  7 passed (7)
 ```
+
+```sh
+npm run stack:up && npm test
+```
+
+Observé au commit 402bdb4 : `Test Files  80 passed (80)`,
+`Tests  724 passed (724)`. Plus aucun test sauté : le contrôle des mesures
+versionnées était le seul, faute de mesure.
 
 ```sh
 npx vitest run tests/runner/versioned-measures.test.ts tests/measure-cases.test.ts tests/start-report.test.ts tests/ci-scope.test.ts
