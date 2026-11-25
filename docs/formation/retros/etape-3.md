@@ -99,9 +99,11 @@ Sources des chiffres :
   - une mesure comptée est refusée si elle ne part pas d'un état publié (#73) ;
   - une mesure, une exécution de l'oracle ou un étalonnage refuse une pile
     qui n'a pas été construite depuis sa propre copie (#102).
-- **Une session par ticket.** Origine non retrouvée : la règle n'est écrite
-  ni dans le dépôt ni dans les issues. À consigner dans `CLAUDE.md` si elle
-  doit tenir.
+- **Une session par ticket.** Chaque ticket part d'un contexte propre. Tout
+  l'état utile est écrit dans l'issue, la spec, la fiche et la PR. On ne
+  garde la même session que pour les corrections du même ticket. Origine :
+  décision de Karim le 24/11, prise pendant l'étape. Elle est écrite dans
+  `CLAUDE.md` par la PR de clôture de l'étape 3.
 - **Tout outil du banc qui utilise la pile tient le verrou du banc**, et ce
   verrou est commun à toutes les copies du dépôt. Origines : #69 (les outils
   du banc), #92 (un seul verrou par machine) et #94 (`npm test` compris).
