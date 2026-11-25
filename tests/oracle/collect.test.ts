@@ -193,7 +193,14 @@ describe("oracle collection of paths", () => {
   // Le rapport brut de la référence, tel qu'il aurait été écrit depuis un
   // dépôt cloné sous un répertoire personnel de macOS.
   const MAC_ROOT = "/Users/someone/migrabench";
-  const onMac = (raw: JSONReport) => JSON.parse(JSON.stringify(raw).replaceAll(CI_ROOT, MAC_ROOT)) as JSONReport;
+
+  // Collecte d'une mesure comme si son dépôt avait été sous `root` : le
+  // rapport brut et les chemins de ses empreintes y sont déplacés.
+  function collectFrom(root: string, real: RealCase) {
+    const raw = JSON.parse(JSON.stringify(real.raw).replaceAll(CI_ROOT, root)) as JSONReport;
+    const hashes = Object.fromEntries(Object.entries(realHashes(real)).map(([path, digest]) => [path.replace(CI_ROOT, root), digest]));
+    return collectCase(real, raw, { root, hashes });
+  }
 
   it("cites artifacts by paths relative to the execution's artifacts directory", () => {
     const { report } = collectCase(PROBE);
@@ -210,12 +217,16 @@ describe("oracle collection of paths", () => {
     }
   });
 
-  it("makes every other absolute path relative to the repository root", () => {
-    const { report } = collectCase(PROBE);
+  // Garde-fou du bug des chemins machine de l'étape 2 : aucun début de chemin
+  // d'une machine ne reste, quelle que soit la racine du dépôt.
+  it.each([CI_ROOT, MAC_ROOT])("makes every other absolute path relative to the repository root (%s)", (root) => {
+    const { report } = collectFrom(root, PROBE);
 
     const serialized = JSON.stringify(report);
     expect(serialized).not.toContain("/home/");
-    expect(serialized).not.toContain(CI_ROOT);
+    expect(serialized).not.toContain("/Users/");
+    expect(serialized).not.toContain("/var/folders/");
+    expect(serialized).not.toContain(root);
     const config = report.config as unknown as Record<string, unknown>;
     expect(config.configFile).toBe("oracle/playwright.config.ts");
     expect(config.rootDir).toBe("oracle/scenarios");
@@ -234,9 +245,7 @@ describe("oracle collection of paths", () => {
   });
 
   it("gives the same result from a repository under a macOS home directory", () => {
-    const hashes = Object.fromEntries(Object.entries(realHashes(REFERENCE)).map(([path, digest]) => [path.replace(CI_ROOT, MAC_ROOT), digest]));
-
-    expect(collectCase(REFERENCE, onMac(REFERENCE.raw), { root: MAC_ROOT, hashes }).report).toEqual(REFERENCE.oracle);
+    expect(collectFrom(MAC_ROOT, REFERENCE).report).toEqual(REFERENCE.oracle);
   });
 
   it("fails rather than write a path field that climbs above the repository root", () => {
