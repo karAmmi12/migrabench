@@ -4,7 +4,8 @@
 // dans `start.log` à chaque arrêt. Fonctions pures : elles rendent les
 // problèmes, vides quand le constat tient.
 
-const MARKER = "migrabench start report ";
+// Début de la ligne de constat, après le préfixe de compose et l'horodatage.
+export const START_REPORT_PREFIX = "migrabench start report ";
 
 // Tentatives du candidat défectueux 5 « sonde d'isolation » (spec de
 // l'étape 3, « Candidats défectueux »), toutes à voir refusées.
@@ -76,8 +77,8 @@ export function referenceReportProblems(startLog: string): string[] {
 function eachReport<R>(startLog: string, check: (report: R) => string[]): string[] {
   const reports = startLog
     .split("\n")
-    .filter((line) => line.includes(MARKER))
-    .map((line) => line.slice(line.indexOf(MARKER) + MARKER.length));
+    .filter((line) => line.includes(START_REPORT_PREFIX))
+    .map((line) => line.slice(line.indexOf(START_REPORT_PREFIX) + START_REPORT_PREFIX.length));
   if (reports.length === 0) return ["The start log holds no start report"];
   return reports.flatMap((text, index) => {
     let report: R;

@@ -9,31 +9,29 @@
 // (tests/fixtures/ci45624689673/PROVENANCE.md). Chaque variante réécrit la
 // ligne de constat du vrai journal, en gardant son préfixe (service, horodatage).
 import { describe, expect, it } from "vitest";
-import { MASKED, probeReportProblems, referenceReportProblems } from "../scripts/start-report.ts";
-import { MEASURES, readFixture, readJsonFixture } from "./real-fixtures.ts";
-
-const REPORT = "migrabench start report ";
+import { MASKED, probeReportProblems, referenceReportProblems, START_REPORT_PREFIX } from "../scripts/start-report.ts";
+import { MEASURES, readFixture, readMeasure } from "./real-fixtures.ts";
 
 // Le journal `log`, sa ligne de constat remplacée par une ligne par constat de
 // `reports` (objet sérialisé, ou texte tel quel).
 function withReports(log: string, ...reports: unknown[]): string {
   const lines = log.split("\n");
-  const index = lines.findIndex((line) => line.includes(REPORT));
-  const head = lines[index]!.slice(0, lines[index]!.indexOf(REPORT) + REPORT.length);
+  const index = lines.findIndex((line) => line.includes(START_REPORT_PREFIX));
+  const head = lines[index]!.slice(0, lines[index]!.indexOf(START_REPORT_PREFIX) + START_REPORT_PREFIX.length);
   const replaced = reports.map((report) => head + (typeof report === "string" ? report : JSON.stringify(report)));
   return [...lines.slice(0, index), ...replaced, ...lines.slice(index + 1)].join("\n");
 }
 
 function reportOf<R>(log: string): R {
-  const line = log.split("\n").find((entry) => entry.includes(REPORT))!;
-  return JSON.parse(line.slice(line.indexOf(REPORT) + REPORT.length)) as R;
+  const line = log.split("\n").find((entry) => entry.includes(START_REPORT_PREFIX))!;
+  return JSON.parse(line.slice(line.indexOf(START_REPORT_PREFIX) + START_REPORT_PREFIX.length)) as R;
 }
 
 type Attempt = { attempt: string; refused?: boolean; detail?: string; environment?: Record<string, string> };
 
 // Sonde d'isolation : son journal et le marqueur de sa mesure, lu dans son measure.json.
 const PROBE_LOG = readFixture(`${MEASURES.probe.artifacts}/start.log`);
-const MARKER = readJsonFixture<{ marker: string }>(`${MEASURES.probe.results}/measure.json`).marker;
+const MARKER = readMeasure(MEASURES.probe).marker;
 const ATTEMPTS = reportOf<{ attempts: Attempt[] }>(PROBE_LOG).attempts;
 const ENVIRONMENT = ATTEMPTS.find((entry) => entry.attempt === "read-measure-marker")!.environment!;
 
