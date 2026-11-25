@@ -24,6 +24,48 @@ Lire `PROTOCOL.md` (le pourquoi) et `docs/PLAN.md` (le comment) avant toute tâc
 - Ne jamais pousser sur `main` directement.
 - Avant d'ouvrir une PR de ticket, lancer `/fiche-ticket`.
 
+## Travail autonome
+
+Décision de Karim le 25/11.
+
+### Autonomie
+
+- Sur un ticket, tu vas jusqu'à la fusion sans attendre Karim :
+  implémentation, revue, `/fiche-ticket`, PR, suivi de la CI, levée des
+  « À vérifier », puis `gh pr merge --squash --delete-branch`.
+- Tu fusionnes seulement si toutes ces conditions sont remplies :
+  - toute la CI est verte sur le dernier commit ;
+  - `git grep "^> À vérifier"` ne trouve rien dans les fiches de la branche ;
+  - aucune décision n'est ouverte ;
+  - le plan de test de la PR est entièrement coché, avec ses preuves.
+- Tu t'arrêtes et tu demandes (AskUserQuestion) uniquement pour :
+  - une décision de conception que la spec ne tranche pas ;
+  - un écart à la spec ;
+  - une action irréversible hors fusion ;
+  - une dépense notable de minutes de CI non prévue par le ticket.
+- Après la fusion : `git switch main && git pull`, puis un rapport court
+  (PR, commit, ce qui a été décidé seul, limites connues).
+
+### Deux niveaux de rigueur
+
+- **Complet** (runner, oracle, portes, score : tout ce qui produit un
+  verdict) : TDD rouge d'abord, deux revues (normes et spec), fiche complète,
+  preuve sur la vraie pile.
+- **Allégé** (scripts, fixtures, CI, docs) : tests quand il y a de la
+  logique, une revue, fiche courte (but, changements, preuves, limites).
+
+### Règles de preuve
+
+- Une preuve cite l'état exact : commit, arbre propre, identifiant de la
+  mesure ou de l'exécution. Une mesure faite sur un arbre modifié n'est pas
+  une preuve.
+- Un contrôle qui n'a rien examiné est « non évaluable », jamais réussi ; un
+  témoin montre qu'il sait détecter.
+- Toute vérification d'une affirmation sur un outil externe se fait sur sa
+  documentation ou sur une vraie exécution, jamais de mémoire.
+- Aucun chiffre, heure, message ou durée n'est écrit avant d'avoir été relevé.
+- Une mesure comptée versionnée ne se retire jamais.
+
 ## Règles propres à ce projet
 
 - **Les chiffres viennent de mesures.** Ne jamais écrire un score, un
