@@ -7,8 +7,11 @@
 # - une seconde mesure refusée par le verrou du banc, puis la mesure
 #   interrompue par SIGINT pendant l'oracle (#71) ;
 # - les huit candidats défectueux du tableau de la spec ;
-# - les pannes de la pile de #68 : legacy arrêté pendant l'oracle,
-#   configuration de Playwright cassée.
+# - la panne de #68 « configuration de Playwright cassée ». L'autre, « legacy
+#   arrêté pendant l'oracle », reste prouvée à la main par #106 : sur le runner,
+#   avec un seul worker Playwright, ses 38 scénarios attendent chacun leur délai
+#   de 30 s, que `--timeout-cap-ms` ne plafonne pas (exécution 45603633524,
+#   coupée à 10 min).
 # Chaque mesure est contrôlée par scripts/run-measure-case.ts contre son issue
 # attendue (scripts/measure-cases.ts) ; le résumé du job en donne le tableau.
 # Mesures et bruts gardés 7 jours en artefacts (ADR 0005) ; la mesure comptée
@@ -176,16 +179,6 @@ jobs:
       - name: Candidat défectueux 8, images de cette copie
         if: ${{ !cancelled() }}
         run: docker compose build
-
-      # Bornée : en local (macOS, commit fa21aaf), chaque scénario a pris de
-      # 13 à 17 minutes après l'arrêt du legacy, le délai de 30 s de Playwright
-      # dépassé puis la fermeture du contexte en attente d'une requête du
-      # relais restée pendante ; 163 s pour #106. Au-delà, l'étape échoue
-      # seule et les mesures suivantes tournent.
-      - name: Panne de #68, legacy arrêté pendant l'oracle
-        if: ${{ !cancelled() }}
-        timeout-minutes: 10
-        run: exec node scripts/run-measure-case.ts legacy-stopped-during-oracle
 
       # Le fichier modifié fait partie du contexte de la pile : les images
       # sont reconstruites avec l'empreinte de la copie modifiée, sans quoi la

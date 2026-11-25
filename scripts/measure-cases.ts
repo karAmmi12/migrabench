@@ -122,6 +122,8 @@ export const MEASURE_CASES = {
     oracleJson: "absent",
   },
   // #68 : legacy arrêté pendant l'oracle ; le résultat de l'oracle est gardé.
+  // Hors du job de CI (#74) : sur le runner, ses 38 scénarios attendent chacun
+  // 30 s avec un seul worker. Lancé à la main.
   "legacy-stopped-during-oracle": {
     candidate: REFERENCE,
     exitCode: 0,

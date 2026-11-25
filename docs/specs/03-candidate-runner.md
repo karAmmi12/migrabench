@@ -814,7 +814,15 @@ couvertes par les tests Vitest du contrat, pas par des candidats.
   - une mesure lancée pendant qu'une autre tient le verrou du banc : code
     `4`, aucun résultat écrit ;
   - une mesure interrompue par `SIGINT` pendant l'oracle : code `3`,
-    `measure.json` écrit avec la cause `interrupted`, verrou du banc libéré.
+    `measure.json` écrit avec la cause `interrupted`, verrou du banc libéré ;
+  - les pannes de la pile de #68 (précisé par #74) : la configuration de
+    Playwright cassée (`oracle-error`, code `3`) dans le même job. Le legacy
+    arrêté pendant l'oracle (`stack-down-while-candidate`, code `0`,
+    `oracle.json` gardé) reste prouvé à la main, par la mesure
+    `20261124T212240Z-60f4608-reference-candidate` de #106 : sur le runner,
+    avec un seul worker Playwright, ses 38 scénarios attendent chacun leur
+    délai de 30 s, que `--timeout-cap-ms` ne plafonne pas (exécution
+    45603633524 du job des mesures, coupée à 10 min).
 - **Seam 2 : Vitest sur les fonctions pures**, en TDD (rouge d'abord) :
   - **contrat** : chaque champ du schéma, champ inconnu, `url` refusée avec
     son message, `package-lock.json` absent, chaque sorte de source
