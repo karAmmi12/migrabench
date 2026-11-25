@@ -27,6 +27,9 @@ sans le point, car `.gitignore` ignore `.oracle-artifacts/` à toute profondeur.
 | `results/diagnostic/20261125T133535Z-52303ae-defective-candidates-contract-invalid/measure.json` | `results/diagnostic/20261125T133535Z-52303ae-defective-candidates-contract-invalid/measure.json` | idem |
 
 Le `measure.json` et l'`oracle.json` de la mesure comptée
-`20261125T133422Z-52303ae-reference-candidate`, du même artefact, ont été
-copiés par #114 dans
-`tests/fixtures/measure-cases/20261125T133422Z-52303ae-reference-candidate/`.
+`20261125T133422Z-52303ae-reference-candidate` viennent du même artefact, aux
+chemins `results/counted/20261125T133422Z-52303ae-reference-candidate/measure.json`
+et `results/counted/20261125T133422Z-52303ae-reference-candidate/oracle.json`.
+Ils ont été copiés par #114 dans
+`tests/fixtures/measure-cases/20261125T133422Z-52303ae-reference-candidate/`,
+identiques octet pour octet à l'artefact (vérifié avec `cmp` pour #115).

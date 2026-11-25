@@ -146,7 +146,7 @@ describe("oracle collection, on real Playwright reports", () => {
     const { report } = collectCase(REFERENCE);
 
     specsOf(REFERENCE.raw).forEach((spec, index) => {
-      const [har, trace] = ["har", "trace"].map((name) => spec.tests[0]!.results[0]!.attachments.find((attachment) => attachment.name === name)!.path!);
+      const [har, trace] = ["har", "trace"].map((name) => spec.tests[0]!.results.at(-1)!.attachments.find((attachment) => attachment.name === name)!.path!);
       expect(specsOf(report)[index]!.tests[0]!.annotations).toEqual([
         ...spec.tests[0]!.annotations,
         { type: "mb:har", description: `sha256:${hashes[har!]}` },
@@ -204,7 +204,7 @@ describe("oracle collection of paths", () => {
       "remise-remise-summary-chromium/trace.zip",
     ]);
     // Forme : relatif, sans remontée, sans rien de la machine.
-    for (const path of specsOf(report).flatMap((spec) => spec.tests[0]!.results[0]!.attachments.map((attachment) => attachment.path ?? ""))) {
+    for (const path of specsOf(report).flatMap((spec) => spec.tests[0]!.results.at(-1)!.attachments.map((attachment) => attachment.path ?? ""))) {
       expect(path).toMatch(/^[\w.-]+(\/[\w.-]+)*$/);
       expect(path).not.toMatch(/(^|\/)\.\.(\/|$)/);
     }
