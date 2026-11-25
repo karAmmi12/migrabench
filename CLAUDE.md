@@ -31,6 +31,13 @@ Lire `PROTOCOL.md` (le pourquoi) et `docs/PLAN.md` (le comment) avant toute tâc
 - **Les pièges du legacy sont volontaires.** Ne pas les corriger dans
   `fixtures/legacy-app`. Chacun est documenté dans `TRAPS.md`.
 - **Chaque porte a un test négatif** : un candidat défectueux qui doit la faire échouer.
+- **Une fixture qui imite un fichier produit par le banc** (`measure.json`,
+  `oracle.json`, constat, journal) est copiée d'un vrai fichier produit, avec
+  sa provenance citée (mesure ou exécution). Jamais écrite de mémoire. Deux
+  contrôles faux sont passés par des fixtures écrites de mémoire : `saltImposed`
+  cherché à la racine d'`oracle.json` au lieu de `config.metadata` (#73, #110),
+  et `originMain` cherché sous `environment` au lieu de la racine de
+  `measure.json` (exécution 45624689673 sur `main`, #74).
 - Les sélecteurs de l'oracle sont sémantiques (rôle, label), pas des id ou des classes.
 - Le legacy est volontairement ancien : ne pas le moderniser, ne pas monter ses versions.
 - Une sonde Playwright jetable s'écrit dans `.probes/` (ignoré par Git), jamais hors du dépôt.
