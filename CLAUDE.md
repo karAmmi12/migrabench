@@ -15,6 +15,9 @@ Lire `PROTOCOL.md` (le pourquoi) et `docs/PLAN.md` (le comment) avant toute tâc
 ## Façon de travailler
 
 - Une étape du plan = une spec. Un ticket = une branche = une PR.
+- Une session par ticket, partie d'un contexte propre : tout l'état utile est
+  écrit dans l'issue, la spec, la fiche et la PR. Garder la même session
+  seulement pour les corrections du même ticket.
 - TDD sur le runner, les portes et le score : test rouge d'abord.
 - Commits petits, au format Conventional Commits, en anglais.
 - Code et identifiants en anglais. Documentation en français.
