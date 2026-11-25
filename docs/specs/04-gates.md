@@ -413,13 +413,16 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
 
 | Vague | File A (navigateur) | File B (HTTP, analyse statique, outillage) |
 |---|---|---|
-| 0 | **G0** : format, registre, porte du relais (bloquant) | **1a** (dès la fusion de cette spec), puis **#78** |
-| 1 | accessibilité | valeur témoin |
-| 1 | XSS (+ `D-0118`) | rôle |
-| 1 | | authentification (+ dossiers `gate:auth`) |
-| 1 | | comparaison HAR |
-| 2 (après 1b) | Lighthouse | poids du bundle, `tsc`, audit, analyse statique |
+| 0 | **#124 G0** : format, registre, porte du relais (bloquant) | **#125 1a** (dès la fusion de cette spec), puis **#78** |
+| 1 | #128 accessibilité | #130 valeur témoin |
+| 1 | #129 XSS (+ `D-0118`) | #131 rôle |
+| 1 | | #132 authentification (+ dossiers `gate:auth`) |
+| 1 | | #133 comparaison HAR |
+| 2 (après #126 1b) | #134 Lighthouse | #135 poids du bundle, #136 `tsc`, #137 audit, #138 analyse statique |
 | fin | **#100**, sous la charge de l'oracle et des portes | |
+
+Candidats d'essai : #126 (1b, Claude Code), #127 (1c, Gemini CLI, facultatif).
+Les dépendances sont posées dans GitHub (« bloqué par »).
 
 - La file A attend #78 pour ses preuves en CI.
 - 1b dépend de Karim, qui lance l'agent dès que la procédure de 1a est
