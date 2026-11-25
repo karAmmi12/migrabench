@@ -161,11 +161,12 @@ export function isMeasureCaseName(name: string): name is MeasureCaseName {
 }
 
 // Ce que la mesure a rendu : son code de sortie, son measure.json, et son
-// oracle.json s'il existe.
+// oracle.json s'il existe (son sel dans config.metadata, comme tout résultat
+// de l'oracle).
 export interface Observed {
   exitCode: number;
   record: object;
-  oracle: { saltImposed?: unknown } | undefined;
+  oracle: object | undefined;
 }
 
 // Lecture tolérante de measure.json : un champ absent est un écart, pas une exception.
@@ -227,7 +228,10 @@ export function caseProblems(expected: MeasureCase, { exitCode, record, oracle }
   if (measure.saltImposed !== false) problems.push(`measure.json: saltImposed is ${String(measure.saltImposed)}, expected false`);
   if (expected.oracleJson === "kept") {
     if (oracle === undefined) problems.push("oracle.json is missing");
-    else if (oracle.saltImposed !== false) problems.push(`oracle.json: saltImposed is ${String(oracle.saltImposed)}, expected false`);
+    else {
+      const oracleSalt = (oracle as { config?: { metadata?: { saltImposed?: unknown } } }).config?.metadata?.saltImposed;
+      if (oracleSalt !== false) problems.push(`oracle.json: config.metadata.saltImposed is ${String(oracleSalt)}, expected false`);
+    }
   } else if (oracle !== undefined) {
     problems.push("oracle.json is present, expected absent");
   }

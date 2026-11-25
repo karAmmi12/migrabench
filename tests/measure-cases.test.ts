@@ -25,8 +25,13 @@ const COMPLETE = {
   verdict: { category: "completed", reason: "ok" },
 };
 
+// oracle.json porte son sel dans config.metadata, comme tout résultat de l'oracle.
+function oracleJson(saltImposed: unknown) {
+  return { config: { metadata: { saltImposed } } };
+}
+
 function observed(record: object, more: Partial<Observed> = {}): Observed {
-  return { exitCode: 0, record, oracle: { saltImposed: false }, ...more };
+  return { exitCode: 0, record, oracle: oracleJson(false), ...more };
 }
 
 describe("caseProblems, reference candidate", () => {
@@ -49,7 +54,11 @@ describe("caseProblems, reference candidate", () => {
   // Avant 71d8c18 (#73), oracle.json disait saltImposed: true même sans
   // ORACLE_SALT, alors que measure.json disait false : les deux fichiers sont lus.
   it("names an imposed salt in oracle.json even when measure.json says it was drawn", () => {
-    expect(caseProblems(MEASURE_CASES.reference, observed(COMPLETE, { oracle: { saltImposed: true } }))).toEqual(["oracle.json: saltImposed is true, expected false"]);
+    expect(caseProblems(MEASURE_CASES.reference, observed(COMPLETE, { oracle: oracleJson(true) }))).toEqual(["oracle.json: config.metadata.saltImposed is true, expected false"]);
+  });
+
+  it("names an oracle.json without saltImposed in its metadata", () => {
+    expect(caseProblems(MEASURE_CASES.reference, observed(COMPLETE, { oracle: { saltImposed: false } }))).toEqual(["oracle.json: config.metadata.saltImposed is undefined, expected false"]);
   });
 
   it("names a measure without oracle.json", () => {
