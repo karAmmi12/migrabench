@@ -19,7 +19,12 @@ sans le point, car `.gitignore` ignore `.oracle-artifacts/` à toute profondeur.
 | `oracle-artifacts/20261125T133634Z-52303ae-defective-candidates-isolation-probe/start.log` | `.oracle-artifacts/20261125T133634Z-52303ae-defective-candidates-isolation-probe/start.log` | sonde d'isolation (version de #110) |
 | `oracle-artifacts/20261125T133634Z-52303ae-defective-candidates-isolation-probe/oracle/report.json` | `.oracle-artifacts/20261125T133634Z-52303ae-defective-candidates-isolation-probe/oracle/report.json` | idem |
 | `results/diagnostic/20261125T133634Z-52303ae-defective-candidates-isolation-probe/measure.json` | `results/diagnostic/20261125T133634Z-52303ae-defective-candidates-isolation-probe/measure.json` | idem |
+| `results/diagnostic/20261125T133634Z-52303ae-defective-candidates-isolation-probe/oracle.json` | `results/diagnostic/20261125T133634Z-52303ae-defective-candidates-isolation-probe/oracle.json` | idem |
 | `oracle-artifacts/20261125T133740Z-52303ae-defective-candidates-relay-alters-label/oracle/report.json` | `.oracle-artifacts/20261125T133740Z-52303ae-defective-candidates-relay-alters-label/oracle/report.json` | relais qui altère un libellé |
+| `results/diagnostic/20261125T133740Z-52303ae-defective-candidates-relay-alters-label/measure.json` | `results/diagnostic/20261125T133740Z-52303ae-defective-candidates-relay-alters-label/measure.json` | idem |
+| `results/diagnostic/20261125T133740Z-52303ae-defective-candidates-relay-alters-label/oracle.json` | `results/diagnostic/20261125T133740Z-52303ae-defective-candidates-relay-alters-label/oracle.json` | idem |
+| `oracle-artifacts/20261125T133535Z-52303ae-defective-candidates-contract-invalid/oracle-list/list.json` | `.oracle-artifacts/20261125T133535Z-52303ae-defective-candidates-contract-invalid/oracle-list/list.json` | contrat invalide (oracle non lancé : liste des scénarios) |
+| `results/diagnostic/20261125T133535Z-52303ae-defective-candidates-contract-invalid/measure.json` | `results/diagnostic/20261125T133535Z-52303ae-defective-candidates-contract-invalid/measure.json` | idem |
 
 Le `measure.json` et l'`oracle.json` de la mesure comptée
 `20261125T133422Z-52303ae-reference-candidate`, du même artefact, ont été

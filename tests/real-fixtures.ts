@@ -34,9 +34,19 @@ export const MEASURES = {
   },
   // Candidat défectueux « relais qui altère un libellé ».
   relay: {
+    results: `${MEASURES_RUN}/results/diagnostic/20261125T133740Z-52303ae-defective-candidates-relay-alters-label`,
     artifacts: `${MEASURES_RUN}/oracle-artifacts/20261125T133740Z-52303ae-defective-candidates-relay-alters-label`,
   },
+  // Candidat défectueux « contrat invalide » : l'oracle n'est pas lancé, seule
+  // la liste de ses scénarios l'est.
+  contractInvalid: {
+    results: `${MEASURES_RUN}/results/diagnostic/20261125T133535Z-52303ae-defective-candidates-contract-invalid`,
+    artifacts: `${MEASURES_RUN}/oracle-artifacts/20261125T133535Z-52303ae-defective-candidates-contract-invalid`,
+  },
 } as const;
+
+// Racine du dépôt sur le runner de la CI, citée par les rapports bruts de Playwright.
+export const CI_ROOT = "/home/runner/work/migrabench/migrabench";
 
 // Exécution 45509307133, étalonnage sur main, commit aeb3037.
 export const CALIBRATION = {

@@ -1,0 +1,121 @@
+{
+  "format": 1,
+  "measureId": "20261125T133535Z-52303ae-defective-candidates-contract-invalid",
+  "counted": false,
+  "candidate": {
+    "path": "fixtures/defective-candidates/contract-invalid",
+    "contentDigest": "sha256:fb5df0cbd95d02505578d6c160f47ab5df3242c7788fb03f6545f7e9e1962abb"
+  },
+  "environment": {
+    "benchCommit": "52303ae0f25774b3422c0fd7008e0f1e6a7f4c6c",
+    "worktree": "clean",
+    "node": "v22.23.5",
+    "runtimeImage": "sha256:bfd4567765aadec9f1cf0547b5ab747490b5459c12d96dd181ab99eca41bfede",
+    "containerUser": {
+      "uid": 1001,
+      "gid": 1001
+    },
+    "port": 8100,
+    "limits": {
+      "provisional": false,
+      "source": "calibration",
+      "calibration": {
+        "file": "results/calibration/20261124T232316Z-aeb3037-ci45509307133.1-1.json",
+        "digest": "sha256:0cd1bfcf0fadd21658abdd4fdf67d49917954aa0922af15d532f6a99f27be9dc"
+      },
+      "multiples": {
+        "timeouts": 5,
+        "resources": 2
+      },
+      "buildTimeoutMs": 39405,
+      "readyTimeoutMs": 3430,
+      "buildMemoryBytes": 665845760,
+      "buildCpus": 1.89,
+      "start": {
+        "provisional": true,
+        "source": "build-limits",
+        "memoryBytes": 665845760,
+        "cpus": 1.89,
+        "pids": 256
+      }
+    },
+    "lock": {
+      "takenAt": "2026-11-25T13:35:35.235Z"
+    }
+  },
+  "salt": "6e3a8f73ca151a8928b8fa165dcc7a3ffcee3b88bb29b94d937e60c4f6a4cbf6",
+  "saltImposed": false,
+  "marker": "03f0d2b4267a128b5c991b1e20a673c1798fff2b30dca6f1244dd6a3f712de67",
+  "phases": [
+    {
+      "name": "preparation",
+      "outcome": "ok",
+      "startedAt": "2026-11-25T13:35:35.236Z",
+      "durationMs": 392,
+      "raw": {}
+    },
+    {
+      "name": "contract",
+      "outcome": "contract-invalid",
+      "startedAt": "2026-11-25T13:35:35.628Z",
+      "durationMs": 2,
+      "raw": {},
+      "detail": "candidate.json: field \"url\" is not allowed: the bench imposes the port, read it from the PORT variable\npackage-lock.json: \"node_modules/left-pad\" is resolved on another host: https://registry.example.org/left-pad/-/left-pad-1.3.0.tgz"
+    },
+    {
+      "name": "build",
+      "outcome": "not-run",
+      "startedAt": "",
+      "durationMs": 0,
+      "raw": {}
+    },
+    {
+      "name": "start",
+      "outcome": "not-run",
+      "startedAt": "",
+      "durationMs": 0,
+      "raw": {}
+    },
+    {
+      "name": "oracle",
+      "outcome": "not-run",
+      "startedAt": "",
+      "durationMs": 0,
+      "raw": {}
+    },
+    {
+      "name": "gates",
+      "outcome": "not-run",
+      "startedAt": "",
+      "durationMs": 0,
+      "raw": {}
+    },
+    {
+      "name": "closing",
+      "outcome": "ok",
+      "startedAt": "2026-11-25T13:35:35.630Z",
+      "durationMs": 677,
+      "raw": {}
+    }
+  ],
+  "oracle": {
+    "executed": false,
+    "summary": {
+      "scenarios": 38,
+      "passed": 0,
+      "failed": 0,
+      "unreached": 38,
+      "passRate": 0,
+      "reachedPassRate": null,
+      "keyboard": {
+        "passed": 0,
+        "total": 5
+      }
+    }
+  },
+  "gates": [],
+  "verdict": {
+    "category": "contract-failure",
+    "reason": "contract-invalid"
+  }
+}
