@@ -4,19 +4,19 @@
 // l'empreinte de `oracle.json`.
 import { describe, expect, it } from "vitest";
 import { checkMeasureResult, type MeasureEnvironment } from "../../oracle/result-check.ts";
-import { MEASURES, readJsonFixture } from "../real-fixtures.ts";
+import { MEASURES, readMeasure } from "../real-fixtures.ts";
 
 // La vraie mesure comptée du candidat de référence (exécution 45624689673,
 // tests/fixtures/ci45624689673/PROVENANCE.md). Chaque variante part de la
 // copie et ne change que ce que son test regarde.
-type Measure = { originMain: string; candidate: object; environment: { benchCommit: string }; oracle: { result: string } };
-const VALID = readJsonFixture<Measure>(`${MEASURES.reference.results}/measure.json`);
-const ORIGIN_MAIN = VALID.originMain;
-const BENCH_COMMIT = VALID.environment.benchCommit;
+const VALID = readMeasure(MEASURES.reference);
+// Une mesure comptée : son originMain et le résultat de son oracle sont écrits.
+const ORIGIN_MAIN = VALID.originMain!;
+const BENCH_COMMIT = VALID.environment.benchCommit as string;
 // Commit de main postérieur à la mesure (889e111), dont BENCH_COMMIT est un ancêtre.
 const LATER_MAIN = "889e1117234651da6a571df89c72b2d024788f09";
 const OTHER_BRANCH = "c0ffee00a1b2c3d4e5f60718293a4b5c6d7e8f90";
-const ORACLE_DIGEST = VALID.oracle.result;
+const ORACLE_DIGEST = (VALID.oracle as { result: string }).result;
 
 const ENVIRONMENT: MeasureEnvironment = {
   node: "22.23.5",

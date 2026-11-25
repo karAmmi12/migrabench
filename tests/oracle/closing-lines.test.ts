@@ -2,13 +2,12 @@
 // avec le sel de cette exécution, et qu'il faut relancer `npm run stack:up`
 // avant `npm test`. Elle ne cite aucun sel.
 import { describe, expect, it } from "vitest";
-import type { OracleSummary } from "../../oracle/collect.ts";
 import { closingLines } from "../../oracle/closing-lines.ts";
-import { MEASURES, readJsonFixture } from "../real-fixtures.ts";
+import { MEASURES, readMeasure } from "../real-fixtures.ts";
 
 // Résumé de l'oracle de la vraie mesure comptée du candidat de référence
 // (exécution 45624689673, tests/fixtures/ci45624689673/PROVENANCE.md).
-const { summary } = readJsonFixture<{ oracle: { summary: OracleSummary } }>(`${MEASURES.reference.results}/measure.json`).oracle;
+const summary = readMeasure(MEASURES.reference).oracle.summary!;
 
 describe("closingLines", () => {
   it("ends with the reminder to run `npm run stack:up` before `npm test`", () => {

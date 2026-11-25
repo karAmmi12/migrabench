@@ -3,8 +3,23 @@
 // d'exécution). Un test qui imite un fichier du banc part d'une de ces copies
 // et ne change que ce qu'il regarde.
 import { readFileSync } from "node:fs";
+import { basename } from "node:path";
+import { fileURLToPath } from "node:url";
+import type { measureRecord } from "../runner/measure-record.ts";
 
+// Les chemins de ce module (MEASURES, CALIBRATION, PROOF_RESULTS) sont relatifs
+// à tests/fixtures/.
 const FIXTURES = new URL("fixtures/", import.meta.url);
+
+// Chemin d'une copie depuis la racine du dépôt, tel qu'un message le cite.
+export function fixturePath(path: string): string {
+  return `tests/fixtures/${path}`;
+}
+
+// Chemin absolu d'une copie, pour un outil lancé hors de Node (faux Playwright).
+export function absoluteFixturePath(path: string): string {
+  return fileURLToPath(new URL(path, FIXTURES));
+}
 
 export function readFixture(path: string): string {
   return readFileSync(new URL(path, FIXTURES), "utf8");
@@ -12,6 +27,22 @@ export function readFixture(path: string): string {
 
 export function readJsonFixture<T = unknown>(path: string): T {
   return JSON.parse(readFixture(path)) as T;
+}
+
+// measure.json tel que le banc l'écrit (runner/measure-record.ts).
+export type RecordedMeasure = ReturnType<typeof measureRecord>["record"];
+
+// measure.json d'une mesure de MEASURES, relu à chaque appel : chaque test
+// peut le modifier sans toucher aux autres.
+export function readMeasure({ results }: { results: string }): RecordedMeasure {
+  return readJsonFixture<RecordedMeasure>(`${results}/measure.json`);
+}
+
+// Variante d'une copie : `change` modifie un clone, la copie reste intacte.
+export function variant<T>(value: T, change: (copy: T) => void): T {
+  const copy = structuredClone(value);
+  change(copy);
+  return copy;
 }
 
 // Exécution 45624689673, job des mesures sur main, commit 52303ae.
@@ -47,6 +78,12 @@ export const MEASURES = {
 
 // Racine du dépôt sur le runner de la CI, citée par les rapports bruts de Playwright.
 export const CI_ROOT = "/home/runner/work/migrabench/migrabench";
+
+// Dossier des bruts de l'oracle d'une mesure de MEASURES, tel que le runner de
+// la CI le citait : sous `.oracle-artifacts/`, avec le point que sa copie n'a pas.
+export function ciOracleDir({ artifacts }: { artifacts: string }): string {
+  return `${CI_ROOT}/.oracle-artifacts/${basename(artifacts)}/oracle`;
+}
 
 // Exécution 45509307133, étalonnage sur main, commit aeb3037.
 export const CALIBRATION = {

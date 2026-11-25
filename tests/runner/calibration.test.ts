@@ -12,7 +12,7 @@ import { CALIBRATION, readJsonFixture } from "../real-fixtures.ts";
 
 const MIB = 1024 ** 2;
 
-interface RealCalibration {
+interface RecordedCalibration {
   calibratedAt: string;
   environment: { ciRun: { runId: string; attempt: number; rank: number }; machine: { cpus: number } } & Record<string, unknown>;
   multiples: Multiples;
@@ -22,15 +22,15 @@ interface RealCalibration {
   limits: object;
 }
 
-const REAL = readJsonFixture<RealCalibration>(CALIBRATION.result);
-const MULTIPLES = REAL.multiples;
-const CPUS = REAL.environment.machine.cpus;
-const VALUES = REAL.readings.map(({ values }) => values);
+const RECORDED_CALIBRATION = readJsonFixture<RecordedCalibration>(CALIBRATION.result);
+const MULTIPLES = RECORDED_CALIBRATION.multiples;
+const CPUS = RECORDED_CALIBRATION.environment.machine.cpus;
+const VALUES = RECORDED_CALIBRATION.readings.map(({ values }) => values);
 const first = VALUES[0]!;
 
 describe("readingValues", () => {
   it("takes the build duration of the whole phase, and the memory peak and CPU of its busiest step, since each step has its own container", () => {
-    const [{ build, start, values }] = REAL.readings as [RealCalibration["readings"][number]];
+    const [{ build, start, values }] = RECORDED_CALIBRATION.readings as [RecordedCalibration["readings"][number]];
 
     expect(readingValues({ build, start })).toEqual(values);
     // L'étape la plus gourmande en mémoire (install) n'est pas la plus longue (fetch).
@@ -42,13 +42,13 @@ describe("calibrationSummary", () => {
   it("records the dispersion of the readings, their minimum and maximum", () => {
     const { minimum, maximum } = calibrationSummary(VALUES, MULTIPLES, CPUS);
 
-    expect(minimum).toEqual(REAL.minimum);
-    expect(maximum).toEqual(REAL.maximum);
+    expect(minimum).toEqual(RECORDED_CALIBRATION.minimum);
+    expect(maximum).toEqual(RECORDED_CALIBRATION.maximum);
   });
 
   it("sets timeouts to the maximum times the timeout multiple, and memory and CPU to the maximum times the resource multiple, rounded up", () => {
-    expect(calibrationSummary(VALUES, MULTIPLES, CPUS).limits).toEqual(REAL.limits);
-    expect(REAL.limits).toEqual({
+    expect(calibrationSummary(VALUES, MULTIPLES, CPUS).limits).toEqual(RECORDED_CALIBRATION.limits);
+    expect(RECORDED_CALIBRATION.limits).toEqual({
       buildTimeoutMs: 7881 * 5,
       readyTimeoutMs: 686 * 5,
       buildMemoryBytes: Math.ceil((332_435_456 * 2) / MIB) * MIB,
@@ -87,9 +87,9 @@ describe("chooseCalibration", () => {
   // Le vrai enregistrement, sa date et son exécution de CI changées ; sans
   // `run`, un étalonnage local, sans ciRun.
   const result = (file: string, calibratedAt: string, run?: string) => {
-    const { ciRun, ...environment } = REAL.environment;
+    const { ciRun, ...environment } = RECORDED_CALIBRATION.environment;
     const recorded: { ciRun?: unknown } & Record<string, unknown> = run === undefined ? environment : { ...environment, ciRun: { ...ciRun, runId: run } };
-    return { file, record: { ...REAL, calibratedAt, environment: recorded } };
+    return { file, record: { ...RECORDED_CALIBRATION, calibratedAt, environment: recorded } };
   };
 
   it("chooses the most recent calibration made in CI", () => {

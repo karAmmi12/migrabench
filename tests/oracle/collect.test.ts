@@ -9,31 +9,26 @@
 import { basename } from "node:path";
 import type { JSONReport, JSONReportSpec, JSONReportSuite } from "@playwright/test/reporter";
 import { describe, expect, it } from "vitest";
-import { artifactPaths, collect, type OracleSummary, unreachedSummary } from "../../oracle/collect.ts";
-import { CI_ROOT, MEASURES, readJsonFixture } from "../real-fixtures.ts";
-
-interface Measure {
-  salt: string;
-  saltImposed: boolean;
-  oracle: { summary: OracleSummary };
-}
+import { artifactPaths, collect, unreachedSummary } from "../../oracle/collect.ts";
+import { CI_ROOT, ciOracleDir, MEASURES, readJsonFixture, readMeasure, type RecordedMeasure, variant } from "../real-fixtures.ts";
 
 interface RealCase {
   // Rapport brut de Playwright, chemins absolus du runner de la CI.
   raw: JSONReport;
   // oracle.json écrit par le banc à partir de ce rapport.
   oracle: JSONReport;
-  measure: Measure;
+  measure: RecordedMeasure;
   // Dossier des bruts de l'oracle sur le runner de la CI.
   artifactsDir: string;
 }
 
-function realCase({ results, artifacts }: { results: string; artifacts: string }): RealCase {
+function realCase(measure: { results: string; artifacts: string }): RealCase {
+  const { results, artifacts } = measure;
   return {
     raw: readJsonFixture<JSONReport>(`${artifacts}/oracle/report.json`),
     oracle: readJsonFixture<JSONReport>(`${results}/oracle.json`),
-    measure: readJsonFixture<Measure>(`${results}/measure.json`),
-    artifactsDir: `${CI_ROOT}/.oracle-artifacts/${basename(artifacts)}/oracle`,
+    measure: readMeasure(measure),
+    artifactsDir: ciOracleDir(measure),
   };
 }
 
@@ -68,12 +63,6 @@ function collectCase(real: RealCase, raw: JSONReport = real.raw, { root = CI_ROO
   return collect(raw, { hashes, salt: real.measure.salt, saltImposed, root, artifactsDir: real.artifactsDir.replace(CI_ROOT, root) });
 }
 
-// Variante d'un rapport brut : `change` modifie une copie.
-function variant(raw: JSONReport, change: (copy: JSONReport) => void): JSONReport {
-  const copy = structuredClone(raw);
-  change(copy);
-  return copy;
-}
 
 const firstSpec = (report: JSONReport) => specsOf(report)[0]!;
 const firstResult = (report: JSONReport) => firstSpec(report).tests[0]!.results.at(-1)!;
@@ -283,7 +272,7 @@ describe("oracle collection of paths", () => {
 describe("summary of an oracle that did not run", () => {
   it("counts every listed scenario as unreached", () => {
     const listed = readJsonFixture<JSONReport>(`${MEASURES.contractInvalid.artifacts}/oracle-list/list.json`);
-    const { summary } = readJsonFixture<Measure>(`${MEASURES.contractInvalid.results}/measure.json`).oracle;
+    const { summary } = readMeasure(MEASURES.contractInvalid).oracle;
 
     expect(unreachedSummary(listed)).toEqual(summary);
     expect(summary).toEqual({

@@ -3,18 +3,18 @@
 // règles qu'un résultat de l'oracle, sauf le sel : l'étalonnage n'en a pas.
 import { describe, expect, it } from "vitest";
 import { checkCalibrationResult, formatViolation, type ResultEnvironment } from "../../oracle/result-check.ts";
-import { CALIBRATION, readJsonFixture } from "../real-fixtures.ts";
+import { CALIBRATION, fixturePath, readJsonFixture } from "../real-fixtures.ts";
 
 // Le vrai étalonnage de l'exécution 45509307133
 // (tests/fixtures/ci45509307133/PROVENANCE.md). Chaque variante part de la
 // copie et ne change que son environnement.
-const REAL = readJsonFixture<{ environment: Record<string, unknown> }>(CALIBRATION.result);
-const COMMIT = REAL.environment.benchCommit as string;
+const RECORDED_CALIBRATION = readJsonFixture<{ environment: Record<string, unknown> }>(CALIBRATION.result);
+const COMMIT = RECORDED_CALIBRATION.environment.benchCommit as string;
 const ENVIRONMENT: ResultEnvironment = { node: "22.23.5", commitExists: (sha) => sha === COMMIT };
-const FILE = `tests/fixtures/${CALIBRATION.result}`;
+const FILE = fixturePath(CALIBRATION.result);
 
 function calibration(environment: Record<string, unknown> = {}) {
-  return { ...REAL, environment: { ...REAL.environment, ...environment } };
+  return { ...RECORDED_CALIBRATION, environment: { ...RECORDED_CALIBRATION.environment, ...environment } };
 }
 
 function check(result: unknown): string[] {

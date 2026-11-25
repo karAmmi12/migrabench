@@ -9,16 +9,16 @@
 // bâties sur ses vraies lignes.
 import { describe, expect, it } from "vitest";
 import { checkAccessLog, witnessPath } from "../../runner/access-log.ts";
-import { MEASURES, readFixture, readJsonFixture } from "../real-fixtures.ts";
+import { MEASURES, readFixture, readMeasure } from "../real-fixtures.ts";
 
-const REAL_LOG = readFixture(`${MEASURES.reference.artifacts}/access.log`);
-const MEASURE = readJsonFixture<{ marker: string; accessLog: { lines: number; witnesses: unknown[] } }>(`${MEASURES.reference.results}/measure.json`);
+const ACCESS_LOG = readFixture(`${MEASURES.reference.artifacts}/access.log`);
+const MEASURE = readMeasure(MEASURES.reference);
 const MARKER = MEASURE.marker;
 const OTHER_MARKER = "b2".repeat(32);
 const SEAM_A_MARKER = "c3".repeat(32);
 
 // Lignes du vrai journal, sans la fin de ligne finale.
-const LINES = REAL_LOG.slice(0, -1).split("\n");
+const LINES = ACCESS_LOG.slice(0, -1).split("\n");
 const START_WITNESS = LINES[1]!;
 const END_WITNESS = LINES.at(-1)!;
 // Requête du candidat (relais) vers le legacy, ligne 3.
@@ -41,9 +41,9 @@ const check = (text: string, seamAMarkers: string[] = []) => checkAccessLog({ lo
 describe("checkAccessLog", () => {
   // Ce que le banc en a écrit dans le measure.json de la mesure.
   it("finds the expected witness requests, in order, with their line numbers", () => {
-    const { lines, witnesses } = MEASURE.accessLog;
+    const { lines, witnesses } = MEASURE.accessLog!;
 
-    expect(check(REAL_LOG)).toEqual({ outcome: "ok", lines, witnesses });
+    expect(check(ACCESS_LOG)).toEqual({ outcome: "ok", lines, witnesses });
     expect(witnesses).toEqual([
       { name: "start-1", line: 2 },
       { name: "end", line: 212 },
@@ -66,7 +66,7 @@ describe("checkAccessLog", () => {
   // Le candidat ne connaît pas le marqueur, mais le contrôle n'en dépend pas :
   // un chemin de requête témoin avec un marqueur inventé ne compte pas.
   it("does not count a witness request with an invented marker as a witness", () => {
-    expect(check(REAL_LOG.replaceAll(MARKER, "0".repeat(64))).outcome).toBe("access-log-inactive");
+    expect(check(ACCESS_LOG.replaceAll(MARKER, "0".repeat(64))).outcome).toBe("access-log-inactive");
   });
 
   it("does not count a request whose path only contains the marker as a witness", () => {

@@ -5,18 +5,18 @@
 import { describe, expect, it } from "vitest";
 import { checkProof, type ProofInput, type ProofResult } from "../../oracle/proof.ts";
 import type { ResultEnvironment } from "../../oracle/result-check.ts";
-import { PROOF_RESULTS, readJsonFixture } from "../real-fixtures.ts";
+import { fixturePath, PROOF_RESULTS, readJsonFixture } from "../real-fixtures.ts";
 
 // Les cinq vrais résultats de la preuve de l'exécution 45041781224
 // (tests/fixtures/ci45041781224/PROVENANCE.md), rangs 1 à 5. Chaque variante
 // part de ces copies et ne change que ce que son test regarde.
-const REAL = PROOF_RESULTS.map((path) => readJsonFixture<ProofResult>(path));
-const METADATA = REAL[0]!.config.metadata;
+const PROOF = PROOF_RESULTS.map((path) => readJsonFixture<ProofResult>(path));
+const METADATA = PROOF[0]!.config.metadata;
 const BENCH_COMMIT = METADATA.benchCommit as string;
 const IMAGES = METADATA.images as { legacy: string; archive: string };
 const RUN_ID = METADATA.ciRun!.runId;
 const SUMMARY = METADATA.summary!;
-const SALTS = REAL.map((result) => result.config.metadata.salt);
+const SALTS = PROOF.map((result) => result.config.metadata.salt);
 // Un autre commit du dépôt, absent de la preuve.
 const OTHER_COMMIT = "41fce78aa218f75266cc6ccb7f7bcf2475836d18";
 
@@ -26,11 +26,11 @@ const ENVIRONMENT: ResultEnvironment = {
 };
 
 function fileOf(rank: number): string {
-  return `tests/fixtures/${PROOF_RESULTS[rank - 1]}`;
+  return fixturePath(PROOF_RESULTS[rank - 1]!);
 }
 
 function proof(): ProofInput[] {
-  return [1, 2, 3, 4, 5].map((rank) => ({ file: fileOf(rank), result: structuredClone(REAL[rank - 1]!) }));
+  return [1, 2, 3, 4, 5].map((rank) => ({ file: fileOf(rank), result: structuredClone(PROOF[rank - 1]!) }));
 }
 
 function check(inputs: readonly ProofInput[]): string[] {

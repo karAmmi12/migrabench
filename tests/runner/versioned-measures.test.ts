@@ -19,7 +19,7 @@ import { FETCH_PULL_HEADS, measureEnvironment } from "../../oracle/repository.ts
 import { type CheckedResult, checkMeasureResult, checkResult, formatViolation } from "../../oracle/result-check.ts";
 import { cited, sha256 } from "../../shared/digest.ts";
 import { COUNTED_DIR_FROM_ROOT, ROOT } from "../../shared/root.ts";
-import { MEASURES, readFixture } from "../real-fixtures.ts";
+import { fixturePath, MEASURES, readFixture, readMeasure, variant } from "../real-fixtures.ts";
 
 const environment = measureEnvironment(new URL("../../", import.meta.url));
 
@@ -50,12 +50,12 @@ function report(problems: string[]): string {
 }
 
 // La vraie mesure comptée : son measure.json et son oracle.json, tels qu'écrits par le banc.
-const REAL = `tests/fixtures/${MEASURES.reference.results}`;
-const REAL_MEASURE = readFixture(`${MEASURES.reference.results}/measure.json`);
-const REAL_ORACLE = readFixture(`${MEASURES.reference.results}/oracle.json`);
+const REFERENCE_DIR = fixturePath(MEASURES.reference.results);
+// Texte de son oracle.json, dont measure.json cite l'empreinte.
+const ORACLE_TEXT = readFixture(`${MEASURES.reference.results}/oracle.json`);
 
 // Dossier temporaire d'une variante : `files` y est écrit tel quel.
-function variant(files: Record<string, string>): string {
+function variantDirectory(files: Record<string, string>): string {
   const dir = mkdtempSync(join(tmpdir(), "mb-counted-measure-"));
   for (const [name, content] of Object.entries(files)) writeFileSync(join(dir, name), content);
   return dir;
@@ -63,32 +63,29 @@ function variant(files: Record<string, string>): string {
 
 describe("check of a versioned measure, on a real measure and its variants", () => {
   it("passes the real counted measure", () => {
-    const problems = checkMeasureDirectory(REAL);
+    const problems = checkMeasureDirectory(REFERENCE_DIR);
 
     expect(problems, report(problems)).toEqual([]);
   });
 
   it("fails a measure whose oracle.json is not the one it cites", () => {
-    const measure = JSON.parse(REAL_MEASURE) as { oracle: { result: string } };
-    measure.oracle.result = cited("0".repeat(64));
+    const measure = variant(readMeasure(MEASURES.reference), ({ oracle }) => ((oracle as { result: string }).result = cited("0".repeat(64))));
 
-    expect(checkMeasureDirectory(variant({ "measure.json": JSON.stringify(measure), "oracle.json": REAL_ORACLE }))).toEqual([expect.stringContaining("rule oracle:")]);
+    expect(checkMeasureDirectory(variantDirectory({ "measure.json": JSON.stringify(measure), "oracle.json": ORACLE_TEXT }))).toEqual([expect.stringContaining("rule oracle:")]);
   });
 
   // L'oracle.json au sel imposé est cité par son empreinte : seule sa propre
   // règle échoue.
   it("fails a measure whose oracle.json does not pass the oracle result check", () => {
-    const oracle = JSON.parse(REAL_ORACLE) as { config: { metadata: Record<string, unknown> } };
-    oracle.config.metadata.saltImposed = true;
+    const oracle = variant(JSON.parse(ORACLE_TEXT) as { config: { metadata: Record<string, unknown> } }, ({ config }) => (config.metadata.saltImposed = true));
     const oracleText = JSON.stringify(oracle);
-    const measure = JSON.parse(REAL_MEASURE) as { oracle: { result: string } };
-    measure.oracle.result = cited(sha256(oracleText));
+    const measure = variant(readMeasure(MEASURES.reference), ({ oracle }) => ((oracle as { result: string }).result = cited(sha256(oracleText))));
 
-    expect(checkMeasureDirectory(variant({ "measure.json": JSON.stringify(measure), "oracle.json": oracleText }))).toEqual([expect.stringMatching(/oracle\.json: rule saltImposed:/)]);
+    expect(checkMeasureDirectory(variantDirectory({ "measure.json": JSON.stringify(measure), "oracle.json": oracleText }))).toEqual([expect.stringMatching(/oracle\.json: rule saltImposed:/)]);
   });
 
   it("fails a measure directory without measure.json", () => {
-    expect(checkMeasureDirectory(variant({ "oracle.json": REAL_ORACLE }))).toEqual([expect.stringContaining("measure.json is missing")]);
+    expect(checkMeasureDirectory(variantDirectory({ "oracle.json": ORACLE_TEXT }))).toEqual([expect.stringContaining("measure.json is missing")]);
   });
 });
 

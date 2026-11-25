@@ -10,17 +10,17 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { witnessPath } from "../../runner/access-log.ts";
 import { ACCESS_LOG_FILE, closeAccessLog, sendWitness } from "../../runner/witness.ts";
-import { MEASURES, readFixture, readJsonFixture } from "../real-fixtures.ts";
+import { MEASURES, readFixture, readMeasure } from "../real-fixtures.ts";
 
 // Ligne écrite par le faux legacy : la vraie requête témoin start-1 de la
 // mesure comptée du candidat de référence (exécution 45624689673, ligne 2 de
 // son access.log, tests/fixtures/ci45624689673/PROVENANCE.md), son chemin
 // remplacé. Le marqueur est celui de cette mesure.
-const MARKER = readJsonFixture<{ marker: string }>(`${MEASURES.reference.results}/measure.json`).marker;
-const REAL_LINE = readFixture(`${MEASURES.reference.artifacts}/access.log`).split("\n")[1]!;
+const MARKER = readMeasure(MEASURES.reference).marker;
+const START_WITNESS_LINE = readFixture(`${MEASURES.reference.artifacts}/access.log`).split("\n")[1]!;
 
 function logLine(path: string): string {
-  return `${REAL_LINE.replace(witnessPath(MARKER, "start-1"), path)}\n`;
+  return `${START_WITNESS_LINE.replace(witnessPath(MARKER, "start-1"), path)}\n`;
 }
 
 const servers: Server[] = [];

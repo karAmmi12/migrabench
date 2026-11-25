@@ -5,31 +5,28 @@
 // que ce que son test regarde.
 import { describe, expect, it } from "vitest";
 import { checkResult, formatViolation, type ResultEnvironment } from "../../oracle/result-check.ts";
-import { PROOF_RESULTS, readJsonFixture } from "../real-fixtures.ts";
+import { fixturePath, PROOF_RESULTS, readJsonFixture, variant } from "../real-fixtures.ts";
 
-const FILE = `tests/fixtures/${PROOF_RESULTS[0]}`;
+const FILE = fixturePath(PROOF_RESULTS[0]);
 
 type Result = {
   config: { metadata: Record<string, unknown>; argv: string[]; rootDir: string };
   suites: { file: string; specs: { tests: { results: { stdout: { text: string }[] }[] }[] }[] }[];
 };
-const REAL = readJsonFixture<Result>(PROOF_RESULTS[0]);
-const BENCH_COMMIT = REAL.config.metadata.benchCommit as string;
+const PROOF_RESULT = readJsonFixture<Result>(PROOF_RESULTS[0]);
+const BENCH_COMMIT = PROOF_RESULT.config.metadata.benchCommit as string;
 
 const ENVIRONMENT: ResultEnvironment = {
   node: "22.23.5",
   commitExists: (sha) => sha === BENCH_COMMIT,
 };
 
-function variant(change: (result: Result) => void): Result {
-  const result = structuredClone(REAL);
-  change(result);
-  return result;
-}
+// Premier résultat du premier scénario.
+const firstResult = (result: Result) => result.suites[0]!.specs[0]!.tests[0]!.results[0]!;
 
-const withMetadata = (change: Record<string, unknown>) => variant((result) => Object.assign(result.config.metadata, change));
+const withMetadata = (change: Record<string, unknown>) => variant(PROOF_RESULT, (result) => Object.assign(result.config.metadata, change));
 // Sortie standard du premier scénario, vide dans le vrai résultat.
-const withStdout = (text: string) => variant((result) => result.suites[0]!.specs[0]!.tests[0]!.results[0]!.stdout.push({ text }));
+const withStdout = (text: string) => variant(PROOF_RESULT, (result) => firstResult(result).stdout.push({ text }));
 
 const HOME_PATH = "/Users/someone/migrabench/oracle/scenarios/remise.spec.ts";
 const TEMP_TEXT = "trace in /var/folders/xy/T/playwright-artifacts\n";
@@ -41,7 +38,7 @@ function check(result: Result): string[] {
 
 describe("oracle result check", () => {
   it("accepts a result from a clean worktree, under the Node of .nvmrc, with a drawn salt and a known commit", () => {
-    expect(check(REAL)).toEqual([]);
+    expect(check(PROOF_RESULT)).toEqual([]);
   });
 
   it("refuses a result from a dirty worktree", () => {
@@ -57,7 +54,7 @@ describe("oracle result check", () => {
   });
 
   it("refuses a result that does not say whether its salt was imposed", () => {
-    const result = variant(({ config }) => delete config.metadata.saltImposed);
+    const result = variant(PROOF_RESULT, ({ config }) => delete config.metadata.saltImposed);
 
     expect(check(result)).toEqual([`${FILE}: rule saltImposed: missing, expected false`]);
   });
@@ -73,15 +70,15 @@ describe("oracle result check", () => {
   });
 
   it.each([
-    ["a suite file under a macOS home", variant((result) => (result.suites[0]!.file = HOME_PATH)), "/Users/"],
-    ["a root directory under a Linux home", variant((result) => (result.config.rootDir = "/home/runner/work/migrabench/migrabench/oracle/scenarios")), "/home/"],
+    ["a suite file under a macOS home", variant(PROOF_RESULT, (result) => (result.suites[0]!.file = HOME_PATH)), "/Users/"],
+    ["a root directory under a Linux home", variant(PROOF_RESULT, (result) => (result.config.rootDir = "/home/runner/work/migrabench/migrabench/oracle/scenarios")), "/home/"],
     ["a temporary directory in a test output", withStdout(TEMP_TEXT), "/var/folders/"],
   ])("refuses a machine path anywhere in the result (%s)", (_, result, prefix) => {
     expect(check(result)).toEqual([`${FILE}: rule machine-path: contains ${prefix}`]);
   });
 
   it("refuses a path field that climbs above the repository root", () => {
-    const result = variant(({ config }) => (config.argv[0] = parentNode("v22.23.5")));
+    const result = variant(PROOF_RESULT, ({ config }) => (config.argv[0] = parentNode("v22.23.5")));
 
     expect(check(result)).toEqual([`${FILE}: rule machine-path: contains a path above the repository root: ${parentNode("v22.23.5")}`]);
   });
@@ -91,11 +88,11 @@ describe("oracle result check", () => {
   });
 
   it("reports every violation of a result, not only the first", () => {
-    const result = variant((result) => {
+    const result = variant(PROOF_RESULT, (result) => {
       Object.assign(result.config.metadata, { worktree: "dirty", node: "v24.12.0" });
       result.config.argv[0] = parentNode("v24.12.0");
       result.suites[0]!.file = HOME_PATH;
-      result.suites[0]!.specs[0]!.tests[0]!.results[0]!.stdout.push({ text: TEMP_TEXT });
+      firstResult(result).stdout.push({ text: TEMP_TEXT });
     });
 
     expect(check(result)).toEqual([
