@@ -41,7 +41,7 @@ function summary(passed: number, failed: number, unreached: number) {
 }
 
 // La mesure de diagnostic correspondante : même mesure, pas prévue pour compter.
-const COMPLETE = { ...realMeasure, counted: false, environment: { ...(realMeasure.environment as object), worktree: "dirty" } };
+const COMPLETE: Record<string, unknown> = { ...realMeasure, counted: false, environment: { ...(realMeasure.environment as object), worktree: "dirty" } };
 
 // oracle.json de la mesure, son sel (config.metadata.saltImposed) remplacé.
 function oracleJson(saltImposed: unknown) {
