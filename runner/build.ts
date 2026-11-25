@@ -13,7 +13,7 @@
 // - `build` : la commande déclarée, lancée par `sh -c`, sans réseau.
 // Le seul accès réseau de la phase est donc celui de npm vers le registre
 // imposé, sans code du candidat.
-import { cp, mkdir, readdir, readFile } from "node:fs/promises";
+import { appendFile, cp, mkdir, readdir, readFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { citedFileSha256 as digestOf } from "../shared/digest.ts";
 import { spawnCommand } from "../shared/process.ts";
@@ -80,6 +80,7 @@ export async function buildCandidate({ measureId, image, user, rawDir, copyDir, 
   ];
   for (const { step, dir, network, command } of steps) {
     const output = `${step}.log`;
+    const timeoutLog = `${step}-timeout.log`;
     const npmLogs = join(rawDir, "npm-logs", step);
     await mkdir(npmLogs, { recursive: true });
     const usageDir = join(rawDir, "usage", step);
@@ -90,6 +91,7 @@ export async function buildCandidate({ measureId, image, user, rawDir, copyDir, 
       container: buildContainer(measureId, step),
       deadline,
       logFile: join(rawDir, output),
+      timeoutLog: join(rawDir, timeoutLog),
       args: [
         "--user", dockerUser(user),
         "--network", network,
@@ -113,6 +115,7 @@ export async function buildCandidate({ measureId, image, user, rawDir, copyDir, 
     });
     const durationMs = Date.now() - stepStartedAt;
     raw[output] = await digestOf(join(rawDir, output));
+    if (run.timedOut) raw[timeoutLog] = await digestOf(join(rawDir, timeoutLog));
     let npmLog = "";
     for (const name of (await readdir(npmLogs)).sort()) {
       const path = join(npmLogs, name);
@@ -153,24 +156,52 @@ interface StepRun {
   oomKilled: boolean;
 }
 
+// Délai laissé au client `docker run` après le délai global (#112) : s'il
+// n'a pas rendu la main, il est tué. `docker kill` vise le conteneur, pas le
+// client, qui peut rester bloqué après la fin du conteneur.
+export const BUILD_CLIENT_GRACE_MS = 5_000;
+
 // Lance un conteneur nommé et l'arrête au délai global : `docker kill` est
 // répété chaque seconde, au cas où le conteneur n'existerait pas encore au
-// premier essai. Le conteneur est gardé jusqu'au relevé de `OOMKilled` et de
+// premier essai, et le client `docker run` est tué s'il ne rend pas la main
+// dans le délai de grâce. Chaque essai de `docker kill`, avec son code et sa
+// sortie, et la mise à mort du client sont notés, datés, dans `timeoutLog`
+// (#112). Le conteneur est gardé jusqu'au relevé de `OOMKilled` et de
 // son démarrage : un conteneur jamais démarré (`StartedAt` à zéro) dit que
 // `docker run` a échoué de lui-même ; un `docker inspect` en échec laisse son
 // état inconnu, avec la sortie de `docker inspect` (#68).
-async function runStep({ container, deadline, logFile, args }: { container: string; deadline: number; logFile: string; args: string[] }): Promise<StepRun> {
+async function runStep({ container, deadline, logFile, timeoutLog, args }: { container: string; deadline: number; logFile: string; timeoutLog: string; args: string[] }): Promise<StepRun> {
   let timedOut = false;
   let killer: NodeJS.Timeout | undefined;
+  let clientKiller: NodeJS.Timeout | undefined;
+  const client = new AbortController();
+  const kills = new Set<Promise<void>>();
+  let notes = Promise.resolve();
+  const note = (line: string) => {
+    notes = notes.then(() => appendFile(timeoutLog, `${new Date().toISOString()} ${line}\n`));
+  };
   const timer = setTimeout(() => {
     timedOut = true;
-    // Refusé après une interruption (#71) : la clôture supprime le conteneur.
-    const kill = () => void spawnCommand("docker", ["kill", container], { allowFailure: true }).catch(() => undefined);
+    const timedOutAt = Date.now();
+    const kill = () => {
+      // Refusé après une interruption (#71) : la clôture supprime le conteneur.
+      const attempt = spawnCommand("docker", ["kill", container], { allowFailure: true }).then(
+        ({ code, stdout, stderr }) => note(`docker kill ${container} exited with code ${code}: ${`${stderr}${stdout}`.trim()}`),
+        (error: Error) => note(`docker kill ${container} not run: ${error.message}`),
+      );
+      kills.add(attempt);
+      void attempt.finally(() => kills.delete(attempt));
+    };
     kill();
     killer = setInterval(kill, 1_000);
+    clientKiller = setTimeout(() => {
+      clearInterval(killer);
+      note(`docker run client killed with SIGKILL: still running ${Date.now() - timedOutAt} ms after the timeout`);
+      client.abort();
+    }, BUILD_CLIENT_GRACE_MS);
   }, Math.max(0, deadline - Date.now()));
   try {
-    const { code } = await spawnCommand("docker", ["run", "--name", container, ...args], { logFile, allowFailure: true });
+    const { code } = await spawnCommand("docker", ["run", "--name", container, ...args], { logFile, allowFailure: true, abort: client.signal });
     const inspect = await spawnCommand("docker", ["inspect", "--format", "{{.State.OOMKilled}} {{.State.StartedAt}}", container], { allowFailure: true });
     if (inspect.code !== 0) return { exitCode: code, container: { inspectFailed: `${inspect.stderr}${inspect.stdout}` }, timedOut, oomKilled: false };
     const [oomKilled, startedAt = ""] = inspect.stdout.trim().split(" ");
@@ -178,6 +209,9 @@ async function runStep({ container, deadline, logFile, args }: { container: stri
   } finally {
     clearTimeout(timer);
     clearInterval(killer);
+    clearTimeout(clientKiller);
+    await Promise.all(kills);
+    await notes;
     await spawnCommand("docker", ["rm", "--force", container], { allowFailure: true });
   }
 }
