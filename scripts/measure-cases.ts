@@ -175,7 +175,9 @@ export interface Observed {
 interface MeasureView {
   counted?: unknown;
   saltImposed?: unknown;
-  environment?: { worktree?: unknown; originMain?: unknown };
+  // À la racine, comme le lit oracle/result-check.ts : pas sous environment.
+  originMain?: unknown;
+  environment?: { worktree?: unknown };
   phases?: { name: string; outcome: string; detail?: string }[];
   oracle?: { executed?: unknown; summary?: Record<string, unknown> };
   accessLog?: { witnesses?: { name: string }[] };
@@ -241,7 +243,7 @@ export function caseProblems(expected: MeasureCase, { exitCode, record, oracle }
   if (expected.counted === true) {
     if (measure.counted !== true) problems.push(`counted is ${String(measure.counted)}, expected true`);
     if (measure.environment?.worktree !== "clean") problems.push(`environment.worktree is ${String(measure.environment?.worktree)}, expected clean`);
-    if (typeof measure.environment?.originMain !== "string" || measure.environment.originMain === "") problems.push("environment.originMain is missing");
+    if (typeof measure.originMain !== "string" || measure.originMain === "") problems.push("originMain is missing");
   }
   return problems;
 }
