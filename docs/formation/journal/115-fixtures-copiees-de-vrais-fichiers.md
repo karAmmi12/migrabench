@@ -212,7 +212,15 @@ npx vitest run --project interrupted tests/runner/interrupted-measure.test.ts -t
 
 Observé : `Tests  3 passed | 5 skipped (8)`.
 
-> À vérifier après l'exécution de la CI de la PR : le lien de l'exécution, son head SHA et le résultat des jobs de test.
+CI de la PR #120, sur son head SHA `dff3db8`, toutes vertes :
+
+- [Tests du banc, exécution 45702473254](https://github.com/karAmmi12/migrabench/actions/runs/45702473254) :
+  `Test Files  82 passed (82)`, `Tests  735 passed (735)`, en 3 min 39 s
+  (21:14:20 → 21:17:59 UTC).
+- [Oracle, exécution 45702473403](https://github.com/karAmmi12/migrabench/actions/runs/45702473403) :
+  job `oracle` vert en 2 min 4 s ; `proof` sauté.
+- [Mesures, exécution 45702473204](https://github.com/karAmmi12/migrabench/actions/runs/45702473204) :
+  job `measures` vert en 10 min 56 s.
 
 ### Preuves : chaque test converti vu rouge, puis vert
 
