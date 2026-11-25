@@ -66,6 +66,12 @@ function entries(copy: string, dir: string): string[] {
   return existsSync(join(copy, dir)) ? readdirSync(join(copy, dir)) : [];
 }
 
+// Entrées apparues dans `dir` depuis `before` : la copie du banc contient déjà
+// les mesures comptées versionnées dans results/counted/ (#74).
+function added(copy: string, dir: string, before: readonly string[]): string[] {
+  return entries(copy, dir).filter((entry) => !before.includes(entry));
+}
+
 describe("migrabench measure --counted", { timeout: 60_000 }, () => {
   it("is refused with exit code 4, naming every missing condition, writing nothing and leaving the stack and the bench lock alone", () => {
     const copy = publishedCopy();
@@ -73,6 +79,7 @@ describe("migrabench measure --counted", { timeout: 60_000 }, () => {
     git(copy, "rm", "-q", "-r", "results/calibration");
     git(copy, "commit", "-q", "-m", "no calibration");
     writeFileSync(join(copy, "untracked.txt"), "modified worktree");
+    const versioned = entries(copy, "results/counted");
 
     const result = measure(copy, ["--timeout-cap-ms", "5000"], { ORACLE_SALT: "imposed" });
 
@@ -89,18 +96,19 @@ describe("migrabench measure --counted", { timeout: 60_000 }, () => {
     }
     expect(result.dockerCalls).toEqual([]);
     expect(existsSync(result.lockDir)).toBe(false);
-    expect([...entries(copy, "results/diagnostic"), ...entries(copy, "results/counted"), ...entries(copy, ".oracle-artifacts")]).toEqual([]);
+    expect([...entries(copy, "results/diagnostic"), ...added(copy, "results/counted", versioned), ...entries(copy, ".oracle-artifacts")]).toEqual([]);
   });
 
   it("starts from a published state and writes its directory under results/counted/, not results/diagnostic/", () => {
     const copy = publishedCopy();
+    const versioned = entries(copy, "results/counted");
 
     const result = measure(copy, []);
 
     // Le faux `docker` arrête la mesure à la construction de l'image d'exécution.
     expect(result.stderr).not.toContain("refused-counted");
     expect(result.dockerCalls[0]).toMatch(/^build /);
-    expect(entries(copy, "results/counted")).toEqual([expect.stringMatching(/-reference-candidate$/)]);
+    expect(added(copy, "results/counted", versioned)).toEqual([expect.stringMatching(/-reference-candidate$/)]);
     expect(entries(copy, "results/diagnostic")).toEqual([]);
   });
 });
