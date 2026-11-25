@@ -2,9 +2,13 @@
 // avec le sel de cette exécution, et qu'il faut relancer `npm run stack:up`
 // avant `npm test`. Elle ne cite aucun sel.
 import { describe, expect, it } from "vitest";
+import type { OracleSummary } from "../../oracle/collect.ts";
 import { closingLines } from "../../oracle/closing-lines.ts";
+import { MEASURES, readJsonFixture } from "../real-fixtures.ts";
 
-const summary = { scenarios: 12, passed: 11, failed: 1, unreached: 0 };
+// Résumé de l'oracle de la vraie mesure comptée du candidat de référence
+// (exécution 45624689673, tests/fixtures/ci45624689673/PROVENANCE.md).
+const { summary } = readJsonFixture<{ oracle: { summary: OracleSummary } }>(`${MEASURES.reference.results}/measure.json`).oracle;
 
 describe("closingLines", () => {
   it("ends with the reminder to run `npm run stack:up` before `npm test`", () => {
@@ -29,7 +33,7 @@ describe("closingLines", () => {
 
     expect(lines.slice(0, -1)).toEqual([
       "Result: results/oracle.json",
-      "Scenarios: 12, passed: 11, failed: 1, unreached: 0",
+      "Scenarios: 38, passed: 38, failed: 0, unreached: 0",
     ]);
   });
 });
