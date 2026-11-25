@@ -2,32 +2,52 @@
 // compare le code de sortie, measure.json et la présence d'oracle.json au
 // tableau de la spec de l'étape 3 (« Candidats défectueux »), et, pour la
 // mesure comptée du candidat de référence, au critère de fin (« Notes »).
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { MEASURE_CASES, type Observed, caseProblems } from "../scripts/measure-cases.ts";
 
-const PHASE_NAMES = ["preparation", "contract", "build", "start", "oracle", "gates", "closing"];
+// Copie de la première mesure comptée du candidat de référence, produite par
+// le job des mesures sur main (exécution 45624689673, commit 52303ae) : son
+// measure.json et son oracle.json, tels qu'écrits par le banc.
+const REAL = "tests/fixtures/measure-cases/20261125T133422Z-52303ae-reference-candidate";
+const realMeasure = JSON.parse(readFileSync(new URL(`../${REAL}/measure.json`, import.meta.url), "utf8")) as Record<string, unknown>;
+const realOracle = JSON.parse(readFileSync(new URL(`../${REAL}/oracle.json`, import.meta.url), "utf8")) as object;
+
+describe("caseProblems, on a real counted measure", () => {
+  // L'exécution 45624689673 a rejeté cette mesure : le contrôle cherchait
+  // originMain sous environment, alors que le banc l'écrit à la racine.
+  it("has nothing to report for the first counted measure of the reference candidate", () => {
+    expect(caseProblems(MEASURE_CASES["reference-counted"], { exitCode: 0, record: realMeasure, oracle: realOracle })).toEqual([]);
+  });
+
+  it("names a counted measure without originMain", () => {
+    const { originMain: _originMain, ...record } = realMeasure;
+
+    expect(caseProblems(MEASURE_CASES["reference-counted"], { exitCode: 0, record, oracle: realOracle })).toEqual(["originMain is missing"]);
+  });
+});
+
+// Variantes de la vraie mesure : chacune part de la copie et ne change que ce
+// que son test regarde. Phases : celles de la mesure, issue et détail changés.
+type RealPhase = { name: string; outcome: string; detail?: string };
+const REAL_PHASES = realMeasure.phases as RealPhase[];
 
 function phases(outcomes: Record<string, string> = {}, details: Record<string, string> = {}) {
-  return PHASE_NAMES.map((name) => ({ name, outcome: outcomes[name] ?? "ok", ...(details[name] === undefined ? {} : { detail: details[name] }) }));
+  return REAL_PHASES.map((phase) => ({ ...phase, outcome: outcomes[phase.name] ?? phase.outcome, ...(details[phase.name] === undefined ? {} : { detail: details[phase.name] }) }));
 }
 
 function summary(passed: number, failed: number, unreached: number) {
-  return { scenarios: passed + failed + unreached, passed, failed, unreached };
+  return { ...(realMeasure.oracle as { summary: object }).summary, scenarios: passed + failed + unreached, passed, failed, unreached };
 }
 
-const COMPLETE = {
-  counted: false,
-  saltImposed: false,
-  environment: { worktree: "dirty" },
-  phases: phases(),
-  oracle: { executed: true, summary: summary(38, 0, 0) },
-  accessLog: { witnesses: [{ name: "start-1", line: 2 }, { name: "end", line: 195 }] },
-  verdict: { category: "completed", reason: "ok" },
-};
+// La mesure de diagnostic correspondante : même mesure, pas prévue pour compter.
+const COMPLETE = { ...realMeasure, counted: false, environment: { ...(realMeasure.environment as object), worktree: "dirty" } };
 
-// oracle.json porte son sel dans config.metadata, comme tout résultat de l'oracle.
+// oracle.json de la mesure, son sel (config.metadata.saltImposed) remplacé.
 function oracleJson(saltImposed: unknown) {
-  return { config: { metadata: { saltImposed } } };
+  const oracle = structuredClone(realOracle) as { config: { metadata: Record<string, unknown> } };
+  oracle.config.metadata.saltImposed = saltImposed;
+  return oracle;
 }
 
 function observed(record: object, more: Partial<Observed> = {}): Observed {
@@ -71,20 +91,15 @@ describe("caseProblems, reference candidate", () => {
 });
 
 describe("caseProblems, counted measure of the reference candidate", () => {
-  const counted = { ...COMPLETE, counted: true, environment: { worktree: "clean", originMain: "a".repeat(40) } };
-
-  it("has nothing to report for a counted measure from a clean worktree, with origin/main known", () => {
-    expect(caseProblems(MEASURE_CASES["reference-counted"], observed(counted))).toEqual([]);
-  });
-
   it("names a diagnostic measure, a modified worktree, an unknown origin/main and an imposed salt", () => {
-    const record = { ...COMPLETE, saltImposed: true };
+    const { originMain: _originMain, ...diagnostic } = COMPLETE;
+    const record = { ...diagnostic, saltImposed: true };
 
     expect(caseProblems(MEASURE_CASES["reference-counted"], observed(record))).toEqual([
       "measure.json: saltImposed is true, expected false",
       "counted is false, expected true",
       "environment.worktree is dirty, expected clean",
-      "environment.originMain is missing",
+      "originMain is missing",
     ]);
   });
 });
