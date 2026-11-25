@@ -20,6 +20,9 @@ export interface SpawnOptions {
   // d'une tâche interruptible, l'option est sans effet : Ctrl+C doit atteindre
   // la commande par le groupe de premier plan, faute de relais.
   processGroup?: boolean;
+  // Signal d'abandon : la commande est alors arrêtée par SIGKILL, et son
+  // code rendu comme celui d'une commande en échec.
+  abort?: AbortSignal;
 }
 
 export interface SpawnResult {
@@ -33,7 +36,7 @@ export interface SpawnResult {
 export function spawnCommand(
   command: string,
   args: readonly string[],
-  { env = {}, inherit = false, logFile, allowFailure = false, processGroup = false }: SpawnOptions = {},
+  { env = {}, inherit = false, logFile, allowFailure = false, processGroup = false, abort }: SpawnOptions = {},
 ): Promise<SpawnResult> {
   return new Promise((resolve, reject) => {
     const scope = interruptible.getStore();
@@ -57,9 +60,13 @@ export function spawnCommand(
     });
     scope?.children.add(child);
     if (detached && child.pid !== undefined) scope?.groups.add(child.pid);
+    const stop = () => child.kill("SIGKILL");
+    if (abort?.aborted) stop();
+    else abort?.addEventListener("abort", stop, { once: true });
     child.on("error", reject);
     child.on("close", (code) => {
       scope?.children.delete(child);
+      abort?.removeEventListener("abort", stop);
       const done = () => {
         if (code === 0 || allowFailure) resolve({ code: code ?? 1, stdout, stderr });
         else reject(new Error(`${command} ${args.join(" ")} exited with code ${code}${stderr === "" ? "" : `: ${stderr.trim()}`}`));

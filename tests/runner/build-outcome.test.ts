@@ -95,7 +95,7 @@ describe("registryNetworkError", () => {
 // aucun code du candidat), `install` (npm ci hors ligne, scripts actifs) et
 // `build` (commande déclarée).
 describe("buildStepOutcome", () => {
-  const finished = { exitCode: 0, container: "started" as const, timedOut: false, oomKilled: false, npmLog: "", log: "" };
+  const finished = { exitCode: 0, container: "started" as const, timedOut: false, clientKilled: false, oomKilled: false, npmLog: "", log: "" };
 
   it("is ok when the step exits with code 0", () => {
     expect(buildStepOutcome({ step: "build", ...finished }, REGISTRY)).toEqual({ outcome: "ok" });
@@ -175,5 +175,28 @@ describe("buildStepOutcome", () => {
       detail: "fetch container state unknown: docker inspect failed (docker run exited with code 1): Error response from daemon: i/o timeout",
     });
     expect(buildStepOutcome({ step: "install", ...finished, exitCode: 1, container: inspectFailed }, REGISTRY).outcome).toBe("stack-down-while-candidate");
+  });
+
+  // #112 : le banc tue le client `docker run` encore en marche après le délai
+  // global et sa grâce. Son code de sortie ne dit alors rien : le détail dit
+  // ce qui s'est passé. La catégorie reste celle de #68.
+  const killed = { ...finished, exitCode: 1, timedOut: true, clientKilled: true };
+
+  it("says the docker run client was killed after the global build timeout when the container never started", () => {
+    expect(buildStepOutcome({ step: "fetch", ...killed, container: "never-started" }, REGISTRY)).toEqual({
+      outcome: "runner-error-before-candidate",
+      detail: "Docker did not start the fetch container: the docker run client was killed after the global build timeout",
+    });
+    expect(buildStepOutcome({ step: "install", ...killed, container: "never-started" }, REGISTRY)).toEqual({
+      outcome: "stack-down-while-candidate",
+      detail: "Docker did not start the install container: the docker run client was killed after the global build timeout",
+    });
+  });
+
+  it("says the docker run client was killed after the global build timeout when docker inspect fails", () => {
+    expect(buildStepOutcome({ step: "build", ...killed, container: { inspectFailed: "Error response from daemon: i/o timeout" } }, REGISTRY)).toEqual({
+      outcome: "stack-down-while-candidate",
+      detail: "build container state unknown: docker inspect failed (the docker run client was killed after the global build timeout): Error response from daemon: i/o timeout",
+    });
   });
 });

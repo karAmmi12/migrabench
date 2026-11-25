@@ -48,6 +48,9 @@ export interface BuildStepRun {
   container: "started" | "never-started" | { inspectFailed: string };
   // Arrêtée par le banc : le délai global de construction est écoulé.
   timedOut: boolean;
+  // Client `docker run` tué par le banc, encore en marche après le délai
+  // global et sa grâce (#112) : son code de sortie ne dit alors rien.
+  clientKilled: boolean;
   // Tuée par la limite de mémoire du conteneur.
   oomKilled: boolean;
   // Journal de npm de l'étape, vide pour `build`.
@@ -69,11 +72,15 @@ export type BuildStepOutcome =
 // Un conteneur que Docker n'a jamais démarré, ou dont l'état n'a pas pu être
 // relevé, est une erreur du banc (#68) : avant le lancement de `npm ci` pour
 // `fetch`, une panne pendant que le candidat tourne ensuite.
-export function buildStepOutcome({ step, exitCode, container, timedOut, oomKilled, npmLog, log }: BuildStepRun, registry: string): BuildStepOutcome {
+export function buildStepOutcome({ step, exitCode, container, timedOut, clientKilled, oomKilled, npmLog, log }: BuildStepRun, registry: string): BuildStepOutcome {
   if (container !== "started") {
     const outcome = step === "fetch" ? "runner-error-before-candidate" : "stack-down-while-candidate";
-    if (container === "never-started") return { outcome, detail: `Docker did not start the ${step} container (docker run exited with code ${exitCode}): ${log.trim()}` };
-    return { outcome, detail: `${step} container state unknown: docker inspect failed (docker run exited with code ${exitCode}): ${container.inspectFailed.trim()}` };
+    const killed = "the docker run client was killed after the global build timeout";
+    if (container === "never-started") {
+      return { outcome, detail: clientKilled ? `Docker did not start the ${step} container: ${killed}` : `Docker did not start the ${step} container (docker run exited with code ${exitCode}): ${log.trim()}` };
+    }
+    const run = clientKilled ? killed : `docker run exited with code ${exitCode}`;
+    return { outcome, detail: `${step} container state unknown: docker inspect failed (${run}): ${container.inspectFailed.trim()}` };
   }
   if (timedOut) return { outcome: "build-timeout", detail: `${step} was stopped: the global build timeout ran out` };
   if (oomKilled) return { outcome: "build-resource-limit", detail: `${step} was killed: memory limit reached` };
