@@ -177,8 +177,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: docker compose build
 
+      # Bornée : en local (macOS, commit fa21aaf), chaque scénario a pris de
+      # 13 à 17 minutes après l'arrêt du legacy, le délai de 30 s de Playwright
+      # dépassé puis la fermeture du contexte en attente d'une requête du
+      # relais restée pendante ; 163 s pour #106. Au-delà, l'étape échoue
+      # seule et les mesures suivantes tournent.
       - name: Panne de #68, legacy arrêté pendant l'oracle
         if: ${{ !cancelled() }}
+        timeout-minutes: 10
         run: exec node scripts/run-measure-case.ts legacy-stopped-during-oracle
 
       # Le fichier modifié fait partie du contexte de la pile : les images
