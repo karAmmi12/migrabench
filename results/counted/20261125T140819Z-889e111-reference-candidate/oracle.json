@@ -1,0 +1,3356 @@
+{
+  "config": {
+    "argv": [
+      "node",
+      "node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "oracle/playwright.config.ts"
+    ],
+    "configFile": "oracle/playwright.config.ts",
+    "rootDir": "oracle/scenarios",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "benchCommit": "889e1117234651da6a571df89c72b2d024788f09",
+      "worktree": "clean",
+      "node": "v22.23.5",
+      "chromium": "159.0.8154.6",
+      "playwright": "1.65.1",
+      "images": {
+        "legacy": "sha256:deb4b764a66d989391af28758db8349c30f4cac0be0428eb9ee3dac53a3f6519",
+        "archive": "sha256:9083250f163b0289c66202640721d9bbfd154d845d9877369e9a07b7d43b671d"
+      },
+      "imageContexts": {
+        "legacy": "sha256:c7c2618cc29c9462ec4bf8732d82977d9870dae6a9ab026c998277c8cf2d0f3f",
+        "archive": "sha256:c7c2618cc29c9462ec4bf8732d82977d9870dae6a9ab026c998277c8cf2d0f3f"
+      },
+      "frozenDate": "2025-11-15",
+      "baseUrl": "http://127.0.0.1:8100",
+      "artifacts": ".oracle-artifacts/20261125T140819Z-889e111-reference-candidate/oracle",
+      "ciRun": {
+        "runId": "45630451023",
+        "attempt": 1,
+        "rank": 1
+      },
+      "ci": {
+        "commitHref": "https://github.com/karAmmi12/migrabench/commit/889e1117234651da6a571df89c72b2d024788f09",
+        "commitHash": "889e1117234651da6a571df89c72b2d024788f09",
+        "buildHref": "https://github.com/karAmmi12/migrabench/actions/runs/45630451023"
+      },
+      "actualWorkers": 1,
+      "salt": "675ee84e7702d499ded3cb4fc50756642d34644fe3e2667cc41f5aad6ac9b6f1",
+      "saltImposed": false,
+      "summary": {
+        "scenarios": 38,
+        "passed": 38,
+        "failed": 0,
+        "unreached": 0,
+        "passRate": 1,
+        "reachedPassRate": 1,
+        "keyboard": {
+          "passed": 5,
+          "total": 5
+        }
+      }
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": ".oracle-artifacts/20261125T140819Z-889e111-reference-candidate/oracle",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "benchCommit": "889e1117234651da6a571df89c72b2d024788f09",
+          "worktree": "clean",
+          "node": "v22.23.5",
+          "chromium": "159.0.8154.6",
+          "playwright": "1.65.1",
+          "images": {
+            "legacy": "sha256:deb4b764a66d989391af28758db8349c30f4cac0be0428eb9ee3dac53a3f6519",
+            "archive": "sha256:9083250f163b0289c66202640721d9bbfd154d845d9877369e9a07b7d43b671d"
+          },
+          "imageContexts": {
+            "legacy": "sha256:c7c2618cc29c9462ec4bf8732d82977d9870dae6a9ab026c998277c8cf2d0f3f",
+            "archive": "sha256:c7c2618cc29c9462ec4bf8732d82977d9870dae6a9ab026c998277c8cf2d0f3f"
+          },
+          "frozenDate": "2025-11-15",
+          "baseUrl": "http://127.0.0.1:8100",
+          "artifacts": ".oracle-artifacts/20261125T140819Z-889e111-reference-candidate/oracle",
+          "ciRun": {
+            "runId": "45630451023",
+            "attempt": 1,
+            "rank": 1
+          },
+          "ci": {
+            "commitHref": "https://github.com/karAmmi12/migrabench/commit/889e1117234651da6a571df89c72b2d024788f09",
+            "commitHash": "889e1117234651da6a571df89c72b2d024788f09",
+            "buildHref": "https://github.com/karAmmi12/migrabench/actions/runs/45630451023"
+          },
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "oracle/scenarios",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": ".oracle-artifacts/20261125T140819Z-889e111-reference-candidate/oracle",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "benchCommit": "889e1117234651da6a571df89c72b2d024788f09",
+          "worktree": "clean",
+          "node": "v22.23.5",
+          "chromium": "159.0.8154.6",
+          "playwright": "1.65.1",
+          "images": {
+            "legacy": "sha256:deb4b764a66d989391af28758db8349c30f4cac0be0428eb9ee3dac53a3f6519",
+            "archive": "sha256:9083250f163b0289c66202640721d9bbfd154d845d9877369e9a07b7d43b671d"
+          },
+          "imageContexts": {
+            "legacy": "sha256:c7c2618cc29c9462ec4bf8732d82977d9870dae6a9ab026c998277c8cf2d0f3f",
+            "archive": "sha256:c7c2618cc29c9462ec4bf8732d82977d9870dae6a9ab026c998277c8cf2d0f3f"
+          },
+          "frozenDate": "2025-11-15",
+          "baseUrl": "http://127.0.0.1:8100",
+          "artifacts": ".oracle-artifacts/20261125T140819Z-889e111-reference-candidate/oracle",
+          "ciRun": {
+            "runId": "45630451023",
+            "attempt": 1,
+            "rank": 1
+          },
+          "ci": {
+            "commitHref": "https://github.com/karAmmi12/migrabench/commit/889e1117234651da6a571df89c72b2d024788f09",
+            "commitHash": "889e1117234651da6a571df89c72b2d024788f09",
+            "buildHref": "https://github.com/karAmmi12/migrabench/actions/runs/45630451023"
+          },
+          "actualWorkers": 1
+        },
+        "name": "chromium",
+        "testDir": "oracle/scenarios",
+        "snapshotDir": "oracle/scenarios",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 30000,
+        "use": {
+          "baseURL": "http://127.0.0.1:8100",
+          "trace": "on",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "screen": {
+            "width": 1920,
+            "height": 1080
+          },
+          "deviceScaleFactor": 1,
+          "isMobile": false,
+          "hasTouch": false,
+          "defaultBrowserType": "chromium"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "chromium"
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": ".oracle-artifacts/20261125T140819Z-889e111-reference-candidate/oracle/report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.65.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "remise.spec.ts",
+      "file": "remise.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "remise-summary",
+          "ok": true,
+          "tags": [
+            "remise"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:6094788e737b824890fad8f8dbf114db1cec07c485275dc53f76292180c511ed"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:b2bae80a7a0508634e820ef8f85cf82b1eae5248bf3c962ad8f44ff650680904"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2515,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: remise D-0001",
+                      "duration": 2274
+                    },
+                    {
+                      "title": "verification: number, applicant, subject, status, filing date; no editable field",
+                      "duration": 63
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:30.030Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "remise-remise-summary-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "remise-remise-summary-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6d0ea5dbc551a3552bb1-c24e1e74a5d2e9297bb8",
+          "file": "remise.spec.ts",
+          "line": 27,
+          "column": 1
+        },
+        {
+          "title": "remise-remis",
+          "ok": true,
+          "tags": [
+            "remise"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:698501d8e79c68c6acf152f1ea6a594f410cac1aa786e2a74cb412778c163e22"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:33410a981ace81c4c6e5570a849cfb278a7810bfb2f209f07b72b55be7c7c95c"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 557,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: remise D-0004",
+                      "duration": 413
+                    },
+                    {
+                      "title": "verification: submission date, receipt link, no Remettre",
+                      "duration": 16
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:32.775Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "remise-remise-remis-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "remise-remise-remis-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6d0ea5dbc551a3552bb1-699666cd561d207cdb58",
+          "file": "remise.spec.ts",
+          "line": 41,
+          "column": 1
+        },
+        {
+          "title": "remise-agent-reserved",
+          "ok": true,
+          "tags": [
+            "remise"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:8c181950aa1e912f867cf7ebdda3ead84509a752872c12f1af03b122f2086515"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:a31f0c78051f82989b54fadc2c9456a62beccaa55e047471505fc9e38435a46b"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 453,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: remise D-0003",
+                      "duration": 373
+                    },
+                    {
+                      "title": "verification: reserved to instructeurs, no Remettre",
+                      "duration": 11
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:33.366Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "remise-remise-agent-reserved-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "remise-remise-agent-reserved-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6d0ea5dbc551a3552bb1-e3a5c5bcc02105506a5f",
+          "file": "remise.spec.ts",
+          "line": 52,
+          "column": 1
+        },
+        {
+          "title": "receipt-agent",
+          "ok": true,
+          "tags": [
+            "remise"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:variant",
+                  "description": "receipt-tab=same-tab"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:7f7b049061670753f789b40ba2c293e6a441d7f74a92341b5a1a2403ded1fa09"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:0dbd2030029f0e6c7ea0a0b16f1d46ae76de39b3c3a2e204ac5c9a7ae458d360"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 560,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: remise D-0007",
+                      "duration": 374
+                    },
+                    {
+                      "title": "verification: receipt page with its title and archive reference",
+                      "duration": 68
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:34.569Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:variant",
+                      "description": "receipt-tab=same-tab"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "remise-receipt-agent-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "remise-receipt-agent-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6d0ea5dbc551a3552bb1-63e5029ddc2a22e23ffb",
+          "file": "remise.spec.ts",
+          "line": 99,
+          "column": 1
+        }
+      ],
+      "suites": [
+        {
+          "title": "",
+          "file": "remise.spec.ts",
+          "line": 62,
+          "column": 6,
+          "specs": [
+            {
+              "title": "remise-instructeur",
+              "ok": true,
+              "tags": [
+                "remise"
+              ],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:har",
+                      "description": "sha256:e554e9e2ea290ba5eca1652ad27599a55ea898f62011072d70d8b0e3b757ac15"
+                    },
+                    {
+                      "type": "mb:trace",
+                      "description": "sha256:518f293a77544b0a9d840a05be716c559c7b4129c360b10622050763f6dd41aa"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 671,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "steps": [
+                        {
+                          "title": "navigation: remise D-0111",
+                          "duration": 436
+                        },
+                        {
+                          "title": "verification: Remettre without confirmation, then submitted on the frozen date",
+                          "duration": 146
+                        }
+                      ],
+                      "startTime": "2026-11-25T14:08:33.851Z",
+                      "annotations": [
+                        {
+                          "type": "mb:reach",
+                          "description": "reached"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "har",
+                          "contentType": "application/json",
+                          "path": "remise-remise-instructeur-chromium/scenario.har"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "remise-remise-instructeur-chromium/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6d0ea5dbc551a3552bb1-39ea76f1f2c274b1721d",
+              "file": "remise.spec.ts",
+              "line": 67,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "",
+          "file": "remise.spec.ts",
+          "line": 105,
+          "column": 6,
+          "specs": [
+            {
+              "title": "receipt-instructeur",
+              "ok": true,
+              "tags": [
+                "remise"
+              ],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:variant",
+                      "description": "receipt-tab=same-tab"
+                    },
+                    {
+                      "type": "mb:har",
+                      "description": "sha256:5b1c95ebf4da6e3e2d43d62f086298c7d86fbf3c8b1953e39ab5d36a27035233"
+                    },
+                    {
+                      "type": "mb:trace",
+                      "description": "sha256:f951dedd6dcbe972f050f365a278d01f906c9ae65d9d7375390475c34dc796ba"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 539,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "steps": [
+                        {
+                          "title": "navigation: remise D-0010",
+                          "duration": 363
+                        },
+                        {
+                          "title": "verification: receipt page with its title and archive reference",
+                          "duration": 85
+                        }
+                      ],
+                      "startTime": "2026-11-25T14:08:35.160Z",
+                      "annotations": [
+                        {
+                          "type": "mb:reach",
+                          "description": "reached"
+                        },
+                        {
+                          "type": "mb:variant",
+                          "description": "receipt-tab=same-tab"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "har",
+                          "contentType": "application/json",
+                          "path": "remise-receipt-instructeur-chromium/scenario.har"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "remise-receipt-instructeur-chromium/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6d0ea5dbc551a3552bb1-4bba47ef9ec9474d82c9",
+              "file": "remise.spec.ts",
+              "line": 108,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "search.spec.ts",
+      "file": "search.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "search-initial-focus",
+          "ok": true,
+          "tags": [
+            "recherche",
+            "clavier"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:d7f658191c96a6195fa505c7e21504223412ce63fd5d99d7e285a831a7b42c52"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:da92e50cf2aca440e064bff80519364c32f2f43c999f8ffa358dd358f0c8ade9"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 175,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 105
+                    },
+                    {
+                      "title": "verification: focus on Numéro",
+                      "duration": 5
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:35.733Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "search-search-initial-focus-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "search-search-initial-focus-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-bfb768823ac211a010c8",
+          "file": "search.spec.ts",
+          "line": 90,
+          "column": 1
+        },
+        {
+          "title": "search-empty-form",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:3fe2beed9a535c08d75ffa373635e8c60d1951703d20c223f367d07b23988170"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:eee8f0be9b48d5254e712c527e5dfdd154219585b88af8580c78688e99fc7dc9"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 832,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 76
+                    },
+                    {
+                      "title": "verification: shared numbers D-0001, D-0002, D-0003, D-0004, D-0005, D-0006, D-0007, D-0008, D-0009, D-0010, D-0011, D-0012, D-0013, D-0014, D-0015, D-0016, D-0017, D-0018, D-0019, D-0020, D-0021, D-0022, D-0023, D-0024, D-0025, D-0026, D-0027, D-0028, D-0029, D-0030",
+                      "duration": 660
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:35.927Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "search-search-empty-form-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "search-search-empty-form-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-6eabd18225983ea58f0c",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-number-exact",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:5c62388e9007e42afa73ce5e8c0f9fb1abb4bc22a31b5819a5bfff1d2074ecd6"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:4a0e0f24f0195bd5ddaecfeb18e9efd316ef15829e51e627dd4abff5ae2a9ea3"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 845,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 118
+                    },
+                    {
+                      "title": "verification: shared numbers D-0007",
+                      "duration": 640
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:36.804Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "search-search-number-exact-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "search-search-number-exact-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-1cda7593e676a0d34891",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-applicant-contains-case",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:0b201bb5750d2d80f205237d87fec4f8364eb111343e06542d5682ede9078c79"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:02deb8becff93c3da555ee6dee07c87dc5692c1c441a2926d8c99a89ac4bcd2d"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 773,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 70
+                    },
+                    {
+                      "title": "verification: shared numbers D-0016",
+                      "duration": 641
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:37.676Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "search-search-applicant-contains-case-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "search-search-applicant-contains-case-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-dfaec5fab7e488156a9e",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-applicant-accents",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:9ff93a342bdce035f1074ae174630b88a0e428feca2b6d18808d8c223010fd16"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:bf711edf0e4dbd271053f53b9bcfeff997e5ef1514a5755086f06948f674c1ed"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 784,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 78
+                    },
+                    {
+                      "title": "verification: shared numbers D-0004",
+                      "duration": 635
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:38.476Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "search-search-applicant-accents-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "search-search-applicant-accents-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-8c6e3aec0c7f6aaa4438",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-status",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:4f9019541aebf894bfc26e4ae9dcf2e9fff738a6e7b2f279305f55e139f9bce5"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:eff833d1fc3c86250d49ad50f09b86086c643ec1a840bea4807d6d4a171aa45e"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 828,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 109
+                    },
+                    {
+                      "title": "verification: shared numbers D-0001, D-0004, D-0007, D-0010, D-0013, D-0016, D-0019, D-0022, D-0025, D-0028",
+                      "duration": 644
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:39.291Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "search-search-status-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "search-search-status-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-ad4197bf1b1f1d2616a5",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-filed-same-day",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:c275946edd021ea4097e92ba8261f08c161f80505dc34ea6de72af07b493e110"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:69d1d09c87dfb5fbd1af807c254b2a2593238f38349515aa7160d395498f03c5"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 826,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 70
+                    },
+                    {
+                      "title": "verification: shared numbers D-0012, D-0019",
+                      "duration": 661
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:40.148Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "search-search-filed-same-day-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "search-search-filed-same-day-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-013f03927ccf904c6763",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-filed-from-only",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:05a21a66dbf67c47812d905786f788be6193a9f702e7f96d7a367664e85a0fd3"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:45c2ace552654dce4cc3df01eae55f4f562e660a102fb09c72c964ccf0749a30"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 881,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 122
+                    },
+                    {
+                      "title": "verification: shared numbers D-0030",
+                      "duration": 651
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:41.016Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "search-search-filed-from-only-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "search-search-filed-from-only-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-82075333a5a9a20ed1db",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-filed-to-only",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:31657a8890cabc19a839e13841c17edc0585ae47b61284ab6699bf1ad9004d67"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:2c99fee21ededdd541cfe7b2513f2902ff0982ef4e4651b03c8a293745258e26"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 764,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 63
+                    },
+                    {
+                      "title": "verification: shared numbers D-0001",
+                      "duration": 635
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:41.920Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "search-search-filed-to-only-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "search-search-filed-to-only-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-ec278de6ec4833b7e16f",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-criteria-and",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:0bf2726cc0a0298aa0c6a9798eec987bbf4ada0df338908634e9e39dd22f7745"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:16c5527709d7203199e55c2c0a562a867cd8e9da523a292364680434dd832052"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 779,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 66
+                    },
+                    {
+                      "title": "verification: shared numbers D-0007, D-0019",
+                      "duration": 652
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:42.709Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "search-search-criteria-and-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "search-search-criteria-and-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-60a5d011efa4a8359f3b",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-no-result",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:2264fad4a8cf3ecb7ca7042c845c36f9461132902714e23ce1e5fc7136cd0d02"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:e20c8f646aaf06b76df12cf4e5cc38cc4854fa2e621163855656db35c3aac04c"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 802,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 98
+                    },
+                    {
+                      "title": "verification: no-result message, no number",
+                      "duration": 640
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:43.515Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "search-search-no-result-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "search-search-no-result-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-464844fe2d4d82dd3156",
+          "file": "search.spec.ts",
+          "line": 141,
+          "column": 1
+        },
+        {
+          "title": "search-number-mask",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:8bdd126e5093fdfe0f1bebaf699a6dd99d00875e345301a40e3a6ac835757d7d"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:d73a70da690cb447332bd3de58d50a6914b1949a98ca6f6dd48939e0a19a5f14"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 825,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 94
+                    },
+                    {
+                      "title": "verification: refused with its message, no shared number",
+                      "duration": 663
+                    },
+                    {
+                      "title": "verification: input kept",
+                      "duration": 4
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:44.338Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "search-search-number-mask-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "search-search-number-mask-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-1a1f053a48c7de8e1b10",
+          "file": "search.spec.ts",
+          "line": 73,
+          "column": 3
+        },
+        {
+          "title": "search-number-spaces",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:673ba59a3aa8b64038be3af25d8619472605e80f9a2550736af997f35e859f72"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:087cd467bf2f4759378b0d3333f67524221e9f8bec13bd081dfb797cfb32176e"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 874,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 65
+                    },
+                    {
+                      "title": "verification: refused with its message, no shared number",
+                      "duration": 740
+                    },
+                    {
+                      "title": "verification: input kept",
+                      "duration": 8
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:45.183Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "search-search-number-spaces-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "search-search-number-spaces-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-5285b23bcff59e963f6b",
+          "file": "search.spec.ts",
+          "line": 73,
+          "column": 3
+        },
+        {
+          "title": "search-filed-from-format",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:c4d05d30a827397e952fd93cdcfbdd13ceee03f7249448b12a414f40cfd792e6"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:9bf23aa41bb42dcdecdd9cdf124fa25db4f08b3c86281b8755b4fc8ec3268e0c"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 848,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 85
+                    },
+                    {
+                      "title": "verification: refused with its message, no shared number",
+                      "duration": 661
+                    },
+                    {
+                      "title": "verification: input kept",
+                      "duration": 5
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:46.078Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "search-search-filed-from-format-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "search-search-filed-from-format-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-8a31346eecea0e270740",
+          "file": "search.spec.ts",
+          "line": 73,
+          "column": 3
+        },
+        {
+          "title": "search-filed-to-format",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:4b9c39a9718b416e9e3dc4e136a4c73fb5566096f3e7571e6fb7f4655f6e9aaf"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:50b9482e347da2915525b453f911a6f5367b8cc9096919e0c0d9ee5c88af2cbe"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 815,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 66
+                    },
+                    {
+                      "title": "verification: refused with its message, no shared number",
+                      "duration": 655
+                    },
+                    {
+                      "title": "verification: input kept",
+                      "duration": 13
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:46.946Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "search-search-filed-to-format-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "search-search-filed-to-format-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-c4adc649ee4072b45bc4",
+          "file": "search.spec.ts",
+          "line": 73,
+          "column": 3
+        },
+        {
+          "title": "search-filed-range-order",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:88f9fa7ec99e931cd65a450b2053efa6a5c82f04dcd23d8ebc1c182f7d3589c7"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:d4ab37f41f7a4f943041410cb839b62f7c990e7dcc09185b2dc69aa43a90e08c"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 862,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 106
+                    },
+                    {
+                      "title": "verification: refused with its message, no shared number",
+                      "duration": 677
+                    },
+                    {
+                      "title": "verification: input kept",
+                      "duration": 8
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:47.788Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "search-search-filed-range-order-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "search-search-filed-range-order-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-40fa4aed9c0f1f012da0",
+          "file": "search.spec.ts",
+          "line": 73,
+          "column": 3
+        }
+      ],
+      "suites": [
+        {
+          "title": "",
+          "file": "search.spec.ts",
+          "line": 172,
+          "column": 8,
+          "specs": [
+            {
+              "title": "auth-no-credentials",
+              "ok": true,
+              "tags": [
+                "recherche"
+              ],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:har",
+                      "description": "sha256:dd8ce40f50aaaff79e17a5a0844f403306a44afb5971197df4335bfd3ac74640"
+                    },
+                    {
+                      "type": "mb:trace",
+                      "description": "sha256:ffce13555654a18b97867b7331d1e3cba7c5921f63f3fa22ed9cc9817c6c2bf4"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 120,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "steps": [
+                        {
+                          "title": "navigation: load BASE_URL",
+                          "duration": 33
+                        },
+                        {
+                          "title": "verification: no-credentials refused with 401, search not shown",
+                          "duration": 26
+                        }
+                      ],
+                      "startTime": "2026-11-25T14:08:48.676Z",
+                      "annotations": [
+                        {
+                          "type": "mb:reach",
+                          "description": "reached"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "har",
+                          "contentType": "application/json",
+                          "path": "search-auth-no-credentials-chromium/scenario.har"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "search-auth-no-credentials-chromium/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a088064de9fe351eef5f-edb54c4d3ae98f72a907",
+              "file": "search.spec.ts",
+              "line": 175,
+              "column": 5
+            },
+            {
+              "title": "auth-unknown-user",
+              "ok": true,
+              "tags": [
+                "recherche"
+              ],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:har",
+                      "description": "sha256:ab04ed83f551f201a06d23468322e7767e2586f6b7380a98e5c437cd5e9c7768"
+                    },
+                    {
+                      "type": "mb:trace",
+                      "description": "sha256:7f9f27c2bfebba7b66bbf3395de9b9ed86e5f4703d7d7b719e781daffdabbfc7"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 146,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "steps": [
+                        {
+                          "title": "navigation: load BASE_URL",
+                          "duration": 56
+                        },
+                        {
+                          "title": "verification: unknown-user refused with 401, search not shown",
+                          "duration": 37
+                        }
+                      ],
+                      "startTime": "2026-11-25T14:08:48.812Z",
+                      "annotations": [
+                        {
+                          "type": "mb:reach",
+                          "description": "reached"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "har",
+                          "contentType": "application/json",
+                          "path": "search-auth-unknown-user-chromium/scenario.har"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "search-auth-unknown-user-chromium/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a088064de9fe351eef5f-848aa6a69812680506d8",
+              "file": "search.spec.ts",
+              "line": 175,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "sheet.spec.ts",
+      "file": "sheet.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "sheet-initial-focus",
+          "ok": true,
+          "tags": [
+            "fiche",
+            "clavier"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:a88ce287b09e0c5b07305830320b0887213edddd67874c46624052ecbd044f4d"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:367721bf42e5a5cddc059777b6ca9a35438d6d4fd8d26b79ae8ef9d2fd61a035"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 355,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0002",
+                      "duration": 282
+                    },
+                    {
+                      "title": "verification: focus on Objet",
+                      "duration": 7
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:48.980Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "sheet-sheet-initial-focus-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "sheet-sheet-initial-focus-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-6f8efed355568056053d",
+          "file": "sheet.spec.ts",
+          "line": 25,
+          "column": 1
+        },
+        {
+          "title": "sheet-tab-order",
+          "ok": true,
+          "tags": [
+            "fiche",
+            "clavier"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:5a5d5083064b51888f1af6a95155aeb9564058028096109bbdbdefb2787a542a"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:e18b306c1cf726b103f2db680665f50a944847bd54529e46fe3dbc9afe07345d"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 370,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0003",
+                      "duration": 257
+                    },
+                    {
+                      "title": "verification: Objet, Tab to Demandeur, Tab to Enregistrer",
+                      "duration": 46
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:49.357Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "sheet-sheet-tab-order-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "sheet-sheet-tab-order-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-de5416d44cf5b46f67b9",
+          "file": "sheet.spec.ts",
+          "line": 34,
+          "column": 1
+        },
+        {
+          "title": "sheet-content",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:cde4e7286c1dca41d811984daacb910355a7f83b895453e5dc64630cfe4b6752"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:cd22666e2b8ef9a3c5e7aa6ed4b8d9b166a1db39934534b3ce63ad13b02859bc"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 443,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0006",
+                      "duration": 322
+                    },
+                    {
+                      "title": "verification: number, status, filing date, applicant, subject",
+                      "duration": 27
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:49.758Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "sheet-sheet-content-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "sheet-sheet-content-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-104b885cb32ff4d1e0fa",
+          "file": "sheet.spec.ts",
+          "line": 48,
+          "column": 1
+        },
+        {
+          "title": "sheet-save-brouillon",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:f6f1ae4c5ba9e698e903695b1442161558fb4f1e427827b8f41b0a5a48fa4064"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:91c39878d46ac3e605ae1424484db190ed92fec8598d4347c5536bfb551f7054"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 787,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0102",
+                      "duration": 283
+                    },
+                    {
+                      "title": "verification: save applicant and subject with Enregistrer",
+                      "duration": 91
+                    },
+                    {
+                      "title": "verification: reread sheet D-0102",
+                      "duration": 336
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:50.226Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "sheet-sheet-save-brouillon-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "sheet-sheet-save-brouillon-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-10f70460d2752df866e8",
+          "file": "sheet.spec.ts",
+          "line": 61,
+          "column": 1
+        },
+        {
+          "title": "sheet-save-en-instruction",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:39c8030942fbbb8ac9bebf71685e3636ecdae74fc77377b166db4f8f4e1957bc"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:85623ff29bd6a394a1c83b38938a2eea63b59b0ab64979e2790b79bb8dac8bf2"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 779,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0103",
+                      "duration": 274
+                    },
+                    {
+                      "title": "verification: save subject with Enregistrer",
+                      "duration": 100
+                    },
+                    {
+                      "title": "verification: reread sheet D-0103",
+                      "duration": 329
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:51.048Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "sheet-sheet-save-en-instruction-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "sheet-sheet-save-en-instruction-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-a6d34f86a6f1dc1f78c1",
+          "file": "sheet.spec.ts",
+          "line": 78,
+          "column": 1
+        },
+        {
+          "title": "sheet-ctrl-s",
+          "ok": true,
+          "tags": [
+            "fiche",
+            "clavier"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:7b7c40a9820fefe2984385ce71f5656e1633f9499bc0cf7b62b8ce0a99293c5a"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:e886dc4161277bd2c4ac8e17430b69613cf88ea5bae94641d0bb5fb5795345a0"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 887,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0104",
+                      "duration": 394
+                    },
+                    {
+                      "title": "verification: Ctrl+S prevents the browser default",
+                      "duration": 41
+                    },
+                    {
+                      "title": "verification: reread sheet D-0104",
+                      "duration": 382
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:51.860Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "sheet-sheet-ctrl-s-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "sheet-sheet-ctrl-s-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-f1e8419e33eb5fac2717",
+          "file": "sheet.spec.ts",
+          "line": 93,
+          "column": 1
+        },
+        {
+          "title": "sheet-ctrl-s-remis",
+          "ok": true,
+          "tags": [
+            "fiche",
+            "clavier"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:64e96c5db76e60999db6ead42862e6780cba169d650e891fbc081ce39a3cb743"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:5d262e3d6390fbd7d31f5cb178fae118d05b5056187b861bf75ee56a73859e03"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 708,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0116",
+                      "duration": 251
+                    },
+                    {
+                      "title": "verification: Ctrl+S prevents the browser default",
+                      "duration": 23
+                    },
+                    {
+                      "title": "verification: reread sheet D-0116",
+                      "duration": 360
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:52.782Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "sheet-sheet-ctrl-s-remis-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "sheet-sheet-ctrl-s-remis-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-3765659be0c55761c593",
+          "file": "sheet.spec.ts",
+          "line": 107,
+          "column": 1
+        },
+        {
+          "title": "sheet-remise-link",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:710d3ccfd16287707bbbedd7879fbe9a7507ee77bfd65bfe610858ed12f67cbb"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:766fe1fd470c921229c5848331a0f9afac4464174e2279b74b145858a9999edf"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 951,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0002",
+                      "duration": 260
+                    },
+                    {
+                      "title": "verification: no Remise link on a BROUILLON (D-0002)",
+                      "duration": 8
+                    },
+                    {
+                      "title": "navigation: sheet D-0003",
+                      "duration": 254
+                    },
+                    {
+                      "title": "verification: Remise link on an EN_INSTRUCTION (D-0003)",
+                      "duration": 12
+                    },
+                    {
+                      "title": "navigation: sheet D-0001",
+                      "duration": 313
+                    },
+                    {
+                      "title": "verification: Remise link on a REMIS (D-0001)",
+                      "duration": 15
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:53.520Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "sheet-sheet-remise-link-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "sheet-sheet-remise-link-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-6a1ab64a05f833e03c73",
+          "file": "sheet.spec.ts",
+          "line": 122,
+          "column": 1
+        },
+        {
+          "title": "sheet-applicant-required",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:37b039ed48d9e350be398cecc71b3cbcc3e8f7c6edc196332ca4fd4a8b880828"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:0a1bc3518c39826b4012be0eb4fe0dc1b8fdb1650099d33199bda2f833e4bf1e"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 848,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0105",
+                      "duration": 254
+                    },
+                    {
+                      "title": "verification: blank applicant refused with its message",
+                      "duration": 131
+                    },
+                    {
+                      "title": "verification: both inputs kept",
+                      "duration": 19
+                    },
+                    {
+                      "title": "verification: reread sheet D-0105",
+                      "duration": 357
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:54.510Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "sheet-sheet-applicant-required-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "sheet-sheet-applicant-required-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-5e91411e5e69aa6cfee5",
+          "file": "sheet.spec.ts",
+          "line": 143,
+          "column": 1
+        },
+        {
+          "title": "sheet-subject-required",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:d7c9110ffda7800cb787763ee35f3ae57e86079eaafb64473d15aa9783c473c9"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:7c51ed2e74867b32c059520caea74057a150e4f4e3c597c1bcd5266d3d76892a"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 774,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0107",
+                      "duration": 264
+                    },
+                    {
+                      "title": "verification: empty subject refused with its message",
+                      "duration": 108
+                    },
+                    {
+                      "title": "verification: input kept",
+                      "duration": 9
+                    },
+                    {
+                      "title": "verification: reread sheet D-0107",
+                      "duration": 313
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:55.389Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "sheet-sheet-subject-required-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "sheet-sheet-subject-required-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-159090ad32f24fe1d7e9",
+          "file": "sheet.spec.ts",
+          "line": 164,
+          "column": 1
+        },
+        {
+          "title": "sheet-applicant-maxlength",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:variant",
+                  "description": "maxlength=message"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:f8d20301cb3f365941e07edc2145b49435a7e54d0c654e193620a6fda70ea4cd"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:99c033b5841a0c9d2d21eb9458ab57307e5e0e996f75c251bb450285f794a7ff"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1124,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0106",
+                      "duration": 290
+                    },
+                    {
+                      "title": "verification: type 81 characters in Demandeur",
+                      "duration": 298
+                    },
+                    {
+                      "title": "verification: maxlength message shown",
+                      "duration": 124
+                    },
+                    {
+                      "title": "verification: input kept",
+                      "duration": 7
+                    },
+                    {
+                      "title": "verification: reread sheet D-0106",
+                      "duration": 315
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:56.192Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:variant",
+                      "description": "maxlength=message"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "sheet-sheet-applicant-maxlength-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "sheet-sheet-applicant-maxlength-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-50f691f1c43e59595a85",
+          "file": "sheet.spec.ts",
+          "line": 228,
+          "column": 1
+        },
+        {
+          "title": "sheet-subject-maxlength",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:variant",
+                  "description": "maxlength=message"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:9741ee25fbd993e7a2d7cc5460d669d4d58015acf7346f8a9a80cd34ab8ee5bf"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:2166cfad7771d75a656ad820b96942bb44b647da34c23773b398cb64566093f9"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1018,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0108",
+                      "duration": 263
+                    },
+                    {
+                      "title": "verification: type 201 characters in Objet",
+                      "duration": 244
+                    },
+                    {
+                      "title": "verification: maxlength message shown",
+                      "duration": 99
+                    },
+                    {
+                      "title": "verification: input kept",
+                      "duration": 6
+                    },
+                    {
+                      "title": "verification: reread sheet D-0108",
+                      "duration": 321
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:57.365Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:variant",
+                      "description": "maxlength=message"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "sheet-sheet-subject-maxlength-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "sheet-sheet-subject-maxlength-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-dd39b54c182fed6d168c",
+          "file": "sheet.spec.ts",
+          "line": 234,
+          "column": 1
+        },
+        {
+          "title": "sheet-lock-en-instruction",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:variant",
+                  "description": "lock=readonly"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:bddff43126ee4e4058621658b3e02d9ef9dec586c16efed932c5fa1a796f8244"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:a38a1a0075ae1546065d2dcb6d59db691069bd04fadfeb1e2ebee4b56ea44f8d"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 953,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0109",
+                      "duration": 275
+                    },
+                    {
+                      "title": "verification: Demandeur locked, a keystroke does not change it",
+                      "duration": 39
+                    },
+                    {
+                      "title": "verification: Objet editable, Enregistrer present",
+                      "duration": 15
+                    },
+                    {
+                      "title": "verification: save with Enregistrer",
+                      "duration": 94
+                    },
+                    {
+                      "title": "verification: reread sheet D-0109",
+                      "duration": 430
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:58.421Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:variant",
+                      "description": "lock=readonly"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "sheet-sheet-lock-en-instruction-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "sheet-sheet-lock-en-instruction-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-5cb88f9521738bc957b6",
+          "file": "sheet.spec.ts",
+          "line": 269,
+          "column": 1
+        },
+        {
+          "title": "sheet-lock-remis",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:variant",
+                  "description": "lock=readonly"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                },
+                {
+                  "type": "mb:har",
+                  "description": "sha256:8196185056f9a9d639da406cd9364def12ebb16b6cba77ecb73e11efa16371bc"
+                },
+                {
+                  "type": "mb:trace",
+                  "description": "sha256:3b90a8c620f51358bf0192658acb516e83410475b7fe7c0ded8cc53251004d89"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 809,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0110",
+                      "duration": 271
+                    },
+                    {
+                      "title": "verification: Demandeur and Objet locked, no Enregistrer",
+                      "duration": 40
+                    },
+                    {
+                      "title": "verification: a keystroke changes neither Demandeur nor Objet",
+                      "duration": 40
+                    },
+                    {
+                      "title": "verification: reread sheet D-0110",
+                      "duration": 344
+                    }
+                  ],
+                  "startTime": "2026-11-25T14:08:59.409Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:variant",
+                      "description": "lock=readonly"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "sheet-sheet-lock-remis-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "sheet-sheet-lock-remis-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-1d376e3cf3103fa3fd15",
+          "file": "sheet.spec.ts",
+          "line": 292,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-25T14:08:29.235Z",
+    "duration": 31109.393,
+    "expected": 38,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
