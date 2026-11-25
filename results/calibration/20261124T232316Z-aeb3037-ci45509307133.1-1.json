@@ -1,0 +1,355 @@
+{
+  "format": 1,
+  "calibratedAt": "2026-11-24T23:23:16.441Z",
+  "candidate": {
+    "path": "fixtures/calibration-candidate",
+    "contentDigest": "sha256:cc0acfc7fc4d6709814ddfa236de8d0716c05e28ada3c76063fc435dc91a054f",
+    "contract": 1,
+    "build": "npm run build",
+    "start": "node dist/server/index.js"
+  },
+  "environment": {
+    "benchCommit": "aeb3037287d73a9933f70f3372951e51909a5599",
+    "worktree": "clean",
+    "node": "v22.23.5",
+    "chromium": "159.0.8154.6",
+    "playwright": "1.65.1",
+    "images": {
+      "legacy": "sha256:401b7c3c6fe782d1edcc173aad51fdd67db9564ae368f84e4b9416df5acfc249",
+      "archive": "sha256:bde14cffe47c79590143565ffe0c46156550541845607a8a276435b9fa6f6ed3"
+    },
+    "imageContexts": {
+      "legacy": "sha256:fb5f805de11ee7804d88552a61181be155b2403005f339893bfc7bdd1a8ce6d5",
+      "archive": "sha256:fb5f805de11ee7804d88552a61181be155b2403005f339893bfc7bdd1a8ce6d5"
+    },
+    "frozenDate": "2025-11-15",
+    "baseUrl": "http://127.0.0.1:8100",
+    "artifacts": ".oracle-artifacts/calibration-20261124T232316Z-aeb3037-ci45509307133.1-1",
+    "ciRun": {
+      "runId": "45509307133",
+      "attempt": 1,
+      "rank": 1
+    },
+    "runtimeImage": "sha256:a4740ebcc5259c0f4cee5ac1f5e936aab37a06fb8a82dbf2a7f791f6de029e79",
+    "containerUser": {
+      "uid": 1001,
+      "gid": 1001
+    },
+    "port": 8100,
+    "limits": {
+      "provisional": true,
+      "source": "safety-cap",
+      "buildTimeoutMs": 600000,
+      "readyTimeoutMs": 60000,
+      "buildMemoryBytes": 4294967296,
+      "buildCpus": 2,
+      "start": {
+        "provisional": true,
+        "source": "build-limits",
+        "memoryBytes": 4294967296,
+        "cpus": 2,
+        "pids": 256
+      }
+    },
+    "machine": {
+      "platform": "linux",
+      "release": "7.0.0-1017-azure",
+      "arch": "x64",
+      "cpus": 2,
+      "cpuModel": "AMD EPYC 9V45 96-Core Processor",
+      "memoryBytes": 8317935616,
+      "docker": {
+        "serverVersion": "28.0.4",
+        "operatingSystem": "Ubuntu 24.04.5 LTS",
+        "kernelVersion": "7.0.0-1017-azure",
+        "cgroupVersion": "2",
+        "cpus": 2,
+        "memoryBytes": 8317935616
+      },
+      "runner": {
+        "RUNNER_OS": "Linux",
+        "RUNNER_ARCH": "X64",
+        "ImageOS": "ubuntu24",
+        "ImageVersion": "20261116.376.1"
+      }
+    }
+  },
+  "multiples": {
+    "timeouts": 5,
+    "resources": 2
+  },
+  "readings": [
+    {
+      "reading": 1,
+      "startedAt": "2026-11-24T23:23:17.124Z",
+      "build": {
+        "durationMs": 7103,
+        "steps": [
+          {
+            "step": "fetch",
+            "durationMs": 3524,
+            "peakMemoryBytes": 310136832,
+            "cpuSeconds": 2.25347
+          },
+          {
+            "step": "install",
+            "durationMs": 2620,
+            "peakMemoryBytes": 330964992,
+            "cpuSeconds": 1.539808
+          },
+          {
+            "step": "build",
+            "durationMs": 950,
+            "peakMemoryBytes": 136634368,
+            "cpuSeconds": 0.893616
+          }
+        ]
+      },
+      "start": {
+        "readyMs": 686,
+        "peakMemoryBytes": 20152320,
+        "cpuSeconds": 0.1533
+      },
+      "values": {
+        "buildDurationMs": 7103,
+        "buildPeakMemoryBytes": 330964992,
+        "buildCpus": 0.9406484210526316,
+        "readyDurationMs": 686,
+        "startPeakMemoryBytes": 20152320,
+        "startCpus": 0.223469387755102
+      },
+      "composeOverride": "sha256:c9b4439f12fe9ce2629daa030bd9c449ed0c6c1a7ee5642b2c32bb86db55d872",
+      "raw": {
+        "fetch.log": "sha256:472c2e0d5ba7591134f0381c194c55644701ef709979c3e02c0f5ca75ec5b7a3",
+        "npm-logs/fetch/2026-11-24T23_23_17_383Z-debug-0.log": "sha256:c963c74911a56734896f21825ae69704ea5d18307b6979f64411a5790efc6f04",
+        "install.log": "sha256:472c2e0d5ba7591134f0381c194c55644701ef709979c3e02c0f5ca75ec5b7a3",
+        "npm-logs/install/2026-11-24T23_23_20_834Z-debug-0.log": "sha256:e39c0a62fe1201983bfe871cc6e2ae69ba7129561e367fec1bd3503a5c5d37a3",
+        "build.log": "sha256:125c8235e44ae38a395684043c027285a79517095360f2f2f7006ffb5b8435f6",
+        "npm-logs/build/2026-11-24T23_23_23_457Z-debug-0.log": "sha256:c1c16c188d670337c6a96bd5c946ea7de9aa390587b0503b666edad66f39c43e",
+        "start.log": "sha256:9a823c1f42811a5e2763bdd994d80f88e7e95159f2c4f784d7aa578821a7963d"
+      }
+    },
+    {
+      "reading": 2,
+      "startedAt": "2026-11-24T23:23:38.992Z",
+      "build": {
+        "durationMs": 7476,
+        "steps": [
+          {
+            "step": "fetch",
+            "durationMs": 3717,
+            "peakMemoryBytes": 308854784,
+            "cpuSeconds": 2.314503
+          },
+          {
+            "step": "install",
+            "durationMs": 2751,
+            "peakMemoryBytes": 331747328,
+            "cpuSeconds": 1.590372
+          },
+          {
+            "step": "build",
+            "durationMs": 1000,
+            "peakMemoryBytes": 128425984,
+            "cpuSeconds": 0.936056
+          }
+        ]
+      },
+      "start": {
+        "readyMs": 672,
+        "peakMemoryBytes": 20045824,
+        "cpuSeconds": 0.154923
+      },
+      "values": {
+        "buildDurationMs": 7476,
+        "buildPeakMemoryBytes": 331747328,
+        "buildCpus": 0.936056,
+        "readyDurationMs": 672,
+        "startPeakMemoryBytes": 20045824,
+        "startCpus": 0.23054017857142856
+      },
+      "composeOverride": "sha256:9ad3c6aa7d40c3ee18408b9668ad50c7fc5d2b63a4c2dc200932eab6091d77ae",
+      "raw": {
+        "fetch.log": "sha256:9b8007f641590bd7464446fe41550ae1e863b7f4315d5625bebef886921d3f82",
+        "npm-logs/fetch/2026-11-24T23_23_39_216Z-debug-0.log": "sha256:73cb36b454177c82859c656061cd8c1048fdc1576a2c4ecb43f8cdff3bf91183",
+        "install.log": "sha256:472c2e0d5ba7591134f0381c194c55644701ef709979c3e02c0f5ca75ec5b7a3",
+        "npm-logs/install/2026-11-24T23_23_42_870Z-debug-0.log": "sha256:b1deddce50cae89c8f537fce1e0644262848a863b481279d525bc68e4602c55c",
+        "build.log": "sha256:031d536ba4a66d4436782cb3cf56a175cb3be33d7a6bb54ae6f8c98f3abc484f",
+        "npm-logs/build/2026-11-24T23_23_45_620Z-debug-0.log": "sha256:c0c861c9041100d88b93515b8844241181de368f728eed2337d602705f24d378",
+        "start.log": "sha256:8402caec178c83175d40ff2d7c0aefa16d21373e110436788800ee5eb4ce8d01"
+      }
+    },
+    {
+      "reading": 3,
+      "startedAt": "2026-11-24T23:24:11.366Z",
+      "build": {
+        "durationMs": 7738,
+        "steps": [
+          {
+            "step": "fetch",
+            "durationMs": 3793,
+            "peakMemoryBytes": 317591552,
+            "cpuSeconds": 2.427803
+          },
+          {
+            "step": "install",
+            "durationMs": 2819,
+            "peakMemoryBytes": 331984896,
+            "cpuSeconds": 1.688387
+          },
+          {
+            "step": "build",
+            "durationMs": 1119,
+            "peakMemoryBytes": 124162048,
+            "cpuSeconds": 1.011409
+          }
+        ]
+      },
+      "start": {
+        "readyMs": 664,
+        "peakMemoryBytes": 20258816,
+        "cpuSeconds": 0.143701
+      },
+      "values": {
+        "buildDurationMs": 7738,
+        "buildPeakMemoryBytes": 331984896,
+        "buildCpus": 0.9038507596067917,
+        "readyDurationMs": 664,
+        "startPeakMemoryBytes": 20258816,
+        "startCpus": 0.2164171686746988
+      },
+      "composeOverride": "sha256:aed746223f905cd7d0385f2926399eb8e06344b7b929f2ada2abb4630d824247",
+      "raw": {
+        "fetch.log": "sha256:9b8007f641590bd7464446fe41550ae1e863b7f4315d5625bebef886921d3f82",
+        "npm-logs/fetch/2026-11-24T23_24_11_609Z-debug-0.log": "sha256:2475a276d28021474c8b5d454fc984a77cb76c0d8b17712844ba9697d0e753c2",
+        "install.log": "sha256:472c2e0d5ba7591134f0381c194c55644701ef709979c3e02c0f5ca75ec5b7a3",
+        "npm-logs/install/2026-11-24T23_24_15_342Z-debug-0.log": "sha256:e72948d72dd700173568ddaa0921c703fe4cd47a83069d415d7c8b72ad9814da",
+        "build.log": "sha256:7f696de3de734ccc750e5327bf4b43f2cb6cf254d2566d6ca7024308265562ab",
+        "npm-logs/build/2026-11-24T23_24_18_166Z-debug-0.log": "sha256:4b9a6da2d203ccc9e5f1a639dec41fd9e3f1f48c056c7a6a3a68b67b27df6f8d",
+        "start.log": "sha256:f919b5206abf0b07ddcc6d75bee02467e37dea7b5d640d1d799f551548996ff0"
+      }
+    },
+    {
+      "reading": 4,
+      "startedAt": "2026-11-24T23:24:43.959Z",
+      "build": {
+        "durationMs": 7881,
+        "steps": [
+          {
+            "step": "fetch",
+            "durationMs": 3861,
+            "peakMemoryBytes": 314634240,
+            "cpuSeconds": 2.478872
+          },
+          {
+            "step": "install",
+            "durationMs": 2848,
+            "peakMemoryBytes": 330416128,
+            "cpuSeconds": 1.715222
+          },
+          {
+            "step": "build",
+            "durationMs": 1163,
+            "peakMemoryBytes": 128655360,
+            "cpuSeconds": 1.031327
+          }
+        ]
+      },
+      "start": {
+        "readyMs": 672,
+        "peakMemoryBytes": 20287488,
+        "cpuSeconds": 0.155539
+      },
+      "values": {
+        "buildDurationMs": 7881,
+        "buildPeakMemoryBytes": 330416128,
+        "buildCpus": 0.8867815993121239,
+        "readyDurationMs": 672,
+        "startPeakMemoryBytes": 20287488,
+        "startCpus": 0.23145684523809523
+      },
+      "composeOverride": "sha256:9128cb560dc8b738ed94765bb66e38a7b9f2da885ef6392db31131d31f5f05ce",
+      "raw": {
+        "fetch.log": "sha256:9b8007f641590bd7464446fe41550ae1e863b7f4315d5625bebef886921d3f82",
+        "npm-logs/fetch/2026-11-24T23_24_44_191Z-debug-0.log": "sha256:bbc2a4fb4cc3f43825f1771f2c82570bfacb68ff146a66999eeeaacab36af196",
+        "install.log": "sha256:472c2e0d5ba7591134f0381c194c55644701ef709979c3e02c0f5ca75ec5b7a3",
+        "npm-logs/install/2026-11-24T23_24_48_008Z-debug-0.log": "sha256:46a7215f59d5e59842a8be77d20d2357ef7e6f87d5d94fbb9d6430a1335ae18f",
+        "build.log": "sha256:ddba2ac373885975caeeba032d52c3b1ef30f237c1a246c687f811a893ef1164",
+        "npm-logs/build/2026-11-24T23_24_50_865Z-debug-0.log": "sha256:a49ac7e769c2840e7c79539c461feb515101b532b42c3cbb3a6d0d233c59e191",
+        "start.log": "sha256:a14fa08e9ef1582c5d217d6b74a6097ebeaf88f0f658b66ec23d335881e14e70"
+      }
+    },
+    {
+      "reading": 5,
+      "startedAt": "2026-11-24T23:25:16.675Z",
+      "build": {
+        "durationMs": 7453,
+        "steps": [
+          {
+            "step": "fetch",
+            "durationMs": 3734,
+            "peakMemoryBytes": 315408384,
+            "cpuSeconds": 2.342754
+          },
+          {
+            "step": "install",
+            "durationMs": 2576,
+            "peakMemoryBytes": 332435456,
+            "cpuSeconds": 1.625122
+          },
+          {
+            "step": "build",
+            "durationMs": 1135,
+            "peakMemoryBytes": 134696960,
+            "cpuSeconds": 1.039981
+          }
+        ]
+      },
+      "start": {
+        "readyMs": 675,
+        "peakMemoryBytes": 19943424,
+        "cpuSeconds": 0.148232
+      },
+      "values": {
+        "buildDurationMs": 7453,
+        "buildPeakMemoryBytes": 332435456,
+        "buildCpus": 0.91628281938326,
+        "readyDurationMs": 675,
+        "startPeakMemoryBytes": 19943424,
+        "startCpus": 0.21960296296296294
+      },
+      "composeOverride": "sha256:d669ae7ddbf2842d0dc33a6a7170ce9a2f0cec3e326b95de79f7a9c622017f64",
+      "raw": {
+        "fetch.log": "sha256:9b8007f641590bd7464446fe41550ae1e863b7f4315d5625bebef886921d3f82",
+        "npm-logs/fetch/2026-11-24T23_25_16_919Z-debug-0.log": "sha256:34c9da0cfe6f996e43cdd5a52614df47e09628ff80d2d5df0fedd2a99ec59b81",
+        "install.log": "sha256:472c2e0d5ba7591134f0381c194c55644701ef709979c3e02c0f5ca75ec5b7a3",
+        "npm-logs/install/2026-11-24T23_25_20_590Z-debug-0.log": "sha256:e651c999f108081ced16f9ba32fc3dafedb71e6020c77c9f868cd9a5aa8e8664",
+        "build.log": "sha256:0b6bd2d02d228f330208268d7d631a33421cdd750840aa95e8ed212ddf04c721",
+        "npm-logs/build/2026-11-24T23_25_23_194Z-debug-0.log": "sha256:6c6e259f45c0eff1501821f8b7e42dd5075f88123795d849c51c3d64e886bd51",
+        "start.log": "sha256:572ec006a7ae0c8a679443621006a6c46f61311d94ab90cee33a019b35bf7d49"
+      }
+    }
+  ],
+  "minimum": {
+    "buildDurationMs": 7103,
+    "buildPeakMemoryBytes": 330416128,
+    "buildCpus": 0.8867815993121239,
+    "readyDurationMs": 664,
+    "startPeakMemoryBytes": 19943424,
+    "startCpus": 0.2164171686746988
+  },
+  "maximum": {
+    "buildDurationMs": 7881,
+    "buildPeakMemoryBytes": 332435456,
+    "buildCpus": 0.9406484210526316,
+    "readyDurationMs": 686,
+    "startPeakMemoryBytes": 20287488,
+    "startCpus": 0.23145684523809523
+  },
+  "limits": {
+    "buildTimeoutMs": 39405,
+    "readyTimeoutMs": 3430,
+    "buildMemoryBytes": 665845760,
+    "buildCpus": 1.89
+  }
+}
