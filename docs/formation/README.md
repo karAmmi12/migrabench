@@ -230,3 +230,11 @@ les lire après l'étape 2.
     clôt l'étape en faisant produire sur une vraie pile chaque issue des
     fiches précédentes. Elle introduit le clone complet, `exec`, le délai
     d'une étape, le résumé d'un job et le nombre de workers de Playwright.
+
+## Rétros
+
+- **Étape 1 · Application legacy de test** : pas de rétro écrite.
+- **Étape 2 · Oracle** : le « Constat » de l'issue
+  [#52](https://github.com/karAmmi12/migrabench/issues/52).
+- **Étape 3 · Contrat de candidat et runner** :
+  [`retros/etape-3.md`](retros/etape-3.md).
