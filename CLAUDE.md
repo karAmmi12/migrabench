@@ -56,22 +56,22 @@ Décision de Karim le 25/11.
 
 ### Règles de preuve
 
-- Une preuve cite l'état exact : commit, arbre propre, identifiant de la
-  mesure ou de l'exécution. Une mesure faite sur un arbre modifié n'est pas
-  une preuve.
+- **Une preuve cite l'état exact où elle a été obtenue** : commit, arbre
+  propre, identifiant de la mesure ou de l'exécution. Une preuve sans commit
+  cite la session avec la description de l'état (fichiers présents, tests
+  écrits). Une mesure faite sur un arbre modifié n'est pas une preuve.
 - Un contrôle qui n'a rien examiné est « non évaluable », jamais réussi ; un
   témoin montre qu'il sait détecter.
 - Toute vérification d'une affirmation sur un outil externe se fait sur sa
   documentation ou sur une vraie exécution, jamais de mémoire.
-- Aucun chiffre, heure, message ou durée n'est écrit avant d'avoir été relevé.
+- **Les chiffres viennent de mesures.** Aucun chiffre, heure, message ou
+  durée n'est écrit avant d'avoir été relevé. Un score, un pourcentage ou une
+  durée du banc sort d'un run enregistré.
 - Une mesure comptée versionnée ne se retire jamais.
 
 ## Règles propres à ce projet
 
-- **Les chiffres viennent de mesures.** Ne jamais écrire un score, un
-  pourcentage ou une durée qui ne sort pas d'un run enregistré.
-- **Une preuve cite l'état exact où elle a été obtenue** : un commit, ou la
-  session avec la description de l'état (fichiers présents, tests écrits).
+- Chiffres et preuves : voir « Règles de preuve » ci-dessus.
 - **L'oracle est écrit contre le legacy**, jamais à partir du code d'un candidat.
 - **Les pièges du legacy sont volontaires.** Ne pas les corriger dans
   `fixtures/legacy-app`. Chacun est documenté dans `TRAPS.md`.
