@@ -18,7 +18,14 @@ import { BUILD_CLIENT_GRACE_MS, buildCandidate } from "../../runner/build.ts";
 
 const stubDir = mkdtempSync(join(tmpdir(), "mb-docker-stub-"));
 const killed = join(stubDir, "killed");
-const NOT_RUNNING = "Error response from daemon: cannot kill container: migrabench-t-fetch: container migrabench-t-fetch is not running";
+// Sortie réelle de `docker kill` sur un conteneur arrêté, relevée le
+// 25/11/2026 dans la session de #112 (Docker Desktop, client 28.3.3-rd,
+// démon 29.1.3), par :
+//   docker run --name migrabench-t-fetch migrabench-runtime true
+//   docker kill migrabench-t-fetch   # code 1
+// Le démon cite le nom donné, puis l'identifiant du conteneur.
+const NOT_RUNNING =
+  "Error response from daemon: cannot kill container: migrabench-t-fetch: container f90801454d8e7886e29ac3dfd96e26777a2c3ec7b628fc3405cc0f6ae4e740c0 is not running";
 const savedPath = process.env.PATH;
 
 beforeAll(() => {
