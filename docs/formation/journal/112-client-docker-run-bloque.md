@@ -174,8 +174,9 @@ npm run stack:up && npm test
 
 Attendu : `Test Files  82 passed (82)`, `Tests  732 passed (732)`.
 
-> À vérifier après l'exécution de la CI de la PR : le lien de l'exécution
-> du workflow de tests, son head SHA et son résultat.
+En CI, sur la PR #119 : [« Tests du banc », exécution 45652302699](https://github.com/karAmmi12/migrabench/actions/runs/45652302699),
+head SHA `d88d29f`, verte, de 16:16:52Z à 16:20:54Z (4 min 2 s) :
+`Test Files  82 passed (82)`, `Tests  732 passed (732)`.
 
 ## Pour aller plus loin
 
