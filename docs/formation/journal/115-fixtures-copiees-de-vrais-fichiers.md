@@ -14,23 +14,32 @@ artefacts de CI qui les contiennent n'expirent (2026-12-01 et 2026-12-02).
 ## Notions à connaître
 
 - **Artefact d'une exécution GitHub Actions.** Les fichiers qu'un job publie
-  restent téléchargeables un temps limité, puis expirent ; `gh run download
+  sont gardés pendant une durée de rétention, puis expirent ; `gh run download
   <exécution> -n <nom>` les récupère. Ici, les bruts des mesures et de
-  l'étalonnage n'existaient que dans deux artefacts.
-  Documentation : <https://cli.github.com/manual/gh_run_download> et
-  <https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/storing-and-sharing-data-from-a-workflow>.
+  l'étalonnage n'existaient que dans deux artefacts, gardés sept jours :
+  `gh api repos/karAmmi12/migrabench/actions/runs/<exécution>/artifacts` donne
+  `measures created 2026-11-25T13:43:08Z expires 2026-12-02T13:43:05Z` et
+  `calibration created 2026-11-24T23:25:51Z expires 2026-12-01T23:25:50Z`.
+  Documentation : <https://cli.github.com/manual/gh_run_download> (option
+  `-n, --name`) et
+  <https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/storing-and-sharing-data-from-a-workflow>
+  (section « Configuring a custom artifact retention period » ; la page ne
+  donne pas la durée par défaut).
 - **Rapport JSON de Playwright.** Le reporter `json` écrit `config`, `suites`
   (avec leurs `specs`, `tests` et `results`), `errors` et `stats`, avec les
   chemins absolus de la machine. C'est l'entrée de `collect()`
   (`oracle/collect.ts`), qui en tire l'`oracle.json` versionné.
   Documentation : <https://playwright.dev/docs/test-reporters#json-reporter>.
-- **Préfixe des journaux de Docker Compose.** Les journaux d'un service sont
-  préfixés par le nom du conteneur (`candidate-1  | `). C'est ce préfixe que
-  l'ancienne fixture de `start.log` n'avait pas.
-  Documentation : <https://docs.docker.com/reference/cli/docker/compose/logs/>.
-- **Journal d'accès de Tomcat.** La valve `AccessLogValve` écrit une ligne par
-  requête, au format fixé par le legacy (`fixtures/legacy-app/access-log.xml`) ;
-  le banc y repère ses requêtes témoins.
+- **Préfixe des journaux de Docker Compose.** `docker compose logs` préfixe
+  chaque ligne, sauf avec l'option `--no-log-prefix`. Dans le vrai `start.log`,
+  ce préfixe est `candidate-1  | ` (le conteneur du service `candidate`) :
+  l'ancienne fixture ne l'avait pas. Documentation :
+  <https://docs.docker.com/reference/cli/docker/compose/logs/> (elle décrit
+  l'option, pas le contenu du préfixe, relevé ici dans le fichier).
+- **Journal d'accès de Tomcat.** La valve d'accès (`AccessLogValve`)
+  enregistre toutes les requêtes traitées, selon un motif (`pattern`) que le
+  legacy fixe dans `fixtures/legacy-app/access-log.xml` ; dans le vrai
+  `access.log`, une requête par ligne. Le banc y repère ses requêtes témoins.
   Documentation (Tomcat 9) : <https://tomcat.apache.org/tomcat-9.0-doc/config/valve.html#Access_Log_Valve>.
 - **Fichiers `cpu.stat` et `memory.peak` du cgroup v2.** Le premier donne le
   temps CPU consommé (`usage_usec`, en microsecondes), le second le pic de
@@ -44,7 +53,12 @@ artefacts de CI qui les contiennent n'expirent (2026-12-01 et 2026-12-02).
   variante modifie un clone, jamais la copie partagée.
   Documentation : <https://developer.mozilla.org/en-US/docs/Web/API/Window/structuredClone>.
 
-> À vérifier : les liens de cette section n'ont pas été ouverts pendant la session.
+Liens ouverts le 2026-11-25 : les huit pages existent, sans redirection, et
+les ancres `#json-reporter` et `#Access_Log_Valve` mènent aux sections « JSON
+reporter » et « Access Log Valve ». Les deux constats qui ne viennent pas de la
+documentation sont cités avec leur source : la durée de rétention des
+artefacts (API de GitHub) et le contenu du préfixe de Compose (le `start.log`
+copié).
 
 ## Ce qui a été construit
 
