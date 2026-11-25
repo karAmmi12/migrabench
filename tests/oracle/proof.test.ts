@@ -5,8 +5,19 @@
 import { describe, expect, it } from "vitest";
 import { checkProof, type ProofInput, type ProofResult } from "../../oracle/proof.ts";
 import type { ResultEnvironment } from "../../oracle/result-check.ts";
+import { fixturePath, PROOF_RESULTS, readJsonFixture } from "../real-fixtures.ts";
 
-const BENCH_COMMIT = "f89e6d0833ca0fc84c88f48281ce0fa2c16390bf";
+// Les cinq vrais résultats de la preuve de l'exécution 45041781224
+// (tests/fixtures/ci45041781224/PROVENANCE.md), rangs 1 à 5. Chaque variante
+// part de ces copies et ne change que ce que son test regarde.
+const PROOF = PROOF_RESULTS.map((path) => readJsonFixture<ProofResult>(path));
+const METADATA = PROOF[0]!.config.metadata;
+const BENCH_COMMIT = METADATA.benchCommit as string;
+const IMAGES = METADATA.images as { legacy: string; archive: string };
+const RUN_ID = METADATA.ciRun!.runId;
+const SUMMARY = METADATA.summary!;
+const SALTS = PROOF.map((result) => result.config.metadata.salt);
+// Un autre commit du dépôt, absent de la preuve.
 const OTHER_COMMIT = "41fce78aa218f75266cc6ccb7f7bcf2475836d18";
 
 const ENVIRONMENT: ResultEnvironment = {
@@ -14,34 +25,12 @@ const ENVIRONMENT: ResultEnvironment = {
   commitExists: (sha) => sha === BENCH_COMMIT || sha === OTHER_COMMIT,
 };
 
-const SALTS = ["a1", "b2", "c3", "d4", "e5"].map((prefix) => prefix.repeat(32));
-
-function result(rank: number): ProofResult {
-  return {
-    config: {
-      metadata: {
-        benchCommit: BENCH_COMMIT,
-        worktree: "clean",
-        node: "v22.23.5",
-        chromium: "159.0.8154.6",
-        playwright: "1.65.1",
-        images: { legacy: "sha256:1716", archive: "sha256:aed1" },
-        frozenDate: "2025-11-15",
-        ciRun: { runId: "19876543210", attempt: 1, rank },
-        salt: SALTS[rank - 1],
-        saltImposed: false,
-        summary: { scenarios: 38, passed: 38, failed: 0, unreached: 0 },
-      },
-    },
-  };
-}
-
 function fileOf(rank: number): string {
-  return `results/oracle/ci19876543210.1-${rank}.json`;
+  return fixturePath(PROOF_RESULTS[rank - 1]!);
 }
 
 function proof(): ProofInput[] {
-  return [1, 2, 3, 4, 5].map((rank) => ({ file: fileOf(rank), result: result(rank) }));
+  return [1, 2, 3, 4, 5].map((rank) => ({ file: fileOf(rank), result: structuredClone(PROOF[rank - 1]!) }));
 }
 
 function check(inputs: readonly ProofInput[]): string[] {
@@ -70,10 +59,10 @@ describe("oracle proof", () => {
   });
 
   it("refuses an execution that is not 38 passed scenarios out of 38", () => {
-    expect(check(withMetadata(1, { summary: { scenarios: 38, passed: 37, failed: 0, unreached: 1 } }))).toEqual([
+    expect(check(withMetadata(1, { summary: { ...SUMMARY, passed: 37, unreached: 1 } }))).toEqual([
       `${fileOf(1)}: 37 passed, 0 failed, 1 unreached out of 38 scenarios, expected 38 passed out of 38`,
     ]);
-    expect(check(withMetadata(4, { summary: { scenarios: 37, passed: 37, failed: 0, unreached: 0 } }))).toEqual([
+    expect(check(withMetadata(4, { summary: { ...SUMMARY, scenarios: 37, passed: 37 } }))).toEqual([
       `${fileOf(4)}: 37 passed, 0 failed, 0 unreached out of 37 scenarios, expected 38 passed out of 38`,
     ]);
   });
@@ -89,10 +78,10 @@ describe("oracle proof", () => {
   });
 
   it("refuses executions on different legacy or archive images", () => {
-    expect(check(withMetadata(2, { images: { legacy: "sha256:9999", archive: "sha256:aed1" } }))).toEqual([
+    expect(check(withMetadata(2, { images: { ...IMAGES, legacy: "sha256:9999" } }))).toEqual([
       "images.legacy differs between executions",
     ]);
-    expect(check(withMetadata(2, { images: { legacy: "sha256:1716" } }))).toEqual(["images.archive is missing"]);
+    expect(check(withMetadata(2, { images: { legacy: IMAGES.legacy } }))).toEqual(["images.archive is missing"]);
   });
 
   it("refuses an environment value missing from every execution", () => {
@@ -111,13 +100,13 @@ describe("oracle proof", () => {
 
   it("refuses executions that are not ranks 1 to 5 of one CI run", () => {
     expect(check(withMetadata(3, { ciRun: undefined }))).toEqual([`${fileOf(3)}: no ciRun`, "ranks are not 1 to 5 of one CI run"]);
-    expect(check(withMetadata(3, { ciRun: { runId: "19876543211", attempt: 1, rank: 3 } }))).toEqual([
+    expect(check(withMetadata(3, { ciRun: { runId: String(Number(RUN_ID) + 1), attempt: 1, rank: 3 } }))).toEqual([
       "ranks are not 1 to 5 of one CI run",
     ]);
-    expect(check(withMetadata(3, { ciRun: { runId: "19876543210", attempt: 2, rank: 3 } }))).toEqual([
+    expect(check(withMetadata(3, { ciRun: { runId: RUN_ID, attempt: 2, rank: 3 } }))).toEqual([
       "ranks are not 1 to 5 of one CI run",
     ]);
-    expect(check(withMetadata(3, { ciRun: { runId: "19876543210", attempt: 1, rank: 2 } }))).toEqual([
+    expect(check(withMetadata(3, { ciRun: { runId: RUN_ID, attempt: 1, rank: 2 } }))).toEqual([
       "ranks are not 1 to 5 of one CI run",
     ]);
   });
@@ -137,7 +126,7 @@ describe("oracle proof", () => {
 
   it("refuses an execution whose result contains a machine path", () => {
     const inputs = proof();
-    (inputs[1]!.result as ProofResult & { suites?: unknown }).suites = [{ file: "/Users/someone/migrabench/search.spec.ts" }];
+    (inputs[1]!.result as ProofResult & { suites: { file: string }[] }).suites[0]!.file = "/Users/someone/migrabench/oracle/scenarios/remise.spec.ts";
     expect(check(inputs)).toEqual([`${fileOf(2)}: rule machine-path: contains /Users/`]);
   });
 

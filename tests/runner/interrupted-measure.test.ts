@@ -37,6 +37,7 @@ import { CANDIDATE_PORT } from "../../runner/candidate-runtime.ts";
 import { DIAGNOSTIC_DIR_FROM_ROOT } from "../../runner/paths.ts";
 import { acquireBenchLock } from "../../shared/bench-lock.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, ROOT } from "../../shared/root.ts";
+import { absoluteFixturePath, MEASURES } from "../real-fixtures.ts";
 
 const STATE_HOME = mkdtempSync(join(tmpdir(), "mb-state-"));
 const LOCK = join(STATE_HOME, "migrabench", "bench-lock");
@@ -112,6 +113,10 @@ exit 0
   );
 
   const oracleDir = stubDirs.oracle;
+  // Rapport écrit par le faux Playwright au signal : le vrai rapport partiel
+  // d'un Playwright interrompu, celui de la mesure interrompue de l'exécution
+  // 45624689673 (tests/fixtures/ci45624689673/PROVENANCE.md).
+  const INTERRUPTED_REPORT = absoluteFixturePath(`${MEASURES.interrupted.artifacts}/oracle/report.json`);
   writeStub(
     "oracle",
     "docker",
@@ -141,7 +146,7 @@ case "$*" in
     echo partial > "$MB_ORACLE_OUTPUT_DIR/partial-raw.txt"
     sleep 300 > /dev/null 2>&1 &
     echo $! > "${oracleDir}/background-$PPID"
-    trap 'echo "{\\"config\\":{\\"metadata\\":{}},\\"suites\\":[],\\"errors\\":[]}" > "$MB_ORACLE_REPORT"; exit 1' INT TERM
+    trap 'cp "${INTERRUPTED_REPORT}" "$MB_ORACLE_REPORT"; exit 1' INT TERM
     touch "${oracleDir}/reached-$PPID"
     waited=0
     while kill -0 "$PPID" 2>/dev/null && [ $waited -lt 100 ]; do sleep 0.1; waited=$((waited + 1)); done

@@ -4,29 +4,25 @@
 // l'empreinte de `oracle.json`.
 import { describe, expect, it } from "vitest";
 import { checkMeasureResult, type MeasureEnvironment } from "../../oracle/result-check.ts";
+import { MEASURES, readMeasure } from "../real-fixtures.ts";
 
-const ORIGIN_MAIN = "802178c0e1b2c3d4e5f60718293a4b5c6d7e8f90";
-const BENCH_COMMIT = "29e779b0a1b2c3d4e5f60718293a4b5c6d7e8f90";
+// La vraie mesure comptée du candidat de référence (exécution 45624689673,
+// tests/fixtures/ci45624689673/PROVENANCE.md). Chaque variante part de la
+// copie et ne change que ce que son test regarde.
+const VALID = readMeasure(MEASURES.reference);
+// Une mesure comptée : son originMain et le résultat de son oracle sont écrits.
+const ORIGIN_MAIN = VALID.originMain!;
+const BENCH_COMMIT = VALID.environment.benchCommit as string;
+// Commit de main postérieur à la mesure (889e111), dont BENCH_COMMIT est un ancêtre.
+const LATER_MAIN = "889e1117234651da6a571df89c72b2d024788f09";
 const OTHER_BRANCH = "c0ffee00a1b2c3d4e5f60718293a4b5c6d7e8f90";
-const ORACLE_DIGEST = "sha256:0f0f";
+const ORACLE_DIGEST = (VALID.oracle as { result: string }).result;
 
 const ENVIRONMENT: MeasureEnvironment = {
   node: "22.23.5",
-  commitExists: (sha) => [ORIGIN_MAIN, BENCH_COMMIT, OTHER_BRANCH].includes(sha),
-  // BENCH_COMMIT est un ancêtre de ORIGIN_MAIN ; OTHER_BRANCH ne l'est pas.
-  isAncestor: (ancestor, descendant) => ancestor === descendant || (ancestor === BENCH_COMMIT && descendant === ORIGIN_MAIN),
-};
-
-const VALID = {
-  format: 1,
-  measureId: "20261124T150000Z-29e779b-reference-candidate",
-  counted: true,
-  originMain: ORIGIN_MAIN,
-  candidate: { path: "fixtures/reference-candidate", contentDigest: "sha256:aa" },
-  environment: { benchCommit: BENCH_COMMIT, worktree: "clean", node: "v22.23.5" },
-  salt: "5a17",
-  saltImposed: false,
-  oracle: { executed: true, result: ORACLE_DIGEST },
+  commitExists: (sha) => [ORIGIN_MAIN, BENCH_COMMIT, LATER_MAIN, OTHER_BRANCH].includes(sha),
+  // BENCH_COMMIT est un ancêtre de LATER_MAIN ; OTHER_BRANCH ne l'est pas.
+  isAncestor: (ancestor, descendant) => ancestor === descendant || (ancestor === BENCH_COMMIT && descendant === LATER_MAIN),
 };
 
 // Sans second argument : le oracle.json de VALID. `{ digest: undefined }` :
@@ -36,12 +32,13 @@ function rules(measure: unknown, oracle: { digest: string | undefined } = { dige
 }
 
 describe("check of a versioned measure.json", () => {
+  // Son commit du banc est origin/main lui-même.
   it("accepts a measure planned to count from a published state, with its oracle.json", () => {
     expect(checkMeasureResult(VALID, ORACLE_DIGEST, ENVIRONMENT)).toEqual([]);
   });
 
-  it("accepts a measure whose bench commit is origin/main itself", () => {
-    expect(rules({ ...VALID, environment: { ...VALID.environment, benchCommit: ORIGIN_MAIN } })).toEqual([]);
+  it("accepts a measure whose bench commit is an ancestor of origin/main", () => {
+    expect(rules({ ...VALID, originMain: LATER_MAIN })).toEqual([]);
   });
 
   it("refuses a measure.json written by hand, without the environment of a measure", () => {

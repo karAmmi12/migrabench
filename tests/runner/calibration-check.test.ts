@@ -1,19 +1,20 @@
-// Contrôle d'un résultat d'étalonnage versionné (#53 étendu par #72), sur des
-// résultats factices : un résultat valide, puis un par règle violée. Mêmes
+// Contrôle d'un résultat d'étalonnage versionné (#53 étendu par #72), sur un
+// vrai résultat, puis une variante par règle violée. Mêmes
 // règles qu'un résultat de l'oracle, sauf le sel : l'étalonnage n'en a pas.
 import { describe, expect, it } from "vitest";
 import { checkCalibrationResult, formatViolation, type ResultEnvironment } from "../../oracle/result-check.ts";
+import { CALIBRATION, fixturePath, readJsonFixture } from "../real-fixtures.ts";
 
-const COMMIT = "38a5914786edf42b7fa7a74645a0520c817aac76";
+// Le vrai étalonnage de l'exécution 45509307133
+// (tests/fixtures/ci45509307133/PROVENANCE.md). Chaque variante part de la
+// copie et ne change que son environnement.
+const RECORDED_CALIBRATION = readJsonFixture<{ environment: Record<string, unknown> }>(CALIBRATION.result);
+const COMMIT = RECORDED_CALIBRATION.environment.benchCommit as string;
 const ENVIRONMENT: ResultEnvironment = { node: "22.23.5", commitExists: (sha) => sha === COMMIT };
-const FILE = "results/calibration/x.json";
+const FILE = fixturePath(CALIBRATION.result);
 
 function calibration(environment: Record<string, unknown> = {}) {
-  return {
-    format: 1,
-    candidate: { path: "fixtures/calibration-candidate" },
-    environment: { benchCommit: COMMIT, worktree: "clean", node: "v22.23.5", artifacts: ".oracle-artifacts/calibration-x", ...environment },
-  };
+  return { ...RECORDED_CALIBRATION, environment: { ...RECORDED_CALIBRATION.environment, ...environment } };
 }
 
 function check(result: unknown): string[] {
@@ -37,7 +38,7 @@ describe("calibration result check", () => {
     expect(check(calibration({ benchCommit: "0123456789abcdef0123456789abcdef01234567" }))).toEqual([
       `${FILE}: rule benchCommit: 0123456789abcdef0123456789abcdef01234567 is not a commit of this repository`,
     ]);
-    expect(check(calibration({ benchCommit: "38a5914" }))).toEqual([`${FILE}: rule benchCommit: "38a5914" is not a full commit SHA`]);
+    expect(check(calibration({ benchCommit: "aeb3037" }))).toEqual([`${FILE}: rule benchCommit: "aeb3037" is not a full commit SHA`]);
   });
 
   it("refuses a calibration that contains a machine path", () => {

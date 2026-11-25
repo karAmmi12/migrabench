@@ -1,0 +1,3038 @@
+{
+  "config": {
+    "argv": [
+      "/opt/hostedtoolcache/node/22.23.5/x64/bin/node",
+      "/home/runner/work/migrabench/migrabench/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "/home/runner/work/migrabench/migrabench/oracle/playwright.config.ts"
+    ],
+    "configFile": "/home/runner/work/migrabench/migrabench/oracle/playwright.config.ts",
+    "rootDir": "/home/runner/work/migrabench/migrabench/oracle/scenarios",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "benchCommit": "52303ae0f25774b3422c0fd7008e0f1e6a7f4c6c",
+      "worktree": "clean",
+      "node": "v22.23.5",
+      "chromium": "159.0.8154.6",
+      "playwright": "1.65.1",
+      "images": {
+        "legacy": "sha256:eec8e654d716e4d47c0bf6d4e00fd5e51f5b12293d362a5142a0ea650f34a94e",
+        "archive": "sha256:502c8840ee614fb75818d563cbdae90ef8bc839f0b8164b2eab033e1c4b1f252"
+      },
+      "imageContexts": {
+        "legacy": "sha256:269b63826d4e6f3fed904960ea1d7b25b3f0d9dd4162cb98299e1a2e3be0d546",
+        "archive": "sha256:269b63826d4e6f3fed904960ea1d7b25b3f0d9dd4162cb98299e1a2e3be0d546"
+      },
+      "frozenDate": "2025-11-15",
+      "baseUrl": "http://127.0.0.1:8100",
+      "artifacts": ".oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle",
+      "ciRun": {
+        "runId": "45624689673",
+        "attempt": 1,
+        "rank": 1
+      },
+      "ci": {
+        "commitHref": "https://github.com/karAmmi12/migrabench/commit/52303ae0f25774b3422c0fd7008e0f1e6a7f4c6c",
+        "commitHash": "52303ae0f25774b3422c0fd7008e0f1e6a7f4c6c",
+        "buildHref": "https://github.com/karAmmi12/migrabench/actions/runs/45624689673"
+      },
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "benchCommit": "52303ae0f25774b3422c0fd7008e0f1e6a7f4c6c",
+          "worktree": "clean",
+          "node": "v22.23.5",
+          "chromium": "159.0.8154.6",
+          "playwright": "1.65.1",
+          "images": {
+            "legacy": "sha256:eec8e654d716e4d47c0bf6d4e00fd5e51f5b12293d362a5142a0ea650f34a94e",
+            "archive": "sha256:502c8840ee614fb75818d563cbdae90ef8bc839f0b8164b2eab033e1c4b1f252"
+          },
+          "imageContexts": {
+            "legacy": "sha256:269b63826d4e6f3fed904960ea1d7b25b3f0d9dd4162cb98299e1a2e3be0d546",
+            "archive": "sha256:269b63826d4e6f3fed904960ea1d7b25b3f0d9dd4162cb98299e1a2e3be0d546"
+          },
+          "frozenDate": "2025-11-15",
+          "baseUrl": "http://127.0.0.1:8100",
+          "artifacts": ".oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle",
+          "ciRun": {
+            "runId": "45624689673",
+            "attempt": 1,
+            "rank": 1
+          },
+          "ci": {
+            "commitHref": "https://github.com/karAmmi12/migrabench/commit/52303ae0f25774b3422c0fd7008e0f1e6a7f4c6c",
+            "commitHash": "52303ae0f25774b3422c0fd7008e0f1e6a7f4c6c",
+            "buildHref": "https://github.com/karAmmi12/migrabench/actions/runs/45624689673"
+          },
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/runner/work/migrabench/migrabench/oracle/scenarios",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "benchCommit": "52303ae0f25774b3422c0fd7008e0f1e6a7f4c6c",
+          "worktree": "clean",
+          "node": "v22.23.5",
+          "chromium": "159.0.8154.6",
+          "playwright": "1.65.1",
+          "images": {
+            "legacy": "sha256:eec8e654d716e4d47c0bf6d4e00fd5e51f5b12293d362a5142a0ea650f34a94e",
+            "archive": "sha256:502c8840ee614fb75818d563cbdae90ef8bc839f0b8164b2eab033e1c4b1f252"
+          },
+          "imageContexts": {
+            "legacy": "sha256:269b63826d4e6f3fed904960ea1d7b25b3f0d9dd4162cb98299e1a2e3be0d546",
+            "archive": "sha256:269b63826d4e6f3fed904960ea1d7b25b3f0d9dd4162cb98299e1a2e3be0d546"
+          },
+          "frozenDate": "2025-11-15",
+          "baseUrl": "http://127.0.0.1:8100",
+          "artifacts": ".oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle",
+          "ciRun": {
+            "runId": "45624689673",
+            "attempt": 1,
+            "rank": 1
+          },
+          "ci": {
+            "commitHref": "https://github.com/karAmmi12/migrabench/commit/52303ae0f25774b3422c0fd7008e0f1e6a7f4c6c",
+            "commitHash": "52303ae0f25774b3422c0fd7008e0f1e6a7f4c6c",
+            "buildHref": "https://github.com/karAmmi12/migrabench/actions/runs/45624689673"
+          },
+          "actualWorkers": 1
+        },
+        "name": "chromium",
+        "testDir": "/home/runner/work/migrabench/migrabench/oracle/scenarios",
+        "snapshotDir": "/home/runner/work/migrabench/migrabench/oracle/scenarios",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 30000,
+        "use": {
+          "baseURL": "http://127.0.0.1:8100",
+          "trace": "on",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36",
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "screen": {
+            "width": 1920,
+            "height": 1080
+          },
+          "deviceScaleFactor": 1,
+          "isMobile": false,
+          "hasTouch": false,
+          "defaultBrowserType": "chromium"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "chromium"
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.65.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "remise.spec.ts",
+      "file": "remise.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "remise-summary",
+          "ok": true,
+          "tags": [
+            "remise"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2401,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: remise D-0001",
+                      "duration": 2093
+                    },
+                    {
+                      "title": "verification: number, applicant, subject, status, filing date; no editable field",
+                      "duration": 65
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:31.369Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/remise-remise-summary-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/remise-remise-summary-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6d0ea5dbc551a3552bb1-c24e1e74a5d2e9297bb8",
+          "file": "remise.spec.ts",
+          "line": 27,
+          "column": 1
+        },
+        {
+          "title": "remise-remis",
+          "ok": true,
+          "tags": [
+            "remise"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 693,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: remise D-0004",
+                      "duration": 519
+                    },
+                    {
+                      "title": "verification: submission date, receipt link, no Remettre",
+                      "duration": 15
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:33.939Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/remise-remise-remis-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/remise-remise-remis-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6d0ea5dbc551a3552bb1-699666cd561d207cdb58",
+          "file": "remise.spec.ts",
+          "line": 41,
+          "column": 1
+        },
+        {
+          "title": "remise-agent-reserved",
+          "ok": true,
+          "tags": [
+            "remise"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 465,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: remise D-0003",
+                      "duration": 379
+                    },
+                    {
+                      "title": "verification: reserved to instructeurs, no Remettre",
+                      "duration": 12
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:34.664Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/remise-remise-agent-reserved-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/remise-remise-agent-reserved-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6d0ea5dbc551a3552bb1-e3a5c5bcc02105506a5f",
+          "file": "remise.spec.ts",
+          "line": 52,
+          "column": 1
+        },
+        {
+          "title": "receipt-agent",
+          "ok": true,
+          "tags": [
+            "remise"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:variant",
+                  "description": "receipt-tab=same-tab"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 604,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: remise D-0007",
+                      "duration": 425
+                    },
+                    {
+                      "title": "verification: receipt page with its title and archive reference",
+                      "duration": 88
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:35.770Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:variant",
+                      "description": "receipt-tab=same-tab"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/remise-receipt-agent-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/remise-receipt-agent-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6d0ea5dbc551a3552bb1-63e5029ddc2a22e23ffb",
+          "file": "remise.spec.ts",
+          "line": 99,
+          "column": 1
+        }
+      ],
+      "suites": [
+        {
+          "title": "",
+          "file": "remise.spec.ts",
+          "line": 62,
+          "column": 6,
+          "specs": [
+            {
+              "title": "remise-instructeur",
+              "ok": true,
+              "tags": [
+                "remise"
+              ],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 558,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "steps": [
+                        {
+                          "title": "navigation: remise D-0111",
+                          "duration": 369
+                        },
+                        {
+                          "title": "verification: Remettre without confirmation, then submitted on the frozen date",
+                          "duration": 110
+                        }
+                      ],
+                      "startTime": "2026-11-25T13:34:35.162Z",
+                      "annotations": [
+                        {
+                          "type": "mb:reach",
+                          "description": "reached"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "har",
+                          "contentType": "application/json",
+                          "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/remise-remise-instructeur-chromium/scenario.har"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/remise-remise-instructeur-chromium/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6d0ea5dbc551a3552bb1-39ea76f1f2c274b1721d",
+              "file": "remise.spec.ts",
+              "line": 67,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "",
+          "file": "remise.spec.ts",
+          "line": 105,
+          "column": 6,
+          "specs": [
+            {
+              "title": "receipt-instructeur",
+              "ok": true,
+              "tags": [
+                "remise"
+              ],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:variant",
+                      "description": "receipt-tab=same-tab"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 575,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "steps": [
+                        {
+                          "title": "navigation: remise D-0010",
+                          "duration": 370
+                        },
+                        {
+                          "title": "verification: receipt page with its title and archive reference",
+                          "duration": 94
+                        }
+                      ],
+                      "startTime": "2026-11-25T13:34:36.414Z",
+                      "annotations": [
+                        {
+                          "type": "mb:reach",
+                          "description": "reached"
+                        },
+                        {
+                          "type": "mb:variant",
+                          "description": "receipt-tab=same-tab"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "har",
+                          "contentType": "application/json",
+                          "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/remise-receipt-instructeur-chromium/scenario.har"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/remise-receipt-instructeur-chromium/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6d0ea5dbc551a3552bb1-4bba47ef9ec9474d82c9",
+              "file": "remise.spec.ts",
+              "line": 108,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "search.spec.ts",
+      "file": "search.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "search-initial-focus",
+          "ok": true,
+          "tags": [
+            "recherche",
+            "clavier"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 173,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 107
+                    },
+                    {
+                      "title": "verification: focus on Numéro",
+                      "duration": 5
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:37.021Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-initial-focus-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-initial-focus-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-bfb768823ac211a010c8",
+          "file": "search.spec.ts",
+          "line": 90,
+          "column": 1
+        },
+        {
+          "title": "search-empty-form",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 813,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 85
+                    },
+                    {
+                      "title": "verification: shared numbers D-0001, D-0002, D-0003, D-0004, D-0005, D-0006, D-0007, D-0008, D-0009, D-0010, D-0011, D-0012, D-0013, D-0014, D-0015, D-0016, D-0017, D-0018, D-0019, D-0020, D-0021, D-0022, D-0023, D-0024, D-0025, D-0026, D-0027, D-0028, D-0029, D-0030",
+                      "duration": 650
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:37.212Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-empty-form-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-empty-form-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-6eabd18225983ea58f0c",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-number-exact",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 803,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 86
+                    },
+                    {
+                      "title": "verification: shared numbers D-0007",
+                      "duration": 646
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:38.054Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-number-exact-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-number-exact-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-1cda7593e676a0d34891",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-applicant-contains-case",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 835,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 117
+                    },
+                    {
+                      "title": "verification: shared numbers D-0016",
+                      "duration": 648
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:38.880Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-applicant-contains-case-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-applicant-contains-case-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-dfaec5fab7e488156a9e",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-applicant-accents",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 810,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 104
+                    },
+                    {
+                      "title": "verification: shared numbers D-0004",
+                      "duration": 644
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:39.741Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-applicant-accents-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-applicant-accents-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-8c6e3aec0c7f6aaa4438",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-status",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 836,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 109
+                    },
+                    {
+                      "title": "verification: shared numbers D-0001, D-0004, D-0007, D-0010, D-0013, D-0016, D-0019, D-0022, D-0025, D-0028",
+                      "duration": 666
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:40.593Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-status-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-status-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-ad4197bf1b1f1d2616a5",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-filed-same-day",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 835,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 102
+                    },
+                    {
+                      "title": "verification: shared numbers D-0012, D-0019",
+                      "duration": 666
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:41.458Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-filed-same-day-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-filed-same-day-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-013f03927ccf904c6763",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-filed-from-only",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 779,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 71
+                    },
+                    {
+                      "title": "verification: shared numbers D-0030",
+                      "duration": 644
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:42.328Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-filed-from-only-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-filed-from-only-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-82075333a5a9a20ed1db",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-filed-to-only",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 782,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 76
+                    },
+                    {
+                      "title": "verification: shared numbers D-0001",
+                      "duration": 636
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:43.131Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-filed-to-only-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-filed-to-only-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-ec278de6ec4833b7e16f",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-criteria-and",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 849,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 98
+                    },
+                    {
+                      "title": "verification: shared numbers D-0007, D-0019",
+                      "duration": 664
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:43.945Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-criteria-and-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-criteria-and-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-60a5d011efa4a8359f3b",
+          "file": "search.spec.ts",
+          "line": 56,
+          "column": 3
+        },
+        {
+          "title": "search-no-result",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 843,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 68
+                    },
+                    {
+                      "title": "verification: no-result message, no number",
+                      "duration": 715
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:44.816Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-no-result-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-no-result-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-464844fe2d4d82dd3156",
+          "file": "search.spec.ts",
+          "line": 141,
+          "column": 1
+        },
+        {
+          "title": "search-number-mask",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 805,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 69
+                    },
+                    {
+                      "title": "verification: refused with its message, no shared number",
+                      "duration": 669
+                    },
+                    {
+                      "title": "verification: input kept",
+                      "duration": 6
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:45.677Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-number-mask-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-number-mask-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-1a1f053a48c7de8e1b10",
+          "file": "search.spec.ts",
+          "line": 73,
+          "column": 3
+        },
+        {
+          "title": "search-number-spaces",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 815,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 73
+                    },
+                    {
+                      "title": "verification: refused with its message, no shared number",
+                      "duration": 672
+                    },
+                    {
+                      "title": "verification: input kept",
+                      "duration": 6
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:46.504Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-number-spaces-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-number-spaces-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-5285b23bcff59e963f6b",
+          "file": "search.spec.ts",
+          "line": 73,
+          "column": 3
+        },
+        {
+          "title": "search-filed-from-format",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 818,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 66
+                    },
+                    {
+                      "title": "verification: refused with its message, no shared number",
+                      "duration": 686
+                    },
+                    {
+                      "title": "verification: input kept",
+                      "duration": 6
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:47.338Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-filed-from-format-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-filed-from-format-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-8a31346eecea0e270740",
+          "file": "search.spec.ts",
+          "line": 73,
+          "column": 3
+        },
+        {
+          "title": "search-filed-to-format",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 780,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 69
+                    },
+                    {
+                      "title": "verification: refused with its message, no shared number",
+                      "duration": 649
+                    },
+                    {
+                      "title": "verification: input kept",
+                      "duration": 4
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:48.179Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-filed-to-format-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-filed-to-format-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-c4adc649ee4072b45bc4",
+          "file": "search.spec.ts",
+          "line": 73,
+          "column": 3
+        },
+        {
+          "title": "search-filed-range-order",
+          "ok": true,
+          "tags": [
+            "recherche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 946,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: search",
+                      "duration": 130
+                    },
+                    {
+                      "title": "verification: refused with its message, no shared number",
+                      "duration": 730
+                    },
+                    {
+                      "title": "verification: input kept",
+                      "duration": 9
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:48.980Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-filed-range-order-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-search-filed-range-order-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a088064de9fe351eef5f-40fa4aed9c0f1f012da0",
+          "file": "search.spec.ts",
+          "line": 73,
+          "column": 3
+        }
+      ],
+      "suites": [
+        {
+          "title": "",
+          "file": "search.spec.ts",
+          "line": 172,
+          "column": 8,
+          "specs": [
+            {
+              "title": "auth-no-credentials",
+              "ok": true,
+              "tags": [
+                "recherche"
+              ],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 102,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "steps": [
+                        {
+                          "title": "navigation: load BASE_URL",
+                          "duration": 31
+                        },
+                        {
+                          "title": "verification: no-credentials refused with 401, search not shown",
+                          "duration": 22
+                        }
+                      ],
+                      "startTime": "2026-11-25T13:34:49.946Z",
+                      "annotations": [
+                        {
+                          "type": "mb:reach",
+                          "description": "reached"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "har",
+                          "contentType": "application/json",
+                          "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-auth-no-credentials-chromium/scenario.har"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-auth-no-credentials-chromium/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a088064de9fe351eef5f-edb54c4d3ae98f72a907",
+              "file": "search.spec.ts",
+              "line": 175,
+              "column": 5
+            },
+            {
+              "title": "auth-unknown-user",
+              "ok": true,
+              "tags": [
+                "recherche"
+              ],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 143,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "steps": [
+                        {
+                          "title": "navigation: load BASE_URL",
+                          "duration": 43
+                        },
+                        {
+                          "title": "verification: unknown-user refused with 401, search not shown",
+                          "duration": 23
+                        }
+                      ],
+                      "startTime": "2026-11-25T13:34:50.074Z",
+                      "annotations": [
+                        {
+                          "type": "mb:reach",
+                          "description": "reached"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "har",
+                          "contentType": "application/json",
+                          "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-auth-unknown-user-chromium/scenario.har"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/search-auth-unknown-user-chromium/trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a088064de9fe351eef5f-848aa6a69812680506d8",
+              "file": "search.spec.ts",
+              "line": 175,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "sheet.spec.ts",
+      "file": "sheet.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "sheet-initial-focus",
+          "ok": true,
+          "tags": [
+            "fiche",
+            "clavier"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 354,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0002",
+                      "duration": 276
+                    },
+                    {
+                      "title": "verification: focus on Objet",
+                      "duration": 8
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:50.236Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-initial-focus-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-initial-focus-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-6f8efed355568056053d",
+          "file": "sheet.spec.ts",
+          "line": 25,
+          "column": 1
+        },
+        {
+          "title": "sheet-tab-order",
+          "ok": true,
+          "tags": [
+            "fiche",
+            "clavier"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 386,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0003",
+                      "duration": 279
+                    },
+                    {
+                      "title": "verification: Objet, Tab to Demandeur, Tab to Enregistrer",
+                      "duration": 40
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:50.612Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-tab-order-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-tab-order-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-de5416d44cf5b46f67b9",
+          "file": "sheet.spec.ts",
+          "line": 34,
+          "column": 1
+        },
+        {
+          "title": "sheet-content",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 336,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0006",
+                      "duration": 248
+                    },
+                    {
+                      "title": "verification: number, status, filing date, applicant, subject",
+                      "duration": 25
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:51.022Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-content-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-content-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-104b885cb32ff4d1e0fa",
+          "file": "sheet.spec.ts",
+          "line": 48,
+          "column": 1
+        },
+        {
+          "title": "sheet-save-brouillon",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 898,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0102",
+                      "duration": 348
+                    },
+                    {
+                      "title": "verification: save applicant and subject with Enregistrer",
+                      "duration": 114
+                    },
+                    {
+                      "title": "verification: reread sheet D-0102",
+                      "duration": 356
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:51.377Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-save-brouillon-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-save-brouillon-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-10f70460d2752df866e8",
+          "file": "sheet.spec.ts",
+          "line": 61,
+          "column": 1
+        },
+        {
+          "title": "sheet-save-en-instruction",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 805,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0103",
+                      "duration": 247
+                    },
+                    {
+                      "title": "verification: save subject with Enregistrer",
+                      "duration": 95
+                    },
+                    {
+                      "title": "verification: reread sheet D-0103",
+                      "duration": 385
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:52.308Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-save-en-instruction-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-save-en-instruction-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-a6d34f86a6f1dc1f78c1",
+          "file": "sheet.spec.ts",
+          "line": 78,
+          "column": 1
+        },
+        {
+          "title": "sheet-ctrl-s",
+          "ok": true,
+          "tags": [
+            "fiche",
+            "clavier"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 815,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0104",
+                      "duration": 282
+                    },
+                    {
+                      "title": "verification: Ctrl+S prevents the browser default",
+                      "duration": 38
+                    },
+                    {
+                      "title": "verification: reread sheet D-0104",
+                      "duration": 400
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:53.142Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-ctrl-s-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-ctrl-s-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-f1e8419e33eb5fac2717",
+          "file": "sheet.spec.ts",
+          "line": 93,
+          "column": 1
+        },
+        {
+          "title": "sheet-ctrl-s-remis",
+          "ok": true,
+          "tags": [
+            "fiche",
+            "clavier"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 735,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0116",
+                      "duration": 327
+                    },
+                    {
+                      "title": "verification: Ctrl+S prevents the browser default",
+                      "duration": 20
+                    },
+                    {
+                      "title": "verification: reread sheet D-0116",
+                      "duration": 310
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:53.995Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-ctrl-s-remis-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-ctrl-s-remis-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-3765659be0c55761c593",
+          "file": "sheet.spec.ts",
+          "line": 107,
+          "column": 1
+        },
+        {
+          "title": "sheet-remise-link",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 872,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0002",
+                      "duration": 276
+                    },
+                    {
+                      "title": "verification: no Remise link on a BROUILLON (D-0002)",
+                      "duration": 7
+                    },
+                    {
+                      "title": "navigation: sheet D-0003",
+                      "duration": 250
+                    },
+                    {
+                      "title": "verification: Remise link on an EN_INSTRUCTION (D-0003)",
+                      "duration": 12
+                    },
+                    {
+                      "title": "navigation: sheet D-0001",
+                      "duration": 244
+                    },
+                    {
+                      "title": "verification: Remise link on a REMIS (D-0001)",
+                      "duration": 9
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:54.758Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-remise-link-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-remise-link-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-6a1ab64a05f833e03c73",
+          "file": "sheet.spec.ts",
+          "line": 122,
+          "column": 1
+        },
+        {
+          "title": "sheet-applicant-required",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 941,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0105",
+                      "duration": 272
+                    },
+                    {
+                      "title": "verification: blank applicant refused with its message",
+                      "duration": 196
+                    },
+                    {
+                      "title": "verification: both inputs kept",
+                      "duration": 15
+                    },
+                    {
+                      "title": "verification: reread sheet D-0105",
+                      "duration": 377
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:55.662Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-applicant-required-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-applicant-required-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-5e91411e5e69aa6cfee5",
+          "file": "sheet.spec.ts",
+          "line": 143,
+          "column": 1
+        },
+        {
+          "title": "sheet-subject-required",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 769,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0107",
+                      "duration": 260
+                    },
+                    {
+                      "title": "verification: empty subject refused with its message",
+                      "duration": 129
+                    },
+                    {
+                      "title": "verification: input kept",
+                      "duration": 7
+                    },
+                    {
+                      "title": "verification: reread sheet D-0107",
+                      "duration": 293
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:56.633Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-subject-required-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-subject-required-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-159090ad32f24fe1d7e9",
+          "file": "sheet.spec.ts",
+          "line": 164,
+          "column": 1
+        },
+        {
+          "title": "sheet-applicant-maxlength",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:variant",
+                  "description": "maxlength=message"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1049,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0106",
+                      "duration": 260
+                    },
+                    {
+                      "title": "verification: type 81 characters in Demandeur",
+                      "duration": 114
+                    },
+                    {
+                      "title": "verification: maxlength message shown",
+                      "duration": 96
+                    },
+                    {
+                      "title": "verification: input kept",
+                      "duration": 9
+                    },
+                    {
+                      "title": "verification: reread sheet D-0106",
+                      "duration": 487
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:57.430Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:variant",
+                      "description": "maxlength=message"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-applicant-maxlength-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-applicant-maxlength-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-50f691f1c43e59595a85",
+          "file": "sheet.spec.ts",
+          "line": 228,
+          "column": 1
+        },
+        {
+          "title": "sheet-subject-maxlength",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:variant",
+                  "description": "maxlength=message"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1001,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0108",
+                      "duration": 267
+                    },
+                    {
+                      "title": "verification: type 201 characters in Objet",
+                      "duration": 224
+                    },
+                    {
+                      "title": "verification: maxlength message shown",
+                      "duration": 98
+                    },
+                    {
+                      "title": "verification: input kept",
+                      "duration": 7
+                    },
+                    {
+                      "title": "verification: reread sheet D-0108",
+                      "duration": 324
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:58.519Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:variant",
+                      "description": "maxlength=message"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-subject-maxlength-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-subject-maxlength-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-dd39b54c182fed6d168c",
+          "file": "sheet.spec.ts",
+          "line": 234,
+          "column": 1
+        },
+        {
+          "title": "sheet-lock-en-instruction",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:variant",
+                  "description": "lock=readonly"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 824,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0109",
+                      "duration": 256
+                    },
+                    {
+                      "title": "verification: Demandeur locked, a keystroke does not change it",
+                      "duration": 46
+                    },
+                    {
+                      "title": "verification: Objet editable, Enregistrer present",
+                      "duration": 15
+                    },
+                    {
+                      "title": "verification: save with Enregistrer",
+                      "duration": 68
+                    },
+                    {
+                      "title": "verification: reread sheet D-0109",
+                      "duration": 314
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:34:59.554Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:variant",
+                      "description": "lock=readonly"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-lock-en-instruction-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-lock-en-instruction-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-5cb88f9521738bc957b6",
+          "file": "sheet.spec.ts",
+          "line": 269,
+          "column": 1
+        },
+        {
+          "title": "sheet-lock-remis",
+          "ok": true,
+          "tags": [
+            "fiche"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [
+                {
+                  "type": "mb:reach",
+                  "description": "reached"
+                },
+                {
+                  "type": "mb:variant",
+                  "description": "lock=readonly"
+                },
+                {
+                  "type": "mb:reread-attempts",
+                  "description": "1"
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 868,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "steps": [
+                    {
+                      "title": "navigation: sheet D-0110",
+                      "duration": 264
+                    },
+                    {
+                      "title": "verification: Demandeur and Objet locked, no Enregistrer",
+                      "duration": 42
+                    },
+                    {
+                      "title": "verification: a keystroke changes neither Demandeur nor Objet",
+                      "duration": 42
+                    },
+                    {
+                      "title": "verification: reread sheet D-0110",
+                      "duration": 350
+                    }
+                  ],
+                  "startTime": "2026-11-25T13:35:00.436Z",
+                  "annotations": [
+                    {
+                      "type": "mb:reach",
+                      "description": "reached"
+                    },
+                    {
+                      "type": "mb:variant",
+                      "description": "lock=readonly"
+                    },
+                    {
+                      "type": "mb:reread-attempts",
+                      "description": "1"
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "har",
+                      "contentType": "application/json",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-lock-remis-chromium/scenario.har"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/runner/work/migrabench/migrabench/.oracle-artifacts/20261125T133422Z-52303ae-reference-candidate/oracle/sheet-sheet-lock-remis-chromium/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "34d094cfbfecd5f9e364-1d376e3cf3103fa3fd15",
+          "file": "sheet.spec.ts",
+          "line": 292,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-25T13:34:30.692Z",
+    "duration": 30715.273999999998,
+    "expected": 38,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

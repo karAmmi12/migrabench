@@ -2,50 +2,49 @@
 // compare le code de sortie, measure.json et la présence d'oracle.json au
 // tableau de la spec de l'étape 3 (« Candidats défectueux »), et, pour la
 // mesure comptée du candidat de référence, au critère de fin (« Notes »).
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { MEASURE_CASES, type Observed, caseProblems } from "../scripts/measure-cases.ts";
+import { MEASURES, readJsonFixture, readMeasure } from "./real-fixtures.ts";
 
 // Copie de la première mesure comptée du candidat de référence, produite par
 // le job des mesures sur main (exécution 45624689673, commit 52303ae) : son
 // measure.json et son oracle.json, tels qu'écrits par le banc.
-const REAL = "tests/fixtures/measure-cases/20261125T133422Z-52303ae-reference-candidate";
-const realMeasure = JSON.parse(readFileSync(new URL(`../${REAL}/measure.json`, import.meta.url), "utf8")) as Record<string, unknown>;
-const realOracle = JSON.parse(readFileSync(new URL(`../${REAL}/oracle.json`, import.meta.url), "utf8")) as object;
+const referenceMeasure = readMeasure(MEASURES.reference);
+const referenceOracle = readJsonFixture<object>(`${MEASURES.reference.results}/oracle.json`);
 
 describe("caseProblems, on a real counted measure", () => {
   // L'exécution 45624689673 a rejeté cette mesure : le contrôle cherchait
   // originMain sous environment, alors que le banc l'écrit à la racine.
   it("has nothing to report for the first counted measure of the reference candidate", () => {
-    expect(caseProblems(MEASURE_CASES["reference-counted"], { exitCode: 0, record: realMeasure, oracle: realOracle })).toEqual([]);
+    expect(caseProblems(MEASURE_CASES["reference-counted"], { exitCode: 0, record: referenceMeasure, oracle: referenceOracle })).toEqual([]);
   });
 
   it("names a counted measure without originMain", () => {
-    const { originMain: _originMain, ...record } = realMeasure;
+    const { originMain: _originMain, ...record } = referenceMeasure;
 
-    expect(caseProblems(MEASURE_CASES["reference-counted"], { exitCode: 0, record, oracle: realOracle })).toEqual(["originMain is missing"]);
+    expect(caseProblems(MEASURE_CASES["reference-counted"], { exitCode: 0, record, oracle: referenceOracle })).toEqual(["originMain is missing"]);
   });
 });
 
 // Variantes de la vraie mesure : chacune part de la copie et ne change que ce
 // que son test regarde. Phases : celles de la mesure, issue et détail changés.
-type RealPhase = { name: string; outcome: string; detail?: string };
-const REAL_PHASES = realMeasure.phases as RealPhase[];
+type RecordedPhase = { name: string; outcome: string; detail?: string };
+const REFERENCE_PHASES = referenceMeasure.phases as RecordedPhase[];
 
 function phases(outcomes: Record<string, string> = {}, details: Record<string, string> = {}) {
-  return REAL_PHASES.map((phase) => ({ ...phase, outcome: outcomes[phase.name] ?? phase.outcome, ...(details[phase.name] === undefined ? {} : { detail: details[phase.name] }) }));
+  return REFERENCE_PHASES.map((phase) => ({ ...phase, outcome: outcomes[phase.name] ?? phase.outcome, ...(details[phase.name] === undefined ? {} : { detail: details[phase.name] }) }));
 }
 
 function summary(passed: number, failed: number, unreached: number) {
-  return { ...(realMeasure.oracle as { summary: object }).summary, scenarios: passed + failed + unreached, passed, failed, unreached };
+  return { ...(referenceMeasure.oracle as { summary: object }).summary, scenarios: passed + failed + unreached, passed, failed, unreached };
 }
 
 // La mesure de diagnostic correspondante : même mesure, pas prévue pour compter.
-const COMPLETE: Record<string, unknown> = { ...realMeasure, counted: false, environment: { ...(realMeasure.environment as object), worktree: "dirty" } };
+const COMPLETE: Record<string, unknown> = { ...referenceMeasure, counted: false, environment: { ...(referenceMeasure.environment as object), worktree: "dirty" } };
 
 // oracle.json de la mesure, son sel (config.metadata.saltImposed) remplacé.
 function oracleJson(saltImposed: unknown) {
-  const oracle = structuredClone(realOracle) as { config: { metadata: Record<string, unknown> } };
+  const oracle = structuredClone(referenceOracle) as { config: { metadata: Record<string, unknown> } };
   oracle.config.metadata.saltImposed = saltImposed;
   return oracle;
 }
