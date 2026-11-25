@@ -37,7 +37,7 @@ describe("write-ci-scope script", () => {
     const { code, stdout, output } = await writeScope({ GITHUB_EVENT_NAME: "push", CI_JOBS: "oracle,typecheck" });
 
     expect(code).toBe(1);
-    expect(stdout).toBe("::error::CI_JOBS : job inconnu typecheck (attendu : tests, oracle, proof, calibration).\n");
+    expect(stdout).toBe("::error::CI_JOBS : job inconnu typecheck (attendu : tests, oracle, proof, calibration, measures).\n");
     expect(output).toBe("");
   });
 });

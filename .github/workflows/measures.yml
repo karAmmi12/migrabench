@@ -1,0 +1,222 @@
+# Mesures sur une vraie pile (#74, spec de l'étape 3, « Décisions de test »,
+# Seam 1, et « Notes », critère de fin). Un seul job, une seule construction
+# de la pile :
+# - le candidat de référence : mesure comptée (`--counted`) en workflow_dispatch
+#   sur main, mesure de diagnostic sinon (`--counted` refuse un commit qui
+#   n'est pas dans origin/main) ;
+# - une seconde mesure refusée par le verrou du banc, puis la mesure
+#   interrompue par SIGINT pendant l'oracle (#71) ;
+# - les huit candidats défectueux du tableau de la spec ;
+# - les pannes de la pile de #68 : legacy arrêté pendant l'oracle,
+#   configuration de Playwright cassée.
+# Chaque mesure est contrôlée par scripts/run-measure-case.ts contre son issue
+# attendue (scripts/measure-cases.ts) ; le résumé du job en donne le tableau.
+# Mesures et bruts gardés 7 jours en artefacts (ADR 0005) ; la mesure comptée
+# en est récupérée pour être versionnée sous results/counted/.
+#
+# Chaque étape de mesure lance son script par `exec` : à l'annulation du job,
+# GitHub envoie SIGINT au processus d'entrée de l'étape, que le shell d'une
+# étape `run` ne relaie pas (#71). Le script le relaie à la mesure.
+#
+# Ni ARCHIVE_SALT ni ORACLE_SALT : chaque mesure tire son sel
+# (saltImposed: false, contrôlé dans measure.json et dans oracle.json).
+#
+# Quand il tourne (job changes, règle dans scripts/ci-scope.ts) :
+# - en workflow_dispatch : toujours ;
+# - sur une PR : seulement si elle touche ce que le job exécute (chemins de
+#   measures dans scripts/ci-scope.ts), et pas si aucun de ces chemins n'a
+#   changé depuis son dernier succès sur la PR.
+name: Mesures
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Un nouveau commit annule l'exécution en cours sur la même PR (#76). Hors PR
+# (push sur main, workflow_dispatch), chaque exécution a son propre groupe et
+# n'est jamais annulée.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # Décide si le job lourd tourne (#76, #74) : règle dans scripts/ci-scope.ts.
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    # actions: read : lire les exécutions précédentes du workflow.
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      measures: ${{ steps.scope.outputs.measures }}
+    steps:
+      # Historique complet : diff depuis la base de la PR et depuis la référence.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Jobs lourds à lancer
+        id: scope
+        env:
+          CI_JOBS: measures
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/write-ci-scope.ts
+
+  measures:
+    needs: changes
+    if: needs.changes.outputs.measures == 'true'
+    runs-on: ubuntu-24.04
+    # Borne un blocage : une vingtaine de mesures, la sonde et le relais qui
+    # altère un libellé passent chacun par l'oracle complet.
+    timeout-minutes: 45
+    env:
+      # Mesure comptée seulement sur main, lancée à la main.
+      REFERENCE_CASE: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && 'reference-counted' || 'reference' }}
+    steps:
+      # Historique complet (#74) : `--counted` fait `git merge-base
+      # --is-ancestor HEAD origin/main`, qu'un clone superficiel ferait échouer
+      # dès que main a avancé. Le commit de la PR, pas le commit de fusion
+      # temporaire de GitHub : benchCommit doit rester citable.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Installation des dépendances
+        run: npm ci
+
+      - name: Installation de Chromium pour Playwright
+        run: npx playwright install --with-deps chromium
+
+      # Empreinte du contexte de construction de chaque image, posée en label
+      # au build : une mesure refuse une pile dont les images ne viennent pas
+      # de cette copie (#102).
+      - name: Empreintes des contextes de la pile
+        run: node scripts/stack-context-env.ts >> "$GITHUB_ENV"
+
+      - name: Construction des images
+        run: docker compose build
+
+      - name: En-tête du résumé
+        run: |
+          {
+            echo "## Mesures"
+            echo
+            echo "| Cas | Mesure | Issue | Code | Contrôle |"
+            echo "|---|---|---|---|---|"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # En premier : l'arbre de travail est encore propre, une condition de
+      # `--counted`. Le premigrabench n'est pas lancé : le script appelle
+      # runner/cli.ts, et setup-node a pris la version de .nvmrc.
+      - name: Candidat de référence
+        run: exec node scripts/run-measure-case.ts "$REFERENCE_CASE"
+
+      - name: Verrou du banc et mesure interrompue
+        if: ${{ !cancelled() }}
+        run: exec node scripts/interrupt-measure.ts
+
+      - name: Candidat défectueux 1, contrat invalide
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts contract-invalid
+
+      - name: Candidat défectueux 2, construction en échec
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts build-fails
+
+      - name: Candidat défectueux 3, construction trop longue
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts build-never-ends
+
+      - name: Candidat défectueux 4, jamais disponible
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts never-ready
+
+      - name: Candidat défectueux 5, sonde d'isolation
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts isolation-probe
+
+      - name: Candidat défectueux 6, relais qui altère un libellé
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts relay-alters-label
+
+      # La composition ajoutée par COMPOSE_FILE ne vaut que pour cette mesure :
+      # la suivante recrée un legacy sain.
+      - name: Candidat défectueux 7, pile volontairement cassée
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts broken-stack
+
+      # Images de la pile construites avec une empreinte de contexte étrangère
+      # à cette copie, puis reconstruites avec la sienne.
+      - name: Candidat défectueux 8, images d'une autre copie
+        if: ${{ !cancelled() }}
+        run: |
+          foreign="sha256:$(printf '0%.0s' $(seq 64))"
+          MB_LEGACY_CONTEXT_DIGEST="$foreign" MB_ARCHIVE_CONTEXT_DIGEST="$foreign" docker compose build
+
+      - name: Candidat défectueux 8, mesure
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts foreign-stack
+
+      - name: Candidat défectueux 8, images de cette copie
+        if: ${{ !cancelled() }}
+        run: docker compose build
+
+      - name: Panne de #68, legacy arrêté pendant l'oracle
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts legacy-stopped-during-oracle
+
+      # Le fichier modifié fait partie du contexte de la pile : les images
+      # sont reconstruites avec l'empreinte de la copie modifiée, sans quoi la
+      # mesure rendrait stack-not-from-this-copy avant l'oracle. En dernier :
+      # l'arbre de travail n'est plus propre.
+      - name: Panne de #68, configuration de Playwright cassée
+        if: ${{ !cancelled() }}
+        run: |
+          echo 'throw new Error("oracle config broken on purpose (#74)");' >> oracle/playwright.config.ts
+          env $(node scripts/stack-context-env.ts) docker compose build
+
+      - name: Panne de #68, mesure
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts oracle-config-broken
+
+      - name: Panne de #68, configuration rétablie
+        if: always()
+        run: git checkout -- oracle/playwright.config.ts
+
+      - name: Journaux de la pile
+        if: always()
+        run: |
+          mkdir -p .oracle-artifacts
+          docker compose ps --all > .oracle-artifacts/compose-ps.txt
+          docker compose logs --no-color --timestamps > .oracle-artifacts/compose-logs.txt
+
+      - name: Publication des mesures et des bruts
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: measures
+          path: |
+            results/counted/
+            results/diagnostic/
+            .oracle-artifacts/
+            !.oracle-artifacts/**/node_modules/
+            !.oracle-artifacts/**/npm-cache/
+          include-hidden-files: true
+          retention-days: 7
+          if-no-files-found: error
