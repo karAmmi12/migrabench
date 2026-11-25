@@ -37,16 +37,18 @@ Le vocabulaire du domaine du legacy et les termes dérivés sont définis dans
 |---|---|---|
 | Fidélité aux usages | % de scénarios de l'oracle passés | Playwright |
 | Fidélité aux usages | scénarios clavier seul passés (tabulation, raccourcis) | Playwright |
-| Fidélité aux usages | écarts de payload HTTP par rapport au legacy | comparaison HAR |
-| Sécurité | charge XSS non exécutée, et affichée en texte (deux résultats) | Playwright + jeu de données piégé |
-| Sécurité | aucun secret serveur dans ce qui arrive au navigateur ou en part (bundle, HTML, requêtes et réponses du HAR) | recherche d'une valeur témoin |
-| Sécurité | contrôle de rôle refusé côté serveur | rejeu de la requête de remise de l'instructeur avec les identifiants de l'agent |
+| Fidélité aux usages | écarts de valeurs métier envoyées par le navigateur, par rapport au legacy (résultat relevé) | comparaison HAR |
+| Sécurité | charge XSS non exécutée, et affichée en texte (deux résultats par écran, trois écrans) | Playwright + jeu de données piégé |
+| Sécurité | aucun secret serveur dans ce qui arrive au navigateur ou en part (bundle, HTML, requêtes et réponses des HAR de l'oracle) | recherche d'une valeur témoin |
+| Sécurité | contrôle de rôle refusé côté serveur | rejeu de la requête de remise de l'instructeur avec les identifiants de l'agent, et accès direct à l'écran de remise |
 | Sécurité | authentification exigée côté serveur : aucune requête rejouée sans identifiants ne renvoie de données ni ne modifie un dossier | rejeu sans identifiants des requêtes enregistrées dans le HAR |
-| Sécurité | vulnérabilités des dépendances | npm audit, Semgrep |
+| Sécurité | vulnérabilités connues des dépendances | osv-scanner hors ligne, sur une base OSV figée (ADR 0009) |
+| Sécurité | motifs dangereux dans le code | ESLint et plugins de sécurité, configuration du banc (ADR 0009) |
 | Accessibilité | violations par gravité | axe-core |
 | Accessibilité | mise en page sans tableau (nombre et imbrication des tableaux) | arbre d'accessibilité, ou comptage dans le DOM à défaut |
-| Performance | score Lighthouse, poids du bundle | Lighthouse CI |
-| Qualité | erreurs de typage | tsc --noEmit |
+| Performance | score Lighthouse du chargement initial (résultat relevé) | Lighthouse |
+| Performance | poids du JS chargé pendant tout l'oracle (résultat relevé) | HAR de l'oracle |
+| Qualité | erreurs de typage, et moyens de contourner le typage relevés à part | tsc --noEmit, TypeScript du banc |
 | Coût | durée, tokens, nombre de corrections humaines | relevé par run |
 
 ## Règles
@@ -115,6 +117,39 @@ Le vocabulaire du domaine du legacy et les termes dérivés sont définis dans
   `BASE_URL` (ADR 0006). La règle métier reste garantie : l'API interne
   refuse la remise d'un `BROUILLON`, et la couche serveur du candidat passe
   par elle (ADR 0003).
+- Semgrep, cité dans les premières versions de ce protocole, n'est pas
+  utilisé : ses règles sont sous Semgrep Rules License v1.0, qui les réserve
+  à un usage interne et en interdit la distribution. L'analyse statique du
+  code passe par ESLint et des plugins de sécurité sous licence libre
+  (ADR 0009).
+- La recherche de la valeur témoin lit les HAR de l'oracle. Un morceau de JS
+  chargé à la demande, jamais demandé pendant l'oracle, mais servi avec la
+  valeur injectée à l'exécution, lui échapperait. Les fichiers construits ne
+  sont pas lus : la construction ne reçoit aucune variable du banc
+  (ADR 0007), donc la valeur ne peut pas s'y trouver.
+- Les portes de rôle et d'authentification rejouent des requêtes en
+  transplantant les valeurs liées à la session (cookies, jeton anti-CSRF) :
+  une valeur de la requête est liée à la session si elle apparaît dans ce
+  que la session a reçu. C'est une heuristique du banc. Un jeton dérivé côté
+  client (calculé en JS, jamais reçu tel quel) n'est pas reconnu : le rejeu
+  de contrôle échoue, et le résultat est non évaluable. Un candidat
+  **conforme** dans ce cas est donc pénalisé, puisque non évaluable compte
+  comme un échec. C'est visible, mais pas neutre : le constat le dit en
+  clair, pour une relecture humaine.
+- La porte d'authentification juge une réponse rejouée sans identifiants sur
+  les seuls numéros de dossier du jeu de données. Une réponse qui listerait
+  des demandeurs sans leur numéro passerait.
+- La comparaison HAR compare des valeurs, pas des noms de champs. Elle
+  ignore les valeurs vides et triviales, et normalise les dates. Tout autre
+  changement légitime de représentation (montants, casse) apparaît comme un
+  écart. C'est pour cela qu'elle est relevée, et non jugée.
+- Lighthouse ne mesure que le chargement initial de `BASE_URL`. Les écrans
+  atteints en cliquant ne sont pas mesurés. Avant l'étalonnage sous charge
+  (#100), ses scores sont relevés sous une limite de CPU provisoire et ne
+  servent à aucune conclusion.
+- `tsc` est celui du banc, pas celui du candidat (ADR 0009). Une syntaxe trop
+  récente pour la version épinglée produirait des erreurs au compte du
+  candidat.
 - Struts 1.3.10 a des failles connues, inhérentes au legacy : sa branche
   n'est plus maintenue. Au 18/11/2026, OSV recense 4 avis sur `struts-core`
   1.3.10, et la GitHub Advisory Database en recense 5. Ces failles ne font

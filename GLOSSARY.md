@@ -51,6 +51,29 @@ fixent les délais et les limites de ressources appliqués aux autres
 candidats. Jamais une sortie d'agent.
 _Éviter_ : candidat de calibration, benchmark
 
+**Candidat défectueux** :
+Candidat écrit par le banc pour une porte ou une phase de la mesure, qui
+enfreint volontairement sa règle et doit la faire échouer. C'est le témoin
+qu'une porte sait détecter.
+_Éviter_ : mauvais candidat, candidat négatif
+
+**Candidat conforme** :
+Candidat écrit par le banc pour une porte, qui respecte sa règle et doit la
+faire réussir. C'est le témoin qu'une porte sait réussir.
+_Éviter_ : bon candidat, candidat valide, candidat positif
+
+**Candidat d'essai** :
+Sortie d'un agent IA produite avant que le prompt soit figé, conservée avec
+sa provenance, qui sert à mettre au point les portes. Ce n'est pas un run :
+il n'est jamais compté. Il peut y en avoir plusieurs, par exemple un par
+outil. Il n'est jamais retouché pour passer une porte. Une correction faite
+pour respecter le contrat de candidat, ou pour retirer une donnée
+personnelle, reste séparée de la sortie de l'agent et décrite dans sa
+provenance. Elle ne change jamais le comportement du candidat : si retirer
+une donnée personnelle le change, c'est noté comme un défaut du candidat,
+sans réparation.
+_Éviter_ : run 0, pilote, candidat réel
+
 **Verrou du banc** :
 Fichier pris par un outil du banc pendant qu'il utilise la pile, qui refuse
 les autres outils du banc jusqu'à sa libération. Ne pas confondre avec le
@@ -76,7 +99,8 @@ images de la pile construites depuis une autre copie du dépôt (remède :
 vers le registre imposé de l'installation des dépendances ; marqueur du banc
 hors de son moment prévu dans le journal d'accès du legacy, ou requête
 témoin absente de ce journal ; erreur imprévue du runner avant le lancement
-de `npm ci` ; interruption de la mesure, qui est conservée et toujours
+de `npm ci` ; erreur d'une porte avant qu'elle ait examiné quoi que ce soit
+du candidat ; interruption de la mesure, qui est conservée et toujours
 signalée. La raison est enregistrée dans son résultat, ou, si l'erreur est
 découverte après coup, dans un document ajouté qui cite les mesures
 concernées, la raison et la preuve. La mesure
@@ -87,7 +111,20 @@ _Éviter_ : mesure ratée, mesure annulée
 **Non évaluable** :
 Résultat d'une porte qui n'a examiné aucun élément. Il compte comme un échec,
 jamais comme une réussite. Un candidat qui ne démarre pas rend toutes ses
-portes non évaluables.
+portes non évaluables. À distinguer d'une porte en erreur.
+
+**Résultat relevé** :
+Résultat d'une porte qui rapporte des valeurs sans les juger, faute de
+critère de réussite. Il ne compte ni comme une réussite ni comme un échec.
+S'il n'a rien examiné, il est non évaluable comme les autres.
+_Éviter_ : métrique, résultat informatif
+
+**Porte en erreur** :
+Résultat d'une porte qui a planté elle-même (exception, outil absent, délai
+dépassé). Avant tout examen du candidat, l'erreur rend la mesure invalide.
+Pendant l'examen, le candidat peut l'avoir provoquée : elle compte comme un
+échec, mais le rapport la distingue d'un échec, avec sa cause.
+_Éviter_ : porte plantée, crash
 _Éviter_ : sans objet, ignoré, ok par défaut
 
 **Valeur témoin** :

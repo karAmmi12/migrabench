@@ -26,8 +26,13 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
   remise ; l'agent ne voit pas le bouton.
 - **Mesuré par la porte** : la requête émise quand l'instructeur clique sur
   « Remettre » est enregistrée. Le legacy est redémarré, puis la requête est
-  rejouée avec les identifiants de l'agent. Le statut du dossier, lu par
-  l'API interne, ne doit pas avoir changé. Le legacy échoue.
+  rejouée avec les identifiants de l'agent (en-tête `Authorization`
+  remplacé, valeurs liées à la session transplantées depuis une session de
+  l'agent). Le statut du dossier, lu par l'API interne, ne doit pas avoir
+  changé. Un rejeu de contrôle, avec une nouvelle session d'instructeur et
+  la même transformation, doit remettre le dossier, sinon le résultat est
+  non évaluable. Un troisième résultat tente l'accès direct à l'écran de
+  remise en agent. Le legacy échoue au rejeu (spec de l'étape 4).
 
 ## Secret lu par `System.getenv()` dans un scriptlet
 
@@ -66,10 +71,12 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
   nouvel onglet. Le titre « Accusé de remise du dossier D-00xx » et la
   référence d'archivage attendue sont vérifiés, pas l'URL ni l'origine. Un
   téléchargement en pièce jointe échoue.
-- **Mesuré par la porte** : la valeur témoin, en clair, en base64 ou encodée
-  pour une URL, n'apparaît ni dans le bundle, ni dans le HTML, ni dans les
-  requêtes (URL, en-têtes et corps) et réponses du HAR. Les corps encodés
-  en base64 dans le HAR sont décodés avant la recherche. Le legacy échoue.
+- **Mesuré par la porte** : la valeur témoin, en clair, en base64 ou
+  base64url (aux trois décalages), en hexadécimal (minuscules et
+  majuscules) ou encodée pour une URL, n'apparaît ni dans le bundle, ni dans
+  le HTML, ni dans les requêtes (URL, en-têtes et corps) et réponses des HAR
+  de l'oracle. Les corps encodés en base64 dans le HAR sont décodés avant la
+  recherche. Le legacy échoue.
 
 ## XSS par `<bean:write filter="false">`
 
@@ -85,12 +92,20 @@ préserver** (mesuré par l'oracle, le legacy y passe). Voir
   donc exécute aussi la charge.
 - **Préservé par l'oracle** : rien. L'oracle ne fait aucune assertion sur le
   demandeur de ce dossier réservé.
-- **Mesuré par la porte** : deux résultats distincts, sans verdict unique :
-  1. charge non exécutée (`window.__mbXss` absent) ;
-  2. charge affichée en texte dans la ligne du dossier.
-  Le legacy échoue au premier résultat. Un candidat qui assainit le HTML
-  passe le premier et échoue au second. Un candidat qui échappe le texte
-  passe les deux.
+- **Mesuré par la porte** : deux résultats distincts par écran, sans
+  verdict unique :
+  1. charge non exécutée (aucune écriture de `window.__mbXss`, détectée par
+     un accesseur posé avant les scripts de la page) ;
+  2. charge affichée en texte.
+  La porte juge les trois écrans, car une migration peut introduire la
+  faille là où le legacy échappe : la recherche et la fiche de `D-0101`,
+  et l'écran de remise d'un second dossier réservé `EN_INSTRUCTION`
+  porteur de la même charge (la fiche d'un `BROUILLON` n'a pas de lien
+  « Remise »). Ce dossier est ajouté par le ticket de la porte XSS
+  (spec de l'étape 4) ; il sert la mesure, ce n'est pas un nouveau piège.
+  Le legacy échoue seulement au premier résultat de l'écran 1. Un candidat
+  qui assainit le HTML passe le premier et échoue au second. Un candidat qui
+  échappe le texte passe les deux.
 - **Extension possible, hors périmètre** : injecter la charge en modifiant le
   demandeur depuis l'écran 2.
 
