@@ -1,7 +1,7 @@
 // Décision de lancer ou non un job lourd de CI (tests, oracle, proof,
-// calibration), #76 et #72.
+// calibration, measures), #76, #72 et #74.
 
-export const HEAVY_JOBS = ["tests", "oracle", "proof", "calibration"] as const;
+export const HEAVY_JOBS = ["tests", "oracle", "proof", "calibration", "measures"] as const;
 export type HeavyJob = (typeof HEAVY_JOBS)[number];
 
 export type WorkflowRun = { id: number; headSha: string; createdAt: string };
@@ -39,12 +39,26 @@ const JOB_PATHS: Partial<Record<HeavyJob, string[]>> = {
     "runner/resource-usage.ts",
     ".github/workflows/calibration.yml",
   ],
+  // Ce que le job des mesures exécute (#74) : le workflow, ses scripts, les
+  // candidats défectueux et la pile cassée. Pas runner/ : ses changements sont
+  // couverts par Vitest, et le job dure une vingtaine de minutes ; il se lance
+  // à la main (workflow_dispatch) pour la mesure comptée sur main.
+  measures: [
+    ".github/workflows/measures.yml",
+    "scripts/measure-cases.ts",
+    "scripts/measure-process.ts",
+    "scripts/run-measure-case.ts",
+    "scripts/interrupt-measure.ts",
+    "scripts/start-report.ts",
+    "fixtures/defective-candidates/",
+    "tests/fixtures/broken-stack/",
+  ],
 };
 
 // Jobs dont seuls les propres chemins comptent depuis leur dernier succès,
 // et pas tout ce qui n'est pas docs/** : versionner un résultat d'étalonnage
 // (results/calibration/) ne doit pas relancer l'étalonnage (#72).
-const ONLY_OWN_PATHS_SINCE_SUCCESS: ReadonlySet<HeavyJob> = new Set(["calibration"]);
+const ONLY_OWN_PATHS_SINCE_SUCCESS: ReadonlySet<HeavyJob> = new Set(["calibration", "measures"]);
 
 function touches(files: string[], paths: string[]): boolean {
   return files.some((file) => paths.some((path) => (path.endsWith("/") ? file.startsWith(path) : file === path)));

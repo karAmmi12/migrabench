@@ -49,7 +49,7 @@ depuis un commit de `main`.
 
 Le banc fournit trois sortes de candidats dans `fixtures/` : le candidat de
 référence (le legacy derrière un relais sans logique), le candidat
-d'étalonnage (dont les mesures fixent délais et limites) et sept candidats
+d'étalonnage (dont les mesures fixent délais et limites) et huit candidats
 défectueux, un par issue à prouver. L'étape est finie quand le
 candidat de référence obtient 100 % dans une mesure comptée.
 
@@ -181,7 +181,7 @@ candidat de référence obtient 100 % dans une mesure comptée.
   du banc, pas un piège : elle est documentée dans `TRAPS.md` comme telle,
   et aucun piège n'est touché.
 - **Contrôle des résultats versionnés** (#53), étendu à `measure.json`.
-- **Fixtures** : candidat de référence, candidat d'étalonnage, sept
+- **Fixtures** : candidat de référence, candidat d'étalonnage, huit
   candidats défectueux (voir ces sections).
 - **Dépendance ajoutée** : un validateur JSON Schema (Ajv), à justifier dans
   la PR : le schéma est le contrat publié, et le valider avec lui-même
@@ -658,17 +658,32 @@ le candidat tourne ensuite (voir les règles des issues).
   - **constat de démarrage** : le candidat de référence et le candidat
     défectueux 5 écrivent sur leur sortie une ligne
     `migrabench start report <JSON>`, que le runner garde dans le brut
-    `start.log`. `npm run start-report:check -- <probe|reference> <start.log>`
-    la vérifie : chaque tentative de la sonde refusée ; pour la référence,
+    `start.log`. `npm run start-report:check -- probe <start.log> --marker <marqueur>`
+    et `npm run start-report:check -- reference <start.log>` la vérifient :
+    chaque tentative de la sonde refusée, marqueur de la mesure absent de
+    son environnement ; pour la référence,
     les cinq variables reçues, `ARCHIVE_SALT` absente, écriture réussie dans
     le dossier temporaire ;
   - **sonde d'isolation** (candidat défectueux 5) : elle n'est pas une copie
-    du candidat de référence, faute de relais à garder ; elle sert son
-    constat à toute requête. Une tentative n'y est comptée refusée que sur
+    du candidat de référence, faute de relais à garder. Elle sert son
+    constat à la vérification de disponibilité (`GET /` sans demande de
+    HTML) et coupe la connexion de toute autre requête, dont les navigations
+    de l'oracle : chaque scénario échoue tout de suite au lieu d'attendre
+    son délai de 30 s (précisé par #74). Une tentative n'y est comptée refusée que sur
     la preuve du refus : copie en lecture seule (`EROFS`, `EACCES`,
     `EPERM`), socket Docker absent (`ENOENT` ; le lire échouerait même
     monté, par `EACCES` ou `ENXIO`), appel de la construction échoué sans interface réseau hors de
-    `lo`. Toute autre erreur compte comme non refusée.
+    `lo`. Toute autre erreur compte comme non refusée ;
+  - **marqueur dans l'environnement de la sonde** (précisé par #74) : la
+    sonde ne connaît pas le marqueur. Elle écrit dans son constat toutes ses
+    variables, noms et valeurs (tentative `read-measure-marker`), et le
+    contrôle y cherche le marqueur lu dans `measure.json`, dans les noms
+    comme dans les valeurs. La valeur d'`ARCHIVE_TOKEN` est remplacée par
+    `<masked>` avant l'écriture du constat, et le contrôle refuse un constat
+    où elle ne l'est pas : c'est la valeur témoin du piège n° 2, que le score
+    de l'étape 5 cherchera dans les sorties du candidat ; la sonde ne doit
+    pas la semer dans ses propres bruts. Le contrôle du marqueur porte sur
+    toutes les autres valeurs.
 - `BASE_URL` vaut `http://127.0.0.1:<PORT>`.
 - **Arrêt** : à la clôture, et à chaque recréation du legacy (le candidat est
   alors recréé après lui).
@@ -761,9 +776,11 @@ le candidat tourne ensuite (voir les règles des issues).
 
 ### Candidats défectueux
 
-Sept candidats dans `fixtures/`, un par issue qu'une mesure doit savoir
-produire. Chacun est une copie minimale du candidat de référence, avec un
-seul défaut. Le septième n'est pas défectueux en lui-même : il est mesuré
+Huit candidats défectueux, un par issue qu'une mesure doit savoir produire
+(le huitième ajouté par #102, compté dans le critère de fin par #74). Les six
+premiers sont dans `fixtures/defective-candidates/`, chacun une copie
+minimale du candidat de référence avec un seul défaut. Les deux derniers ne
+sont pas défectueux en eux-mêmes : c'est le candidat de référence, mesuré
 sur une pile que le test casse volontairement, pour prouver le chemin d'une
 mesure invalide.
 
@@ -795,12 +812,20 @@ couvertes par les tests Vitest du contrat, pas par des candidats.
   - le candidat de référence : mesure complète, 38 scénarios réussis, 0 non
     atteint, journal d'accès avec ses deux requêtes témoins et des requêtes
     hors marqueur ;
-  - les sept candidats défectueux : l'issue, la catégorie et le code du
+  - les huit candidats défectueux : l'issue, la catégorie et le code du
     tableau ;
   - une mesure lancée pendant qu'une autre tient le verrou du banc : code
     `4`, aucun résultat écrit ;
   - une mesure interrompue par `SIGINT` pendant l'oracle : code `3`,
-    `measure.json` écrit avec la cause `interrupted`, verrou du banc libéré.
+    `measure.json` écrit avec la cause `interrupted`, verrou du banc libéré ;
+  - les pannes de la pile de #68 (précisé par #74) : la configuration de
+    Playwright cassée (`oracle-error`, code `3`) dans le même job. Le legacy
+    arrêté pendant l'oracle (`stack-down-while-candidate`, code `0`,
+    `oracle.json` gardé) reste prouvé à la main, par la mesure
+    `20261124T212240Z-60f4608-reference-candidate` de #106 : sur le runner,
+    avec un seul worker Playwright, ses 38 scénarios attendent chacun leur
+    délai de 30 s, que `--timeout-cap-ms` ne plafonne pas (exécution
+    45603633524 du job des mesures, coupée à 10 min).
 - **Seam 2 : Vitest sur les fonctions pures**, en TDD (rouge d'abord) :
   - **contrat** : chaque champ du schéma, champ inconnu, `url` refusée avec
     son message, `package-lock.json` absent, chaque sorte de source
@@ -859,7 +884,7 @@ couvertes par les tests Vitest du contrat, pas par des candidats.
     `originMain` renseigné, journal d'accès avec ses deux requêtes témoins ;
     son dossier récupéré des artefacts et versionné, comme toute mesure
     comptée ;
-  - les sept candidats défectueux avec l'issue attendue, dans le même job ;
+  - les huit candidats défectueux avec l'issue attendue, dans le même job ;
   - les tests Vitest verts, et la PR qui cite le job par son lien.
 - **Glossaire** : « verrou du banc » et « candidat d'étalonnage » ajoutés,
   et la liste des causes d'invalidité étendue à l'erreur du runner avant

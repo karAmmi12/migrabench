@@ -26,7 +26,7 @@ function history(
 
 describe("shouldRun", () => {
   it.each(["push", "workflow_dispatch"])("runs every heavy job outside a pull request (%s)", async (event) => {
-    for (const job of ["tests", "oracle", "proof", "calibration"] as const) {
+    for (const job of ["tests", "oracle", "proof", "calibration", "measures"] as const) {
       expect((await shouldRun(job, { event, prFiles: [] }, history())).run).toBe(true);
     }
   });
@@ -69,6 +69,34 @@ describe("shouldRun", () => {
     ".github/workflows/calibration.yml",
   ])("runs calibration on a pull request touching %s", async (file) => {
     expect((await shouldRun("calibration", pr("runner/verdict.ts", file), history())).run).toBe(true);
+  });
+
+  // Le job des mesures (#74) dure une vingtaine de minutes : il ne tourne sur
+  // une PR que si elle touche ce qu'il exécute, pas à chaque PR du runner.
+  it("skips measures on a pull request touching none of its paths, such as a runner file", async () => {
+    const decision = await shouldRun("measures", pr("runner/verdict.ts", "results/counted/x/measure.json"), history());
+
+    expect(decision.run).toBe(false);
+    expect(decision.reason).toMatch(/^la PR ne touche aucun de \.github\/workflows\/measures\.yml, /);
+  });
+
+  it.each([
+    ".github/workflows/measures.yml",
+    "scripts/measure-cases.ts",
+    "scripts/measure-process.ts",
+    "scripts/run-measure-case.ts",
+    "scripts/interrupt-measure.ts",
+    "scripts/start-report.ts",
+    "fixtures/defective-candidates/never-ready/server.js",
+    "tests/fixtures/broken-stack/legacy-never-healthy.compose.yml",
+  ])("runs measures on a pull request touching %s", async (file) => {
+    expect((await shouldRun("measures", pr("runner/verdict.ts", file), history())).run).toBe(true);
+  });
+
+  it("skips measures when none of its paths changed since it succeeded on the pull request", async () => {
+    const runs = [{ sha: "a1", at: "2026-11-23T10:00:00Z", jobs: { changes: "success", measures: "success" } }];
+
+    expect((await shouldRun("measures", pr("scripts/measure-cases.ts"), history(runs, { changed: { a1: ["results/counted/x/measure.json", "runner/verdict.ts"] } }))).run).toBe(false);
   });
 
   it("skips calibration when only docs/** changed since it succeeded on the pull request", async () => {
