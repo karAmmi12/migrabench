@@ -5,8 +5,10 @@
 // regarde s'il tourne en root ; il reprend le constat de la construction
 // (build.js), et écrit son environnement pour le contrôle du marqueur (#74).
 // Il écrit le constat sur sa sortie, que le runner garde dans le brut
-// `start.log` (lu par `npm run start-report:check -- probe`), et le sert sur
-// PORT à toute requête. Issue attendue : mesure complète, code 0.
+// `start.log` (lu par `npm run start-report:check -- probe`). Sur PORT, il
+// sert le constat à la vérification de disponibilité du runner et coupe la
+// connexion de toute autre requête (#74). Issue attendue : mesure complète,
+// code 0.
 import { readFileSync, statSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 
@@ -68,8 +70,21 @@ const attempts = [
 const report = JSON.stringify({ attempts });
 console.log(`migrabench start report ${report}`);
 
+// La vérification de disponibilité (runner/candidate-runtime.ts) fait un
+// `GET /` et se contente de toute réponse HTTP ; elle ne demande pas de HTML.
+// Toute autre requête, dont les navigations de l'oracle sur le même chemin,
+// voit sa connexion coupée : chaque scénario échoue tout de suite au lieu
+// d'attendre son délai de 30 s (#74).
+function isReadinessCheck(request) {
+  return request.method === "GET" && request.url === "/" && !(request.headers.accept ?? "").includes("text/html");
+}
+
 const port = Number(process.env.PORT);
 createServer((request, response) => {
+  if (!isReadinessCheck(request)) {
+    request.socket.destroy();
+    return;
+  }
   response.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
   response.end(`${report}\n`);
 }).listen(port, () => console.log(`isolation probe listening on ${port}`));

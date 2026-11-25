@@ -665,8 +665,11 @@ le candidat tourne ensuite (voir les règles des issues).
     les cinq variables reçues, `ARCHIVE_SALT` absente, écriture réussie dans
     le dossier temporaire ;
   - **sonde d'isolation** (candidat défectueux 5) : elle n'est pas une copie
-    du candidat de référence, faute de relais à garder ; elle sert son
-    constat à toute requête. Une tentative n'y est comptée refusée que sur
+    du candidat de référence, faute de relais à garder. Elle sert son
+    constat à la vérification de disponibilité (`GET /` sans demande de
+    HTML) et coupe la connexion de toute autre requête, dont les navigations
+    de l'oracle : chaque scénario échoue tout de suite au lieu d'attendre
+    son délai de 30 s (précisé par #74). Une tentative n'y est comptée refusée que sur
     la preuve du refus : copie en lecture seule (`EROFS`, `EACCES`,
     `EPERM`), socket Docker absent (`ENOENT` ; le lire échouerait même
     monté, par `EACCES` ou `ENXIO`), appel de la construction échoué sans interface réseau hors de
