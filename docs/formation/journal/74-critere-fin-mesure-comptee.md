@@ -296,10 +296,23 @@ L'exécution verte sur `main` (commit 889e111), source de la mesure
 success 2026-11-25T14:06:50Z 2026-11-25T14:17:25Z
 ```
 
-> À vérifier après l'exécution de la CI de la PR : relever le job `tests`
-> (contrôle des mesures versionnées sur les trois dossiers de
-> `results/counted/`) et le job « Fiche de formation », avec leurs liens et
-> le commit.
+CI de la PR #116 au commit ea37cbe :
+
+- [job `tests`, exécution 45637897130](https://github.com/karAmmi12/migrabench/actions/runs/45637897130),
+  de 14:47:38 à 14:51:19 UTC. Le contrôle des mesures versionnées tourne sur
+  les trois dossiers de `results/counted/` :
+
+  ```text
+  ✓  default  tests/runner/versioned-measures.test.ts (7 tests) 100ms
+  Tests  724 passed (724)
+  ```
+
+- [job « Fiche de formation », exécution 45637918044](https://github.com/karAmmi12/migrabench/actions/runs/45637918044) :
+
+  ```text
+  Fiche trouvée pour #74.
+  Chaque case cochée chiffrée cite un état.
+  ```
 
 ## Pour aller plus loin
 
