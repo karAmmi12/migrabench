@@ -184,17 +184,17 @@ jobs:
       # sont reconstruites avec l'empreinte de la copie modifiée, sans quoi la
       # mesure rendrait stack-not-from-this-copy avant l'oracle. En dernier :
       # l'arbre de travail n'est plus propre.
-      - name: Panne de #68, configuration de Playwright cassée
+      - name: "Panne de #68, configuration de Playwright cassée"
         if: ${{ !cancelled() }}
         run: |
           echo 'throw new Error("oracle config broken on purpose (#74)");' >> oracle/playwright.config.ts
           env $(node scripts/stack-context-env.ts) docker compose build
 
-      - name: Panne de #68, mesure
+      - name: "Panne de #68, mesure"
         if: ${{ !cancelled() }}
         run: exec node scripts/run-measure-case.ts oracle-config-broken
 
-      - name: Panne de #68, configuration rétablie
+      - name: "Panne de #68, configuration rétablie"
         if: always()
         run: git checkout -- oracle/playwright.config.ts
 
