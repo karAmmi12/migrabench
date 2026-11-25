@@ -231,10 +231,14 @@ exécution en diagnostic, jamais pour une mesure qui compte.
 candidat, obtient 100 %.
 
 ### 4. Portes
-axe-core et vérification des tableaux de mise en page, Lighthouse, test XSS,
-recherche de la valeur témoin, test de rôle par rejeu, test d'authentification
-par rejeu sans identifiants, `tsc --noEmit`, audit
-des dépendances. Une porte peut rendre plusieurs résultats nommés. Chaque
+axe-core et vérification des tableaux de mise en page, Lighthouse, poids du
+bundle, test XSS, recherche de la valeur témoin, test de rôle par rejeu, test
+d'authentification par rejeu sans identifiants, comparaison HAR,
+`tsc --noEmit`, audit des dépendances (`osv-scanner` hors ligne), analyse
+statique du code (ESLint), porte du relais. Spec : `docs/specs/04-gates.md` ;
+format des résultats : ADR 0008. Avant les portes, un candidat d'essai
+produit par un vrai outil agentique (ADR 0010). Une porte peut rendre
+plusieurs résultats nommés, jugés ou relevés. Chaque
 résultat enregistre le nombre d'éléments examinés. Si aucun élément n'a été
 examiné, le résultat est « non évaluable » : il compte comme un échec, jamais
 comme une réussite. Un candidat qui ne démarre pas en est le cas extrême
@@ -287,6 +291,9 @@ Avant la première mesure comptée de la campagne, les délais et les limites
 de ressources sont réétalonnés sur le candidat d'étalonnage seul, jamais sur
 les sorties des agents, dans l'environnement des mesures comptées, puis
 figés et versionnés.
+Question à trancher : l'environnement des runs. L'agent dispose-t-il d'une
+pile exécutable du legacy pour tester sa migration ? Le candidat d'essai de
+l'étape 4 a été produit sans (ADR 0010) ; sa mesure en est une donnée.
 Question à trancher : où tournent les mesures comptées. Préférence : en CI,
 comme les preuves de l'étape 2.
 Le sel de la référence d'archivage ne fait jamais partie de l'environnement
