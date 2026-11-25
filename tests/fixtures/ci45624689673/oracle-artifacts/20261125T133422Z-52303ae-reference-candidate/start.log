@@ -1,0 +1,2 @@
+candidate-1  | 2026-11-25T13:34:28.824312381Z migrabench start report {"variables":["ARCHIVE_TOKEN","ARCHIVE_URL","HOME","HOSTNAME","LEGACY_API_URL","NODE_VERSION","PATH","PORT","PWD","SHLVL","USERS_FILE","YARN_VERSION"],"tmpWrite":"ok"}
+candidate-1  | 2026-11-25T13:34:28.828415801Z reference candidate relaying :8100 to legacy:8080

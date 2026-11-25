@@ -1,0 +1,167 @@
+{
+  "format": 1,
+  "measureId": "20261125T133634Z-52303ae-defective-candidates-isolation-probe",
+  "counted": false,
+  "candidate": {
+    "path": "fixtures/defective-candidates/isolation-probe",
+    "contentDigest": "sha256:86a96b0a62dae0b9877e69acbdd5febd3c25d0f4ec08a5caa7cd20d59205be53",
+    "contract": 1,
+    "build": "node build.js",
+    "start": "node server.js"
+  },
+  "environment": {
+    "benchCommit": "52303ae0f25774b3422c0fd7008e0f1e6a7f4c6c",
+    "worktree": "clean",
+    "node": "v22.23.5",
+    "chromium": "159.0.8154.6",
+    "playwright": "1.65.1",
+    "images": {
+      "legacy": "sha256:eec8e654d716e4d47c0bf6d4e00fd5e51f5b12293d362a5142a0ea650f34a94e",
+      "archive": "sha256:502c8840ee614fb75818d563cbdae90ef8bc839f0b8164b2eab033e1c4b1f252"
+    },
+    "imageContexts": {
+      "legacy": "sha256:269b63826d4e6f3fed904960ea1d7b25b3f0d9dd4162cb98299e1a2e3be0d546",
+      "archive": "sha256:269b63826d4e6f3fed904960ea1d7b25b3f0d9dd4162cb98299e1a2e3be0d546"
+    },
+    "frozenDate": "2025-11-15",
+    "baseUrl": "http://127.0.0.1:8100",
+    "artifacts": ".oracle-artifacts/20261125T133634Z-52303ae-defective-candidates-isolation-probe/oracle",
+    "ciRun": {
+      "runId": "45624689673",
+      "attempt": 1,
+      "rank": 1
+    },
+    "runtimeImage": "sha256:bfd4567765aadec9f1cf0547b5ab747490b5459c12d96dd181ab99eca41bfede",
+    "containerUser": {
+      "uid": 1001,
+      "gid": 1001
+    },
+    "composeOverride": "sha256:e5f7c9aadfb221cf311d27b3759c3fa2b89ac0d4d07267fb0262c24ae578167d",
+    "port": 8100,
+    "limits": {
+      "provisional": false,
+      "source": "calibration",
+      "calibration": {
+        "file": "results/calibration/20261124T232316Z-aeb3037-ci45509307133.1-1.json",
+        "digest": "sha256:0cd1bfcf0fadd21658abdd4fdf67d49917954aa0922af15d532f6a99f27be9dc"
+      },
+      "multiples": {
+        "timeouts": 5,
+        "resources": 2
+      },
+      "buildTimeoutMs": 39405,
+      "readyTimeoutMs": 3430,
+      "buildMemoryBytes": 665845760,
+      "buildCpus": 1.89,
+      "start": {
+        "provisional": true,
+        "source": "build-limits",
+        "memoryBytes": 665845760,
+        "cpus": 1.89,
+        "pids": 256
+      }
+    },
+    "lock": {
+      "takenAt": "2026-11-25T13:36:34.158Z"
+    }
+  },
+  "salt": "04fa8917976a16f036249e332f30c9758556f423fc972b0a7279ec8b13ad9bee",
+  "saltImposed": false,
+  "marker": "1a1a09d07b0b79ec623ab993a21a3762db1ab64cf5c8be61aad9f6cb80853b5e",
+  "phases": [
+    {
+      "name": "preparation",
+      "outcome": "ok",
+      "startedAt": "2026-11-25T13:36:34.159Z",
+      "durationMs": 419,
+      "raw": {}
+    },
+    {
+      "name": "contract",
+      "outcome": "ok",
+      "startedAt": "2026-11-25T13:36:34.578Z",
+      "durationMs": 1,
+      "raw": {}
+    },
+    {
+      "name": "build",
+      "outcome": "ok",
+      "startedAt": "2026-11-25T13:36:34.579Z",
+      "durationMs": 6920,
+      "raw": {
+        "fetch.log": "sha256:59268171484775526cc782a0b887bfa1ec62e746478077980871c281fa401a74",
+        "npm-logs/fetch/2026-11-25T13_36_34_798Z-debug-0.log": "sha256:f91324b06e3c8c71fe0eb8f697747ab1eac416b93eda9a6ca3a134b5f3f61724",
+        "install.log": "sha256:a936b9c0743c70d4793352ed2dd697262eecb9657ac1768418ef263c66e890ec",
+        "npm-logs/install/2026-11-25T13_36_35_614Z-debug-0.log": "sha256:d5562eed5fa41b17def51218689092c4dad4986f35ae0fc752bfc8e59d616142",
+        "build.log": "sha256:b49c8f504bcf2208976b92765dca9f9e5418e2763bafe81eec5644e856400d37"
+      }
+    },
+    {
+      "name": "start",
+      "outcome": "ok",
+      "startedAt": "2026-11-25T13:36:41.499Z",
+      "durationMs": 14648,
+      "raw": {
+        "start.log": "sha256:ef4ef42cb416ba4b657f39468dcc21ec57c0830ef97c91f5ceec17026318fd6a"
+      }
+    },
+    {
+      "name": "oracle",
+      "outcome": "ok",
+      "startedAt": "2026-11-25T13:36:56.147Z",
+      "durationMs": 33176,
+      "raw": {}
+    },
+    {
+      "name": "gates",
+      "outcome": "ok",
+      "startedAt": "2026-11-25T13:37:29.323Z",
+      "durationMs": 0,
+      "raw": {}
+    },
+    {
+      "name": "closing",
+      "outcome": "ok",
+      "startedAt": "2026-11-25T13:37:29.323Z",
+      "durationMs": 10377,
+      "raw": {
+        "access.log": "sha256:ab0bec2accacba95da17bc84cb8aa8ed8636ec326394f02a67cdb4b95db8ad0c"
+      }
+    }
+  ],
+  "oracle": {
+    "executed": true,
+    "result": "sha256:4e98842ed794763086b846960656ef891b8155a395f7fd3d1c7039a9f8db4a49",
+    "summary": {
+      "scenarios": 38,
+      "passed": 0,
+      "failed": 0,
+      "unreached": 38,
+      "passRate": 0,
+      "reachedPassRate": null,
+      "keyboard": {
+        "passed": 0,
+        "total": 5
+      }
+    }
+  },
+  "accessLog": {
+    "log": "sha256:ab0bec2accacba95da17bc84cb8aa8ed8636ec326394f02a67cdb4b95db8ad0c",
+    "lines": 25,
+    "witnesses": [
+      {
+        "name": "start-1",
+        "line": 2
+      },
+      {
+        "name": "end",
+        "line": 25
+      }
+    ]
+  },
+  "gates": [],
+  "verdict": {
+    "category": "completed",
+    "reason": "ok"
+  }
+}
