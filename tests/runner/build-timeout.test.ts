@@ -41,6 +41,7 @@ exit 0
 
 afterAll(() => {
   process.env.PATH = savedPath;
+  delete process.env.DOCKER_STUB_RUN;
 });
 
 async function timedOutBuild(mode: "hang" | "killable") {

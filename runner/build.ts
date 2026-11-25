@@ -175,6 +175,9 @@ async function runStep({ container, deadline, logFile, timeoutLog, args }: { con
   let killer: NodeJS.Timeout | undefined;
   let clientKiller: NodeJS.Timeout | undefined;
   const client = new AbortController();
+  // Arrête les `docker kill` encore en cours quand l'étape a rendu la main :
+  // un `docker kill` bloqué ne doit pas bloquer la construction.
+  const stopKills = new AbortController();
   const kills = new Set<Promise<void>>();
   let notes = Promise.resolve();
   const note = (line: string) => {
@@ -185,8 +188,12 @@ async function runStep({ container, deadline, logFile, timeoutLog, args }: { con
     const timedOutAt = Date.now();
     const kill = () => {
       // Refusé après une interruption (#71) : la clôture supprime le conteneur.
-      const attempt = spawnCommand("docker", ["kill", container], { allowFailure: true }).then(
-        ({ code, stdout, stderr }) => note(`docker kill ${container} exited with code ${code}: ${`${stderr}${stdout}`.trim()}`),
+      const attempt = spawnCommand("docker", ["kill", container], { allowFailure: true, abort: stopKills.signal }).then(({ code, stdout, stderr }) =>
+        note(
+          stopKills.signal.aborted
+            ? `docker kill ${container} stopped: the step had returned`
+            : `docker kill ${container} exited with code ${code}: ${`${stderr}${stdout}`.trim()}`,
+        ),
         (error: Error) => note(`docker kill ${container} not run: ${error.message}`),
       );
       kills.add(attempt);
@@ -210,8 +217,12 @@ async function runStep({ container, deadline, logFile, timeoutLog, args }: { con
     clearTimeout(timer);
     clearInterval(killer);
     clearTimeout(clientKiller);
-    await Promise.all(kills);
-    await notes;
-    await spawnCommand("docker", ["rm", "--force", container], { allowFailure: true });
+    stopKills.abort();
+    try {
+      await Promise.all(kills);
+      await notes;
+    } finally {
+      await spawnCommand("docker", ["rm", "--force", container], { allowFailure: true });
+    }
   }
 }
