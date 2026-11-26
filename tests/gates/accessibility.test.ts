@@ -6,7 +6,7 @@
 // (nœuds `passes` + `violations` + `incomplete`, toutes règles) :
 // écran 1 : 329 + 2 + 0 = 331 ; écran 2 : 29 + 1 + 0 = 30 ; écran 3 : 20 + 1 + 0 = 21.
 import { describe, expect, it } from "vitest";
-import { type AxeOutput, axeResults, tableResults } from "../../gates/accessibility.ts";
+import { accessibilityGate, type AxeOutput, axeResults, tableResults } from "../../gates/accessibility.ts";
 import { readJsonFixture } from "../real-fixtures.ts";
 
 const AXE = {
@@ -14,7 +14,12 @@ const AXE = {
   sheet: readJsonFixture<AxeOutput>("probe128-ec414b9/axe-screen2.json"),
   submission: readJsonFixture<AxeOutput>("probe128-ec414b9/axe-screen3.json"),
 };
-const RAW = { "accessibility/axe-search.json": "sha256:a", "accessibility/axe-sheet.json": "sha256:b", "accessibility/axe-submission.json": "sha256:c" };
+// Bruts cités par la porte : chemins de gates/raw.ts, empreintes de test.
+const RAW = {
+  "gates/accessibility/axe-search.json": "sha256:search",
+  "gates/accessibility/axe-sheet.json": "sha256:sheet",
+  "gates/accessibility/axe-submission.json": "sha256:submission",
+};
 const reached = (output: AxeOutput) => ({ reached: true as const, axe: output });
 
 describe("axeResults, on the legacy", () => {
@@ -47,7 +52,7 @@ describe("axeResults, on the legacy", () => {
         { screen: "sheet", rule: "html-has-lang", nodes: 1 },
         { screen: "submission", rule: "html-has-lang", nodes: 1 },
       ],
-      values: { violations: 3, violatingNodes: 3, incomplete: 0 },
+      values: expect.objectContaining({ violations: 3, violatingNodes: 3, incomplete: 0, "search.reached": 1, "submission.violations": 1 }),
     });
   });
 
@@ -67,17 +72,42 @@ describe("axeResults, on the legacy", () => {
 });
 
 describe("axeResults, with a screen not reached", () => {
-  const unreached = { reached: false as const, step: "click Remise", message: "locator.click: Timeout 30000ms exceeded" };
+  const unreached = { reached: false as const, step: "remise D-0003", message: "locator.click: Timeout 30000ms exceeded" };
+  const results = axeResults({ search: reached(AXE.search), sheet: reached(AXE.sheet), submission: unreached }, RAW);
 
-  it("judges the reached screens only, and says where the navigation failed", () => {
-    const results = axeResults({ search: reached(AXE.search), sheet: reached(AXE.sheet), submission: unreached }, RAW);
-    expect(results.map(({ examined }) => examined)).toEqual([361, 361, 361, 361]);
-    expect(results[3]?.findings).toEqual([{ screen: "submission", unreached: "click Remise", message: "locator.click: Timeout 30000ms exceeded" }]);
+  // Décision de Karim (#128) : un candidat n'échappe pas à axe en cassant un
+  // écran. Les quatre résultats sont non évaluables, sans examen compté.
+  it("makes the four results not-evaluable, and says where the navigation failed", () => {
+    expect(results.map(({ outcome, examined }) => [outcome, examined])).toEqual([
+      ["not-evaluable", 0],
+      ["not-evaluable", 0],
+      ["not-evaluable", 0],
+      ["not-evaluable", 0],
+    ]);
+    expect(results[3]?.findings).toEqual([{ screen: "submission", unreached: "remise D-0003", message: "locator.click: Timeout 30000ms exceeded" }]);
+  });
+
+  // L'étape 5 peut encore lire ce qui a été vu sur les écrans atteints.
+  it("keeps in values the numbers seen on the reached screens, screen by screen", () => {
+    expect(results[1]?.values).toEqual({
+      violations: 2,
+      violatingNodes: 2,
+      incomplete: 0,
+      "search.reached": 1,
+      "search.violations": 1,
+      "search.violatingNodes": 1,
+      "search.incomplete": 0,
+      "sheet.reached": 1,
+      "sheet.violations": 1,
+      "sheet.violatingNodes": 1,
+      "sheet.incomplete": 0,
+      "submission.reached": 0,
+    });
   });
 
   it("is not-evaluable when no screen was reached", () => {
-    const results = axeResults({ search: unreached, sheet: unreached, submission: unreached }, {});
-    expect(results.map(({ outcome }) => outcome)).toEqual(["not-evaluable", "not-evaluable", "not-evaluable", "not-evaluable"]);
+    const none = axeResults({ search: unreached, sheet: unreached, submission: unreached }, {});
+    expect(none.map(({ outcome }) => outcome)).toEqual(["not-evaluable", "not-evaluable", "not-evaluable", "not-evaluable"]);
   });
 });
 
@@ -109,9 +139,20 @@ describe("tableResults", () => {
   });
 
   it("is not-evaluable for a screen not reached, with the step where the navigation failed", () => {
-    expect(tableResults("sheet", { reached: false, step: "click D-0003", message: "boom" })).toEqual([
-      expect.objectContaining({ name: "tables-count/sheet", outcome: "not-evaluable", examined: 0, findings: [{ screen: "sheet", unreached: "click D-0003", message: "boom" }] }),
-      expect.objectContaining({ name: "tables-nested/sheet", outcome: "not-evaluable", examined: 0, findings: [{ screen: "sheet", unreached: "click D-0003", message: "boom" }] }),
+    const unreached = { screen: "sheet", unreached: "sheet D-0003", message: "locator.click: Timeout 30000ms exceeded" };
+    expect(tableResults("sheet", { reached: false, step: "sheet D-0003", message: "locator.click: Timeout 30000ms exceeded" })).toEqual([
+      expect.objectContaining({ name: "tables-count/sheet", outcome: "not-evaluable", examined: 0, findings: [unreached] }),
+      expect.objectContaining({ name: "tables-nested/sheet", outcome: "not-evaluable", examined: 0, findings: [unreached] }),
     ]);
+  });
+});
+
+// Version d'axe-core enregistrée dans l'environnement de la mesure (décision
+// de Karim, #128) : celle que le lock du dépôt installe sous @axe-core/playwright.
+describe("accessibility gate tools", () => {
+  it("names the axe-core version installed for @axe-core/playwright", () => {
+    const lock = readJsonFixture<{ packages: Record<string, { version: string }> }>("../../package-lock.json");
+    expect(accessibilityGate.tools?.()).toEqual({ "axe-core": lock.packages["node_modules/@axe-core/playwright/node_modules/axe-core"]?.version });
+    expect(accessibilityGate.tools?.()).toEqual({ "axe-core": "4.14.0" });
   });
 });
