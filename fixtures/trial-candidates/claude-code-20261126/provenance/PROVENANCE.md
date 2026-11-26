@@ -79,7 +79,9 @@ La sonde a coûté 0,0238077 USD au prix public (`probe.jsonl`).
 Expurgés par Karim avec `npm run trial:redact` ; les fichiers
 `.redaction.json` sont ceux que le script a écrits. Les originaux restent sur
 le poste de Karim. Relecture dans la session du ticket #126 : aucun
-`/Users/`, aucune adresse électronique, aucun nom de Karim.
+répertoire personnel de l'hôte, aucune adresse électronique, aucun nom de
+Karim. Seul reste le répertoire personnel de l'image, remplacé ensuite (voir
+« Corrections »).
 
 ## Le candidat
 
@@ -94,7 +96,19 @@ viennent chacune dans leur commit, décrit ci-dessous.
 
 ## Corrections
 
-Aucune pour l'instant.
+Aucune correction au contrat : la mesure de diagnostic passe la phase du
+contrat sur la sortie brute.
+
+1. **Journaux, répertoire personnel de l'image** : le `$HOME` de
+   l'utilisateur `node` de l'image de l'agent est remplacé par
+   `<CONTAINER_HOME>` dans les deux journaux expurgés : 5 fois dans
+   `session.jsonl` (`memory_paths` de `system/init`, chemins des
+   `shell-snapshots`), 1 fois dans `probe.jsonl` (`memory_paths`). Ce n'est
+   pas une donnée personnelle, mais le test du dossier refuse tout chemin
+   sous le répertoire des comptes, comme pour l'hôte. Aucun changement du candidat. Les `.redaction.json` restent
+   ceux du script ; les sha256 des journaux versionnés deviennent :
+   - `session.jsonl` : `a19dc7eb172e52fd91a9c5c5f9cb0807a2f5234d309aac8a9bd47d431c74aee3` ;
+   - `probe.jsonl` : `545e8bf7d636a234fe4295edf57963d45fcba30ca3e78784b3c853edfb7591e5`.
 
 ## Mesure de diagnostic
 
