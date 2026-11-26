@@ -25,7 +25,7 @@ describe("searchHars, on the reference candidate", () => {
   });
 
   it("finds nothing in a scenario that never reaches the receipt, and counts its entries", () => {
-    expect(searchHars([{ scenario: "search-search-empty-form-chromium", har: emptyForm() }], VALUE)).toEqual({ examined: 3, findings: [] });
+    expect(searchHars([{ scenario: "search-search-empty-form-chromium", har: emptyForm() }], VALUE)).toEqual({ examined: 3, findings: [], unread: [] });
   });
 });
 
@@ -142,7 +142,7 @@ describe("witnessValueGate", () => {
       outcome: "failed",
       examined: 8,
       findingsTotal: 2,
-      values: { hars: 2, responseBodiesAbsent: 0 },
+      values: { hars: 2, responseBodiesAbsent: 0, responseBodiesUnread: 0 },
       raw: {
         "oracle/remise-receipt-agent-chromium/scenario.har": "sha256:5202ee555106a8515a74938b048f2ec93840cdc0e0941700807d044e5f0a2339",
         "oracle/search-search-empty-form-chromium/scenario.har": "sha256:95c55c512254206255ca73937df624481fc0c287b2827f6867e17ca20ea83282",
@@ -164,11 +164,78 @@ describe("witnessValueGate", () => {
   it("counts the response bodies absent from the HAR", async () => {
     const probe = absoluteFixturePath("probe130-d110270/probe-unread.har");
     const [result] = await witnessValueGate.examine(context([probe], absoluteFixturePath("probe130-d110270")), VALUE);
-    expect(result!.values).toEqual({ hars: 1, responseBodiesAbsent: 6 });
+    expect(result!.values).toEqual({ hars: 1, responseBodiesAbsent: 6, responseBodiesUnread: 1 });
   });
 
   it("is not evaluable without any HAR", async () => {
     const [result] = await witnessValueGate.examine(context([]), VALUE);
-    expect(result).toMatchObject({ outcome: "not-evaluable", examined: 0, values: { hars: 0, responseBodiesAbsent: 0 } });
+    expect(result).toMatchObject({ outcome: "not-evaluable", examined: 0, values: { hars: 0, responseBodiesAbsent: 0, responseBodiesUnread: 0 } });
+  });
+});
+
+// Corps de réponse absents du HAR (#153) : la porte ne conclut pas « absent »
+// sur une réponse HTML, JS ou JSON qu'elle n'a pas lue. HAR réels : la sonde
+// de #130 avant lecture des corps, un `302` vide du legacy, et un candidat qui
+// coupe toute connexion.
+describe("unread response bodies", () => {
+  const probeUnread = () => readJsonFixture<Har>("probe130-d110270/probe-unread.har");
+  const saveDraft = () => readJsonFixture<Har>(`${REFERENCE}/sheet-sheet-save-brouillon-chromium/scenario.har`);
+  const RELAY_UNTOUCHED = "ci45861318349/oracle-artifacts/20261126T165025Z-0d2eb7a-conforming-candidates-relay-untouched/oracle";
+  const noResponse = () => readJsonFixture<Har>(`${RELAY_UNTOUCHED}/search-search-empty-form-chromium/scenario.har`);
+
+  it("lists an unread JSON body, and only the HTML, JS or JSON ones", () => {
+    // Sans lecture, six corps manquent : `application/json`, `text/plain` (2),
+    // `application/octet-stream` (2) et `image/png`.
+    expect(searchHars([{ scenario: "probe", har: probeUnread() }], SYNTHETIC).unread).toEqual([{ scenario: "probe", url: "http://127.0.0.1:8100/br-json", type: "json" }]);
+  });
+
+  it("names the type from the Content-Type of the response", () => {
+    const har = probeUnread();
+    const header = (path: string) => har.log.entries.find(({ request }) => request.url.endsWith(path))!.response.headers.find(({ name }) => name.toLowerCase() === "content-type")!;
+    header("/gzip-text").value = "text/html; charset=utf-8";
+    header("/header").value = "Text/JavaScript";
+    header("/binary").value = "application/problem+json";
+    expect(searchHars([{ scenario: "probe", har }], SYNTHETIC).unread.map(({ url, type }) => [new URL(url).pathname, type])).toEqual([
+      ["/gzip-text", "html"],
+      ["/br-json", "json"],
+      ["/binary", "json"],
+      ["/header", "js"],
+    ]);
+  });
+
+  it("does not count an empty response, such as the 302 of the legacy", () => {
+    expect(searchHars([{ scenario: "save", har: saveDraft() }], VALUE).unread).toEqual([]);
+  });
+
+  it("does not count an entry without any response", () => {
+    expect(searchHars([{ scenario: "cut", har: noResponse() }], VALUE)).toEqual({ examined: 1, findings: [], unread: [] });
+  });
+
+  describe("witnessValueGate", () => {
+    const probeFile = absoluteFixturePath("probe130-d110270/probe-unread.har");
+    const context = { rawDir: absoluteFixturePath("probe130-d110270"), oracle: { resultFile: "", harFiles: [probeFile] } } as unknown as GateContext;
+
+    it("is not-evaluable when an HTML, JS or JSON body is absent, with the entries in its findings", async () => {
+      const [result] = await witnessValueGate.examine(context, SYNTHETIC);
+      expect(result).toMatchObject({
+        outcome: "not-evaluable",
+        examined: 10,
+        findings: [{ scenario: "probe130-d110270", url: "http://127.0.0.1:8100/br-json", type: "json" }],
+        values: { hars: 1, responseBodiesAbsent: 6, responseBodiesUnread: 1 },
+      });
+    });
+
+    it("stays failed when a leak is found elsewhere, its findings first", async () => {
+      const [result] = await witnessValueGate.examine(context, VALUE);
+      expect(result).toMatchObject({ outcome: "failed" });
+      expect(result!.findings.at(0)).toMatchObject({ location: "response.content", forms: expect.arrayContaining(["plain"]) });
+      expect(result!.findings.at(-1)).toEqual({ scenario: "probe130-d110270", url: "http://127.0.0.1:8100/br-json", type: "json" });
+    });
+
+    it("passes a candidate whose absent bodies have no response at all", async () => {
+      const file = absoluteFixturePath(`${RELAY_UNTOUCHED}/search-search-empty-form-chromium/scenario.har`);
+      const [result] = await witnessValueGate.examine({ rawDir: absoluteFixturePath(RELAY_UNTOUCHED), oracle: { resultFile: "", harFiles: [file] } } as unknown as GateContext, VALUE);
+      expect(result).toMatchObject({ outcome: "passed", examined: 1, values: { hars: 1, responseBodiesAbsent: 1, responseBodiesUnread: 0 } });
+    });
   });
 });

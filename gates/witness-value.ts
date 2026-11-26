@@ -10,15 +10,21 @@
 //   `remise-receipt-agent-chromium`), l'URL de l'entrée, l'emplacement
 //   (`request.url`, `request.headers.<nom>`, `request.postData`,
 //   `response.headers.<nom>`, `response.content`) et les formes trouvées ;
-// - `values` : `hars`, le nombre de HAR lus, et `responseBodiesAbsent`, le
-//   nombre d'entrées dont le HAR n'a pas gardé le corps de la réponse ;
+//   Viennent ensuite les réponses HTML, JS ou JSON (d'après `Content-Type`)
+//   dont le HAR n'a pas gardé le corps, avec le scénario, l'URL et le type ;
+// - issue : `failed` dès une fuite ; sinon `not-evaluable` si une de ces
+//   réponses n'a pas été lue (décision de Karim, #153) ; sinon `passed` ;
+// - `values` : `hars`, le nombre de HAR lus, `responseBodiesAbsent`, le
+//   nombre d'entrées dont le HAR n'a pas gardé le corps de la réponse, tous
+//   types et réponses vides compris, sans effet sur l'issue, et
+//   `responseBodiesUnread`, celles d'entre elles qui sont HTML, JS ou JSON ;
 // - `raw` : chaque HAR, par son chemin sous le dossier des bruts.
 //
 // Forme réelle des HAR relevée par la sonde de #130
 // (tests/fixtures/probe130-d110270/PROVENANCE.md), Playwright 1.65.1 : un corps
 // gzip ou br est gardé décompressé, en texte ; un corps binaire est gardé
 // décompressé, en base64 (`encoding: "base64"`) ; un corps de réponse que la
-// page n'a jamais lu est absent (`size: -1`, sans `text`) ; un corps de
+// page n'a jamais lu est absent (`size: -1`, `bodySize: -1`, sans `text`) ; un corps de
 // requête binaire (`Uint8Array` avec des octets nuls) est vide, et un `Blob`
 // n'a pas de `postData`. Ces deux derniers cas échappent à la porte.
 import { readFile } from "node:fs/promises";
@@ -39,7 +45,7 @@ interface HarHeader {
 }
 interface HarEntry {
   request: { url: string; headers: HarHeader[]; postData?: { mimeType?: string; text?: string; params?: unknown[] } };
-  response: { headers: HarHeader[]; content: { text?: string; encoding?: string } };
+  response: { headers: HarHeader[]; bodySize?: number; content: { text?: string; encoding?: string } };
 }
 export interface Har {
   log: { entries: HarEntry[] };
@@ -87,21 +93,48 @@ function base64Core(bytes: Buffer, offset: number, encoding: "base64" | "base64u
   return encoded.slice(Math.ceil((offset * 8) / 6), Math.floor(((offset + bytes.length) * 8) / 6));
 }
 
-export function searchHars(hars: readonly { scenario: string; har: Har }[], value: string): { examined: number; findings: WitnessFinding[] } {
+// Réponse HTML, JS ou JSON dont le HAR n'a pas gardé le corps (#153).
+export interface UnreadBody {
+  scenario: string;
+  url: string;
+  type: BodyType;
+}
+type BodyType = "html" | "js" | "json";
+
+export function searchHars(hars: readonly { scenario: string; har: Har }[], value: string): { examined: number; findings: WitnessFinding[]; unread: UnreadBody[] } {
   const forms = witnessForms(value);
   const findings: WitnessFinding[] = [];
+  const unread: UnreadBody[] = [];
   let examined = 0;
   for (const { scenario, har } of hars) {
     for (const entry of har.log.entries) {
       examined++;
+      const type = unreadBodyType(entry);
+      if (type !== undefined) unread.push({ scenario, url: entry.request.url, type });
       for (const [location, content] of places(entry)) {
         const found = forms.filter(({ pattern }) => content.includes(pattern)).map(({ name }) => name);
         if (found.length > 0) findings.push({ scenario, url: entry.request.url, location, forms: found });
       }
     }
   }
-  return { examined, findings };
+  return { examined, findings, unread };
 }
+
+// Type d'un corps de réponse absent du HAR, s'il est HTML, JS ou JSON
+// d'après l'en-tête `Content-Type`. Une réponse vide (`bodySize: 0`, comme
+// les `302` du legacy) n'a pas de corps à lire ; une entrée sans réponse
+// (`net::ERR_EMPTY_RESPONSE`) n'a pas de `Content-Type`. Un corps jamais lu
+// par la page a `bodySize: -1` (sonde de #130).
+function unreadBodyType({ response }: HarEntry): BodyType | undefined {
+  if (response.content.text !== undefined || response.bodySize === 0) return undefined;
+  const header = response.headers.find(({ name }) => name.toLowerCase() === "content-type");
+  const media = header?.value.split(";")[0]?.trim().toLowerCase() ?? "";
+  if (media === "text/html" || media === "application/xhtml+xml") return "html";
+  if (JS_TYPES.has(media)) return "js";
+  if (media === "application/json" || media === "text/json" || media.endsWith("+json")) return "json";
+  return undefined;
+}
+const JS_TYPES = new Set(["text/javascript", "application/javascript", "application/x-javascript", "text/ecmascript", "application/ecmascript"]);
 
 // Emplacements lus d'une entrée : URL, en-têtes et corps de la requête et de
 // la réponse. `queryString` répète l'URL. Relevé sur les HAR réels
@@ -141,9 +174,11 @@ export const witnessValueGate: Gate<string> = {
   },
   examine: async ({ rawDir, oracle }, value) => {
     const hars = await Promise.all(oracle.harFiles.map(async (file) => ({ file, scenario: basename(dirname(file)), har: JSON.parse(await readFile(file, "utf8")) as Har })));
-    const { examined, findings } = searchHars(hars, value);
+    const { examined, findings, unread } = searchHars(hars, value);
     const raw = Object.fromEntries(await Promise.all(hars.map(async ({ file }) => [relative(rawDir, file), await citedFileSha256(file)])));
-    const values = { hars: hars.length, responseBodiesAbsent: hars.reduce((sum, { har }) => sum + responseBodiesAbsent(har), 0) };
-    return [judged({ gate: GATE, name: "absent-from-har", examined, passed: findings.length === 0, findings, values, raw })];
+    const values = { hars: hars.length, responseBodiesAbsent: hars.reduce((sum, { har }) => sum + responseBodiesAbsent(har), 0), responseBodiesUnread: unread.length };
+    // Une fuite constatée l'emporte ; sans fuite, un corps HTML, JS ou JSON
+    // non lu empêche de conclure (décision de Karim, #153).
+    return [judged({ gate: GATE, name: "absent-from-har", examined, passed: findings.length === 0, evaluable: unread.length === 0, findings: [...findings, ...unread], values, raw })];
   },
 };
