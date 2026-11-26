@@ -6,11 +6,16 @@ import { describe, expect, it } from "vitest";
 import { MEASURE_CASES, type MeasureCase, type Observed, caseProblems } from "../scripts/measure-cases.ts";
 import { ACCESSIBILITY_MEASURES, GATE_MEASURES, MEASURES, readJsonFixture, readMeasure } from "./real-fixtures.ts";
 
-// Cas attendu, sans les résultats de la porte d'accessibilité (#128) : pour
-// les vraies mesures copiées d'avant cette porte.
-function beforeAccessibility(expected: MeasureCase): MeasureCase {
-  return { ...expected, gates: (expected.gates ?? []).filter(({ gate }) => gate !== "accessibility") };
+// Cas attendu, sans les résultats des portes nommées : pour les vraies
+// mesures copiées d'avant ces portes.
+function withoutGates(expected: MeasureCase, ...gates: string[]): MeasureCase {
+  return { ...expected, gates: (expected.gates ?? []).filter(({ gate }) => !gates.includes(gate)) };
 }
+// Mesures d'avant la porte d'accessibilité (#128), donc d'avant celle de la
+// valeur témoin (#130).
+const beforeAccessibility = (expected: MeasureCase) => withoutGates(expected, "accessibility", "witness-value");
+// Mesures d'avant la porte de la valeur témoin (#130).
+const beforeWitnessValue = (expected: MeasureCase) => withoutGates(expected, "witness-value");
 
 // Copie de la première mesure comptée du candidat de référence, produite par
 // le job des mesures sur main (exécution 45624689673, commit 52303ae) : son
@@ -238,12 +243,12 @@ describe("caseProblems, accessibility gate (#128)", () => {
     ["reference", ACCESSIBILITY_MEASURES.reference],
     ["relay-untouched", ACCESSIBILITY_MEASURES.relayUntouched],
   ] as const)("has nothing to report for the real measure of case %s", (name, measure) => {
-    expect(caseProblems(MEASURE_CASES[name], observedMeasure(measure))).toEqual([]);
+    expect(caseProblems(beforeWitnessValue(MEASURE_CASES[name]), observedMeasure(measure))).toEqual([]);
   });
 
   // Témoin : un candidat sans écran n'est pas pris pour le legacy.
   it("names the accessibility results that are not the legacy ones", () => {
-    const problems = caseProblems(MEASURE_CASES.reference, observedMeasure(ACCESSIBILITY_MEASURES.relayUntouched));
+    const problems = caseProblems(beforeWitnessValue(MEASURE_CASES.reference), observedMeasure(ACCESSIBILITY_MEASURES.relayUntouched));
     expect(problems).toContain("gate accessibility/tables-count/search is not-evaluable, expected failed");
     expect(problems).toContain("gate accessibility/axe/critical is not-evaluable, expected failed");
   });

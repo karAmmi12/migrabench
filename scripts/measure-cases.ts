@@ -52,6 +52,8 @@ const accessibility = (outcomes: { tables: GateOutcome; axe: Record<(typeof IMPA
   ]),
   ...Object.entries(outcomes.axe).map(([impact, outcome]) => ({ gate: "accessibility", name: `axe/${impact}`, outcome })),
 ];
+// Porte de la valeur témoin (#130).
+const WITNESS_VALUE = { gate: "witness-value", name: "absent-from-har" };
 // Candidat qui n'affiche aucun écran : rien d'examiné.
 const ACCESSIBILITY_NOT_EVALUABLE = accessibility({ tables: "not-evaluable", axe: { critical: "not-evaluable", serious: "not-evaluable", moderate: "not-evaluable", minor: "not-evaluable" } });
 const NOT_RUN = "not-run";
@@ -70,8 +72,9 @@ const reference: MeasureCase = {
   witnesses: true,
   // Le relais appelle le port 8080 du legacy : le test négatif de la porte.
   // Le legacy échoue aux tableaux sur chaque écran, et axe y relève une
-  // violation critique (`image-alt`) et une sérieuse (`html-has-lang`).
-  gates: [...accessibility({ tables: "failed", axe: { critical: "failed", serious: "failed", moderate: "passed", minor: "passed" } }), { ...RELAY, outcome: "failed" }],
+  // violation critique (`image-alt`) et une sérieuse (`html-has-lang`). Le
+  // lien « Accusé de remise » porte la valeur témoin.
+  gates: [{ ...WITNESS_VALUE, outcome: "failed", findingCites: "accuse-de-remise" }, ...accessibility({ tables: "failed", axe: { critical: "failed", serious: "failed", moderate: "passed", minor: "passed" } }), { ...RELAY, outcome: "failed" }],
 };
 
 export const MEASURE_CASES = {
@@ -121,7 +124,8 @@ export const MEASURE_CASES = {
     oracleExecuted: true,
     oracleJson: "kept",
     summary: { failed: "at-least-one" },
-    gates: [{ ...RELAY, outcome: "failed" }],
+    // Il relaie le lien « Accusé de remise » du legacy.
+    gates: [{ ...WITNESS_VALUE, outcome: "failed" }, { ...RELAY, outcome: "failed" }],
   },
   // #124 : candidat qui appelle le port 8080 avec le User-Agent du healthcheck.
   "relay-forged-healthcheck": {
@@ -132,7 +136,7 @@ export const MEASURE_CASES = {
     oracleExecuted: true,
     oracleJson: "kept",
     witnesses: true,
-    gates: [...ACCESSIBILITY_NOT_EVALUABLE, { ...RELAY, outcome: "failed", findingCites: '"curl/8.18.0"' }],
+    gates: [{ ...WITNESS_VALUE, outcome: "passed" }, ...ACCESSIBILITY_NOT_EVALUABLE, { ...RELAY, outcome: "failed", findingCites: '"curl/8.18.0"' }],
   },
   // #124 : candidat conforme, qui ne touche jamais le port 8080.
   "relay-untouched": {
@@ -143,7 +147,7 @@ export const MEASURE_CASES = {
     oracleExecuted: true,
     oracleJson: "kept",
     witnesses: true,
-    gates: [...ACCESSIBILITY_NOT_EVALUABLE, { ...RELAY, outcome: "passed" }],
+    gates: [{ ...WITNESS_VALUE, outcome: "passed" }, ...ACCESSIBILITY_NOT_EVALUABLE, { ...RELAY, outcome: "passed" }],
   },
   // 7 : le legacy ne devient jamais sain.
   "broken-stack": {
