@@ -1,6 +1,7 @@
 // Ouverture de l'accusé de remise dans un vrai Chromium, sur des pages servies
-// par context.route : aucune pile Docker n'est nécessaire.
-import { type Browser, type BrowserContext, chromium, type Page } from "@playwright/test";
+// par context.route, dans le Chromium du service `browser` de la pile (#78).
+import type { Browser, BrowserContext, Page } from "@playwright/test";
+import { connectBenchBrowser } from "../../oracle/browser.ts";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { openReceipt, receiptLink } from "../../oracle/receipt.ts";
 
@@ -11,7 +12,7 @@ let browser: Browser;
 let context: BrowserContext;
 
 beforeAll(async () => {
-  browser = await chromium.launch();
+  browser = await connectBenchBrowser();
 });
 
 afterAll(async () => {

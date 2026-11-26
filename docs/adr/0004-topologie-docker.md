@@ -48,8 +48,15 @@ et `USERS_FILE`. Le legacy reçoit `ARCHIVE_TOKEN` et l'horloge figée.
   - L'image lancée seule, hors de la composition, écoute `8081` sur toutes
     ses interfaces.
 
-  Cette fermeture prépare le navigateur de #78, service de la composition
+  Cette fermeture permet le navigateur de #78, service de la composition
   sur `default` seulement.
+- Le navigateur du banc (#78) est le service `browser`, sur `default` seul.
+  - Il joint le legacy (`8080`), le service d'archivage (`8090`) et le
+    candidat (`8100`) par un relais local, qui ne relaie que ces trois
+    ports, aux mêmes adresses que depuis l'hôte.
+  - Il ne joint pas l'API interne.
+  - Son serveur de Playwright est publié sur `127.0.0.1:8095`, comme tout
+    port publié.
 - Tout port publié sur l'hôte, pour le legacy, le service d'archivage ou le
   candidat, est lié à `127.0.0.1`. Un service ajouté plus tard à la
   composition suit la même règle.

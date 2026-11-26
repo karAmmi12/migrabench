@@ -79,10 +79,6 @@ jobs:
       - name: Récupération des têtes de PR
         run: npm run fetch:pull-heads
 
-      # Le test de la mesure de defaultPrevented (#35) lance un vrai Chromium.
-      - name: Installation de Chromium pour Playwright
-        run: npx playwright install --with-deps chromium
-
       # Un sel par job pour la référence d'archivage (#33) : la pile le passe au
       # seul service d'archivage, les tests du seam A le lisent pour calculer
       # la référence attendue. Jamais dans .env, que lit aussi le legacy.
@@ -95,6 +91,11 @@ jobs:
       # Empreinte du contexte de construction de chaque image, posée en label
       # au build : une mesure, l'oracle et l'étalonnage refusent une pile dont
       # les images ne viennent pas de cette copie du dépôt (#102).
+      # Navigateur du banc (#78) : image officielle de Playwright, épinglée par
+      # empreinte. Tirée dans sa propre étape pour en relever la durée.
+      - name: Téléchargement de l'image du navigateur
+        run: docker compose pull browser
+
       - name: Empreintes des contextes de la pile
         run: node scripts/stack-context-env.ts >> "$GITHUB_ENV"
 

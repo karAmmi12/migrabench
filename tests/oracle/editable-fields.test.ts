@@ -1,13 +1,14 @@
 // Comptage des champs modifiables dans un vrai Chromium, sur un contenu posé
-// par setContent : aucune pile Docker n'est nécessaire.
-import { type Browser, chromium } from "@playwright/test";
+// par setContent, dans le Chromium du service `browser` de la pile (#78).
+import type { Browser } from "@playwright/test";
+import { connectBenchBrowser } from "../../oracle/browser.ts";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { editableFieldCount } from "../../oracle/editable-fields.ts";
 
 let browser: Browser;
 
 beforeAll(async () => {
-  browser = await chromium.launch();
+  browser = await connectBenchBrowser();
 });
 
 afterAll(async () => {
