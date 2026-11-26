@@ -15,12 +15,16 @@ const RUNNER_ERRORS = "tests/runner/runner-errors.test.ts";
 // RUNNER_ERRORS, donc son propre groupe, après lui.
 const INTERRUPTED = "tests/runner/interrupted-measure.test.ts";
 // Redémarre le legacy : aucun autre test ne doit écrire sur la pile pendant ce
-// temps (#67). Son propre groupe, en dernier : deux projets du même
+// temps (#67). Son propre groupe, le dernier de ceux qui touchent la pile : deux projets du même
 // groupOrder tournent en parallèle.
 const LEGACY_RESTART = "tests/seam-a/access-log.test.ts";
+// Construit l'image de la copie expurgée du legacy (#125) : un build Maven
+// complet, qui ralentirait les tests du Seam A en parallèle. Son propre
+// groupe, après LEGACY_RESTART ; il ne touche pas à la pile.
+const LEGACY_COPY_BUILD = "tests/legacy-copy/legacy-copy-builds.test.ts";
 
 // Ordre des groupes : default, puis BENCH_TOOLS, FOREIGN_STACK, RUNNER_ERRORS,
-// INTERRUPTED et LEGACY_RESTART. Aucun en 0 : avec un seul worker (runner de la CI), Vitest range les fichiers d'un
+// INTERRUPTED, LEGACY_RESTART et LEGACY_COPY_BUILD. Aucun en 0 : avec un seul worker (runner de la CI), Vitest range les fichiers d'un
 // projet en groupOrder 0 dans un groupe séquentiel placé après tous les autres
 // (groupSpecs de Vitest 5), et default passerait en dernier (#67).
 
@@ -29,12 +33,13 @@ export default defineConfig({
     // Marqueur du Seam A, tiré une fois par exécution (#67).
     globalSetup: ["tests/seam-a-marker.setup.ts"],
     projects: [
-      { extends: true, test: { name: "default", include: ["tests/**/*.test.ts"], exclude: [...configDefaults.exclude, BENCH_TOOLS, FOREIGN_STACK, RUNNER_ERRORS, INTERRUPTED, LEGACY_RESTART], sequence: { groupOrder: 1 } } },
+      { extends: true, test: { name: "default", include: ["tests/**/*.test.ts"], exclude: [...configDefaults.exclude, BENCH_TOOLS, FOREIGN_STACK, RUNNER_ERRORS, INTERRUPTED, LEGACY_RESTART, LEGACY_COPY_BUILD], sequence: { groupOrder: 1 } } },
       { extends: true, test: { name: "bench-tools", include: [BENCH_TOOLS], sequence: { groupOrder: 2 } } },
       { extends: true, test: { name: "foreign-stack", include: [FOREIGN_STACK], sequence: { groupOrder: 3 } } },
       { extends: true, test: { name: "runner-errors", include: [RUNNER_ERRORS], sequence: { groupOrder: 4 } } },
       { extends: true, test: { name: "interrupted", include: [INTERRUPTED], sequence: { groupOrder: 5 } } },
       { extends: true, test: { name: "legacy-restart", include: [LEGACY_RESTART], sequence: { groupOrder: 6 } } },
+      { extends: true, test: { name: "legacy-copy-build", include: [LEGACY_COPY_BUILD], sequence: { groupOrder: 7 } } },
     ],
   },
 });
