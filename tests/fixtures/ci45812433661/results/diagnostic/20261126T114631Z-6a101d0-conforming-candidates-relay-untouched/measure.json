@@ -1,0 +1,180 @@
+{
+  "format": 1,
+  "measureId": "20261126T114631Z-6a101d0-conforming-candidates-relay-untouched",
+  "counted": false,
+  "candidate": {
+    "path": "fixtures/conforming-candidates/relay-untouched",
+    "contentDigest": "sha256:c79607c5b4cac9a812617b7197fc1306898f9f319db5fc6858419ef030a66bd5",
+    "contract": 1,
+    "start": "node server.js"
+  },
+  "environment": {
+    "benchCommit": "6a101d065ce49d64ec3f88469fad85a3bffe9257",
+    "worktree": "clean",
+    "node": "v22.23.5",
+    "chromium": "159.0.8154.6",
+    "playwright": "1.65.1",
+    "images": {
+      "legacy": "sha256:6aa5eb1dc05c39e9d94aab012c37bf6820e523e36a2439dbc1bb13b9c1b19865",
+      "archive": "sha256:1f0d1049f3a0f0ca526417e875b9ad0df8a54aeb65df294e4f427418b8e69a7d"
+    },
+    "imageContexts": {
+      "legacy": "sha256:7c09dabdc87fe29132d344e4e75bc642d85090609100dfae986c63e7b35b3954",
+      "archive": "sha256:7c09dabdc87fe29132d344e4e75bc642d85090609100dfae986c63e7b35b3954"
+    },
+    "frozenDate": "2025-11-15",
+    "baseUrl": "http://127.0.0.1:8100",
+    "artifacts": ".oracle-artifacts/20261126T114631Z-6a101d0-conforming-candidates-relay-untouched/oracle",
+    "ciRun": {
+      "runId": "45812433661",
+      "attempt": 1,
+      "rank": 1
+    },
+    "runtimeImage": "sha256:5938ba40dd0f122b18e8b4f79944391909dc9651248aad7a86302089c19e6aff",
+    "containerUser": {
+      "uid": 1001,
+      "gid": 1001
+    },
+    "composeOverride": "sha256:f86c59bd8cf7240478c74c7b8479dee863aeaea0b27f63d387cd6b535b261e0c",
+    "port": 8100,
+    "limits": {
+      "provisional": false,
+      "source": "calibration",
+      "calibration": {
+        "file": "results/calibration/20261124T232316Z-aeb3037-ci45509307133.1-1.json",
+        "digest": "sha256:0cd1bfcf0fadd21658abdd4fdf67d49917954aa0922af15d532f6a99f27be9dc"
+      },
+      "multiples": {
+        "timeouts": 5,
+        "resources": 2
+      },
+      "buildTimeoutMs": 39405,
+      "readyTimeoutMs": 3430,
+      "buildMemoryBytes": 665845760,
+      "buildCpus": 1.89,
+      "start": {
+        "provisional": true,
+        "source": "build-limits",
+        "memoryBytes": 665845760,
+        "cpus": 1.89,
+        "pids": 256
+      }
+    },
+    "lock": {
+      "takenAt": "2026-11-26T11:46:31.131Z"
+    }
+  },
+  "salt": "a9e226aa1a756bb10684d9fecf20db78e4ae40428f48126bfcbb27a7f265a6b3",
+  "saltImposed": false,
+  "marker": "20f9afa900c726b26ecd20e65e430f8e0a4249725c29ec822d0da9fb4abf807f",
+  "phases": [
+    {
+      "name": "preparation",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T11:46:31.132Z",
+      "durationMs": 397,
+      "raw": {}
+    },
+    {
+      "name": "contract",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T11:46:31.529Z",
+      "durationMs": 1,
+      "raw": {}
+    },
+    {
+      "name": "build",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T11:46:31.530Z",
+      "durationMs": 1487,
+      "raw": {
+        "fetch.log": "sha256:62aaef3bf0e147ea67bbf18fc2b0971ec15624141af3aeeb3eefb61403317255",
+        "npm-logs/fetch/2026-11-26T11_46_31_718Z-debug-0.log": "sha256:ae19bc18791c99bb896a260ecc5868152d45e4c395c0efc52ec713486ce74b0e",
+        "install.log": "sha256:40b31d7d1a6ba5948118185d2689da732493afa200738ee904112e7ee41e23b4",
+        "npm-logs/install/2026-11-26T11_46_32_457Z-debug-0.log": "sha256:a932bffa15a97d43677ebde0fc58de839e5232ba01f27bb1fea12961bc18b62d"
+      }
+    },
+    {
+      "name": "start",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T11:46:33.017Z",
+      "durationMs": 14539,
+      "raw": {
+        "start.log": "sha256:eb49736a55175edc668e69b09c19adf0b5c5fcd4fa043b56dc098056f52c43f6"
+      }
+    },
+    {
+      "name": "oracle",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T11:46:47.556Z",
+      "durationMs": 18187,
+      "raw": {}
+    },
+    {
+      "name": "gates",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T11:47:05.743Z",
+      "durationMs": 2,
+      "raw": {}
+    },
+    {
+      "name": "closing",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T11:47:05.745Z",
+      "durationMs": 10433,
+      "raw": {
+        "access.log": "sha256:30d7ffbc98672270a03f7d5b3998f73b4e9872e055049878ccc3413b499cf457"
+      }
+    }
+  ],
+  "oracle": {
+    "executed": true,
+    "result": "sha256:78adb2dcf586b55c6ee2b1d7758c5faff0ac66d9a1de0b581ce9c3fe9bef7290",
+    "summary": {
+      "scenarios": 38,
+      "passed": 0,
+      "failed": 0,
+      "unreached": 38,
+      "passRate": 0,
+      "reachedPassRate": null,
+      "keyboard": {
+        "passed": 0,
+        "total": 5
+      }
+    }
+  },
+  "accessLog": {
+    "log": "sha256:30d7ffbc98672270a03f7d5b3998f73b4e9872e055049878ccc3413b499cf457",
+    "lines": 17,
+    "witnesses": [
+      {
+        "name": "start-1",
+        "line": 2
+      },
+      {
+        "name": "end",
+        "line": 17
+      }
+    ]
+  },
+  "gates": [
+    {
+      "gate": "relay",
+      "name": "legacy-port-untouched",
+      "kind": "judged",
+      "outcome": "passed",
+      "examined": 16,
+      "findings": [],
+      "findingsTotal": 0,
+      "findingsKept": 0,
+      "values": {},
+      "raw": {
+        "access.log": "sha256:30d7ffbc98672270a03f7d5b3998f73b4e9872e055049878ccc3413b499cf457"
+      }
+    }
+  ],
+  "verdict": {
+    "category": "completed",
+    "reason": "ok"
+  }
+}

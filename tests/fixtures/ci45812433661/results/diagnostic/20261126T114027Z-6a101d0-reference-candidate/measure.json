@@ -1,0 +1,381 @@
+{
+  "format": 1,
+  "measureId": "20261126T114027Z-6a101d0-reference-candidate",
+  "counted": false,
+  "candidate": {
+    "path": "fixtures/reference-candidate",
+    "contentDigest": "sha256:157356d0b727db5cac97f65038409888b59d9084fc5f61eb5667562075cb5907",
+    "contract": 1,
+    "start": "node server.js"
+  },
+  "environment": {
+    "benchCommit": "6a101d065ce49d64ec3f88469fad85a3bffe9257",
+    "worktree": "clean",
+    "node": "v22.23.5",
+    "chromium": "159.0.8154.6",
+    "playwright": "1.65.1",
+    "images": {
+      "legacy": "sha256:6aa5eb1dc05c39e9d94aab012c37bf6820e523e36a2439dbc1bb13b9c1b19865",
+      "archive": "sha256:1f0d1049f3a0f0ca526417e875b9ad0df8a54aeb65df294e4f427418b8e69a7d"
+    },
+    "imageContexts": {
+      "legacy": "sha256:7c09dabdc87fe29132d344e4e75bc642d85090609100dfae986c63e7b35b3954",
+      "archive": "sha256:7c09dabdc87fe29132d344e4e75bc642d85090609100dfae986c63e7b35b3954"
+    },
+    "frozenDate": "2025-11-15",
+    "baseUrl": "http://127.0.0.1:8100",
+    "artifacts": ".oracle-artifacts/20261126T114027Z-6a101d0-reference-candidate/oracle",
+    "ciRun": {
+      "runId": "45812433661",
+      "attempt": 1,
+      "rank": 1
+    },
+    "runtimeImage": "sha256:5938ba40dd0f122b18e8b4f79944391909dc9651248aad7a86302089c19e6aff",
+    "containerUser": {
+      "uid": 1001,
+      "gid": 1001
+    },
+    "composeOverride": "sha256:c24d672662805c6d2385c79bfa61c6bdaf4be06f14e2dab07457818751a8d3f4",
+    "port": 8100,
+    "limits": {
+      "provisional": false,
+      "source": "calibration",
+      "calibration": {
+        "file": "results/calibration/20261124T232316Z-aeb3037-ci45509307133.1-1.json",
+        "digest": "sha256:0cd1bfcf0fadd21658abdd4fdf67d49917954aa0922af15d532f6a99f27be9dc"
+      },
+      "multiples": {
+        "timeouts": 5,
+        "resources": 2
+      },
+      "buildTimeoutMs": 39405,
+      "readyTimeoutMs": 3430,
+      "buildMemoryBytes": 665845760,
+      "buildCpus": 1.89,
+      "start": {
+        "provisional": true,
+        "source": "build-limits",
+        "memoryBytes": 665845760,
+        "cpus": 1.89,
+        "pids": 256
+      }
+    },
+    "lock": {
+      "takenAt": "2026-11-26T11:40:27.605Z"
+    }
+  },
+  "salt": "dad993d0fa4dc64afba2e04b1f19a1d6c1319e627c1aa005f8a9a750ca6486b4",
+  "saltImposed": false,
+  "marker": "c9fb6934594fc5ec3e73858f0a528e35b00b20e9f97c99ef6dcd6caf3e50985a",
+  "phases": [
+    {
+      "name": "preparation",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T11:40:27.606Z",
+      "durationMs": 763,
+      "raw": {}
+    },
+    {
+      "name": "contract",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T11:40:28.369Z",
+      "durationMs": 1,
+      "raw": {}
+    },
+    {
+      "name": "build",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T11:40:28.370Z",
+      "durationMs": 1993,
+      "raw": {
+        "fetch.log": "sha256:bf455d9fd603468d65b800d9953c3624093e52557c0e09a58cab1c4a2d0fd2b2",
+        "npm-logs/fetch/2026-11-26T11_40_29_015Z-debug-0.log": "sha256:f3d5682a9def1e212cd0ba1a65841a4a106b1871acbe5d040211051c6b55f11d",
+        "install.log": "sha256:a7fe8646e7adb2d34b1be07806434cfc16f5595a220cbea86b4ba4bdd7f76acb",
+        "npm-logs/install/2026-11-26T11_40_29_801Z-debug-0.log": "sha256:858670e2d88d7b37c67030215c674cc31372bbbd7aae6e452e2bc07308c1aa32"
+      }
+    },
+    {
+      "name": "start",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T11:40:30.363Z",
+      "durationMs": 4704,
+      "raw": {
+        "start.log": "sha256:cda42d8058cc92fd3dbe81e2eda110be9ef628a94a805f67c4fa2adf945c031f"
+      }
+    },
+    {
+      "name": "oracle",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T11:40:35.067Z",
+      "durationMs": 18755,
+      "raw": {}
+    },
+    {
+      "name": "gates",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T11:40:53.822Z",
+      "durationMs": 2,
+      "raw": {}
+    },
+    {
+      "name": "closing",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T11:40:53.824Z",
+      "durationMs": 10352,
+      "raw": {
+        "access.log": "sha256:d1f04af1c902d0fe91407f42ed30e0260adf4fe21d5103de449cbcc8d800b05c"
+      }
+    }
+  ],
+  "oracle": {
+    "executed": true,
+    "result": "sha256:88cfe02b3089217fa4f38edaacea889e1945c9885d049af2d4a05b6aea477099",
+    "summary": {
+      "scenarios": 38,
+      "passed": 38,
+      "failed": 0,
+      "unreached": 0,
+      "passRate": 1,
+      "reachedPassRate": 1,
+      "keyboard": {
+        "passed": 5,
+        "total": 5
+      }
+    }
+  },
+  "accessLog": {
+    "log": "sha256:d1f04af1c902d0fe91407f42ed30e0260adf4fe21d5103de449cbcc8d800b05c",
+    "lines": 206,
+    "witnesses": [
+      {
+        "name": "start-1",
+        "line": 2
+      },
+      {
+        "name": "end",
+        "line": 206
+      }
+    ]
+  },
+  "gates": [
+    {
+      "gate": "relay",
+      "name": "legacy-port-untouched",
+      "kind": "judged",
+      "outcome": "failed",
+      "examined": 205,
+      "findings": [
+        {
+          "line": 3,
+          "entry": "2026-11-26T11:40:35.063+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 401 \"node\""
+        },
+        {
+          "line": 6,
+          "entry": "2026-11-26T11:40:37.713+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 7,
+          "entry": "2026-11-26T11:40:37.718+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 8,
+          "entry": "2026-11-26T11:40:38.618+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 9,
+          "entry": "2026-11-26T11:40:38.617+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 10,
+          "entry": "2026-11-26T11:40:38.849+0000 172.19.0.2:8080 172.18.0.4 \"GET /rechercher.do;jsessionid=4738F7C86E10EA47BA3AB2D13B0B096B?number=D-0001&applicant=&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 11,
+          "entry": "2026-11-26T11:40:38.851+0000 172.19.0.2:8080 172.18.0.4 \"GET /rechercher.do;jsessionid=AA65BDDAB87DAFF6C9B750E4DA3167A5?number=D-0004&applicant=&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 12,
+          "entry": "2026-11-26T11:40:39.130+0000 172.19.0.2:8080 172.18.0.4 \"GET /fiche.do?number=D-0004 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 13,
+          "entry": "2026-11-26T11:40:39.144+0000 172.19.0.2:8080 172.18.0.4 \"GET /fiche.do?number=D-0001 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 15,
+          "entry": "2026-11-26T11:40:39.363+0000 172.19.0.2:8080 172.18.0.4 \"GET /remise.do?number=D-0004 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 16,
+          "entry": "2026-11-26T11:40:39.365+0000 172.19.0.2:8080 172.18.0.4 \"GET /remise.do?number=D-0001 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 17,
+          "entry": "2026-11-26T11:40:39.719+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 18,
+          "entry": "2026-11-26T11:40:39.730+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 19,
+          "entry": "2026-11-26T11:40:39.767+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 20,
+          "entry": "2026-11-26T11:40:39.776+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 21,
+          "entry": "2026-11-26T11:40:39.900+0000 172.19.0.2:8080 172.18.0.4 \"GET /rechercher.do;jsessionid=09EF4CD1332F6B4B42FD9DAAF75C0C26?number=D-0003&applicant=&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 22,
+          "entry": "2026-11-26T11:40:39.932+0000 172.19.0.2:8080 172.18.0.4 \"GET /rechercher.do;jsessionid=EC1F4D066B12C5A9AB92332169255D08?number=D-0111&applicant=&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 23,
+          "entry": "2026-11-26T11:40:39.989+0000 172.19.0.2:8080 172.18.0.4 \"GET /fiche.do?number=D-0003 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 24,
+          "entry": "2026-11-26T11:40:40.024+0000 172.19.0.2:8080 172.18.0.4 \"GET /fiche.do?number=D-0111 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 25,
+          "entry": "2026-11-26T11:40:40.069+0000 172.19.0.2:8080 172.18.0.4 \"GET /remise.do?number=D-0003 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 26,
+          "entry": "2026-11-26T11:40:40.111+0000 172.19.0.2:8080 172.18.0.4 \"GET /remise.do?number=D-0111 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 27,
+          "entry": "2026-11-26T11:40:40.198+0000 172.19.0.2:8080 172.18.0.4 \"POST /remettre.do HTTP/1.1\" 302 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 28,
+          "entry": "2026-11-26T11:40:40.204+0000 172.19.0.2:8080 172.18.0.4 \"GET /remise.do?number=D-0111 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 29,
+          "entry": "2026-11-26T11:40:40.272+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 30,
+          "entry": "2026-11-26T11:40:40.277+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 31,
+          "entry": "2026-11-26T11:40:40.401+0000 172.19.0.2:8080 172.18.0.4 \"GET /rechercher.do;jsessionid=3DBD6FE932C7CC1BF94984043592BF12?number=D-0007&applicant=&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 32,
+          "entry": "2026-11-26T11:40:40.411+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 33,
+          "entry": "2026-11-26T11:40:40.421+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 34,
+          "entry": "2026-11-26T11:40:40.487+0000 172.19.0.2:8080 172.18.0.4 \"GET /fiche.do?number=D-0007 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 35,
+          "entry": "2026-11-26T11:40:40.535+0000 172.19.0.2:8080 172.18.0.4 \"GET /rechercher.do;jsessionid=40079C392CB58C0158997425805B28A5?number=D-0010&applicant=&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 36,
+          "entry": "2026-11-26T11:40:40.568+0000 172.19.0.2:8080 172.18.0.4 \"GET /remise.do?number=D-0007 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 37,
+          "entry": "2026-11-26T11:40:40.623+0000 172.19.0.2:8080 172.18.0.4 \"GET /fiche.do?number=D-0010 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 38,
+          "entry": "2026-11-26T11:40:40.707+0000 172.19.0.2:8080 172.18.0.4 \"GET /remise.do?number=D-0010 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 39,
+          "entry": "2026-11-26T11:40:40.841+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 40,
+          "entry": "2026-11-26T11:40:40.844+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 41,
+          "entry": "2026-11-26T11:40:40.970+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 42,
+          "entry": "2026-11-26T11:40:40.976+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 43,
+          "entry": "2026-11-26T11:40:41.016+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 44,
+          "entry": "2026-11-26T11:40:41.023+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 45,
+          "entry": "2026-11-26T11:40:41.105+0000 172.19.0.2:8080 172.18.0.4 \"GET /rechercher.do;jsessionid=729975679514B1B7359B194BF7FADE1D?number=&applicant=&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 46,
+          "entry": "2026-11-26T11:40:41.124+0000 172.19.0.2:8080 172.18.0.4 \"GET /x HTTP/1.1\" 404 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 47,
+          "entry": "2026-11-26T11:40:41.138+0000 172.19.0.2:8080 172.18.0.4 \"GET /rechercher.do;jsessionid=A4B8AAA1BB60C57D3B6A1CC48327881C?number=D-0007&applicant=&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 49,
+          "entry": "2026-11-26T11:40:41.828+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 50,
+          "entry": "2026-11-26T11:40:41.840+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 51,
+          "entry": "2026-11-26T11:40:41.867+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 52,
+          "entry": "2026-11-26T11:40:41.873+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 53,
+          "entry": "2026-11-26T11:40:42.010+0000 172.19.0.2:8080 172.18.0.4 \"GET /rechercher.do;jsessionid=14DC8E80D248E03A85123D990B83D912?number=&applicant=pERRIN&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 54,
+          "entry": "2026-11-26T11:40:42.046+0000 172.19.0.2:8080 172.18.0.4 \"GET /rechercher.do;jsessionid=3C97AD2F2EA49F09A5459FC7821FDBAB?number=&applicant=Elodie&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 55,
+          "entry": "2026-11-26T11:40:42.684+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 56,
+          "entry": "2026-11-26T11:40:42.700+0000 172.19.0.2:8080 172.18.0.4 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        }
+      ],
+      "findingsTotal": 188,
+      "findingsKept": 50,
+      "values": {},
+      "raw": {
+        "access.log": "sha256:d1f04af1c902d0fe91407f42ed30e0260adf4fe21d5103de449cbcc8d800b05c"
+      }
+    }
+  ],
+  "verdict": {
+    "category": "completed",
+    "reason": "ok"
+  }
+}

@@ -4,7 +4,7 @@
 // mesure comptée du candidat de référence, au critère de fin (« Notes »).
 import { describe, expect, it } from "vitest";
 import { MEASURE_CASES, type Observed, caseProblems } from "../scripts/measure-cases.ts";
-import { MEASURES, readJsonFixture, readMeasure } from "./real-fixtures.ts";
+import { GATE_MEASURES, MEASURES, readJsonFixture, readMeasure } from "./real-fixtures.ts";
 
 // Copie de la première mesure comptée du candidat de référence, produite par
 // le job des mesures sur main (exécution 45624689673, commit 52303ae) : son
@@ -15,14 +15,16 @@ const referenceOracle = readJsonFixture<object>(`${MEASURES.reference.results}/o
 describe("caseProblems, on a real counted measure", () => {
   // L'exécution 45624689673 a rejeté cette mesure : le contrôle cherchait
   // originMain sous environment, alors que le banc l'écrit à la racine.
-  it("has nothing to report for the first counted measure of the reference candidate", () => {
-    expect(caseProblems(MEASURE_CASES["reference-counted"], { exitCode: 0, record: referenceMeasure, oracle: referenceOracle })).toEqual([]);
+  // Mesure de l'étape 3 : sa phase `gates` était vide. Depuis #124, le
+  // candidat de référence doit échouer à la porte du relais.
+  it("has nothing to report for the first counted measure of the reference candidate but its missing relay result", () => {
+    expect(caseProblems(MEASURE_CASES["reference-counted"], { exitCode: 0, record: referenceMeasure, oracle: referenceOracle })).toEqual(["gate relay/legacy-port-untouched is missing"]);
   });
 
   it("names a counted measure without originMain", () => {
     const { originMain: _originMain, ...record } = referenceMeasure;
 
-    expect(caseProblems(MEASURE_CASES["reference-counted"], { exitCode: 0, record, oracle: referenceOracle })).toEqual(["originMain is missing"]);
+    expect(caseProblems(MEASURE_CASES["reference-counted"], { exitCode: 0, record, oracle: referenceOracle })).toEqual(["gate relay/legacy-port-untouched is missing", "originMain is missing"]);
   });
 });
 
@@ -49,43 +51,47 @@ function oracleJson(saltImposed: unknown) {
   return oracle;
 }
 
+// Le cas du candidat de référence sans son résultat de porte : la vraie
+// mesure copiée est de l'étape 3, avant les portes (#124).
+const REFERENCE_BEFORE_GATES = { ...MEASURE_CASES.reference, gates: [] };
+
 function observed(record: object, more: Partial<Observed> = {}): Observed {
   return { exitCode: 0, record, oracle: oracleJson(false), ...more };
 }
 
 describe("caseProblems, reference candidate", () => {
   it("has nothing to report for a complete measure with 38 passed scenarios and both witnesses", () => {
-    expect(caseProblems(MEASURE_CASES.reference, observed(COMPLETE))).toEqual([]);
+    expect(caseProblems(REFERENCE_BEFORE_GATES, observed(COMPLETE))).toEqual([]);
   });
 
   it("names a failed and an unreached scenario", () => {
     const record = { ...COMPLETE, oracle: { executed: true, summary: summary(36, 1, 1) } };
 
-    expect(caseProblems(MEASURE_CASES.reference, observed(record))).toEqual(["oracle.summary.passed is 36, expected 38", "oracle.summary.failed is 1, expected 0", "oracle.summary.unreached is 1, expected 0"]);
+    expect(caseProblems(REFERENCE_BEFORE_GATES, observed(record))).toEqual(["oracle.summary.passed is 36, expected 38", "oracle.summary.failed is 1, expected 0", "oracle.summary.unreached is 1, expected 0"]);
   });
 
   it("names a missing end witness of the access log", () => {
     const record = { ...COMPLETE, accessLog: { witnesses: [{ name: "start-1", line: 2 }] } };
 
-    expect(caseProblems(MEASURE_CASES.reference, observed(record))).toEqual(["accessLog.witnesses has no end witness"]);
+    expect(caseProblems(REFERENCE_BEFORE_GATES, observed(record))).toEqual(["accessLog.witnesses has no end witness"]);
   });
 
   // Avant 71d8c18 (#73), oracle.json disait saltImposed: true même sans
   // ORACLE_SALT, alors que measure.json disait false : les deux fichiers sont lus.
   it("names an imposed salt in oracle.json even when measure.json says it was drawn", () => {
-    expect(caseProblems(MEASURE_CASES.reference, observed(COMPLETE, { oracle: oracleJson(true) }))).toEqual(["oracle.json: config.metadata.saltImposed is true, expected false"]);
+    expect(caseProblems(REFERENCE_BEFORE_GATES, observed(COMPLETE, { oracle: oracleJson(true) }))).toEqual(["oracle.json: config.metadata.saltImposed is true, expected false"]);
   });
 
   it("names an oracle.json without saltImposed in its metadata", () => {
-    expect(caseProblems(MEASURE_CASES.reference, observed(COMPLETE, { oracle: { saltImposed: false } }))).toEqual(["oracle.json: config.metadata.saltImposed is undefined, expected false"]);
+    expect(caseProblems(REFERENCE_BEFORE_GATES, observed(COMPLETE, { oracle: { saltImposed: false } }))).toEqual(["oracle.json: config.metadata.saltImposed is undefined, expected false"]);
   });
 
   it("names a measure without oracle.json", () => {
-    expect(caseProblems(MEASURE_CASES.reference, observed(COMPLETE, { oracle: undefined }))).toEqual(["oracle.json is missing"]);
+    expect(caseProblems(REFERENCE_BEFORE_GATES, observed(COMPLETE, { oracle: undefined }))).toEqual(["oracle.json is missing"]);
   });
 
   it("names an unexpected exit code", () => {
-    expect(caseProblems(MEASURE_CASES.reference, observed(COMPLETE, { exitCode: 3 }))).toEqual(["exit code is 3, expected 0"]);
+    expect(caseProblems(REFERENCE_BEFORE_GATES, observed(COMPLETE, { exitCode: 3 }))).toEqual(["exit code is 3, expected 0"]);
   });
 });
 
@@ -94,7 +100,7 @@ describe("caseProblems, counted measure of the reference candidate", () => {
     const { originMain: _originMain, ...diagnostic } = COMPLETE;
     const record = { ...diagnostic, saltImposed: true };
 
-    expect(caseProblems(MEASURE_CASES["reference-counted"], observed(record))).toEqual([
+    expect(caseProblems({ ...MEASURE_CASES["reference-counted"], gates: [] }, observed(record))).toEqual([
       "measure.json: saltImposed is true, expected false",
       "counted is false, expected true",
       "environment.worktree is dirty, expected clean",
@@ -133,7 +139,7 @@ describe("caseProblems, defective candidates", () => {
   });
 
   it("expects at least one failed scenario through the relay that alters a label", () => {
-    expect(caseProblems(MEASURE_CASES["relay-alters-label"], observed(COMPLETE))).toEqual(["oracle.summary.failed is 0, expected at least 1"]);
+    expect(caseProblems({ ...MEASURE_CASES["relay-alters-label"], gates: [] }, observed(COMPLETE))).toEqual(["oracle.summary.failed is 0, expected at least 1"]);
   });
 
   it("expects the broken stack to give an invalid measure, exit code 3", () => {
@@ -181,5 +187,37 @@ describe("caseProblems, failures of #68 and interruption", () => {
     };
 
     expect(caseProblems(MEASURE_CASES.interrupted, observed(record, { exitCode: 3 }))).toEqual(["verdict.evidence is \"Interrupted by SIGTERM\", expected \"Interrupted by SIGINT\"", "oracle.json is present, expected absent"]);
+  });
+});
+
+// Mesures de l'exécution 45812433661 (PR #141), les premières avec un résultat
+// de porte : copies sans modification (tests/fixtures/ci45812433661/).
+describe("caseProblems, relay gate (#124)", () => {
+  const gateMeasure = (measure: { results: string }) => ({
+    exitCode: 0,
+    record: readMeasure(measure),
+    oracle: readJsonFixture<object>(`${measure.results}/oracle.json`),
+  });
+
+  it.each([
+    ["reference", GATE_MEASURES.reference],
+    ["relay-forged-healthcheck", GATE_MEASURES.relayForgedHealthcheck],
+    ["relay-untouched", GATE_MEASURES.relayUntouched],
+  ] as const)("has nothing to report for the real measure of case %s", (name, measure) => {
+    expect(caseProblems(MEASURE_CASES[name], gateMeasure(measure))).toEqual([]);
+  });
+
+  // Témoins : le contrôle sait voir une issue de porte et un constat qui manquent.
+  it("names a relay result that is not the expected one", () => {
+    expect(caseProblems(MEASURE_CASES["relay-untouched"], gateMeasure(GATE_MEASURES.relayForgedHealthcheck))).toEqual([
+      "gate relay/legacy-port-untouched is failed, expected passed",
+    ]);
+  });
+
+  it("names a relay result whose findings do not cite the forged User-Agent", () => {
+    // Le candidat de référence échoue aussi, mais aucun de ses constats gardés ne cite curl.
+    expect(caseProblems(MEASURE_CASES["relay-forged-healthcheck"], gateMeasure(GATE_MEASURES.reference))).toEqual([
+      'gate relay/legacy-port-untouched: no finding cites "curl/8.18.0"',
+    ]);
   });
 });

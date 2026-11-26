@@ -100,3 +100,12 @@ export const PROOF_RESULTS = [
   "ci45041781224/results/oracle/20261122T161042Z-a664b7b-ci45041781224.1-4.json",
   "ci45041781224/results/oracle/20261122T161133Z-a664b7b-ci45041781224.1-5.json",
 ] as const;
+
+// Exécution 45812433661, job des mesures de la PR #141, commit 6a101d0 : les
+// premières mesures avec un résultat de porte (#124).
+const GATES_RUN = "ci45812433661/results/diagnostic";
+export const GATE_MEASURES = {
+  reference: { results: `${GATES_RUN}/20261126T114027Z-6a101d0-reference-candidate` },
+  relayForgedHealthcheck: { results: `${GATES_RUN}/20261126T114545Z-6a101d0-defective-candidates-relay-forged-healthcheck` },
+  relayUntouched: { results: `${GATES_RUN}/20261126T114631Z-6a101d0-conforming-candidates-relay-untouched` },
+};

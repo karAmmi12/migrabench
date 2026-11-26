@@ -1,6 +1,7 @@
 // Contenu de measure.json (spec de l'étape 3, « Contenu de measure.json ») :
 // fonction pure qui assemble le résultat d'une mesure à partir de ce que le
 // runner a relevé, avec son verdict et le code de sortie qui en découle.
+import type { GateResult } from "../gates/result.ts";
 import type { OracleSummary } from "../oracle/collect.ts";
 import type { WitnessPosition } from "./access-log.ts";
 import type { CountedRecord } from "./counted.ts";
@@ -45,9 +46,13 @@ export interface MeasureRecordInput {
   // Mesure prévue pour compter (#73) : le commit de origin/main utilisé pour
   // vérifier ses préconditions. Absent : mesure de diagnostic.
   counted?: CountedRecord;
+  // Résultats des portes, dans l'ordre du registre (ADR 0008). Ils ne
+  // changent pas le verdict : seule une erreur de porte avant le candidat le
+  // fait, par l'issue de sa phase.
+  gates?: readonly GateResult[];
 }
 
-export function measureRecord({ measureId, candidate, environment, salt, saltImposed, marker, accessLog, phases, oracle, counted }: MeasureRecordInput) {
+export function measureRecord({ measureId, candidate, environment, salt, saltImposed, marker, accessLog, phases, oracle, counted, gates = [] }: MeasureRecordInput) {
   const recorded = PHASES.map(
     (name): PhaseRecord =>
       phases.find((entry) => entry.name === name) ?? { name, outcome: "not-run", startedAt: "", durationMs: 0, raw: {} },
@@ -66,7 +71,7 @@ export function measureRecord({ measureId, candidate, environment, salt, saltImp
     phases: recorded,
     oracle,
     ...(accessLog === undefined ? {} : { accessLog }),
-    gates: [] as never[],
+    gates,
     verdict: measureVerdict,
   };
   return { record, exitCode };

@@ -3,6 +3,7 @@
 import { describe, expect, it } from "vitest";
 import { type MeasureRecordInput, measureRecord } from "../../runner/measure-record.ts";
 import type { PhaseRecord } from "../../runner/verdict.ts";
+import { errored, judged } from "../../gates/result.ts";
 
 function phase(name: PhaseRecord["name"], outcome = "ok", raw: Record<string, string> = {}, detail?: string): PhaseRecord {
   return { name, outcome, startedAt: "2026-11-23T09:05:07.123Z", durationMs: 10, raw, ...(detail === undefined ? {} : { detail }) } as PhaseRecord;
@@ -89,11 +90,26 @@ describe("measureRecord", () => {
     });
   });
 
-  it("records the oracle result by digest with a copy of its summary, and no gate yet", () => {
+  it("records the oracle result by digest with a copy of its summary, and no gate when none ran", () => {
     const { record } = measureRecord(COMPLETED);
 
     expect(record.oracle).toEqual({ executed: true, result: "sha256:ff", summary: SUMMARY });
     expect(record.gates).toEqual([]);
+  });
+
+  // ADR 0008 : un échec, un résultat non évaluable ou une erreur pendant
+  // l'examen est un résultat du candidat, jamais une issue de la mesure.
+  it("records the gate results in order, without changing the verdict of the measure", () => {
+    const gates = [
+      judged({ gate: "relay", name: "legacy-port-untouched", examined: 211, passed: false, findings: [{ line: 3 }] }),
+      judged({ gate: "test", name: "nothing", examined: 0, passed: true }),
+      errored({ gate: "test", name: "in-error", kind: "judged", error: { stage: "on-candidate", cause: "timeout", message: "Gate test exceeded its timeout of 20 ms" } }),
+    ];
+    const { record, exitCode } = measureRecord({ ...COMPLETED, gates });
+
+    expect(record.gates).toEqual(gates);
+    expect(record.verdict).toEqual({ category: "completed", reason: "ok" });
+    expect(exitCode).toBe(0);
   });
 
   it("records every phase in order, with its outcome, start, duration and raw digests", () => {

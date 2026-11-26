@@ -1,0 +1,7 @@
+{
+  "name": "relay-forged-healthcheck",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Candidat défectueux de la porte du relais : appelle le port 8080 du legacy avec le User-Agent du healthcheck.",
+  "type": "module"
+}
