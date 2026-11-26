@@ -63,6 +63,7 @@ Filename Safe Alphabet ».
 - **`scripts/measure-cases.ts`** : les attentes du job des mesures. La
   référence et `relay-alters-label` échouent, `relay-forged-healthcheck` et
   `relay-untouched` passent.
+- **`.gitignore`** : les HAR restent ignorés, sauf ceux de `tests/fixtures/`.
 - **`PROTOCOL.md`** : une limite de plus, sur les corps que le HAR ne garde
   pas.
 
@@ -106,6 +107,19 @@ Filename Safe Alphabet ».
   built from this copy of the repository ». Cause : la pile en marche avait
   été construite depuis une autre copie du dépôt. Résolution :
   `npm run stack:up` depuis ce worktree, puis 1 068 tests verts.
+- **HAR des fixtures absents en CI.** Le job `tests` de
+  l'[exécution 45891898617](https://github.com/karAmmi12/migrabench/actions/runs/45891898617)
+  (commit `2dc132c`) a échoué sur 20 tests : `ENOENT` sur chaque
+  `scenario.har`. Cause : `.gitignore` ignore `*.har`, et `git add` n'avait
+  rien ajouté sans le dire ; en local, les fichiers étaient sur le disque.
+  Résolution : une exception `!tests/fixtures/**/*.har`, et les quatre HAR
+  versionnés (commit `dd77c41`).
+- **Job `oracle` rouge après l'avancée de `main`.** L'exécution 45893037665
+  (commit `dd77c41`) a échoué en 44 s : `scripts/maven-cache.sh: No such
+  file or directory`. Cause : #150, fusionné sur `main` pendant la PR, ajoute
+  ce script et l'appelle dans le workflow ; la CI de la PR prend le workflow
+  de `main`, mais extrait la branche, sans le script. Résolution : `main`
+  intégré à la branche.
 - **Deux revues coupées** par la limite d'usage de l'API, puis reprises.
 - **Provenance de la sonde incomplète**, relevée par la revue « normes ». Le
   script cité écrivait `probe-read.har`, versionné sous le nom `probe.har`.
@@ -136,6 +150,10 @@ Observé pendant la session, sur l'arbre des quatre premiers commits avant
 leur création, après `npm run stack:up` : `Test Files 97 passed (97)`,
 `Tests 1068 passed (1068)`.
 
+En CI, une fois les HAR versionnés : job `tests` vert,
+[exécution 45893037759](https://github.com/karAmmi12/migrabench/actions/runs/45893037759),
+commit `dd77c41`.
+
 La porte appliquée aux HAR de l'artefact `measures` de
 l'exécution 45861318349 (commit `0d2eb7a`, script jetable de la session) :
 
@@ -146,7 +164,22 @@ l'exécution 45861318349 (commit `0d2eb7a`, script jetable de la session) :
 | `relay-forged-healthcheck` | `passed` | 38 | 0 | 38 |
 | `relay-untouched` | `passed` | 38 | 0 | 38 |
 
-> À vérifier après l'exécution de la CI de la PR : issue de la porte pour la référence, `relay-alters-label`, `relay-forged-healthcheck` et `relay-untouched` dans le job des mesures, durée de la phase `gates` de la référence et durée réelle ajoutée par la porte (à signaler à Karim au-delà de 5 minutes).
+Sur la vraie pile, job des mesures de la PR
+([exécution 45891898621](https://github.com/karAmmi12/migrabench/actions/runs/45891898621),
+commit `2dc132c`, succès), relevé dans l'artefact `measures` :
+
+| Mesure | Issue | Entrées | Constats | Phase `gates` |
+|---|---|---|---|---|
+| `20261126T203447Z-2dc132c-reference-candidate` | `failed` | 152 | 7 | 2 643 ms |
+| `20261126T203730Z-2dc132c-defective-candidates-relay-alters-label` | `failed` | 164 | 7 | 2 590 ms |
+| `20261126T204002Z-2dc132c-defective-candidates-relay-forged-healthcheck` | `passed` | 38 | 0 | 493 ms |
+| `20261126T204045Z-2dc132c-conforming-candidates-relay-untouched` | `passed` | 38 | 0 | 493 ms |
+
+Durée ajoutée à la mesure : `measure.json` ne donne pas la durée d'une porte
+seule. La phase `gates` du candidat de référence passe de 2 285 ms sans la
+porte (exécution 45861318349, commit `0d2eb7a`) à 2 643 ms avec elle, soit
+environ 0,4 s, bien en dessous du seuil de 5 minutes. L'écart mêle la porte
+et la variation d'une exécution à l'autre.
 
 ## Pour aller plus loin
 
