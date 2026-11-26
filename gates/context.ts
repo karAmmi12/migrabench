@@ -17,6 +17,9 @@ export interface GateContext {
   // témoins : présent pour les portes de la clôture seulement (la porte du
   // relais), une fois le journal contrôlé `ok`.
   accessLog?: { file: string; digest: string; witnesses: readonly WitnessPosition[] };
+  // Dossier des bruts de la mesure : une porte y écrit sous `gates/<porte>/`
+  // (gates/raw.ts) et cite chaque brut par son empreinte (ADR 0005).
+  rawDir: string;
   // Client de l'API interne du legacy, en lecture seulement.
   internalApi: { get(path: string): Promise<InternalResponse> };
   // Redémarre le legacy, recrée le candidat, attend qu'ils soient sains et

@@ -9,11 +9,11 @@
 // variants.ts, la lecture du verrou dans lock.ts, les messages de la
 // recherche et de la fiche dans messages.ts.
 import { readFileSync } from "node:fs";
-import { test as base, expect, type Locator, type Page } from "@playwright/test";
+import { test as base, expect, type Page } from "@playwright/test";
 import { parseUsersWithoutUnknown, type Role, UNKNOWN_USER } from "../scripts/users.ts";
 import { archiveReference } from "./archive-reference.ts";
 import { REACH_ANNOTATION, REREAD_ANNOTATION } from "./collect.ts";
-import { atLeastOne } from "./occurrences.ts";
+import { goToSearch, goToSheet, goToSubmission } from "./navigation.ts";
 import { skippedStepAnnotation, type VariantKey, type Variants, variantAnnotation } from "./variants.ts";
 
 export { pressAndReadDefaultPrevented } from "./default-prevented.ts";
@@ -25,6 +25,7 @@ export { type Lock, lockVariant } from "./lock.ts";
 export { SEARCH_MESSAGES, SHEET_MESSAGES } from "./messages.ts";
 
 export { expect } from "@playwright/test";
+export { button, exactText, field, fieldLabel, remiseLink } from "./navigation.ts";
 
 // Identité sous laquelle un scénario navigue.
 export type Identity = Role | "no-credentials" | "unknown-user";
@@ -89,37 +90,11 @@ export function expectedArchiveReference(number: string): string {
   return archiveReference(salt, number);
 }
 
-// Libellé de champ au texte exact, espaces normalisés ; seuls deux-points et
-// `*` finaux sont tolérés (ADR 0006).
-export function fieldLabel(text: string): RegExp {
-  const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
-  return new RegExp(`^\\s*${escaped}(\\s*[:*])*\\s*$`);
-}
-
-export function field(page: Page, label: string): Locator {
-  return page.getByLabel(fieldLabel(label));
-}
-
-export function button(page: Page, name: string): Locator {
-  return page.getByRole("button", { name, exact: true });
-}
-
-// Toutes les occurrences d'un texte exact. Une vérification de présence le
-// passe à atLeastOne ; une vérification d'absence le garde entier.
-export function exactText(page: Page, value: string): Locator {
-  return page.getByText(value, { exact: true });
-}
-
 // Vers la recherche : ouvrir BASE_URL ; atteint quand « Numéro » est visible.
 export async function openSearch(page: Page): Promise<void> {
   await test.step("navigation: search", async () => {
-    await loadSearch(page);
+    await goToSearch(page);
   });
-}
-
-async function loadSearch(page: Page): Promise<void> {
-  await page.goto("/");
-  await field(page, "Numéro").waitFor({ state: "visible" });
 }
 
 // Numéros affichés : liens dont le nom est exactement un numéro, dans l'ordre du document.
@@ -147,29 +122,15 @@ export async function displayedSharedNumbers(page: Page): Promise<string[]> {
 // quand « Objet » est visible.
 export async function openSheet(page: Page, number: string): Promise<void> {
   await test.step(`navigation: sheet ${number}`, async () => {
-    await reachSheet(page, number);
+    await goToSheet(page, number);
   });
-}
-
-async function reachSheet(page: Page, number: string): Promise<void> {
-  await loadSearch(page);
-  await field(page, "Numéro").fill(number);
-  await button(page, "Rechercher").click();
-  await page.getByRole("link", { name: number, exact: true }).click();
-  await field(page, "Objet").waitFor({ state: "visible" });
-}
-
-export function remiseLink(page: Page): Locator {
-  return page.getByRole("link", { name: "Remise", exact: true });
 }
 
 // Vers la remise : fiche, clic sur le lien « Remise » ; atteint quand l'objet
 // du dossier est affiché en texte (récapitulatif).
 export async function openSubmission(page: Page, number: string, subject: string): Promise<void> {
   await test.step(`navigation: remise ${number}`, async () => {
-    await reachSheet(page, number);
-    await remiseLink(page).click();
-    await atLeastOne(exactText(page, subject)).waitFor({ state: "visible" });
+    await goToSubmission(page, number, subject);
   });
 }
 
@@ -191,7 +152,7 @@ export async function reread(
     for (let attempt = 1; attempt <= REREAD.attempts; attempt += 1) {
       const sheet = await page.context().newPage();
       try {
-        await reachSheet(sheet, number);
+        await goToSheet(sheet, number);
         await check(sheet, rereadExpect);
         test.info().annotations.push({ type: REREAD_ANNOTATION, description: String(attempt) });
         return;

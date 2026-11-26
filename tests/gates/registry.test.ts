@@ -3,7 +3,7 @@
 // partie qui a levé l'erreur, délai de chaque porte et de la phase.
 import { describe, expect, it } from "vitest";
 import { type GateContext, StackIncident } from "../../gates/context.ts";
-import { checkGateOrder, type Gate, GATES, gatesOf, runGates, ToolMissing } from "../../gates/registry.ts";
+import { checkGateOrder, type Gate, GATES, gateTools, gatesOf, runGates, ToolMissing } from "../../gates/registry.ts";
 import { type GateResult, judged, measured } from "../../gates/result.ts";
 
 // Le contexte n'est pas lu par les portes de test.
@@ -42,6 +42,21 @@ describe("registry order", () => {
     const gates = [gate({ name: "a", group: "files" }), gate({ name: "b", group: "writes" }), gate({ name: "relay", group: "relay" })];
     expect(gatesOf(gates, "gates").map(({ name }) => name)).toEqual(["a", "b"]);
     expect(gatesOf(gates, "closing").map(({ name }) => name)).toEqual(["relay"]);
+  });
+});
+
+// Outils épinglés par les portes, enregistrés dans l'environnement de la
+// mesure (spec de l'étape 4, « Registre, contexte et ordre »).
+describe("gateTools", () => {
+  it("gathers the tools pinned by the gates", () => {
+    const gates = [gate({ name: "a", tools: () => ({ "axe-core": "4.14.0" }) }), gate({ name: "b" }), gate({ name: "c", tools: () => ({ typescript: "7.0.2" }) })];
+    expect(gateTools(gates)).toEqual({ "axe-core": "4.14.0", typescript: "7.0.2" });
+  });
+
+  // Témoin : deux portes ne peuvent pas épingler un même outil à deux versions.
+  it("refuses one tool pinned at two versions", () => {
+    const gates = [gate({ name: "a", tools: () => ({ "axe-core": "4.14.0" }) }), gate({ name: "b", tools: () => ({ "axe-core": "4.14.1" }) })];
+    expect(() => gateTools(gates)).toThrow("Tool axe-core is pinned at 4.14.0 by gate a and at 4.14.1 by gate b");
   });
 });
 

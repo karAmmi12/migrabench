@@ -6,6 +6,7 @@
 // candidat) de son examen. Le registre pose `stage` selon la partie qui a levé
 // l'erreur, jamais d'après le message (ADR 0008).
 import { type GateContext, StackIncident } from "./context.ts";
+import { accessibilityGate } from "./accessibility.ts";
 import { relayGate } from "./relay.ts";
 import { type GateErrorCause, type GateErrorStage, type GateResult, type GateResultKind, errored } from "./result.ts";
 
@@ -31,10 +32,13 @@ export interface Gate<Prepared = unknown> {
   prepare?(context: GateContext): Promise<Prepared>;
   // Examen du candidat : une erreur y est un échec distinct (`errored`).
   examine(context: GateContext, prepared: Prepared): Promise<GateResult[]>;
+  // Outils que la porte épingle et leur version installée, enregistrés dans
+  // l'environnement de la mesure (`gateTools`), par exemple `axe-core`.
+  tools?(): Record<string, string>;
 }
 
 // Portes de la mesure, dans l'ordre fixe.
-export const GATES: readonly Gate[] = [relayGate as Gate];
+export const GATES: readonly Gate[] = [accessibilityGate as Gate, relayGate as Gate];
 
 // Outil d'analyse absent : cause `tool-missing`, à l'étape où il manque.
 export class ToolMissing extends Error {
@@ -58,6 +62,22 @@ export function checkGateOrder(gates: readonly Gate[]): void {
   });
 }
 checkGateOrder(GATES);
+
+// Outils épinglés par les portes, pour l'environnement de la mesure. Un même
+// outil ne peut pas y avoir deux versions.
+export function gateTools(gates: readonly Gate[]): Record<string, string> {
+  const tools: Record<string, string> = {};
+  const pinnedBy: Record<string, string> = {};
+  for (const gate of gates) {
+    for (const [tool, version] of Object.entries(gate.tools?.() ?? {})) {
+      const known = tools[tool];
+      if (known !== undefined && known !== version) throw new Error(`Tool ${tool} is pinned at ${known} by gate ${pinnedBy[tool]} and at ${version} by gate ${gate.name}`);
+      tools[tool] = version;
+      pinnedBy[tool] = gate.name;
+    }
+  }
+  return tools;
+}
 
 // Portes de la phase `gates`, pendant que le candidat tourne, ou de la
 // clôture, après la requête témoin `end` : la porte du relais.

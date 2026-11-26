@@ -3,8 +3,14 @@
 // tableau de la spec de l'étape 3 (« Candidats défectueux »), et, pour la
 // mesure comptée du candidat de référence, au critère de fin (« Notes »).
 import { describe, expect, it } from "vitest";
-import { MEASURE_CASES, type Observed, caseProblems } from "../scripts/measure-cases.ts";
-import { GATE_MEASURES, MEASURES, readJsonFixture, readMeasure } from "./real-fixtures.ts";
+import { MEASURE_CASES, type MeasureCase, type Observed, caseProblems } from "../scripts/measure-cases.ts";
+import { ACCESSIBILITY_MEASURES, GATE_MEASURES, MEASURES, readJsonFixture, readMeasure } from "./real-fixtures.ts";
+
+// Cas attendu, sans les résultats de la porte d'accessibilité (#128) : pour
+// les vraies mesures copiées d'avant cette porte.
+function beforeAccessibility(expected: MeasureCase): MeasureCase {
+  return { ...expected, gates: (expected.gates ?? []).filter(({ gate }) => gate !== "accessibility") };
+}
 
 // Copie de la première mesure comptée du candidat de référence, produite par
 // le job des mesures sur main (exécution 45624689673, commit 52303ae) : son
@@ -18,13 +24,13 @@ describe("caseProblems, on a real counted measure", () => {
   // Mesure de l'étape 3 : sa phase `gates` était vide. Depuis #124, le
   // candidat de référence doit échouer à la porte du relais.
   it("has nothing to report for the first counted measure of the reference candidate but its missing relay result", () => {
-    expect(caseProblems(MEASURE_CASES["reference-counted"], { exitCode: 0, record: referenceMeasure, oracle: referenceOracle })).toEqual(["gate relay/legacy-port-untouched is missing"]);
+    expect(caseProblems(beforeAccessibility(MEASURE_CASES["reference-counted"]), { exitCode: 0, record: referenceMeasure, oracle: referenceOracle })).toEqual(["gate relay/legacy-port-untouched is missing"]);
   });
 
   it("names a counted measure without originMain", () => {
     const { originMain: _originMain, ...record } = referenceMeasure;
 
-    expect(caseProblems(MEASURE_CASES["reference-counted"], { exitCode: 0, record, oracle: referenceOracle })).toEqual(["gate relay/legacy-port-untouched is missing", "originMain is missing"]);
+    expect(caseProblems(beforeAccessibility(MEASURE_CASES["reference-counted"]), { exitCode: 0, record, oracle: referenceOracle })).toEqual(["gate relay/legacy-port-untouched is missing", "originMain is missing"]);
   });
 });
 
@@ -191,7 +197,8 @@ describe("caseProblems, failures of #68 and interruption", () => {
 });
 
 // Mesures de l'exécution 45812433661 (PR #141), les premières avec un résultat
-// de porte : copies sans modification (tests/fixtures/ci45812433661/).
+// de porte : copies sans modification (tests/fixtures/ci45812433661/), d'avant
+// la porte d'accessibilité.
 describe("caseProblems, relay gate (#124)", () => {
   const gateMeasure = (measure: { results: string }) => ({
     exitCode: 0,
@@ -204,20 +211,40 @@ describe("caseProblems, relay gate (#124)", () => {
     ["relay-forged-healthcheck", GATE_MEASURES.relayForgedHealthcheck],
     ["relay-untouched", GATE_MEASURES.relayUntouched],
   ] as const)("has nothing to report for the real measure of case %s", (name, measure) => {
-    expect(caseProblems(MEASURE_CASES[name], gateMeasure(measure))).toEqual([]);
+    expect(caseProblems(beforeAccessibility(MEASURE_CASES[name]), gateMeasure(measure))).toEqual([]);
   });
 
   // Témoins : le contrôle sait voir une issue de porte et un constat qui manquent.
   it("names a relay result that is not the expected one", () => {
-    expect(caseProblems(MEASURE_CASES["relay-untouched"], gateMeasure(GATE_MEASURES.relayForgedHealthcheck))).toEqual([
+    expect(caseProblems(beforeAccessibility(MEASURE_CASES["relay-untouched"]), gateMeasure(GATE_MEASURES.relayForgedHealthcheck))).toEqual([
       "gate relay/legacy-port-untouched is failed, expected passed",
     ]);
   });
 
   it("names a relay result whose findings do not cite the forged User-Agent", () => {
     // Le candidat de référence échoue aussi, mais aucun de ses constats gardés ne cite curl.
-    expect(caseProblems(MEASURE_CASES["relay-forged-healthcheck"], gateMeasure(GATE_MEASURES.reference))).toEqual([
+    expect(caseProblems(beforeAccessibility(MEASURE_CASES["relay-forged-healthcheck"]), gateMeasure(GATE_MEASURES.reference))).toEqual([
       'gate relay/legacy-port-untouched: no finding cites "curl/8.18.0"',
     ]);
+  });
+});
+
+// Mesures de l'exécution 45861318349 (PR #147), les premières avec la porte
+// d'accessibilité : copies sans modification (tests/fixtures/ci45861318349/).
+describe("caseProblems, accessibility gate (#128)", () => {
+  const observedMeasure = (measure: { results: string }) => ({ exitCode: 0, record: readMeasure(measure), oracle: readJsonFixture<object>(`${measure.results}/oracle.json`) });
+
+  it.each([
+    ["reference", ACCESSIBILITY_MEASURES.reference],
+    ["relay-untouched", ACCESSIBILITY_MEASURES.relayUntouched],
+  ] as const)("has nothing to report for the real measure of case %s", (name, measure) => {
+    expect(caseProblems(MEASURE_CASES[name], observedMeasure(measure))).toEqual([]);
+  });
+
+  // Témoin : un candidat sans écran n'est pas pris pour le legacy.
+  it("names the accessibility results that are not the legacy ones", () => {
+    const problems = caseProblems(MEASURE_CASES.reference, observedMeasure(ACCESSIBILITY_MEASURES.relayUntouched));
+    expect(problems).toContain("gate accessibility/tables-count/search is not-evaluable, expected failed");
+    expect(problems).toContain("gate accessibility/axe/critical is not-evaluable, expected failed");
   });
 });

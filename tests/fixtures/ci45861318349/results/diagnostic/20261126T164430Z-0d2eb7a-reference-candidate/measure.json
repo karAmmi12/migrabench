@@ -1,0 +1,680 @@
+{
+  "format": 1,
+  "measureId": "20261126T164430Z-0d2eb7a-reference-candidate",
+  "counted": false,
+  "candidate": {
+    "path": "fixtures/reference-candidate",
+    "contentDigest": "sha256:157356d0b727db5cac97f65038409888b59d9084fc5f61eb5667562075cb5907",
+    "contract": 1,
+    "start": "node server.js"
+  },
+  "environment": {
+    "benchCommit": "0d2eb7ad37038c4932c70913e3896160ecd701b0",
+    "worktree": "clean",
+    "node": "v22.23.5",
+    "chromium": "159.0.8154.6",
+    "playwright": "1.65.1",
+    "browserImage": {
+      "reference": "mcr.microsoft.com/playwright:v1.65.1-noble@sha256:1507cbfc550a63a6b7396791ca4f00df17beb56342d2447b3f106c306f525579",
+      "image": "sha256:12708c20bc005b7ecc920dd23b27079baa55359fd2739c7f0f3070c47cf263e9",
+      "platform": "linux/amd64"
+    },
+    "images": {
+      "legacy": "sha256:ce7cf82f0167146cf0bc0f5664e49e8a0e1a540036a0d942a0c833fff1710e80",
+      "archive": "sha256:c5e14cc09b67ba715d0a71d9a70ad7c70349f1cdb3eedadee9768ec0d948981b"
+    },
+    "imageContexts": {
+      "legacy": "sha256:6eed0b5dde1ea9647e4acdc96f749bbcd4f2cab2cb05dc0f217ac2a51f28ceb2",
+      "archive": "sha256:6eed0b5dde1ea9647e4acdc96f749bbcd4f2cab2cb05dc0f217ac2a51f28ceb2"
+    },
+    "frozenDate": "2025-11-15",
+    "baseUrl": "http://127.0.0.1:8100",
+    "artifacts": ".oracle-artifacts/20261126T164430Z-0d2eb7a-reference-candidate/oracle",
+    "ciRun": {
+      "runId": "45861318349",
+      "attempt": 1,
+      "rank": 1
+    },
+    "gateTools": {
+      "axe-core": "4.14.0"
+    },
+    "runtimeImage": "sha256:f1309924637fbffe63ead3bc9e20b07bbe01f1139cfd20a39e15027754097e1c",
+    "containerUser": {
+      "uid": 1001,
+      "gid": 1001
+    },
+    "composeOverride": "sha256:9d7f1a9f9e76e6d028505dd30bb62a1aeb185e94ecafbd313ad0f846d7e3057d",
+    "port": 8100,
+    "limits": {
+      "provisional": false,
+      "source": "calibration",
+      "calibration": {
+        "file": "results/calibration/20261124T232316Z-aeb3037-ci45509307133.1-1.json",
+        "digest": "sha256:0cd1bfcf0fadd21658abdd4fdf67d49917954aa0922af15d532f6a99f27be9dc"
+      },
+      "multiples": {
+        "timeouts": 5,
+        "resources": 2
+      },
+      "buildTimeoutMs": 39405,
+      "readyTimeoutMs": 3430,
+      "buildMemoryBytes": 665845760,
+      "buildCpus": 1.89,
+      "start": {
+        "provisional": true,
+        "source": "build-limits",
+        "memoryBytes": 665845760,
+        "cpus": 1.89,
+        "pids": 256
+      }
+    },
+    "lock": {
+      "takenAt": "2026-11-26T16:44:30.418Z"
+    }
+  },
+  "salt": "67faf62b8311e58a64555c88045a654d2dd9764fb0b2a9b26c0b4c658a2167ce",
+  "saltImposed": false,
+  "marker": "65f28f2284ed0b16559f6b9b2464db907ae7f27c7a35e0462c683596453595d1",
+  "phases": [
+    {
+      "name": "preparation",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T16:44:30.418Z",
+      "durationMs": 327,
+      "raw": {}
+    },
+    {
+      "name": "contract",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T16:44:30.745Z",
+      "durationMs": 1,
+      "raw": {}
+    },
+    {
+      "name": "build",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T16:44:30.746Z",
+      "durationMs": 1162,
+      "raw": {
+        "fetch.log": "sha256:cb65941406d7a069b17d916276090809127418f5a38004f5be09312a9ed736ef",
+        "npm-logs/fetch/2026-11-26T16_44_31_126Z-debug-0.log": "sha256:a364ecfe42888150841cf8217e68a7c8d72b3121746ec92df803588f4e74784b",
+        "install.log": "sha256:797a5a45daaf6ebc91f73394d3510dda86103b9a1d20ca8ec823227862df4eb5",
+        "npm-logs/install/2026-11-26T16_44_31_597Z-debug-0.log": "sha256:9c7a6b8eb18dab0d500c94e4e8eafef53d25ee2a76fc9cda8f70e653b4bf7d0d"
+      }
+    },
+    {
+      "name": "start",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T16:44:31.908Z",
+      "durationMs": 4135,
+      "raw": {
+        "start.log": "sha256:76d2ec1f23498baab8d2d05fe11397584c9b4d58f8b633fbc9d5be1e4d2d10af"
+      }
+    },
+    {
+      "name": "oracle",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T16:44:36.043Z",
+      "durationMs": 16833,
+      "raw": {}
+    },
+    {
+      "name": "gates",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T16:44:52.876Z",
+      "durationMs": 2285,
+      "raw": {}
+    },
+    {
+      "name": "closing",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T16:44:55.161Z",
+      "durationMs": 10262,
+      "raw": {
+        "access.log": "sha256:7641b6dce48a3091e24663507dafe1df1e23f98994ef7ef9bda3ae73bd3a0069"
+      }
+    }
+  ],
+  "oracle": {
+    "executed": true,
+    "result": "sha256:b010a45b7cb5e78eb41e6e98aa899ce6fd99e8d1b4f11288f68feef302c2ce73",
+    "summary": {
+      "scenarios": 38,
+      "passed": 38,
+      "failed": 0,
+      "unreached": 0,
+      "passRate": 1,
+      "reachedPassRate": 1,
+      "keyboard": {
+        "passed": 5,
+        "total": 5
+      }
+    }
+  },
+  "accessLog": {
+    "log": "sha256:7641b6dce48a3091e24663507dafe1df1e23f98994ef7ef9bda3ae73bd3a0069",
+    "lines": 219,
+    "witnesses": [
+      {
+        "name": "start-1",
+        "line": 2
+      },
+      {
+        "name": "end",
+        "line": 219
+      }
+    ]
+  },
+  "gates": [
+    {
+      "gate": "accessibility",
+      "name": "tables-count/search",
+      "kind": "judged",
+      "outcome": "failed",
+      "examined": 1,
+      "findings": [
+        {
+          "screen": "search",
+          "tables": 4,
+          "expected": 1
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {
+        "tables": 4
+      },
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "tables-nested/search",
+      "kind": "judged",
+      "outcome": "failed",
+      "examined": 1,
+      "findings": [
+        {
+          "screen": "search",
+          "nested": 3
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {
+        "nested": 3
+      },
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "tables-count/sheet",
+      "kind": "judged",
+      "outcome": "failed",
+      "examined": 1,
+      "findings": [
+        {
+          "screen": "sheet",
+          "tables": 3,
+          "expected": 0
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {
+        "tables": 3
+      },
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "tables-nested/sheet",
+      "kind": "judged",
+      "outcome": "failed",
+      "examined": 1,
+      "findings": [
+        {
+          "screen": "sheet",
+          "nested": 2
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {
+        "nested": 2
+      },
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "tables-count/submission",
+      "kind": "judged",
+      "outcome": "failed",
+      "examined": 1,
+      "findings": [
+        {
+          "screen": "submission",
+          "tables": 3,
+          "expected": 0
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {
+        "tables": 3
+      },
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "tables-nested/submission",
+      "kind": "judged",
+      "outcome": "failed",
+      "examined": 1,
+      "findings": [
+        {
+          "screen": "submission",
+          "nested": 2
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {
+        "nested": 2
+      },
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "axe/critical",
+      "kind": "judged",
+      "outcome": "failed",
+      "examined": 382,
+      "findings": [
+        {
+          "screen": "search",
+          "rule": "image-alt",
+          "help": "Images must have alternative text",
+          "nodes": 1,
+          "targets": [
+            [
+              "img"
+            ]
+          ]
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {
+        "violations": 1,
+        "violatingNodes": 1,
+        "incomplete": 0,
+        "search.reached": 1,
+        "search.violations": 1,
+        "search.violatingNodes": 1,
+        "search.incomplete": 0,
+        "sheet.reached": 1,
+        "sheet.violations": 0,
+        "sheet.violatingNodes": 0,
+        "sheet.incomplete": 0,
+        "submission.reached": 1,
+        "submission.violations": 0,
+        "submission.violatingNodes": 0,
+        "submission.incomplete": 0
+      },
+      "raw": {
+        "gates/accessibility/axe-search.json": "sha256:eddcd35a361677a2651b22cc4141a63c8c97e927f3dfc4542d29310eb94e49f3",
+        "gates/accessibility/axe-sheet.json": "sha256:536854adce77f7d7555975457f33ef9082aa874fe334d3324530d51144bac5fc",
+        "gates/accessibility/axe-submission.json": "sha256:82b0a24edd384ff672e08ca1554d66b1407f47a80f8d91b26de454c315a861ab"
+      }
+    },
+    {
+      "gate": "accessibility",
+      "name": "axe/serious",
+      "kind": "judged",
+      "outcome": "failed",
+      "examined": 382,
+      "findings": [
+        {
+          "screen": "search",
+          "rule": "html-has-lang",
+          "help": "<html> element must have a lang attribute",
+          "nodes": 1,
+          "targets": [
+            [
+              "html"
+            ]
+          ]
+        },
+        {
+          "screen": "sheet",
+          "rule": "html-has-lang",
+          "help": "<html> element must have a lang attribute",
+          "nodes": 1,
+          "targets": [
+            [
+              "html"
+            ]
+          ]
+        },
+        {
+          "screen": "submission",
+          "rule": "html-has-lang",
+          "help": "<html> element must have a lang attribute",
+          "nodes": 1,
+          "targets": [
+            [
+              "html"
+            ]
+          ]
+        }
+      ],
+      "findingsTotal": 3,
+      "findingsKept": 3,
+      "values": {
+        "violations": 3,
+        "violatingNodes": 3,
+        "incomplete": 0,
+        "search.reached": 1,
+        "search.violations": 1,
+        "search.violatingNodes": 1,
+        "search.incomplete": 0,
+        "sheet.reached": 1,
+        "sheet.violations": 1,
+        "sheet.violatingNodes": 1,
+        "sheet.incomplete": 0,
+        "submission.reached": 1,
+        "submission.violations": 1,
+        "submission.violatingNodes": 1,
+        "submission.incomplete": 0
+      },
+      "raw": {
+        "gates/accessibility/axe-search.json": "sha256:eddcd35a361677a2651b22cc4141a63c8c97e927f3dfc4542d29310eb94e49f3",
+        "gates/accessibility/axe-sheet.json": "sha256:536854adce77f7d7555975457f33ef9082aa874fe334d3324530d51144bac5fc",
+        "gates/accessibility/axe-submission.json": "sha256:82b0a24edd384ff672e08ca1554d66b1407f47a80f8d91b26de454c315a861ab"
+      }
+    },
+    {
+      "gate": "accessibility",
+      "name": "axe/moderate",
+      "kind": "judged",
+      "outcome": "passed",
+      "examined": 382,
+      "findings": [],
+      "findingsTotal": 0,
+      "findingsKept": 0,
+      "values": {
+        "violations": 0,
+        "violatingNodes": 0,
+        "incomplete": 0,
+        "search.reached": 1,
+        "search.violations": 0,
+        "search.violatingNodes": 0,
+        "search.incomplete": 0,
+        "sheet.reached": 1,
+        "sheet.violations": 0,
+        "sheet.violatingNodes": 0,
+        "sheet.incomplete": 0,
+        "submission.reached": 1,
+        "submission.violations": 0,
+        "submission.violatingNodes": 0,
+        "submission.incomplete": 0
+      },
+      "raw": {
+        "gates/accessibility/axe-search.json": "sha256:eddcd35a361677a2651b22cc4141a63c8c97e927f3dfc4542d29310eb94e49f3",
+        "gates/accessibility/axe-sheet.json": "sha256:536854adce77f7d7555975457f33ef9082aa874fe334d3324530d51144bac5fc",
+        "gates/accessibility/axe-submission.json": "sha256:82b0a24edd384ff672e08ca1554d66b1407f47a80f8d91b26de454c315a861ab"
+      }
+    },
+    {
+      "gate": "accessibility",
+      "name": "axe/minor",
+      "kind": "judged",
+      "outcome": "passed",
+      "examined": 382,
+      "findings": [],
+      "findingsTotal": 0,
+      "findingsKept": 0,
+      "values": {
+        "violations": 0,
+        "violatingNodes": 0,
+        "incomplete": 0,
+        "search.reached": 1,
+        "search.violations": 0,
+        "search.violatingNodes": 0,
+        "search.incomplete": 0,
+        "sheet.reached": 1,
+        "sheet.violations": 0,
+        "sheet.violatingNodes": 0,
+        "sheet.incomplete": 0,
+        "submission.reached": 1,
+        "submission.violations": 0,
+        "submission.violatingNodes": 0,
+        "submission.incomplete": 0
+      },
+      "raw": {
+        "gates/accessibility/axe-search.json": "sha256:eddcd35a361677a2651b22cc4141a63c8c97e927f3dfc4542d29310eb94e49f3",
+        "gates/accessibility/axe-sheet.json": "sha256:536854adce77f7d7555975457f33ef9082aa874fe334d3324530d51144bac5fc",
+        "gates/accessibility/axe-submission.json": "sha256:82b0a24edd384ff672e08ca1554d66b1407f47a80f8d91b26de454c315a861ab"
+      }
+    },
+    {
+      "gate": "relay",
+      "name": "legacy-port-untouched",
+      "kind": "judged",
+      "outcome": "failed",
+      "examined": 218,
+      "findings": [
+        {
+          "line": 3,
+          "entry": "2026-11-26T16:44:36.040+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 401 \"node\""
+        },
+        {
+          "line": 5,
+          "entry": "2026-11-26T16:44:37.749+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 6,
+          "entry": "2026-11-26T16:44:37.753+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 8,
+          "entry": "2026-11-26T16:44:38.665+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 9,
+          "entry": "2026-11-26T16:44:38.670+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 10,
+          "entry": "2026-11-26T16:44:38.924+0000 172.18.0.2:8080 172.19.0.5 \"GET /rechercher.do;jsessionid=96F44EDDB22681B016471979A97AA19B?number=D-0004&applicant=&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 11,
+          "entry": "2026-11-26T16:44:38.926+0000 172.18.0.2:8080 172.19.0.5 \"GET /rechercher.do;jsessionid=1663A607D7736E50270862C3CD5520EF?number=D-0001&applicant=&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 12,
+          "entry": "2026-11-26T16:44:39.134+0000 172.18.0.2:8080 172.19.0.5 \"GET /fiche.do?number=D-0004 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 13,
+          "entry": "2026-11-26T16:44:39.137+0000 172.18.0.2:8080 172.19.0.5 \"GET /fiche.do?number=D-0001 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 14,
+          "entry": "2026-11-26T16:44:39.423+0000 172.18.0.2:8080 172.19.0.5 \"GET /remise.do?number=D-0001 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 15,
+          "entry": "2026-11-26T16:44:39.423+0000 172.18.0.2:8080 172.19.0.5 \"GET /remise.do?number=D-0004 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 16,
+          "entry": "2026-11-26T16:44:39.819+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 17,
+          "entry": "2026-11-26T16:44:39.825+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 18,
+          "entry": "2026-11-26T16:44:39.828+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 19,
+          "entry": "2026-11-26T16:44:39.829+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 20,
+          "entry": "2026-11-26T16:44:39.966+0000 172.18.0.2:8080 172.19.0.5 \"GET /rechercher.do;jsessionid=C5A7495748C644958CE0DEE09405C393?number=D-0111&applicant=&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 21,
+          "entry": "2026-11-26T16:44:39.987+0000 172.18.0.2:8080 172.19.0.5 \"GET /rechercher.do;jsessionid=808D968980C450EAE952F82411DA577D?number=D-0003&applicant=&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 22,
+          "entry": "2026-11-26T16:44:40.033+0000 172.18.0.2:8080 172.19.0.5 \"GET /fiche.do?number=D-0111 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 23,
+          "entry": "2026-11-26T16:44:40.057+0000 172.18.0.2:8080 172.19.0.5 \"GET /fiche.do?number=D-0003 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 24,
+          "entry": "2026-11-26T16:44:40.106+0000 172.18.0.2:8080 172.19.0.5 \"GET /remise.do?number=D-0111 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 25,
+          "entry": "2026-11-26T16:44:40.138+0000 172.18.0.2:8080 172.19.0.5 \"GET /remise.do?number=D-0003 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 26,
+          "entry": "2026-11-26T16:44:40.200+0000 172.18.0.2:8080 172.19.0.5 \"POST /remettre.do HTTP/1.1\" 302 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 27,
+          "entry": "2026-11-26T16:44:40.205+0000 172.18.0.2:8080 172.19.0.5 \"GET /remise.do?number=D-0111 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 28,
+          "entry": "2026-11-26T16:44:40.354+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 29,
+          "entry": "2026-11-26T16:44:40.359+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 30,
+          "entry": "2026-11-26T16:44:40.442+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 31,
+          "entry": "2026-11-26T16:44:40.446+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 32,
+          "entry": "2026-11-26T16:44:40.498+0000 172.18.0.2:8080 172.19.0.5 \"GET /rechercher.do;jsessionid=FF626EA405F89EFAD3F7535E74B6F4B0?number=D-0007&applicant=&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 33,
+          "entry": "2026-11-26T16:44:40.546+0000 172.18.0.2:8080 172.19.0.5 \"GET /rechercher.do;jsessionid=61A2437C937F15F404DD0876D6AC47F3?number=D-0010&applicant=&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 34,
+          "entry": "2026-11-26T16:44:40.573+0000 172.18.0.2:8080 172.19.0.5 \"GET /fiche.do?number=D-0007 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 35,
+          "entry": "2026-11-26T16:44:40.634+0000 172.18.0.2:8080 172.19.0.5 \"GET /fiche.do?number=D-0010 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 37,
+          "entry": "2026-11-26T16:44:40.669+0000 172.18.0.2:8080 172.19.0.5 \"GET /remise.do?number=D-0007 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 38,
+          "entry": "2026-11-26T16:44:40.733+0000 172.18.0.2:8080 172.19.0.5 \"GET /remise.do?number=D-0010 HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 39,
+          "entry": "2026-11-26T16:44:41.005+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 40,
+          "entry": "2026-11-26T16:44:41.012+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 41,
+          "entry": "2026-11-26T16:44:41.019+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 42,
+          "entry": "2026-11-26T16:44:41.028+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 43,
+          "entry": "2026-11-26T16:44:41.152+0000 172.18.0.2:8080 172.19.0.5 \"GET /rechercher.do;jsessionid=4523BCF6B26D9BBD68B57EDAF1AB6D2A?number=&applicant=&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 44,
+          "entry": "2026-11-26T16:44:41.169+0000 172.18.0.2:8080 172.19.0.5 \"GET /x HTTP/1.1\" 404 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 45,
+          "entry": "2026-11-26T16:44:41.197+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 46,
+          "entry": "2026-11-26T16:44:41.203+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 47,
+          "entry": "2026-11-26T16:44:41.312+0000 172.18.0.2:8080 172.19.0.5 \"GET /rechercher.do;jsessionid=2230A153A558C67929FDACAC657D1B38?number=D-0007&applicant=&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 48,
+          "entry": "2026-11-26T16:44:41.888+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 49,
+          "entry": "2026-11-26T16:44:41.894+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 50,
+          "entry": "2026-11-26T16:44:42.005+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 51,
+          "entry": "2026-11-26T16:44:42.014+0000 172.18.0.2:8080 172.19.0.5 \"GET /rechercher.do;jsessionid=1219630F171FB9946A794FCD46C6D973?number=&applicant=pERRIN&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 52,
+          "entry": "2026-11-26T16:44:42.015+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 53,
+          "entry": "2026-11-26T16:44:42.145+0000 172.18.0.2:8080 172.19.0.5 \"GET /rechercher.do;jsessionid=B98C7D95E11DD06853D60F73BC4402AA?number=&applicant=Elodie&status=&filedFrom=&filedTo= HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 54,
+          "entry": "2026-11-26T16:44:42.704+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 401 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        },
+        {
+          "line": 55,
+          "entry": "2026-11-26T16:44:42.711+0000 172.18.0.2:8080 172.19.0.5 \"GET / HTTP/1.1\" 200 \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0.8154.6 Safari/537.36\""
+        }
+      ],
+      "findingsTotal": 201,
+      "findingsKept": 50,
+      "values": {},
+      "raw": {
+        "access.log": "sha256:7641b6dce48a3091e24663507dafe1df1e23f98994ef7ef9bda3ae73bd3a0069"
+      }
+    }
+  ],
+  "verdict": {
+    "category": "completed",
+    "reason": "ok"
+  }
+}

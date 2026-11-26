@@ -1,0 +1,436 @@
+{
+  "format": 1,
+  "measureId": "20261126T165025Z-0d2eb7a-conforming-candidates-relay-untouched",
+  "counted": false,
+  "candidate": {
+    "path": "fixtures/conforming-candidates/relay-untouched",
+    "contentDigest": "sha256:c79607c5b4cac9a812617b7197fc1306898f9f319db5fc6858419ef030a66bd5",
+    "contract": 1,
+    "start": "node server.js"
+  },
+  "environment": {
+    "benchCommit": "0d2eb7ad37038c4932c70913e3896160ecd701b0",
+    "worktree": "clean",
+    "node": "v22.23.5",
+    "chromium": "159.0.8154.6",
+    "playwright": "1.65.1",
+    "browserImage": {
+      "reference": "mcr.microsoft.com/playwright:v1.65.1-noble@sha256:1507cbfc550a63a6b7396791ca4f00df17beb56342d2447b3f106c306f525579",
+      "image": "sha256:12708c20bc005b7ecc920dd23b27079baa55359fd2739c7f0f3070c47cf263e9",
+      "platform": "linux/amd64"
+    },
+    "images": {
+      "legacy": "sha256:ce7cf82f0167146cf0bc0f5664e49e8a0e1a540036a0d942a0c833fff1710e80",
+      "archive": "sha256:c5e14cc09b67ba715d0a71d9a70ad7c70349f1cdb3eedadee9768ec0d948981b"
+    },
+    "imageContexts": {
+      "legacy": "sha256:6eed0b5dde1ea9647e4acdc96f749bbcd4f2cab2cb05dc0f217ac2a51f28ceb2",
+      "archive": "sha256:6eed0b5dde1ea9647e4acdc96f749bbcd4f2cab2cb05dc0f217ac2a51f28ceb2"
+    },
+    "frozenDate": "2025-11-15",
+    "baseUrl": "http://127.0.0.1:8100",
+    "artifacts": ".oracle-artifacts/20261126T165025Z-0d2eb7a-conforming-candidates-relay-untouched/oracle",
+    "ciRun": {
+      "runId": "45861318349",
+      "attempt": 1,
+      "rank": 1
+    },
+    "gateTools": {
+      "axe-core": "4.14.0"
+    },
+    "runtimeImage": "sha256:f1309924637fbffe63ead3bc9e20b07bbe01f1139cfd20a39e15027754097e1c",
+    "containerUser": {
+      "uid": 1001,
+      "gid": 1001
+    },
+    "composeOverride": "sha256:cd28fdbaa80827705f6cc4c090c7f7c1963350567637f512cecbe73f323b5e55",
+    "port": 8100,
+    "limits": {
+      "provisional": false,
+      "source": "calibration",
+      "calibration": {
+        "file": "results/calibration/20261124T232316Z-aeb3037-ci45509307133.1-1.json",
+        "digest": "sha256:0cd1bfcf0fadd21658abdd4fdf67d49917954aa0922af15d532f6a99f27be9dc"
+      },
+      "multiples": {
+        "timeouts": 5,
+        "resources": 2
+      },
+      "buildTimeoutMs": 39405,
+      "readyTimeoutMs": 3430,
+      "buildMemoryBytes": 665845760,
+      "buildCpus": 1.89,
+      "start": {
+        "provisional": true,
+        "source": "build-limits",
+        "memoryBytes": 665845760,
+        "cpus": 1.89,
+        "pids": 256
+      }
+    },
+    "lock": {
+      "takenAt": "2026-11-26T16:50:25.858Z"
+    }
+  },
+  "salt": "1153986e6deec92161eb3bb0d490957f05d114c1a0277d3b3ea0b252cdfb393b",
+  "saltImposed": false,
+  "marker": "2bc349474263ea7f6a99ab60d5c1da9222de7801f8a8f921efdd177811e2e448",
+  "phases": [
+    {
+      "name": "preparation",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T16:50:25.859Z",
+      "durationMs": 287,
+      "raw": {}
+    },
+    {
+      "name": "contract",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T16:50:26.146Z",
+      "durationMs": 1,
+      "raw": {}
+    },
+    {
+      "name": "build",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T16:50:26.147Z",
+      "durationMs": 970,
+      "raw": {
+        "fetch.log": "sha256:4b94e4f03493f475c785db313415a879e5a7b8fd91591548247be3754c1997f7",
+        "npm-logs/fetch/2026-11-26T16_50_26_304Z-debug-0.log": "sha256:9e248002c07713e3814563d8a8fea8b4b3b87400e7cccb1815b514d23fcd3291",
+        "install.log": "sha256:cb65941406d7a069b17d916276090809127418f5a38004f5be09312a9ed736ef",
+        "npm-logs/install/2026-11-26T16_50_26_790Z-debug-0.log": "sha256:5d43a50e10bacc7e8915683bc6102a235e0918e0fe66cf58b2d278e4dc3abbe7"
+      }
+    },
+    {
+      "name": "start",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T16:50:27.117Z",
+      "durationMs": 14148,
+      "raw": {
+        "start.log": "sha256:b630c1506423838a701402f9cc1266da3f5815faf412318be48054e273add544"
+      }
+    },
+    {
+      "name": "oracle",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T16:50:41.265Z",
+      "durationMs": 16414,
+      "raw": {}
+    },
+    {
+      "name": "gates",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T16:50:57.679Z",
+      "durationMs": 343,
+      "raw": {}
+    },
+    {
+      "name": "closing",
+      "outcome": "ok",
+      "startedAt": "2026-11-26T16:50:58.022Z",
+      "durationMs": 10266,
+      "raw": {
+        "access.log": "sha256:54b887b9db2c544f24104efebea0d46114837c208a941b42be413fd71030392e"
+      }
+    }
+  ],
+  "oracle": {
+    "executed": true,
+    "result": "sha256:43c0843191e0522b37c2639c8c521bc6f930ecf9d1419774850b0d472003fc0c",
+    "summary": {
+      "scenarios": 38,
+      "passed": 0,
+      "failed": 0,
+      "unreached": 38,
+      "passRate": 0,
+      "reachedPassRate": null,
+      "keyboard": {
+        "passed": 0,
+        "total": 5
+      }
+    }
+  },
+  "accessLog": {
+    "log": "sha256:54b887b9db2c544f24104efebea0d46114837c208a941b42be413fd71030392e",
+    "lines": 16,
+    "witnesses": [
+      {
+        "name": "start-1",
+        "line": 2
+      },
+      {
+        "name": "end",
+        "line": 16
+      }
+    ]
+  },
+  "gates": [
+    {
+      "gate": "accessibility",
+      "name": "tables-count/search",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "search",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "tables-nested/search",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "search",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "tables-count/sheet",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "sheet",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "tables-nested/sheet",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "sheet",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "tables-count/submission",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "submission",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "tables-nested/submission",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "submission",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "axe/critical",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "search",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        },
+        {
+          "screen": "sheet",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        },
+        {
+          "screen": "submission",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 3,
+      "findingsKept": 3,
+      "values": {
+        "violations": 0,
+        "violatingNodes": 0,
+        "incomplete": 0,
+        "search.reached": 0,
+        "sheet.reached": 0,
+        "submission.reached": 0
+      },
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "axe/serious",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "search",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        },
+        {
+          "screen": "sheet",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        },
+        {
+          "screen": "submission",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 3,
+      "findingsKept": 3,
+      "values": {
+        "violations": 0,
+        "violatingNodes": 0,
+        "incomplete": 0,
+        "search.reached": 0,
+        "sheet.reached": 0,
+        "submission.reached": 0
+      },
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "axe/moderate",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "search",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        },
+        {
+          "screen": "sheet",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        },
+        {
+          "screen": "submission",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 3,
+      "findingsKept": 3,
+      "values": {
+        "violations": 0,
+        "violatingNodes": 0,
+        "incomplete": 0,
+        "search.reached": 0,
+        "sheet.reached": 0,
+        "submission.reached": 0
+      },
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "axe/minor",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "search",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        },
+        {
+          "screen": "sheet",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        },
+        {
+          "screen": "submission",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 3,
+      "findingsKept": 3,
+      "values": {
+        "violations": 0,
+        "violatingNodes": 0,
+        "incomplete": 0,
+        "search.reached": 0,
+        "sheet.reached": 0,
+        "submission.reached": 0
+      },
+      "raw": {}
+    },
+    {
+      "gate": "relay",
+      "name": "legacy-port-untouched",
+      "kind": "judged",
+      "outcome": "passed",
+      "examined": 15,
+      "findings": [],
+      "findingsTotal": 0,
+      "findingsKept": 0,
+      "values": {},
+      "raw": {
+        "access.log": "sha256:54b887b9db2c544f24104efebea0d46114837c208a941b42be413fd71030392e"
+      }
+    }
+  ],
+  "verdict": {
+    "category": "completed",
+    "reason": "ok"
+  }
+}

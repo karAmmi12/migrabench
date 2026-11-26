@@ -109,3 +109,11 @@ export const GATE_MEASURES = {
   relayForgedHealthcheck: { results: `${GATES_RUN}/20261126T114545Z-6a101d0-defective-candidates-relay-forged-healthcheck` },
   relayUntouched: { results: `${GATES_RUN}/20261126T114631Z-6a101d0-conforming-candidates-relay-untouched` },
 };
+
+// Exécution 45861318349, job des mesures de la PR #147, commit 0d2eb7a : les
+// premières mesures avec la porte d'accessibilité (#128).
+const ACCESSIBILITY_RUN = "ci45861318349/results/diagnostic";
+export const ACCESSIBILITY_MEASURES = {
+  reference: { results: `${ACCESSIBILITY_RUN}/20261126T164430Z-0d2eb7a-reference-candidate` },
+  relayUntouched: { results: `${ACCESSIBILITY_RUN}/20261126T165025Z-0d2eb7a-conforming-candidates-relay-untouched` },
+};
