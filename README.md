@@ -214,8 +214,11 @@ l'identifiant des images (`images`).
 ## Lancer l'oracle
 
 Prérequis : les images de la pile construites depuis cette copie du dépôt
-(`npm run stack:up`), et Chromium pour Playwright (`npx playwright install
-chromium`).
+(`npm run stack:up`). Aucun Chromium local n'est utilisé. L'oracle et ses
+tests se connectent au navigateur du banc, le service `browser` de la pile
+(#78). Ce service tourne dans l'image officielle de Playwright, épinglée par
+empreinte (`oracle/browser.ts`), et voit les adresses de l'hôte par son
+relais local (`fixtures/browser/server.mjs`).
 
 ```sh
 npm run oracle                               # contre le legacy
