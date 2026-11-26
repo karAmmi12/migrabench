@@ -114,6 +114,21 @@ une section `presentation`.
 - **Aides de l'oracle inutilisables hors du lanceur.** `openSearch`,
   `openSheet` et `openSubmission` appellent `test.step`. Résolution :
   extraction dans `oracle/navigation.ts`, enveloppée par `support.ts`.
+- **La CLI ralentie par axe-core.** Le job `tests` du commit `4f8fd73` a
+  échoué sur `tests/runner/refused-usage.test.ts`, au-delà de sa limite de
+  5 s.
+  - Cause : la porte importait `@axe-core/playwright` en tête de module, et
+    toute commande du runner charge le registre des portes. Le fichier
+    `refused-usage` durait de 5 476 à 5 654 ms en CI avant #128, puis
+    12 473 ms et 12 696 ms. En local, 10 lancements de la CLI prennent
+    258 ms chacun, contre 219 ms sur `main`.
+  - Résolution : axe-core n'est importé qu'à l'analyse d'un écran.
+    L'exécution 45864064247 relève 5 776 ms pour le fichier, et le local
+    revient à 218 ms par lancement.
+- **Maven Central injoignable en CI**, une deuxième fois après #145. Le job
+  `oracle` du commit `0d2eb7a` a échoué à `mvn dependency:go-offline`,
+  avant tout code de la PR. La relance a réussi. Une mise en cache du dépôt
+  Maven de la construction est une piste hors périmètre.
 - **Étapes trop grossières**, relevées par la revue « spec ». La remise
   refaisait la recherche et la fiche, et un échec sur la fiche aurait été
   rapporté comme `remise D-0003`. Résolution : la fiche, puis
@@ -182,9 +197,18 @@ sur le commit `0d2eb7a`.
   dans `tests/fixtures/ci45861318349/`, avec leur provenance. Le contrôle des
   cas y est testé, avec un témoin.
 
-> À vérifier après l'exécution de la CI de la PR : les jobs `tests`,
-> `typecheck`, `oracle` et `proof` sur le head SHA de la PR. L'oracle utilise
-> la navigation extraite.
+**Tests, types, oracle et preuve en CI**, sur le commit `b930d8d` :
+
+- `tests` : [exécution 45864064247](https://github.com/karAmmi12/migrabench/actions/runs/45864064247) ;
+- `typecheck` : [exécution 45864064428](https://github.com/karAmmi12/migrabench/actions/runs/45864064428) ;
+- `oracle` et `proof`, avec la navigation extraite :
+  [exécution 45864064279](https://github.com/karAmmi12/migrabench/actions/runs/45864064279).
+
+Le job des mesures est sauté sur ce commit par le périmètre de CI. Une mesure
+locale sur un arbre propre au commit `b930d8d` le remplace
+(`20261126T170809Z-b930d8d-reference-candidate`) : mêmes issues qu'en CI,
+`examined` 382 pour axe, `gateTools` `{"axe-core": "4.14.0"}`, phase `gates`
+1 878 ms.
 
 ## Pour aller plus loin
 
