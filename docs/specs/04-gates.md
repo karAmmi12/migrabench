@@ -126,9 +126,9 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
   réussite. Elle n'accepte qu'un résultat jugé, le compilateur refusant un
   résultat relevé.
 - Un résultat `errored` de `stage` `before-candidate` rend la mesure
-  invalide, avec la raison `gate-error`. Le nom exact sera fixé par G0 dans
-  la liste fermée des causes d'invalidité. Aucun autre résultat ne change le
-  verdict de la mesure.
+  invalide, avec la raison `gate-error-before-candidate`, fixée par G0
+  (#124) dans la liste fermée des causes d'invalidité. Aucun autre résultat
+  ne change le verdict de la mesure.
 
 ### Registre, contexte et ordre
 
@@ -162,6 +162,12 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
 - Elle est évaluée après la requête témoin `end` et le contrôle actuel du
   journal d'accès. Si ce contrôle rend la mesure invalide, la porte n'est
   pas évaluée.
+- Elle tourne donc dans la clôture, candidat arrêté (décision de Karim,
+  #124) ; les autres portes tournent dans la phase `gates`, candidat en
+  marche. Son résultat est rangé à sa place, en dernier, dans `gates[]`, et
+  son erreur `before-candidate` est l'issue de la clôture. Elle n'est lancée
+  que si la phase `gates` a été atteinte et que la mesure n'est pas
+  interrompue.
 - `examined` est le nombre de lignes du journal lues entre `start-1` et
   `end`, témoins et healthcheck compris.
 - `findings` contient toute ligne qui n'est ni un témoin ni le healthcheck,
