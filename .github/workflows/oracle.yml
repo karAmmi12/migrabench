@@ -106,10 +106,38 @@ jobs:
       - name: Empreintes des contextes de la pile
         run: node scripts/stack-context-env.ts >> "$GITHUB_ENV"
 
+      # Dépôt Maven de la construction du legacy, gardé d'une exécution à
+      # l'autre sous l'empreinte du pom.xml (#149) : trouvé, il est versé dans
+      # le cache de BuildKit que monte le Dockerfile du legacy, et la
+      # construction ne dépend plus de Maven Central.
+      - name: Restauration du dépôt Maven
+        id: maven-repository
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/maven-repository
+          key: maven-repository-${{ runner.os }}-${{ hashFiles('fixtures/legacy-app/pom.xml') }}
+
+      - name: Versement du dépôt Maven dans le cache de construction
+        if: steps.maven-repository.outputs.cache-hit == 'true'
+        run: scripts/maven-cache.sh import "$RUNNER_TEMP/maven-repository"
+
       # Étape distincte : l'exécution complète recrée les conteneurs sans
       # reconstruire les images.
       - name: Construction des images
         run: docker compose build
+
+      # Pas de dépôt trouvé : celui que la construction vient de remplir est
+      # extrait du cache de BuildKit et sauvé sous la clé (#149).
+      - name: Extraction du dépôt Maven
+        if: steps.maven-repository.outputs.cache-hit != 'true'
+        run: scripts/maven-cache.sh export "$RUNNER_TEMP/maven-repository"
+
+      - name: Sauvegarde du dépôt Maven
+        if: steps.maven-repository.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/maven-repository
+          key: ${{ steps.maven-repository.outputs.cache-primary-key }}
 
       # Le preoracle vérifie que Node est celui de .nvmrc.
       - name: Exécution complète de l'oracle
@@ -174,9 +202,37 @@ jobs:
       - name: Empreintes des contextes de la pile
         run: node scripts/stack-context-env.ts >> "$GITHUB_ENV"
 
+      # Dépôt Maven de la construction du legacy, gardé d'une exécution à
+      # l'autre sous l'empreinte du pom.xml (#149) : trouvé, il est versé dans
+      # le cache de BuildKit que monte le Dockerfile du legacy, et la
+      # construction ne dépend plus de Maven Central.
+      - name: Restauration du dépôt Maven
+        id: maven-repository
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/maven-repository
+          key: maven-repository-${{ runner.os }}-${{ hashFiles('fixtures/legacy-app/pom.xml') }}
+
+      - name: Versement du dépôt Maven dans le cache de construction
+        if: steps.maven-repository.outputs.cache-hit == 'true'
+        run: scripts/maven-cache.sh import "$RUNNER_TEMP/maven-repository"
+
       # Une seule construction pour les 5 exécutions : même empreinte d'images.
       - name: Construction des images
         run: docker compose build
+
+      # Pas de dépôt trouvé : celui que la construction vient de remplir est
+      # extrait du cache de BuildKit et sauvé sous la clé (#149).
+      - name: Extraction du dépôt Maven
+        if: steps.maven-repository.outputs.cache-hit != 'true'
+        run: scripts/maven-cache.sh export "$RUNNER_TEMP/maven-repository"
+
+      - name: Sauvegarde du dépôt Maven
+        if: steps.maven-repository.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/maven-repository
+          key: ${{ steps.maven-repository.outputs.cache-primary-key }}
 
       # Consécutives : la première exécution qui échoue arrête le job (bash -e).
       - name: Cinq exécutions complètes de l'oracle
