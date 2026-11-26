@@ -33,6 +33,11 @@ Décision de Karim le 25/11.
 - Sur un ticket, tu vas jusqu'à la fusion sans attendre Karim :
   implémentation, revue, `/fiche-ticket`, PR, suivi de la CI, levée des
   « À vérifier », puis `gh pr merge --squash --delete-branch`.
+- Exception (décision de Karim du 26/11, #126) : une PR qui versionne un
+  candidat d'essai se fusionne en merge commit (`gh pr merge --merge
+  --delete-branch`), pour que le commit de la sortie brute et chaque commit
+  de correction restent dans l'historique de `main` (ADR 0010). Toutes les
+  autres PR restent en squash.
 - Tu fusionnes seulement si toutes ces conditions sont remplies :
   - toute la CI est verte sur le dernier commit ;
   - `git grep "^> À vérifier"` ne trouve rien dans les fiches de la branche ;

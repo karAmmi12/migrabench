@@ -65,6 +65,11 @@ banc n'y sont visibles.
   sont permises une correction pour respecter le contrat et le retrait d'une
   donnée personnelle, chacune dans un commit séparé, décrite dans la
   provenance, et sans changer le comportement du candidat.
+- La PR qui versionne un candidat d'essai se fusionne en merge commit
+  (`gh pr merge --merge --delete-branch`), et non en squash comme les
+  autres : le commit de la sortie brute et chaque commit de correction
+  restent dans l'historique de `main`, et la provenance cite leurs SHA
+  (décision de Karim du 26/11, #126).
 - Si la mesure de diagnostic d'un candidat d'essai n'est pas `completed`, ou
   si aucun scénario de l'oracle n'y réussit, il ne sert pas de fixture aux
   portes. On rouvre alors la question d'une pile exécutable pour l'agent.
