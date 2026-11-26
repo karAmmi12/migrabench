@@ -155,6 +155,28 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
      journal d'accès.
 - Chaque porte a un **délai de conception généreux**. La phase `gates` a un
   délai global. Les deux sont étalonnés par #100.
+- Précisions de G0 (#124), confirmées par Karim :
+  - une porte que la phase atteint après son délai global ne tourne pas.
+    Elle est `errored`, `on-candidate`, de cause `timeout` : le temps a été
+    pris par l'examen des portes précédentes, que le candidat a pu ralentir ;
+  - un redémarrage du legacy demandé par une porte qui échoue prend l'issue
+    du démarrage : pile qui ne redevient pas saine ou construite depuis une
+    autre copie, ou requête témoin `start-N` absente, la mesure est
+    invalide ; candidat recréé qui ne redevient pas disponible
+    (`start-exited`, `start-not-ready`), c'est un échec du candidat, comme au
+    premier démarrage (règle 7) ;
+  - le runner relève l'état de la pile après chaque porte de la phase
+    `gates`. Un service tombé donne `stack-down-while-candidate` (spec de
+    l'étape 3). Les résultats des portes déjà passées sont gardés ;
+  - si la phase `oracle` ne finit pas `ok` (pile tombée, erreur de
+    l'oracle), la mesure est déjà décidée : ni les portes ni la porte du
+    relais ne tournent ;
+  - issues de la phase `gates` : `ok`, `gate-error-before-candidate`, celles
+    d'un redémarrage (`stack-failed-before-candidate`,
+    `stack-not-from-this-copy`, `access-log-inactive`, `start-exited`,
+    `start-not-ready`), `stack-down-while-candidate` et `interrupted`. La
+    clôture gagne `gate-error-before-candidate`. La table des phases de la
+    spec de l'étape 3 décrit l'étape 3 et n'est pas réécrite.
 - Les portes sont lancées par Playwright avec le Chromium figé par #78.
 
 ### Porte du relais (G0, fil traceur)
