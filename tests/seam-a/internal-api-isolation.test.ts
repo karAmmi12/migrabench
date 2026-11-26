@@ -26,10 +26,22 @@ fetch(process.argv[1], { signal: AbortSignal.timeout(5000) }).then(
   (error) => console.log("error " + (error.cause?.code ?? error.name)),
 );`;
 
-async function fetchFromDefaultNetwork(url: string): Promise<string> {
-  const { stdout } = await promisify(execFile)("docker", ["run", "--rm", "--network", DEFAULT_NETWORK, "--entrypoint", "node", "migrabench-archive", "-e", PROBE, url]);
+// Résolution d'un nom, sans délai propre : `resolves` ou `unresolved` avec
+// le code. Le code d'un nom inconnu dépend du DNS de l'hôte, auquel celui de
+// Docker relaie (`ENOTFOUND` en local, délai dépassé observé en CI sur un
+// `fetch` de 5 s) : seul compte qu'il ne se résolve pas.
+const LOOKUP = `
+require("node:dns").promises.lookup(process.argv[1]).then(
+  () => console.log("resolves"),
+  (error) => console.log("unresolved " + error.code),
+);`;
+
+async function inContainer(network: string, script: string, arg: string): Promise<string> {
+  const { stdout } = await promisify(execFile)("docker", ["run", "--rm", "--network", network, "--entrypoint", "node", "migrabench-archive", "-e", script, arg]);
   return stdout.trim();
 }
+
+const fetchFromDefaultNetwork = (url: string) => inContainer(DEFAULT_NETWORK, PROBE, url);
 
 describe("internal API isolation", () => {
   it("serves the internal API on port 8081 from mb-internal", async () => {
@@ -59,10 +71,15 @@ describe("internal API isolation", () => {
   // (avant #78), ce conteneur reçoit `status 200`.
   it("does not serve port 8081 to a container on the default network, which still reaches port 8080", async () => {
     expect(await fetchFromDefaultNetwork(`http://legacy:8081${READ_PATH}`)).toBe("error ECONNREFUSED");
-    // L'alias qui nomme l'adresse du legacy dans mb-internal n'existe pas sur default.
-    expect(await fetchFromDefaultNetwork(`http://legacy-internal-api:8081${READ_PATH}`)).toBe("error ENOTFOUND");
     expect(await fetchFromDefaultNetwork("http://legacy:8080/")).toBe("status 401");
   }, 30_000);
+
+  // L'alias qui nomme l'adresse du legacy dans mb-internal n'existe pas sur
+  // default. Témoin positif : il se résout sur mb-internal.
+  it("resolves the alias of the internal API on mb-internal only", async () => {
+    expect(await inContainer(DEFAULT_NETWORK, LOOKUP, "legacy-internal-api")).toMatch(/^unresolved /);
+    expect(await inContainer("migrabench_mb-internal", LOOKUP, "legacy-internal-api")).toBe("resolves");
+  }, 60_000);
 
   it("does not publish port 8081 on the host", async () => {
     const legacyHost = new URL(LEGACY_URL);
