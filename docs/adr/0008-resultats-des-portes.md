@@ -8,7 +8,9 @@ d'éléments examinés et l'une de ces cinq issues :
 - `measured` : le résultat est **relevé**. Il rapporte des valeurs sans les
   juger, faute de critère de réussite (score Lighthouse, poids du bundle,
   comparaison HAR) ;
-- `not-evaluable` : rien n'a été examiné ;
+- `not-evaluable` : rien n'a été examiné, ou ce qui a été examiné ne permet
+  pas de conclure à une réussite (précision ajoutée après #153 : la valeur
+  témoin dont un corps de réponse manque au HAR) ;
 - `errored` : la porte a planté elle-même.
 
 Chaque porte déclare, pour chacun de ses résultats nommés, s'il est jugé ou

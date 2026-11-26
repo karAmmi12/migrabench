@@ -132,8 +132,11 @@ Le vocabulaire du domaine du legacy et les termes dérivés sont définis dans
   que la page n'a jamais lu en est absent, le corps binaire d'une requête
   qui contient un octet nul y est vide, et une requête dont le corps est un
   `Blob` n'y a pas de corps. La valeur témoin qui ne passe que par l'un d'eux
-  échappe à la porte. La porte compte les corps de réponse absents
-  (`responseBodiesAbsent`), sans juger.
+  échappe à la porte. Un corps de réponse HTML, JS ou JSON absent rend la
+  porte non évaluable, sauf fuite trouvée ailleurs (#153). Les autres corps
+  absents (images, binaires, texte brut) sont seulement comptés
+  (`responseBodiesAbsent`). Le type est lu dans l'en-tête `Content-Type` :
+  une réponse sans cet en-tête n'est pas jugée HTML, JS ni JSON.
 - Les portes de rôle et d'authentification rejouent des requêtes en
   transplantant les valeurs liées à la session (cookies, jeton anti-CSRF) :
   une valeur de la requête est liée à la session si elle apparaît dans ce

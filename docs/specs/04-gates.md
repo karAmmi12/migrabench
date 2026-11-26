@@ -112,7 +112,9 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
     `errored` ;
   - pour un résultat relevé : `measured`, `not-evaluable` ou `errored`.
 - `examined` est toujours présent. `examined: 0` sans erreur donne
-  `not-evaluable`.
+  `not-evaluable`. Une porte qui a examiné des éléments sans pouvoir
+  conclure à une réussite peut aussi rendre `not-evaluable` ; un échec
+  constaté reste `failed` (#153).
 - `findings` contient le détail propre à la porte. Sa taille est bornée, et
   un résultat tronqué le dit par `findingsTotal` et `findingsKept`.
 - `values` est une table facultative de nombres nommés. Elle ne décide pas
@@ -307,6 +309,13 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
 - `examined` est le nombre d'entrées de HAR lues. `findings` donne le
   scénario, l'URL, l'emplacement et la forme trouvée. Le candidat de
   référence échoue.
+- **Corps non lus** (décision de Karim, #153) : la porte ne conclut pas
+  « absent » sur une réponse qu'elle n'a pas lue. Si le corps d'une réponse
+  HTML, JS ou JSON (d'après `Content-Type`) manque au HAR, le résultat est
+  `not-evaluable`, avec ces entrées dans `findings` (scénario, URL, type). Une
+  fuite trouvée ailleurs reste prioritaire (`failed`). Les autres types et
+  les réponses vides (`bodySize: 0`) sont comptés dans `values`, sans effet
+  sur l'issue.
 
 ### Rôle
 
