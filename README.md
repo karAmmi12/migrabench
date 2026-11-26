@@ -40,12 +40,12 @@ jeton présenté est la valeur témoin `ARCHIVE_TOKEN` de [`.env`](.env). Le
 legacy et lui la reçoivent tous deux de ce fichier.
 
 L'API interne JSON du legacy (rechercher, lire, modifier, remettre) répond
-sur le port `8081`, à l'adresse `http://legacy:8081` depuis le réseau Docker
-`mb-internal`. Ce port n'est pas publié sur l'hôte : l'API interne n'est
-donc pas joignable depuis le navigateur, et seule la couche serveur du
-candidat est censée l'appeler. Un filtre par port la refuse sur le port
-`8080` (403). Limite connue : un conteneur du réseau `default` de Docker
-joint aussi `legacy:8081` (ADR 0004). Elle ignore l'identité de l'appelant
+sur le port `8081`, à l'adresse `http://legacy-internal-api:8081` depuis le
+réseau Docker `mb-internal`. Ce port n'est pas publié sur l'hôte, et Tomcat
+ne l'écoute que sur l'adresse du legacy dans `mb-internal` : l'API interne
+n'est joignable ni depuis l'hôte, ni depuis un conteneur du réseau `default`
+(ADR 0004). Seule la couche serveur du candidat est censée l'appeler. Un
+filtre par port la refuse sur le port `8080` (403). Elle ignore l'identité de l'appelant
 et n'applique aucune règle de `validation.xml` (ADR 0003). Ses quatre
 endpoints :
 
