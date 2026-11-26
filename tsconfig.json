@@ -13,5 +13,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["scripts", "tests", "oracle", "runner", "shared", "vitest.config.ts"]
+  "include": ["scripts", "tests", "oracle", "runner", "gates", "shared", "vitest.config.ts"]
 }
