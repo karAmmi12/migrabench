@@ -29,7 +29,6 @@
 // passerait, d'où le repli sur le DOM que prévoit TRAPS.md.
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import AxeBuilder from "@axe-core/playwright";
 import type { Browser, Page } from "@playwright/test";
 import { connectBenchBrowser } from "../oracle/browser.ts";
 import { button, goToSearch, goToSheet, goToSubmissionFromSheet } from "../oracle/navigation.ts";
@@ -228,6 +227,9 @@ async function visit(screen: Screen, context: GateContext, prepared: Prepared): 
       return { tables: unreached, axe: unreached };
     }
     const census = await tableCensus(page);
+    // Chargé à l'analyse seulement : axe-core est lourd, et toute commande du
+    // runner charge le registre des portes (#128, durée de la CLI en CI).
+    const { default: AxeBuilder } = await import("@axe-core/playwright");
     const axe = await new AxeBuilder({ page }).withTags([...AXE_TAGS]).analyze();
     const raw = await saveGateRaw(context.rawDir, GATE, `axe-${screen}.json`, `${JSON.stringify(axe, null, 2)}\n`);
     return { tables: { reached: true, census }, axe: { reached: true, axe }, raw };
