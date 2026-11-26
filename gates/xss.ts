@@ -29,7 +29,9 @@
 // Sur le legacy, la charge s'exécute déjà sur la page de résultats qui mène à
 // la fiche (sonde de #129). Avant le clic qui mène à l'écran jugé, la porte
 // attend donc que l'écran précédent soit au repos, et seules les écritures
-// reçues ensuite comptent.
+// reçues ensuite comptent. Limite : une écriture de l'écran précédent qui
+// arrive après le clic (minuteur plus long que l'attente, déchargement) compte
+// contre l'écran jugé. L'erreur va dans le sens prudent.
 import { readFileSync } from "node:fs";
 import type { Browser, BrowserContext, Page } from "@playwright/test";
 import { connectBenchBrowser } from "../oracle/browser.ts";
@@ -248,7 +250,8 @@ async function visit(screen: Screen, prepared: Prepared, context: GateContext): 
         boundary = received.length;
         step = `remise ${number}`;
         await remiseLink(page).click();
-        const subject = prepared.subjects[number] ?? "";
+        const subject = prepared.subjects[number];
+        if (subject === undefined) throw new Error(`No subject for dossier ${number}`);
         await atLeastOne(exactText(page, subject)).waitFor({ state: "visible" });
       }
     } catch (error) {
@@ -256,13 +259,10 @@ async function visit(screen: Screen, prepared: Prepared, context: GateContext): 
       return { observation: { reached: false, step, message }, raw: { screen, number, unreached: step, message, received } };
     }
     const networkIdle = await settle(page, pending);
-    const observation: XssObservation = {
-      reached: true,
-      displays: await displays(screen, page, number),
-      writes: received.slice(boundary),
-      asText: await payloadAsText(page, prepared.payload),
-      networkIdle,
-    };
+    const shown = await displays(screen, page, number);
+    const asText = await payloadAsText(page, prepared.payload);
+    // Écritures relevées en dernier : celles reçues pendant les relevés comptent.
+    const observation: XssObservation = { reached: true, displays: shown, writes: received.slice(boundary), asText, networkIdle };
     return { observation, raw: { screen, number, url: page.url(), observation, receivedBeforeScreen: received.slice(0, boundary) } };
   } finally {
     await browserContext.close();
