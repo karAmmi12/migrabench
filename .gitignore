@@ -21,6 +21,8 @@ results/diagnostic/
 # Sel de développement tiré par `npm run stack:up`, relu par `npm test` (#33).
 .dev-archive-salt
 *.har
+# Sauf les HAR copiés de vraies sorties, lus par les tests des portes (#130).
+!tests/fixtures/**/*.har
 .DS_Store
 # Sondes Playwright jetables (#52) : dans le dépôt pour que `@playwright/test`
 # se résolve depuis node_modules, hors de Git.

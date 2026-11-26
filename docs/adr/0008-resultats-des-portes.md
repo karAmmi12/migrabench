@@ -8,7 +8,10 @@ d'éléments examinés et l'une de ces cinq issues :
 - `measured` : le résultat est **relevé**. Il rapporte des valeurs sans les
   juger, faute de critère de réussite (score Lighthouse, poids du bundle,
   comparaison HAR) ;
-- `not-evaluable` : rien n'a été examiné ;
+- `not-evaluable` : rien n'a été examiné, ou ce qui a été examiné ne permet
+  pas de conclure à une réussite (précision ajoutée le 26/11/2026 après #153,
+  décision de Karim : la valeur témoin dont le corps d'une réponse HTML, JS
+  ou JSON manque au HAR ; un échec constaté reste `failed`) ;
 - `errored` : la porte a planté elle-même.
 
 Chaque porte déclare, pour chacun de ses résultats nommés, s'il est jugé ou
@@ -44,6 +47,8 @@ agrégé par le score de l'étape 5, pas un incident de la mesure.
 - **Quatre issues, sans `measured`** : un score Lighthouse sans seuil aurait
   été `passed` dès que Lighthouse avait tourné, donc compté comme une
   réussite, ou `not-evaluable` alors que quelque chose avait été examiné.
+  (Depuis #153, `not-evaluable` après examen existe, mais seulement quand
+  l'examen ne permet pas de conclure, jamais faute de critère.)
 - **Une catégorie de verdict « portes en échec »** : elle mélange un
   résultat du candidat avec l'issue de la mesure, et le rapport ne pourrait
   plus distinguer « mesure complète, trois portes échouées » de « mesure en

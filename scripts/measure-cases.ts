@@ -52,6 +52,8 @@ const accessibility = (outcomes: { tables: GateOutcome; axe: Record<(typeof IMPA
   ]),
   ...Object.entries(outcomes.axe).map(([impact, outcome]) => ({ gate: "accessibility", name: `axe/${impact}`, outcome })),
 ];
+// Porte de la valeur témoin (#130).
+const WITNESS_VALUE = { gate: "witness-value", name: "absent-from-har" };
 // Porte XSS (#129) : ses six résultats nommés, réussis sauf ceux donnés.
 type XssName = `${"executed" | "as-text"}/${(typeof SCREENS)[number]}`;
 const xss = (outcomes: Partial<Record<XssName, GateOutcome>> = {}, others: GateOutcome = "passed") =>
@@ -64,6 +66,7 @@ const xss = (outcomes: Partial<Record<XssName, GateOutcome>> = {}, others: GateO
 const XSS_LEGACY = xss({ "executed/search": "failed", "as-text/search": "failed" });
 // Candidats XSS : des relais du legacy qui ne réécrivent que les pages
 // porteuses de la charge. L'oracle n'y regarde pas : 38 scénarios réussis.
+// Comme le legacy, ils laissent passer la valeur témoin.
 const xssCase = (candidate: string, gates: MeasureCase["gates"]): MeasureCase => ({
   candidate,
   exitCode: 0,
@@ -73,7 +76,7 @@ const xssCase = (candidate: string, gates: MeasureCase["gates"]): MeasureCase =>
   oracleJson: "kept",
   summary: { passed: 38, failed: 0, unreached: 0 },
   witnesses: true,
-  gates: [...(gates ?? []), { ...RELAY, outcome: "failed" }],
+  gates: [{ ...WITNESS_VALUE, outcome: "failed" }, ...(gates ?? []), { ...RELAY, outcome: "failed" }],
 });
 // Candidat qui n'affiche aucun écran : rien d'examiné.
 const ACCESSIBILITY_NOT_EVALUABLE = accessibility({ tables: "not-evaluable", axe: { critical: "not-evaluable", serious: "not-evaluable", moderate: "not-evaluable", minor: "not-evaluable" } });
@@ -93,8 +96,9 @@ const reference: MeasureCase = {
   witnesses: true,
   // Le relais appelle le port 8080 du legacy : le test négatif de la porte.
   // Le legacy échoue aux tableaux sur chaque écran, et axe y relève une
-  // violation critique (`image-alt`) et une sérieuse (`html-has-lang`).
-  gates: [...accessibility({ tables: "failed", axe: { critical: "failed", serious: "failed", moderate: "passed", minor: "passed" } }), ...XSS_LEGACY, { ...RELAY, outcome: "failed" }],
+  // violation critique (`image-alt`) et une sérieuse (`html-has-lang`). Le
+  // lien « Accusé de remise » porte la valeur témoin.
+  gates: [{ ...WITNESS_VALUE, outcome: "failed", findingCites: "accuse-de-remise" }, ...accessibility({ tables: "failed", axe: { critical: "failed", serious: "failed", moderate: "passed", minor: "passed" } }), ...XSS_LEGACY, { ...RELAY, outcome: "failed" }],
 };
 
 export const MEASURE_CASES = {
@@ -144,7 +148,8 @@ export const MEASURE_CASES = {
     oracleExecuted: true,
     oracleJson: "kept",
     summary: { failed: "at-least-one" },
-    gates: [{ ...RELAY, outcome: "failed" }],
+    // Il relaie le lien « Accusé de remise » du legacy.
+    gates: [{ ...WITNESS_VALUE, outcome: "failed" }, { ...RELAY, outcome: "failed" }],
   },
   // #124 : candidat qui appelle le port 8080 avec le User-Agent du healthcheck.
   "relay-forged-healthcheck": {
@@ -155,7 +160,7 @@ export const MEASURE_CASES = {
     oracleExecuted: true,
     oracleJson: "kept",
     witnesses: true,
-    gates: [...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), { ...RELAY, outcome: "failed", findingCites: '"curl/8.18.0"' }],
+    gates: [{ ...WITNESS_VALUE, outcome: "passed" }, ...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), { ...RELAY, outcome: "failed", findingCites: '"curl/8.18.0"' }],
   },
   // #124 : candidat conforme, qui ne touche jamais le port 8080.
   "relay-untouched": {
@@ -166,7 +171,7 @@ export const MEASURE_CASES = {
     oracleExecuted: true,
     oracleJson: "kept",
     witnesses: true,
-    gates: [...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), { ...RELAY, outcome: "passed" }],
+    gates: [{ ...WITNESS_VALUE, outcome: "passed" }, ...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), { ...RELAY, outcome: "passed" }],
   },
   // #129 : candidat conforme, qui échappe partout.
   "xss-escapes": xssCase(`${CONFORMING}/xss-escapes`, xss()),
