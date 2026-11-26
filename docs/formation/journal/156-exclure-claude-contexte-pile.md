@@ -72,7 +72,12 @@ npm run stack:up && npm test
 Observé sur le commit `ed39f64`, arbre propre : `Tests  1105 passed (1105)`.
 `npm run typecheck` est vert sur le même commit.
 
-> À vérifier après l'exécution de la CI de la PR : l'oracle à 38 sur 38 et les jobs `tests` et `typecheck`, avec le lien de chaque exécution et son commit.
+En CI, sur la tête de la PR `023c1e9` :
+
+- oracle, [exécution 45910518564](https://github.com/karAmmi12/migrabench/actions/runs/45910518564) :
+  `Scenarios: 38, passed: 38, failed: 0, unreached: 0` ;
+- `tests`, [exécution 45910518566](https://github.com/karAmmi12/migrabench/actions/runs/45910518566) : `Tests  1105 passed (1105)` ;
+- `typecheck`, [exécution 45910518563](https://github.com/karAmmi12/migrabench/actions/runs/45910518563) : vert.
 
 ## Pour aller plus loin
 
