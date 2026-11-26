@@ -26,7 +26,7 @@ import { renameSync } from "node:fs";
 import { mkdir, readdir, rename, stat, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import { type GateContext, StackIncident } from "../gates/context.ts";
-import { GATES, GATES_PHASE_TIMEOUT_MS, gatesOf, runGates } from "../gates/registry.ts";
+import { GATES, GATES_PHASE_TIMEOUT_MS, gatesOf, gateTools, runGates } from "../gates/registry.ts";
 import { beforeCandidateEvidence, type GateResult } from "../gates/result.ts";
 import { executeOracle, type ExecuteOracleResult, listOracle, OracleError, StackFailed } from "../oracle/execute.ts";
 import { SERVICES, stackContextDigests, StackNotFromCopy, verifyBuiltImages } from "../oracle/stack-images.ts";
@@ -475,6 +475,8 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
       worktree,
       node: process.version,
       ...oracleMetadata,
+      // Outils épinglés par les portes (spec de l'étape 4) : axe-core…
+      gateTools: gateTools(GATES),
       ...(runtimeImage === undefined ? {} : { runtimeImage }),
       ...(user === undefined ? {} : { containerUser: user }),
       ...(service === undefined ? {} : { composeOverride: service.composeOverride }),
