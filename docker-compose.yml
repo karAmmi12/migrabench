@@ -36,8 +36,11 @@ services:
     volumes:
       - ${MB_ACCESS_LOG_DIR:-./.access-log}:/usr/local/tomcat/logs/migrabench
     healthcheck:
-      # Prêt quand l'application déployée exige l'authentification (401).
-      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/ | grep -q 401"]
+      # Prêt quand l'application déployée exige l'authentification (401), et
+      # quand l'API interne répond sur son alias de mb-internal (#78) : un
+      # alias non résolu au démarrage laisserait 8081 fermé sans autre signe.
+      # Le journal d'accès du banc écarte 8081.
+      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/ | grep -q 401 && curl -s -o /dev/null -w '%{http_code}' http://legacy-internal-api:8081/api/dossiers/D-0001 | grep -q 200"]
       interval: 2s
       timeout: 2s
       retries: 60
