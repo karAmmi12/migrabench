@@ -103,7 +103,7 @@ describe("measureRecord", () => {
     const gates = [
       judged({ gate: "relay", name: "legacy-port-untouched", examined: 211, passed: false, findings: [{ line: 3 }] }),
       judged({ gate: "test", name: "nothing", examined: 0, passed: true }),
-      errored({ gate: "test", name: "crashed", kind: "judged", error: { stage: "on-candidate", cause: "timeout", message: "Gate test exceeded its timeout of 20 ms" } }),
+      errored({ gate: "test", name: "in-error", kind: "judged", error: { stage: "on-candidate", cause: "timeout", message: "Gate test exceeded its timeout of 20 ms" } }),
     ];
     const { record, exitCode } = measureRecord({ ...COMPLETED, gates });
 

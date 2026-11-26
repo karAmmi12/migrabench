@@ -101,8 +101,12 @@ export async function startCandidate({ compose }: CandidateService): Promise<voi
   await spawnCommand("docker", [...compose, "up", "--detach", "--force-recreate", "--no-deps", "candidate"]);
 }
 
+// Candidat lancé qui ne devient pas disponible : processus arrêté, ou délai
+// de disponibilité dépassé.
+export type StartFailure = "start-exited" | "start-not-ready";
+
 // Disponible dès qu'une réponse HTTP arrive, quel que soit son statut.
-export async function waitUntilReady({ compose }: CandidateService, readyTimeoutMs: number): Promise<"ok" | "start-exited" | "start-not-ready"> {
+export async function waitUntilReady({ compose }: CandidateService, readyTimeoutMs: number): Promise<"ok" | StartFailure> {
   const deadline = Date.now() + readyTimeoutMs;
   while (Date.now() < deadline) {
     try {

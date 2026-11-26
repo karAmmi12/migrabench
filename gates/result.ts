@@ -7,7 +7,7 @@
 // Sorte d'un résultat nommé, déclarée par la porte.
 export type GateResultKind = "judged" | "measured";
 
-// Étape où une porte a planté, posée par le runner selon la partie qui a levé
+// Étape où une porte s'est mise en erreur, posée par le runner selon la partie qui a levé
 // l'erreur (préparation ou examen), jamais d'après le message.
 export type GateErrorStage = "before-candidate" | "on-candidate";
 // Liste fermée des causes : elle ne s'étend que par la spec.
@@ -66,10 +66,9 @@ export function measured(input: ResultInput): MeasuredResult {
   return fields(input, "measured", input.examined === 0 ? "not-evaluable" : "measured");
 }
 
-// Résultat d'une porte qui a planté, pour un de ses résultats nommés.
+// Résultat d'une porte en erreur, pour un de ses résultats nommés.
 export function errored({ gate, name, kind, error }: { gate: string; name: string; kind: GateResultKind; error: GateError }): GateResult {
-  const result = kind === "judged" ? fields({ gate, name, examined: 0 }, kind, "errored") : fields({ gate, name, examined: 0 }, kind, "errored");
-  return { ...result, error };
+  return { ...fields({ gate, name, examined: 0 }, kind, "errored"), error };
 }
 
 // Seule règle de réussite : vraie pour `passed` seulement. Un résultat relevé

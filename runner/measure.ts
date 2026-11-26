@@ -25,17 +25,17 @@ import { randomBytes } from "node:crypto";
 import { renameSync } from "node:fs";
 import { mkdir, readdir, rename, stat, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
-import { executeOracle, type ExecuteOracleResult, listOracle, OracleError, recreateStack, StackFailed } from "../oracle/execute.ts";
 import { type GateContext, StackIncident } from "../gates/context.ts";
 import { GATES, GATES_PHASE_TIMEOUT_MS, gatesOf, runGates } from "../gates/registry.ts";
 import { beforeCandidateEvidence, type GateResult } from "../gates/result.ts";
-import { fetchFromInternal, INTERNAL_API_URL } from "../shared/internal-api.ts";
+import { executeOracle, type ExecuteOracleResult, listOracle, OracleError, recreateStack, StackFailed } from "../oracle/execute.ts";
 import { SERVICES, stackContextDigests, StackNotFromCopy, verifyBuiltImages } from "../oracle/stack-images.ts";
 import { saveServiceLogs, type ServiceState, type StackDown, stackDown, stackStates } from "../oracle/stack-state.ts";
 import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
 import { checkAccessLog } from "./access-log.ts";
 import { ACCESS_LOG_FILE, closeAccessLog, sendWitness, witnessEvidence } from "./witness.ts";
 import { readSeamAMarkers } from "../shared/seam-a-marker.ts";
+import { fetchFromInternal, INTERNAL_API_URL } from "../shared/internal-api.ts";
 import { contentDigest } from "./candidate-content.ts";
 import { contractPhase, type ContractPhaseResult } from "./contract-phase.ts";
 import { candidateName, measureId as measureIdOf } from "./measure-id.ts";
@@ -62,6 +62,7 @@ import {
   removeCandidate,
   RUNTIME_IMAGE,
   startCandidate,
+  type StartFailure,
   stopCandidate,
   waitUntilReady,
 } from "./candidate-runtime.ts";
@@ -386,15 +387,16 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
       },
     };
     try {
-      gateResults.push(
-        ...(await runGates(gatesOf(GATES, "gates"), gateContext, {
-          deadline: Date.now() + GATES_PHASE_TIMEOUT_MS,
-          afterEach: async () => {
-            const fell = stackDown(stackBefore, await stackStates());
-            if (fell !== undefined) throw new StackDownDuringGates(fell);
-          },
-        })),
-      );
+      // Les résultats des portes passées restent dans gateResults si une
+      // panne arrête les suivantes.
+      await runGates(gatesOf(GATES, "gates"), gateContext, {
+        deadline: Date.now() + GATES_PHASE_TIMEOUT_MS,
+        afterEach: async () => {
+          const fell = stackDown(stackBefore, await stackStates());
+          if (fell !== undefined) throw new StackDownDuringGates(fell);
+        },
+        results: gateResults,
+      });
     } catch (error) {
       if (error instanceof StackIncident) return void closeGates(error.outcome, {}, error.detail ?? error.message);
       if (error instanceof StackDownDuringGates) return void closeGates("stack-down-while-candidate", await saveServiceLogs(rawDir, error.down.services), error.down.detail);
@@ -551,7 +553,7 @@ async function isFile(path: string): Promise<boolean> {
 // Levée par le rappel pour arrêter l'exécution de l'oracle avant Playwright.
 // `detail` : la preuve d'une issue qui rend la mesure invalide.
 class CandidateNotStarted extends Error {
-  readonly outcome: "access-log-inactive" | "start-exited" | "start-not-ready";
+  readonly outcome: "access-log-inactive" | StartFailure;
   readonly detail: string | undefined;
   constructor(outcome: CandidateNotStarted["outcome"], detail?: string) {
     super(`The candidate did not start: ${outcome}`);

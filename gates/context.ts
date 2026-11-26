@@ -2,11 +2,8 @@
 // ce que le runner fournit à chaque porte. Une porte ne touche jamais Docker
 // ni la chaîne des requêtes témoins : elle passe par ce contexte.
 import type { WitnessPosition } from "../runner/access-log.ts";
-
-export interface InternalApiResponse {
-  status: number;
-  body: string;
-}
+import type { StartFailure } from "../runner/candidate-runtime.ts";
+import type { InternalResponse } from "../shared/internal-api.ts";
 
 export interface GateContext {
   // Adresse du candidat vue du banc.
@@ -21,7 +18,7 @@ export interface GateContext {
   // relais), une fois le journal contrôlé `ok`.
   accessLog?: { file: string; digest: string; witnesses: readonly WitnessPosition[] };
   // Client de l'API interne du legacy, en lecture seulement.
-  internalApi: { get(path: string): Promise<InternalApiResponse> };
+  internalApi: { get(path: string): Promise<InternalResponse> };
   // Redémarre le legacy, recrée le candidat, attend qu'ils soient sains et
   // envoie la requête témoin `start-N` suivante. Un échec lève StackIncident.
   restartLegacy(): Promise<void>;
@@ -30,10 +27,12 @@ export interface GateContext {
 }
 
 // Issues d'un redémarrage du legacy qui échoue : celles de la phase de
-// démarrage (runner/verdict.ts).
-export type StackIncidentOutcome = "stack-failed-before-candidate" | "stack-not-from-this-copy" | "access-log-inactive" | "start-exited" | "start-not-ready";
+// démarrage (runner/verdict.ts). Pile en échec : mesure invalide ; candidat
+// recréé qui ne redevient pas disponible : échec du candidat, comme au
+// premier démarrage (décision de Karim, #124).
+export type StackIncidentOutcome = "stack-failed-before-candidate" | "stack-not-from-this-copy" | "access-log-inactive" | StartFailure;
 
-// Panne de la pile pendant une porte (redémarrage du legacy qui échoue) :
+// Échec d'un redémarrage du legacy demandé par une porte :
 // jamais une erreur de porte. Le registre la laisse passer, et le runner la
 // range dans la phase en cours avec son issue et sa preuve.
 export class StackIncident extends Error {

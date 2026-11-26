@@ -16,6 +16,10 @@ import { type GateErrorCause, type GateErrorStage, type GateResult, type GateRes
 export const GATE_GROUPS = ["files", "browser-read", "writes", "relay"] as const;
 export type GateGroup = (typeof GATE_GROUPS)[number];
 
+// Délai global de la phase `gates`, de conception et généreux, étalonné par
+// #100.
+export const GATES_PHASE_TIMEOUT_MS = 30 * 60_000;
+
 export interface Gate<Prepared = unknown> {
   name: string;
   group: GateGroup;
@@ -58,7 +62,8 @@ checkGateOrder(GATES);
 // Portes de la phase `gates`, pendant que le candidat tourne, ou de la
 // clôture, après la requête témoin `end` : la porte du relais.
 export function gatesOf(gates: readonly Gate[], phase: "gates" | "closing"): Gate[] {
-  return gates.filter(({ group }) => (group === "relay") === (phase === "closing"));
+  const inClosing = (gate: Gate) => gate.group === "relay";
+  return gates.filter((gate) => (phase === "closing" ? inClosing(gate) : !inClosing(gate)));
 }
 
 export interface RunGatesOptions {
@@ -68,13 +73,15 @@ export interface RunGatesOptions {
   // Après chaque porte : le relevé de l'état de la pile par le runner. Son
   // erreur arrête les portes et est levée telle quelle.
   afterEach?: (gate: Gate) => Promise<void>;
+  // Liste où ranger les résultats au fil des portes : ceux des portes déjà
+  // passées y restent si une erreur arrête les suivantes.
+  results?: GateResult[];
 }
 
 // Lance les portes une à une, dans l'ordre donné. Une panne de la pile
 // (StackIncident) et des résultats qui ne correspondent pas à la déclaration
 // de la porte (une erreur du banc) sont levés.
-export async function runGates(gates: readonly Gate[], context: Omit<GateContext, "signal">, { deadline, afterEach }: RunGatesOptions = {}): Promise<GateResult[]> {
-  const results: GateResult[] = [];
+export async function runGates(gates: readonly Gate[], context: Omit<GateContext, "signal">, { deadline, afterEach, results = [] }: RunGatesOptions = {}): Promise<GateResult[]> {
   for (const gate of gates) {
     results.push(...(await runGate(gate, context, deadline)));
     await afterEach?.(gate);
@@ -130,7 +137,3 @@ function checkDeclared(gate: Gate, results: readonly GateResult[]): void {
     throw new Error(`Gate ${gate.name} returned ${returned.join(", ")}, expected ${expected.join(", ")}`);
   }
 }
-
-// Délai global de la phase `gates`, de conception et généreux, étalonné par
-// #100.
-export const GATES_PHASE_TIMEOUT_MS = 30 * 60_000;

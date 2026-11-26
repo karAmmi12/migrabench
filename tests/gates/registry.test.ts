@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 import { type GateContext, StackIncident } from "../../gates/context.ts";
 import { checkGateOrder, type Gate, GATES, gatesOf, runGates, ToolMissing } from "../../gates/registry.ts";
-import { judged, measured } from "../../gates/result.ts";
+import { type GateResult, judged, measured } from "../../gates/result.ts";
 
 // Le contexte n'est pas lu par les portes de test.
 const CONTEXT = {} as GateContext;
@@ -135,6 +135,17 @@ describe("runGates", () => {
   it("lets an incident of the stack through", async () => {
     const incident = new StackIncident("stack-failed-before-candidate", "legacy unhealthy");
     await expect(runGates([gate({ examine: async () => { throw incident; } })], CONTEXT)).rejects.toBe(incident);
+  });
+
+  // Une panne de la pile n'efface pas ce que les portes précédentes ont examiné.
+  it("keeps the results of the gates already run in the given list when a stack incident is thrown", async () => {
+    const results: GateResult[] = [];
+    const gates = [
+      gate({ name: "first", examine: async () => [judged({ gate: "first", name: "only", examined: 2, passed: false })] }),
+      gate({ name: "second", examine: async () => { throw new StackIncident("stack-failed-before-candidate", "legacy unhealthy"); } }),
+    ];
+    await expect(runGates(gates, CONTEXT, { results })).rejects.toBeInstanceOf(StackIncident);
+    expect(results.map(({ gate, outcome }) => [gate, outcome])).toEqual([["first", "failed"]]);
   });
 
   it("refuses results that do not match the declared named results", async () => {

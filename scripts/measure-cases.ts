@@ -6,6 +6,8 @@
 // de sortie, measure.json et oracle.json à l'issue attendue, et rend les
 // écarts, vides quand la mesure est celle attendue.
 
+import type { GateOutcome } from "../gates/result.ts";
+
 export interface MeasureCase {
   // Dossier passé à `--candidate`.
   candidate: string;
@@ -33,7 +35,7 @@ export interface MeasureCase {
   counted?: boolean;
   // Résultats de portes attendus (#124) : leur issue, et un texte qu'un de
   // leurs constats doit citer.
-  gates?: { gate: string; name: string; outcome: string; findingCites?: string }[];
+  gates?: { gate: string; name: string; outcome: GateOutcome; findingCites?: string }[];
 }
 
 const REFERENCE = "fixtures/reference-candidate";
@@ -216,6 +218,13 @@ interface MeasureView {
   gates?: { gate?: unknown; name?: unknown; outcome?: unknown; findings?: unknown[] }[];
 }
 
+// Un constat cite-t-il le texte, dans l'une de ses valeurs ? Il est cherché
+// tel qu'il est écrit dans le JSON du constat, guillemets échappés compris.
+function citesText(finding: unknown, text: string): boolean {
+  const escaped = JSON.stringify(text).slice(1, -1);
+  return JSON.stringify(finding).includes(escaped);
+}
+
 export function caseProblems(expected: MeasureCase, { exitCode, record, oracle }: Observed): string[] {
   const measure = record as MeasureView;
   const problems: string[] = [];
@@ -264,7 +273,7 @@ export function caseProblems(expected: MeasureCase, { exitCode, record, oracle }
     if (found === undefined) problems.push(`gate ${gate}/${name} is missing`);
     else {
       if (found.outcome !== outcome) problems.push(`gate ${gate}/${name} is ${String(found.outcome)}, expected ${outcome}`);
-      if (findingCites !== undefined && !(found.findings ?? []).some((finding) => JSON.stringify(finding).includes(JSON.stringify(findingCites).slice(1, -1)))) {
+      if (findingCites !== undefined && !(found.findings ?? []).some((finding) => citesText(finding, findingCites))) {
         problems.push(`gate ${gate}/${name}: no finding cites ${findingCites}`);
       }
     }
