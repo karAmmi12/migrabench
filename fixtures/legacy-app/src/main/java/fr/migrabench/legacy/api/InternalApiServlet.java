@@ -25,13 +25,12 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/* [banc] Comme les JSP, elle ignore l'identité de l'appelant et ne contrôle
+ * aucun rôle (ADR 0003). Elle n'applique aucune règle de validation.xml. */
 /**
  * API interne JSON du legacy, servie sous {@code /api} par le port 8081
  * seulement (voir {@link InternalApiPortFilter}). Elle délègue au service
  * métier, qui applique les règles métier.
- *
- * <p>Comme les JSP, elle ignore l'identité de l'appelant et ne contrôle aucun
- * rôle (ADR 0003). Elle n'applique aucune règle de {@code validation.xml}.
  */
 public class InternalApiServlet extends HttpServlet {
 
@@ -101,9 +100,10 @@ public class InternalApiServlet extends HttpServlet {
         }
     }
 
+    // [banc] Aucun contrôle de rôle (TRAPS.md).
     /**
      * Remettre : sans corps. Le service métier refuse (409) tout dossier qui
-     * n'est pas {@code EN_INSTRUCTION}. Aucun contrôle de rôle.
+     * n'est pas {@code EN_INSTRUCTION}.
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {

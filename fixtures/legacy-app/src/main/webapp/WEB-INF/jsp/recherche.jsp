@@ -9,7 +9,7 @@
 <title>Recherche de dossiers</title>
 </head>
 <body>
-<%-- Piège « mise en page en <table> imbriquées » (TRAPS.md) : tableaux de
+<%-- [banc] Piège « mise en page en <table> imbriquées » (TRAPS.md) : tableaux de
      mise en page sur plusieurs niveaux, sans role="presentation". Ne pas corriger. --%>
 <table width="100%" border="0" cellpadding="4" cellspacing="0">
   <tr>
@@ -21,7 +21,7 @@
         <tr>
           <td>
             <html:errors/>
-            <%-- Piège « focus initial » (TRAPS.md) : focus sur Numéro par
+            <%-- [banc] Piège « focus initial » (TRAPS.md) : focus sur Numéro par
                  l'attribut focus, que Struts transforme en JavaScript. --%>
             <html:form action="/rechercher" method="get" focus="number">
               <table border="0" cellpadding="2" cellspacing="0">
@@ -78,7 +78,7 @@
                 <logic:iterate id="row" name="results">
                 <tr>
                   <td><html:link action="/fiche" paramId="number" paramName="row" paramProperty="number"><bean:write name="row" property="number"/></html:link></td>
-                  <%-- Piège XSS (TRAPS.md) : filter="false" n'échappe pas le demandeur. Ne pas corriger. --%>
+                  <%-- [banc] Piège XSS (TRAPS.md) : filter="false" n'échappe pas le demandeur. Ne pas corriger. --%>
                   <td><bean:write name="row" property="applicant" filter="false"/></td>
                   <td><bean:write name="row" property="subject"/></td>
                   <td><bean:write name="row" property="statusLabel"/></td>

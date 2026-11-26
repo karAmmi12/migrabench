@@ -8,7 +8,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Fiche dossier</title>
-<%-- Piège « raccourci clavier » (TRAPS.md) : Ctrl+S enregistre, par un
+<%-- [banc] Piège « raccourci clavier » (TRAPS.md) : Ctrl+S enregistre, par un
      gestionnaire onkeydown écrit à la main, avec preventDefault. Pas de
      variante Cmd+S. Quand la fiche n'est pas modifiable (REMIS), le
      gestionnaire empêche seulement la boîte d'enregistrement du navigateur,
@@ -31,7 +31,7 @@ document.onkeydown = function (event) {
 </script>
 </head>
 <body>
-<%-- Piège « mise en page en <table> imbriquées » (TRAPS.md) : tableaux de
+<%-- [banc] Piège « mise en page en <table> imbriquées » (TRAPS.md) : tableaux de
      mise en page sur plusieurs niveaux, sans role="presentation". Ne pas corriger. --%>
 <table width="100%" border="0" cellpadding="4" cellspacing="0">
   <tr>
@@ -43,11 +43,11 @@ document.onkeydown = function (event) {
         <tr>
           <td>
             <html:errors/>
-            <%-- Piège « focus initial » (TRAPS.md) : focus sur Objet par
+            <%-- [banc] Piège « focus initial » (TRAPS.md) : focus sur Objet par
                  l'attribut focus, que Struts transforme en JavaScript. --%>
             <html:form action="/enregistrer" method="post" focus="subject">
               <html:hidden property="number"/>
-              <%-- Piège « ordre de tabulation » (TRAPS.md) : Demandeur précède
+              <%-- [banc] Piège « ordre de tabulation » (TRAPS.md) : Demandeur précède
                    Objet dans le DOM, les tabindex imposent Objet → Demandeur
                    → Enregistrer. Ne pas corriger. --%>
               <table border="0" cellpadding="2" cellspacing="0">

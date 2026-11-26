@@ -10,7 +10,7 @@
 <title>Remise du dossier</title>
 </head>
 <body>
-<%-- Piège « mise en page en <table> imbriquées » (TRAPS.md) : tableaux de
+<%-- [banc] Piège « mise en page en <table> imbriquées » (TRAPS.md) : tableaux de
      mise en page sur plusieurs niveaux, sans role="presentation". Ne pas corriger. --%>
 <table width="100%" border="0" cellpadding="4" cellspacing="0">
   <tr>
@@ -49,7 +49,7 @@
         <tr>
           <td>
 <logic:equal name="dossier" property="status" value="EN_INSTRUCTION">
-<%-- Piège « contrôle de rôle dans la vue » (TRAPS.md) : seul ce scriptlet
+<%-- [banc] Piège « contrôle de rôle dans la vue » (TRAPS.md) : seul ce scriptlet
      affiche ou masque le bouton. RemiseAction ne vérifie aucun rôle.
      Ne pas corriger. --%>
 <% if (request.isUserInRole("instructeur")) { %>
@@ -63,7 +63,7 @@
 </logic:equal>
 <logic:equal name="dossier" property="status" value="REMIS">
             <p>Dossier remis le <bean:write name="dossier" property="submittedOn"/></p>
-<%-- Piège « secret lu par System.getenv() » (TRAPS.md) : la valeur témoin
+<%-- [banc] Piège « secret lu par System.getenv() » (TRAPS.md) : la valeur témoin
      ARCHIVE_TOKEN part en clair dans le HTML puis dans l'URL de la requête
      vers le service d'archivage. Adresse de ce service écrite en dur, telle
      que le navigateur la voit (port publié par docker-compose.yml).

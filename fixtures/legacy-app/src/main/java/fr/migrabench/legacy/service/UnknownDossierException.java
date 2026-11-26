@@ -1,6 +1,6 @@
 package fr.migrabench.legacy.service;
 
-/** Aucun dossier ne porte ce numéro. */
+/** Aucun dossier n'a ce numéro. */
 public class UnknownDossierException extends RuntimeException {
 
     public UnknownDossierException(String number) {

@@ -59,9 +59,10 @@
             validate="false">
       <forward name="success" path="/WEB-INF/jsp/remise.jsp"/>
     </action>
-    <!-- Écran 3 : bouton « Remettre », POST seulement, puis retour sur l'écran.
-         Piège « contrôle de rôle dans la vue » (TRAPS.md) : pas d'attribut
-         roles ici, sinon Struts contrôlerait le rôle lui-même. Ne pas corriger. -->
+    <!-- Écran 3 : bouton « Remettre », POST seulement, puis retour sur l'écran. -->
+    <!-- [banc] Piège « contrôle de rôle dans la vue » (TRAPS.md) : pas
+         d'attribut roles ici, sinon Struts contrôlerait le rôle lui-même.
+         Ne pas corriger. -->
     <action path="/remettre"
             type="fr.migrabench.legacy.web.RemiseAction"
             name="dossierForm"
@@ -73,7 +74,7 @@
 
   <message-resources parameter="fr.migrabench.legacy.ApplicationResources"/>
 
-  <!-- Règles de saisie déclarées seulement dans validation.xml (TRAPS.md). -->
+  <!-- [banc] Règles de saisie déclarées seulement dans validation.xml (TRAPS.md). -->
   <plug-in className="org.apache.struts.validator.ValidatorPlugIn">
     <set-property property="pathnames"
                   value="/org/apache/struts/validator/validator-rules.xml,/WEB-INF/validation.xml"/>

@@ -2,7 +2,8 @@ package fr.migrabench.legacy.model;
 
 import java.time.LocalDate;
 
-/** Demande administrative identifiée par un numéro (GLOSSARY.md). */
+// [banc] Terme défini dans GLOSSARY.md.
+/** Demande administrative identifiée par un numéro. */
 public class Dossier {
 
     private final String number;
