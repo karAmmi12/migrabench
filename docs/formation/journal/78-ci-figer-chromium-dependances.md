@@ -137,6 +137,15 @@ des options documentées.
 - **Port `8095` déjà pris.** Le test `archive-no-salt` démarre une seconde
   pile, qui incluait le nouveau service `browser` et son port publié.
   Résolution : il ne démarre que le legacy et le service d'archivage.
+- **Deux tests oubliés, vus seulement en CI.** Le premier passage en CI de
+  la PR a échoué sur `tests/oracle/occurrences.test.ts` et
+  `receipt.test.ts`, qui lançaient encore un Chromium local.
+  - Cause : la recherche des lancements locaux était tronquée par un
+    `head`. En local, le Mac avait encore un Chromium installé, donc ces
+    tests passaient.
+  - Résolution : les deux tests se connectent au navigateur du banc. Un test
+    refuse désormais tout lancement local dans les sources et les tests ; il
+    nommait bien ces deux lignes avant la correction.
 - **Résultat de la sonde écrit sous `results/oracle/`.** L'oracle lancé
   pendant la sonde a écrit `20261126T132513Z-5ab7100.json`, obtenu sur un
   arbre modifié. Le fichier a été déplacé dans `.probes/78/` et n'est pas
@@ -184,12 +193,29 @@ preuves.
 | Mesure du candidat de référence | `completed`, porte du relais `failed` (194 lignes examinées, 188 constats) |
 | Depuis la page | Contexte sûr `true`, `legacy:8081` injoignable |
 
-> À vérifier après l'exécution de la CI de la PR : les jobs `tests`, `oracle`,
-> `proof`, `measures` et `calibration` sur le head SHA de la PR. Il faut
-> relever la durée de l'étape « Téléchargement de l'image du navigateur » sur
-> 2 ou 3 exécutions, à comparer aux 18 à 46 s de l'ancienne installation
-> (23 jobs récents), et `browserImage.platform` (`linux/amd64`) dans un
-> résultat de l'oracle.
+**En CI.** Durée de l'étape « Téléchargement de l'image du navigateur »,
+lue dans les étapes des jobs (`started_at`, `completed_at`) :
+
+| Exécution | Commit | tests | oracle | proof | measures | calibration |
+|---|---|---|---|---|---|---|
+| [45830117723](https://github.com/karAmmi12/migrabench/actions/runs/45830117723), [45830117624](https://github.com/karAmmi12/migrabench/actions/runs/45830117624), [45830118100](https://github.com/karAmmi12/migrabench/actions/runs/45830118100), [45830117618](https://github.com/karAmmi12/migrabench/actions/runs/45830117618) | `5082ef9` | 16 s | 32 s | 18 s | 36 s | 41 s |
+| [45832002465](https://github.com/karAmmi12/migrabench/actions/runs/45832002465), [45832002513](https://github.com/karAmmi12/migrabench/actions/runs/45832002513) | `db1c0cf` | 27 s | 41 s | 33 s | sauté | sauté |
+
+Soit 8 relevés de 16 à 41 s, contre 18 à 46 s pour l'ancienne installation
+(23 jobs récents). La durée ne change pas d'ordre ; ce qui change, c'est que
+Chromium et ses dépendances système sont figés par l'empreinte.
+
+Dans la mesure du candidat de référence de l'exécution 45830118100 (commit
+`5082ef9`) :
+
+- l'environnement relève
+  `browserImage: { platform: "linux/amd64", image: "sha256:12708c20bc005b7ecc920dd23b27079baa55359fd2739c7f0f3070c47cf263e9" }`
+  pour la référence épinglée, et Chromium 159.0.8154.6 ;
+- l'oracle réussit 38 scénarios sur 38 ;
+- la porte du relais donne `failed`, avec 188 constats.
+
+Sur le commit `db1c0cf`, `tests` (exécution 45832002465), `oracle` et
+`proof` (exécution 45832002513) sont verts.
 
 ## Pour aller plus loin
 
