@@ -28,7 +28,10 @@ lancé par `npm run trial:agent`) :
   (« Run without permission prompts ») précise que la CLI refuse ce mode
   sous root ;
 - le conteneur a accès à Internet (API, registre npm). Il joint aussi les
-  ports publiés sur l'hôte : la pile du banc doit être arrêtée.
+  ports publiés sur l'hôte : `trial:agent` prend donc le verrou du banc
+  pour toute sa durée et arrête la pile (`docker compose stop`) avant de
+  lancer le conteneur. Aucune mesure, aucun `npm test` ni `stack:up` ne
+  tourne pendant ce temps ; un arrêt ne coupe jamais une mesure en cours.
 
 ## 1. Le jeton d'abonnement
 
@@ -75,14 +78,10 @@ répertoire non vide, et un arbre de travail modifié sur ce qui fait la copie
 
 ## 3. La sonde d'isolement
 
-Arrêter d'abord la pile du banc, dans le dépôt :
-
-```sh
-docker compose stop
-```
-
-`trial:agent` refuse de lancer le conteneur tant qu'un conteneur dont le nom
-commence par `migrabench` tourne.
+`isolation`, `probe` et `run` prennent le verrou du banc (refus, code 4, si
+un autre outil du banc le tient), arrêtent la pile, puis refusent de lancer
+le conteneur tant qu'un conteneur dont le nom commence par `migrabench`
+tourne encore.
 
 ### 3a. Le disque et le réseau, vus du conteneur
 
@@ -133,7 +132,7 @@ l'environnement, et on reprend à l'étape 2.
 
 ## 4. Le lancement, par Karim
 
-Dans le même shell (même jeton, même `$WORK`, pile arrêtée) :
+Dans le même shell (même jeton, même `$WORK`) :
 
 ```sh
 npm run trial:agent -- run "$WORK" /tmp/trial-claude.jsonl

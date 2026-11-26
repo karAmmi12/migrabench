@@ -19,6 +19,7 @@ import { homedir, userInfo } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { workDirRefusal } from "./legacy-copy.ts";
+import { acquireBenchLockOrExit } from "../shared/bench-lock.ts";
 import { ROOT } from "../shared/root.ts";
 
 export const AGENT_IMAGE = "migrabench-trial-agent";
@@ -127,8 +128,19 @@ function workDirOf(argument: string | undefined): string {
   if (refusal !== undefined) fail(refusal);
   // Une virgule couperait l'option --mount de docker run.
   if (dir.includes(",")) fail(`${dir} must not contain a comma`);
-  refuseWhileBenchRuns();
+  takeBenchAndStopStack();
   return dir;
+}
+
+// Prend le verrou du banc pour toute la durée de la commande, puis arrête la
+// pile : aucun outil du banc ne la relance tant que l'agent tourne, et
+// l'arrêt ne coupe jamais une mesure. `npm run stack:up` la relance ensuite.
+function takeBenchAndStopStack(): void {
+  const lock = acquireBenchLockOrExit({ tool: "trial-agent" });
+  process.on("exit", () => lock.release());
+  const stop = spawnSync("docker", ["compose", "stop"], { cwd: ROOT, stdio: ["ignore", "inherit", "inherit"] });
+  if (stop.error !== undefined || stop.status !== 0) fail(`docker compose stop failed: ${stop.error?.message ?? `exit ${stop.status}`}`);
+  refuseWhileBenchRuns();
 }
 
 // Refuse de lancer le conteneur pendant qu'un conteneur du banc tourne.
@@ -136,7 +148,7 @@ function refuseWhileBenchRuns(): void {
   const listing = spawnSync("docker", ["ps", "--format", "{{.Names}}"], { encoding: "utf8" });
   if (listing.error !== undefined || listing.status !== 0) fail(`docker ps failed, the bench containers cannot be checked: ${listing.error?.message ?? listing.stderr}`);
   const running = benchContainers(listing.stdout);
-  if (running.length > 0) fail(`Stop the bench containers first (docker compose stop, in the repository):\n${running.join("\n")}`);
+  if (running.length > 0) fail(`Bench containers still run, stop them first:\n${running.join("\n")}`);
 }
 
 function docker(args: readonly string[], logPath?: string): number {
@@ -149,7 +161,6 @@ function docker(args: readonly string[], logPath?: string): number {
 
 // Lance Claude Code dans le conteneur, puis contrôle `system/init` du journal.
 function runClaude(workDir: string, prompt: string, logPath: string): number {
-  if (!process.env[TOKEN_VARIABLE]) fail(`${TOKEN_VARIABLE} is not set: run claude setup-token, then export it in this shell`);
   const version = spawnSync("docker", ["run", "--rm", AGENT_IMAGE, "claude", "--version"], { encoding: "utf8" }).stdout?.trim() ?? "";
   if (version === "") fail(`No Claude Code version in ${AGENT_IMAGE}: npm run trial:agent -- build`);
   const started = new Date().toISOString();
@@ -168,6 +179,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const args = ["sh", "-c", ISOLATION_SCRIPT, "isolation", ROOT, homedir(), userInfo().username];
     process.exit(docker(agentRunArgs(workDirOf(dir), args)));
   } else if ((command === "probe" || command === "run") && logPath !== undefined) {
+    if (!process.env[TOKEN_VARIABLE]) fail(`${TOKEN_VARIABLE} is not set: run claude setup-token, then export it in this shell`);
     const prompt = command === "probe" ? PROBE_PROMPT : readFileSync(join(ROOT, "fixtures/trial-kit/prompt.md"), "utf8");
     process.exit(runClaude(workDirOf(dir), prompt, logPath));
   } else {

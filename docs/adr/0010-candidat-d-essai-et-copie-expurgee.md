@@ -58,9 +58,9 @@ banc n'y sont visibles.
 - Un test sur `fixtures/legacy-app` échoue si un commentaire parle du banc
   sans porter le marqueur. Un test témoin échoue si la copie contient encore
   un mot du banc.
-- Le conteneur joint Internet et les ports publiés sur l'hôte : la pile du
-  banc est arrêtée pendant que l'agent tourne, et le script refuse de le
-  lancer sinon.
+- Le conteneur joint Internet et les ports publiés sur l'hôte : le script
+  qui le lance prend le verrou du banc et arrête la pile pour toute la durée
+  de l'agent. Aucune mesure ne tourne pendant un candidat d'essai.
 - Un candidat d'essai n'est jamais retouché pour passer une porte. Seules
   sont permises une correction pour respecter le contrat et le retrait d'une
   donnée personnelle, chacune dans un commit séparé, décrite dans la
