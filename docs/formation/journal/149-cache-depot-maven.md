@@ -132,11 +132,27 @@ npx vitest run tests/maven-cache.test.ts
 
 Observé sur le commit `eaae511` : `Tests  6 passed (6)`.
 
-> À vérifier après l'exécution de la CI de la PR : un job sauve le cache
-> (étape « Sauvegarde du dépôt Maven »), les autres jobs parallèles ne
-> passent pas au rouge ; puis, sur une relance, « Restauration du dépôt
-> Maven » trouve la clé et « Versement » tourne. Relever les liens, le head
-> SHA et la durée de l'étape de construction dans les deux cas.
+En CI, sur la PR #150, au commit `2134545` (première exécution, aucune clé
+encore sauvée) :
+
+- job `oracle` (exécution
+  <https://github.com/karAmmi12/migrabench/actions/runs/45867393553>) :
+  `Cache not found for input keys:
+  maven-repository-Linux-3ec5a7e7…cfad74`, construction de 17:24:48 à
+  17:25:21 (`dependency:go-offline` : `DONE 15.1s`), extraction de
+  `56.73MB`, puis `Cache saved with key: maven-repository-Linux-3ec5a7e7…` ;
+- job `tests` (exécution
+  <https://github.com/karAmmi12/migrabench/actions/runs/45867393619>),
+  parallèle : `Failed to save: Unable to reserve cache with key …, another
+  job may be creating this cache.` Simple avertissement : le job est vert ;
+- job `proof`, lancé après `oracle` dans la même exécution : clé trouvée,
+  versement en 12 s, construction de 17:26:36 à 17:26:44
+  (`dependency:go-offline` : `DONE 3.3s`), extraction et sauvegarde sautées,
+  puis `Proof holds on 5 results.`
+
+Le cas « clé trouvée » est donc prouvé par `proof` dans la même exécution,
+sans relance. Tous les jobs de la PR sont verts à ce commit (tests, oracle,
+proof, calibration, measures, typecheck, pinned-actions, fiche-ticket).
 
 ## Pour aller plus loin
 
