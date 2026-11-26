@@ -15,7 +15,7 @@ import { copyDigest, expurgate, LEGACY_DIR_FROM_ROOT, readLegacyFiles, workDirRe
 import { ROOT } from "../shared/root.ts";
 
 const KIT_DIR_FROM_ROOT = "fixtures/trial-kit";
-const SOURCES = [LEGACY_DIR_FROM_ROOT, KIT_DIR_FROM_ROOT, "scripts/legacy-copy.ts", "scripts/trial-copy.ts"];
+const SOURCES = [LEGACY_DIR_FROM_ROOT, KIT_DIR_FROM_ROOT, "scripts/legacy-copy.ts", "scripts/trial-copy.ts", "shared/digest.ts", "shared/root.ts"];
 
 function fail(message: string): never {
   console.error(message);

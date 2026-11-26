@@ -15,8 +15,8 @@ const RUNNER_ERRORS = "tests/runner/runner-errors.test.ts";
 // RUNNER_ERRORS, donc son propre groupe, après lui.
 const INTERRUPTED = "tests/runner/interrupted-measure.test.ts";
 // Redémarre le legacy : aucun autre test ne doit écrire sur la pile pendant ce
-// temps (#67). Son propre groupe, le dernier de ceux qui touchent la pile : deux projets du même
-// groupOrder tournent en parallèle.
+// temps (#67). Son propre groupe, le dernier de ceux qui touchent la pile :
+// deux projets du même groupOrder tournent en parallèle.
 const LEGACY_RESTART = "tests/seam-a/access-log.test.ts";
 // Construit l'image de la copie expurgée du legacy (#125) : un build Maven
 // complet, qui ralentirait les tests du Seam A en parallèle. Son propre

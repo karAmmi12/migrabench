@@ -40,6 +40,11 @@ const EXCLUDED = [/^TRAPS\.md$/, /^Dockerfile$/, /^access-log\//];
 
 const DATASET = "src/main/resources/dossiers.json";
 
+/** Vrai si ce fichier du legacy n'entre pas dans la copie. */
+export function isExcluded(path: string): boolean {
+  return EXCLUDED.some((pattern) => pattern.test(path));
+}
+
 // Dans l'ordre : le plus précis d'abord.
 const RENAMES: readonly (readonly [string, string])[] = [
   ["fr.migrabench.legacy", "fr.mairie.dossiers"],
@@ -96,7 +101,7 @@ export function filterDataset(json: string): string {
 /** La copie expurgée de ces fichiers du legacy, dans le même ordre. */
 export function expurgate(files: readonly SourceFile[]): SourceFile[] {
   return files
-    .filter((file) => !EXCLUDED.some((pattern) => pattern.test(file.path)))
+    .filter((file) => !isExcluded(file.path))
     .map((file) => {
       const stripped = stripBenchComments(file.path, file.content);
       const content = file.path === DATASET ? filterDataset(stripped) : stripped;

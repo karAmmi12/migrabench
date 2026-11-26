@@ -9,7 +9,9 @@ Chaque commentaire du legacy écrit pour le banc (piège, ADR, banc, oracle…)
 porte le marqueur `[banc]`. La copie expurgée que reçoit un agent
 (`scripts/legacy-copy.ts`, ADR 0010) retire ces commentaires, et un test
 échoue si un commentaire parle du banc sans le marqueur. Un commentaire qui
-mêle documentation du code et note du banc est scindé en deux.
+mêle documentation du code et note du banc est scindé en deux. Le test
+cherche « porte » en mot entier : un commentaire du legacy évite le verbe
+(« le dossier de ce numéro », pas « qui porte ce numéro »).
 
 ## Contrôle de rôle dans la vue
 

@@ -93,7 +93,9 @@ npm run trial:redact -- /tmp/trial-claude.jsonl <provenance>/session.jsonl "$WOR
 Le script remplace ces valeurs par `<HOME>`, `<USER>`, `<HOST>`,
 `<WORKDIR>` et `<SESSION_ID>`, et écrit à côté `session.jsonl.redaction.json` :
 le sha256 du journal original et le nombre de remplacements par étiquette,
-jamais les valeurs. On relit ensuite la copie à la recherche d'une donnée
+jamais les valeurs. Le remplacement se fait en sous-chaîne : un nom
+d'utilisateur ou de machine court peut aussi toucher du contenu légitime.
+On relit donc la copie, pour ces remplacements de trop comme pour une donnée
 personnelle restante (`/Users/`, `/home/`, adresse électronique). Le journal
 original reste hors du dépôt.
 

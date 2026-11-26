@@ -5,7 +5,7 @@
 // machine, le répertoire de travail et les identifiants de session. Écrit à
 // côté de la copie `<copie>.redaction.json` : sha256 de l'original et nombre
 // de remplacements par étiquette, jamais les valeurs remplacées.
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { homedir, hostname, userInfo } from "node:os";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -45,7 +45,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     { label: "<HOME>", value: homedir() },
     { label: "<USER>", value: userInfo().username },
     { label: "<HOST>", value: hostname() },
-    ...(workDir === undefined ? [] : [{ label: "<WORKDIR>", value: resolve(workDir) }]),
+    // Chemin donné et chemin réel : /tmp est un lien vers /private/tmp sous macOS.
+    ...(workDir === undefined ? [] : [...new Set([resolve(workDir), realpathSync(workDir)])].map((value) => ({ label: "<WORKDIR>", value }))),
     ...sessionIdsOf(text).map((value) => ({ label: "<SESSION_ID>", value })),
   ];
   const result = redactLog(text, replacements);

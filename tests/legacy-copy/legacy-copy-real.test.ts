@@ -4,7 +4,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { BENCH_MARKER, expurgate, readLegacyFiles, unmarkedBenchComments } from "../../scripts/legacy-copy.ts";
+import { BENCH_MARKER, expurgate, isExcluded, readLegacyFiles, unmarkedBenchComments } from "../../scripts/legacy-copy.ts";
 import { readBenchEnv, ROOT } from "../../shared/root.ts";
 
 const legacy = readLegacyFiles(ROOT);
@@ -58,7 +58,7 @@ function witnessHits(text: string): string[] {
 }
 
 describe("bench comments of fixtures/legacy-app", () => {
-  it.each(legacy.filter((file) => !/^(TRAPS\.md|Dockerfile|access-log\/)/.test(file.path)).map((file) => [file.path, file]))(
+  it.each(legacy.filter((file) => !isExcluded(file.path)).map((file) => [file.path, file]))(
     "%s: every comment that cites the bench carries the marker",
     (_path, file) => {
       expect(unmarkedBenchComments(file.path, file.content).map((comment) => comment.text)).toEqual([]);
@@ -76,7 +76,7 @@ describe("legacy copy given to the agent", () => {
   });
 
   it("leaves out TRAPS.md, the Dockerfile and access-log/, and keeps every other file", () => {
-    const kept = legacy.filter((file) => !/^(TRAPS\.md|Dockerfile|access-log\/)/.test(file.path));
+    const kept = legacy.filter((file) => !isExcluded(file.path));
 
     expect(copy.map((file) => file.path).some((path) => /TRAPS|Dockerfile|access-log/.test(path))).toBe(false);
     expect(copy).toHaveLength(kept.length);
