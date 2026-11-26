@@ -3,7 +3,9 @@
 // dépôt, et ses navigateurs sont ceux de l'image. Une montée de
 // @playwright/test ne peut pas oublier l'image, ni l'image se désaccorder de
 // docker-compose.yml.
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import { join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { BROWSER_IMAGE } from "../oracle/browser.ts";
 import { CANDIDATE_PORT } from "../runner/candidate-runtime.ts";
@@ -60,5 +62,33 @@ describe("browser image", () => {
 describe("browser relay", () => {
   it("relays the candidate port the bench imposes, at the same port", () => {
     expect(read("fixtures/browser/server.mjs")).toContain(`[${CANDIDATE_PORT}, "candidate", ${CANDIDATE_PORT}]`);
+  });
+});
+
+// Aucun navigateur local (#78) : un `chromium.launch()` passerait sur un poste
+// qui a encore un Chromium installé, mais échouerait en CI, qui n'en a plus.
+const LOCAL_LAUNCH = /\b(?:chromium|firefox|webkit)\s*\.\s*(?:launch|launchPersistentContext|launchServer)\s*\(/;
+
+function localLaunches(source: string): string[] {
+  return source.split("\n").flatMap((line, index) => (LOCAL_LAUNCH.test(line) ? [`${index + 1}: ${line.trim()}`] : []));
+}
+
+function sourceFiles(dir: string): string[] {
+  return readdirSync(new URL(`../${dir}`, import.meta.url), { withFileTypes: true, recursive: true })
+    .filter((entry) => entry.isFile() && /\.(?:ts|mjs|js)$/.test(entry.name) && !entry.parentPath.includes("/fixtures/"))
+    .map((entry) => join(relative(fileURLToPath(new URL("..", import.meta.url)), entry.parentPath), entry.name));
+}
+
+describe("local browser launches", () => {
+  // Témoins : le contrôle sait voir chaque forme.
+  it.each(["browser = await chromium.launch();", "await chromium.launchPersistentContext(dir)", "const server = await chromium.launchServer({});", "firefox.launch()"])("finds %s", (line) => {
+    expect(localLaunches(`const a = 1;\n${line}\n`)).toEqual([`2: ${line}`]);
+  });
+
+  it("are found nowhere in the bench sources and tests", () => {
+    const files = ["gates", "oracle", "runner", "scripts", "shared", "tests"].flatMap(sourceFiles).filter((file) => file !== "tests/browser-image-sync.test.ts");
+    // Le contrôle a bien examiné les tests de l'oracle.
+    expect(files).toContain("tests/oracle/receipt.test.ts");
+    expect(files.flatMap((file) => localLaunches(read(file)).map((line) => `${file}:${line}`))).toEqual([]);
   });
 });
