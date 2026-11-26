@@ -99,7 +99,7 @@ viennent chacune dans leur commit, décrit ci-dessous.
 Aucune correction au contrat : la mesure de diagnostic passe la phase du
 contrat sur la sortie brute.
 
-1. **Journaux, répertoire personnel de l'image** : le `$HOME` de
+1. **Journaux, répertoire personnel de l'image** (commit `3e13586`) : le `$HOME` de
    l'utilisateur `node` de l'image de l'agent est remplacé par
    `<CONTAINER_HOME>` dans les deux journaux expurgés : 5 fois dans
    `session.jsonl` (`memory_paths` de `system/init`, chemins des
@@ -112,4 +112,25 @@ contrat sur la sortie brute.
 
 ## Mesure de diagnostic
 
-À venir.
+| Élément | Valeur |
+|---|---|
+| Identifiant | `20261126T160304Z-cbaf6bd-trial-candidates-claude-code-20261126-candidate` |
+| Commit du banc | `cbaf6bd` (premier commit, sortie brute), `environment.worktree` : `clean` |
+| Commande | `npm run migrabench -- measure --candidate fixtures/trial-candidates/claude-code-20261126/candidate`, après `npm run stack:up`, sur le poste de Karim |
+| `candidate.contentDigest` | `sha256:9e87d63f1ccf81915b93712910d64dc026e8b0e0b8d98d57c2391be77e1dcc06` |
+| Verdict | `completed` (`ok`), code de sortie 0 |
+| Phases | toutes `ok` : construction 5 821 ms, démarrage 6 027 ms, oracle 6 423 ms |
+| `oracle.summary` | 38 scénarios, 38 réussis, 0 échoué, 0 non atteint ; clavier 5 sur 5 |
+| Porte du relais | `legacy-port-untouched` : `passed`, 7 lignes examinées |
+| Limites | issues d'un étalonnage (`limits.source` : `calibration`) |
+
+Ce n'est pas une mesure comptée (`counted: false`) : le sel est tiré par la
+mesure, pas imposé. `measure/measure.json` et `measure/oracle.json` sont
+copiés, octet pour octet, de
+`results/diagnostic/<identifiant>/` (sha256 `98d37f6f…99f8c3` et
+`9a2d08aa…69b9f`, ce dernier égal à `oracle.result` de `measure.json`).
+
+## Critère de repli
+
+La mesure est `completed` et `oracle.summary.passed` vaut 38 : le critère
+de repli ne s'applique pas. Le candidat peut servir de fixture aux portes.
