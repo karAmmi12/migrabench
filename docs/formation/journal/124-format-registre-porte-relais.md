@@ -129,11 +129,17 @@ address ».
   `gate-error`, « nom exact fixé par G0 ». Le suffixe suit les causes déjà
   là (`runner-error-before-candidate`, `stack-failed-before-candidate`) et
   dit pourquoi la mesure est invalide.
-- **Délai de la phase dépassé : `errored`, `on-candidate`, `timeout`.**
-  Confirmé par Karim. Le temps a été pris par l'examen des portes
-  précédentes, que le candidat a pu ralentir. L'option `before-candidate`
-  est écartée : elle laisserait un candidat lent faire invalider sa mesure
-  (règle 7).
+- **Délai de la phase dépassé : `errored`, `on-candidate`,
+  `gates-phase-timeout`.** Une porte jamais lancée parce que la phase a
+  dépassé son délai global reste `on-candidate`, choix confirmé par Karim :
+  le temps a été pris par l'examen des portes précédentes, que le candidat a
+  pu ralentir. L'option `before-candidate` est écartée, car elle laisserait
+  un candidat lent faire invalider sa mesure (règle 7).
+  - Après la fusion de #141, Karim a demandé une cause propre,
+    `gates-phase-timeout`, distincte de `timeout`, pour que l'étape 5 voie
+    que la porte n'a rien examiné. Elle est livrée par une PR de suite.
+  - Une porte déjà lancée et coupée par l'échéance de la phase garde
+    `timeout` : elle a pu examiner une partie du candidat.
 - **Candidat qui ne redémarre pas après `restartLegacy()` : échec du
   candidat.** Confirmé par Karim. Seule la pile qui ne redevient pas saine
   rend la mesure invalide. L'option « tout échec du redémarrage invalide la
