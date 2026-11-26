@@ -17,16 +17,24 @@
 // Les pannes de la pile et les erreurs imprévues du runner, rangées dans une
 // mesure, viennent de #68 (oracle/stack-state.ts).
 // La mesure interrompue vient de #71 (runner/interruption.ts).
+// Les portes, leur registre et leur contexte viennent de #124 (gates/) : les
+// portes tournent dans la phase `gates`, candidat en marche, sauf la porte du
+// relais, lancée dans la clôture après la requête témoin `end` et le contrôle
+// du journal d'accès.
 import { randomBytes } from "node:crypto";
 import { renameSync } from "node:fs";
-import { mkdir, rename, stat, writeFile } from "node:fs/promises";
+import { mkdir, readdir, rename, stat, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
-import { executeOracle, type ExecuteOracleResult, listOracle, OracleError, StackFailed } from "../oracle/execute.ts";
+import { executeOracle, type ExecuteOracleResult, listOracle, OracleError, recreateStack, StackFailed } from "../oracle/execute.ts";
+import { type GateContext, StackIncident } from "../gates/context.ts";
+import { GATES, GATES_PHASE_TIMEOUT_MS, gatesOf, runGates } from "../gates/registry.ts";
+import { beforeCandidateEvidence, type GateResult } from "../gates/result.ts";
+import { fetchFromInternal, INTERNAL_API_URL } from "../shared/internal-api.ts";
 import { SERVICES, stackContextDigests, StackNotFromCopy, verifyBuiltImages } from "../oracle/stack-images.ts";
-import { saveServiceLogs, type ServiceState, stackDown, stackStates } from "../oracle/stack-state.ts";
+import { saveServiceLogs, type ServiceState, type StackDown, stackDown, stackStates } from "../oracle/stack-state.ts";
 import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
 import { checkAccessLog } from "./access-log.ts";
-import { closeAccessLog, sendWitness, witnessEvidence } from "./witness.ts";
+import { ACCESS_LOG_FILE, closeAccessLog, sendWitness, witnessEvidence } from "./witness.ts";
 import { readSeamAMarkers } from "../shared/seam-a-marker.ts";
 import { contentDigest } from "./candidate-content.ts";
 import { contractPhase, type ContractPhaseResult } from "./contract-phase.ts";
@@ -165,6 +173,8 @@ interface ClosingResult {
   raw?: Record<string, string>;
   detail?: string | undefined;
   accessLog?: AccessLogRecord;
+  // Résultats de la porte du relais.
+  gates?: GateResult[];
 }
 
 // Résultat collecté de l'oracle, dans le dossier des bruts, avant sa
@@ -226,6 +236,11 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
   let service: CandidateService | undefined;
   let oracle: OracleRecord | undefined;
   let oracleMetadata: ExecuteOracleResult["metadata"] | undefined;
+  // Résultats des portes de la phase `gates`, et contexte donné aux portes,
+  // repris par la porte du relais dans la clôture : défini si la phase
+  // `gates` a été atteinte.
+  const gateResults: GateResult[] = [];
+  let gateContext: Omit<GateContext, "signal"> | undefined;
 
   // Phases 1 à 6 : un `return` arrête la mesure, la clôture tourne toujours.
   const runPhases = async (): Promise<void> => {
@@ -277,10 +292,25 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     const described = await candidateService({ rawDir, copyDir, user: containerUserOfRunner, start, limits });
     service = described;
     let closeOracle: ClosePhase<"oracle"> | undefined;
-    let startOutcome: PhaseOutcome<"start"> = "ok";
     // État de la pile saine, candidat arrêté : comparé à celui de la fin de
-    // l'oracle pour voir un service tombé pendant que le candidat tournait.
+    // l'oracle, et de chaque porte, pour voir un service tombé pendant que le
+    // candidat tournait.
     let stackBefore: ServiceState[] = [];
+    // Pile recréée et saine : candidat arrêté, requête témoin de début
+    // suivante, puis candidat recréé et attendu. Après l'exécution de l'oracle,
+    // et à chaque redémarrage du legacy demandé par une porte.
+    const readyCandidate = async (): Promise<void> => {
+      await stopCandidate(described);
+      const name = `start-${startWitnesses.length + 1}`;
+      startWitnesses.push(name);
+      const witness = await sendWitness(name, { accessLogDir, marker });
+      const check = checkAccessLog({ log: witness.log, marker, expected: startWitnesses, seamAMarkers: [] });
+      if (check.outcome === "access-log-inactive") throw new CandidateNotStarted(check.outcome, witnessEvidence(witness, check));
+      stackBefore = await stackStates();
+      await startCandidate(described);
+      const ready = await waitUntilReady(described, limits.readyTimeoutMs);
+      if (ready !== "ok") throw new CandidateNotStarted(ready);
+    };
     let result: ExecuteOracleResult;
     try {
       result = await executeOracle({
@@ -294,20 +324,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
         resultFile: join(rawDir, COLLECTED_RESULT),
         accessLogDir,
         onStackReady: async () => {
-          await stopCandidate(described);
-          // Requête témoin de début, pile saine et candidat arrêté.
-          const name = `start-${startWitnesses.length + 1}`;
-          startWitnesses.push(name);
-          const witness = await sendWitness(name, { accessLogDir, marker });
-          const check = checkAccessLog({ log: witness.log, marker, expected: startWitnesses, seamAMarkers: [] });
-          if (check.outcome === "access-log-inactive") {
-            startOutcome = check.outcome;
-            throw new CandidateNotStarted(check.outcome, witnessEvidence(witness, check));
-          }
-          stackBefore = await stackStates();
-          await startCandidate(described);
-          startOutcome = await waitUntilReady(described, limits.readyTimeoutMs);
-          if (startOutcome !== "ok") throw new CandidateNotStarted(startOutcome);
+          await readyCandidate();
           closeStart();
           closeOracle = phase("oracle");
         },
@@ -317,7 +334,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
       // n'est pas devenue saine (#68) : candidat arrêté, un incident du banc.
       if (error instanceof StackNotFromCopy) return void closeStart("stack-not-from-this-copy", {}, error.message);
       if (error instanceof StackFailed) return void closeStart("stack-failed-before-candidate", await saveServiceLogs(rawDir, SERVICES), error.message);
-      if (error instanceof CandidateNotStarted) return void closeStart(startOutcome, {}, error.detail);
+      if (error instanceof CandidateNotStarted) return void closeStart(error.outcome, {}, error.detail);
       // Playwright n'a écrit aucun rapport (#68) : oracle non exécuté, sans
       // compte des scénarios, que la liste ne donnerait pas non plus.
       if (error instanceof OracleError && closeOracle !== undefined) {
@@ -339,11 +356,52 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     // même exécution, que le candidat a pu provoquer en la faisant tomber :
     // invalider la mesure lui offrirait une seconde chance (règle 7).
     const down = stackDown(stackBefore, await stackStates());
-    if (down !== undefined) closeOracle?.("stack-down-while-candidate", await saveServiceLogs(rawDir, down.services), down.detail);
-    else if (result.errors > 0) closeOracle?.("oracle-error", {}, result.errorMessages.join("\n"));
-    else closeOracle?.();
+    // La mesure est alors décidée, et la pile n'est plus sûre : les portes ne
+    // tournent pas (#124).
+    if (down !== undefined) return void closeOracle?.("stack-down-while-candidate", await saveServiceLogs(rawDir, down.services), down.detail);
+    if (result.errors > 0) return void closeOracle?.("oracle-error", {}, result.errorMessages.join("\n"));
+    closeOracle?.();
+
+    // 6. Portes, candidat en marche, dans l'ordre du registre (gates/). Une
+    // panne de la pile pendant une porte est rangée comme ailleurs ; une
+    // erreur de porte avant le candidat rend la mesure invalide. Aucun autre
+    // résultat ne change le verdict (ADR 0008).
     const closeGates = phase("gates");
-    closeGates();
+    gateContext = {
+      candidateUrl: CANDIDATE_BASE_URL,
+      candidateDir,
+      builtCopyDir: copyDir,
+      oracle: { resultFile: join(measureDir, "oracle.json"), harFiles: await harFiles(join(rawDir, "oracle")) },
+      internalApi: { get: (path) => fetchFromInternal(`${INTERNAL_API_URL}${path}`, { method: "GET" }) },
+      restartLegacy: async () => {
+        try {
+          await recreateStack(measureSalt, accessLogDir);
+          await readyCandidate();
+        } catch (error) {
+          if (error instanceof StackFailed) throw new StackIncident("stack-failed-before-candidate", error.message);
+          if (error instanceof StackNotFromCopy) throw new StackIncident("stack-not-from-this-copy", error.message);
+          if (error instanceof CandidateNotStarted) throw new StackIncident(error.outcome, error.detail);
+          throw error;
+        }
+      },
+    };
+    try {
+      gateResults.push(
+        ...(await runGates(gatesOf(GATES, "gates"), gateContext, {
+          deadline: Date.now() + GATES_PHASE_TIMEOUT_MS,
+          afterEach: async () => {
+            const fell = stackDown(stackBefore, await stackStates());
+            if (fell !== undefined) throw new StackDownDuringGates(fell);
+          },
+        })),
+      );
+    } catch (error) {
+      if (error instanceof StackIncident) return void closeGates(error.outcome, {}, error.detail ?? error.message);
+      if (error instanceof StackDownDuringGates) return void closeGates("stack-down-while-candidate", await saveServiceLogs(rawDir, error.down.services), error.down.detail);
+      throw error;
+    }
+    const gateError = beforeCandidateEvidence(gateResults);
+    closeGates(gateError === undefined ? "ok" : "gate-error-before-candidate", {}, gateError);
   };
   const commands = interruptibleCommands(runPhases);
   // Une erreur levée après l'interruption en est la suite : elle n'est pas rangée.
@@ -400,7 +458,22 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
       if (unplaced !== undefined) return { oracle: closingOracle, outcome: runnerErrorOutcome(npmCiLaunched), detail: unplaced };
       if (startWitnesses.length === 0) return { oracle: closingOracle };
       const closed = await closeAccessLog({ accessLogDir, marker, rawDir, startWitnesses, seamAMarkers: readSeamAMarkers() });
-      return { oracle: closingOracle, outcome: closed.outcome, raw: closed.raw, detail: closed.detail, ...(closed.accessLog === undefined ? {} : { accessLog: closed.accessLog }) };
+      const checked = { oracle: closingOracle, outcome: closed.outcome, raw: closed.raw, detail: closed.detail, ...(closed.accessLog === undefined ? {} : { accessLog: closed.accessLog }) };
+      // Porte du relais : après la requête témoin `end` et un journal
+      // contrôlé `ok`, si la phase `gates` a été atteinte et que la mesure
+      // n'est pas interrompue. Une erreur avant le candidat rend la mesure
+      // invalide.
+      if (closed.outcome !== "ok" || closed.accessLog === undefined || gateContext === undefined || interruption.signal() !== undefined) return checked;
+      const accessLog = { file: join(rawDir, ACCESS_LOG_FILE), digest: closed.accessLog.log, witnesses: closed.accessLog.witnesses };
+      let gates: GateResult[];
+      try {
+        gates = await runGates(gatesOf(GATES, "closing"), { ...gateContext, accessLog });
+      } catch (error) {
+        // Erreur du banc : rangée comme ailleurs, le relevé du journal gardé.
+        return { ...checked, outcome: runnerErrorOutcome(npmCiLaunched), detail: describeError(error) };
+      }
+      const gateError = beforeCandidateEvidence(gates);
+      return { ...checked, gates, ...(gateError === undefined ? {} : { outcome: "gate-error-before-candidate" as const, detail: gateError }) };
     } catch (error) {
       return { oracle: closingOracle ?? { executed: false }, outcome: runnerErrorOutcome(npmCiLaunched), detail: describeError(error) };
     }
@@ -439,6 +512,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     phases,
     oracle: closing.oracle,
     ...(counted === undefined ? {} : { counted }),
+    gates: [...gateResults, ...(closing.gates ?? [])],
   });
   // Écriture atomique : un fichier temporaire, puis renommé. Un arrêt pendant
   // l'écriture ne laisse jamais un measure.json à moitié écrit (#71).
@@ -477,10 +551,33 @@ async function isFile(path: string): Promise<boolean> {
 // Levée par le rappel pour arrêter l'exécution de l'oracle avant Playwright.
 // `detail` : la preuve d'une issue qui rend la mesure invalide.
 class CandidateNotStarted extends Error {
+  readonly outcome: "access-log-inactive" | "start-exited" | "start-not-ready";
   readonly detail: string | undefined;
-  constructor(outcome: PhaseOutcome<"start">, detail?: string) {
+  constructor(outcome: CandidateNotStarted["outcome"], detail?: string) {
     super(`The candidate did not start: ${outcome}`);
+    this.outcome = outcome;
     this.detail = detail;
+  }
+}
+
+// Levée après une porte quand un service de la pile est tombé pendant
+// qu'elle examinait le candidat (spec de l'étape 3, « stack-down-while-candidate »).
+class StackDownDuringGates extends Error {
+  readonly down: StackDown;
+  constructor(down: StackDown) {
+    super(down.detail);
+    this.down = down;
+  }
+}
+
+// HAR des scénarios de l'oracle (oracle/support.ts), sous son dossier des bruts.
+async function harFiles(dir: string): Promise<string[]> {
+  try {
+    const entries = await readdir(dir, { withFileTypes: true, recursive: true });
+    return entries.filter((entry) => entry.isFile() && entry.name.endsWith(".har")).map((entry) => join(entry.parentPath, entry.name)).sort();
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+    throw error;
   }
 }
 

@@ -11,7 +11,6 @@ import { candidateCompose } from "./candidate-compose.ts";
 import { type CandidateFile, isCopied } from "./candidate-content.ts";
 import type { ContainerUser } from "./container-user.ts";
 import { type Limits, startLimits } from "./limits.ts";
-import type { PhaseOutcome } from "./verdict.ts";
 
 // Port imposé au candidat, publié sur 127.0.0.1.
 export const CANDIDATE_PORT = 8100;
@@ -103,7 +102,7 @@ export async function startCandidate({ compose }: CandidateService): Promise<voi
 }
 
 // Disponible dès qu'une réponse HTTP arrive, quel que soit son statut.
-export async function waitUntilReady({ compose }: CandidateService, readyTimeoutMs: number): Promise<PhaseOutcome<"start">> {
+export async function waitUntilReady({ compose }: CandidateService, readyTimeoutMs: number): Promise<"ok" | "start-exited" | "start-not-ready"> {
   const deadline = Date.now() + readyTimeoutMs;
   while (Date.now() < deadline) {
     try {
