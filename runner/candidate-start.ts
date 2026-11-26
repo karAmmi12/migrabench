@@ -1,7 +1,7 @@
 // Démarrage du candidat sur une pile saine, et redémarrage du legacy demandé
 // par une porte (spec de l'étape 4, « Registre, contexte et ordre »). Sorti
 // de runner/measure.ts pour être testé sous faux `docker`
-// (tests/runner/candidate-restart.test.ts).
+// (tests/runner/candidate-start.test.ts).
 //
 // - `readyCandidate` : candidat arrêté, requête témoin `start-N` suivante et
 //   contrôle de la chaîne des témoins, état de la pile relevé, puis candidat
@@ -19,8 +19,9 @@ import { checkAccessLog } from "./access-log.ts";
 import { type CandidateService, type StartFailure, startCandidate, stopCandidate, waitUntilReady } from "./candidate-runtime.ts";
 import { sendWitness, witnessEvidence } from "./witness.ts";
 
-// Le candidat n'a pas démarré. `detail` : la preuve d'une issue qui rend la
-// mesure invalide.
+// Le candidat n'a pas démarré. Levée dans le rappel de l'oracle, elle arrête
+// son exécution avant Playwright ; dans un redémarrage, elle devient un
+// StackIncident. `detail` : la preuve d'une issue qui rend la mesure invalide.
 export class CandidateNotStarted extends Error {
   readonly outcome: "access-log-inactive" | StartFailure;
   readonly detail: string | undefined;

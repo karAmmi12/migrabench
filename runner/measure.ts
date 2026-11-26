@@ -36,7 +36,7 @@ import { ACCESS_LOG_FILE, closeAccessLog } from "./witness.ts";
 import { readSeamAMarkers } from "../shared/seam-a-marker.ts";
 import { fetchFromInternal, INTERNAL_API_URL } from "../shared/internal-api.ts";
 import { contentDigest } from "./candidate-content.ts";
-import { CandidateNotStarted, candidateStarter } from "./candidate-restart.ts";
+import { CandidateNotStarted, candidateStarter } from "./candidate-start.ts";
 import { contractPhase, type ContractPhaseResult } from "./contract-phase.ts";
 import { candidateName, measureId as measureIdOf } from "./measure-id.ts";
 import { type AccessLogRecord, type CandidateRecord, measureRecord, type OracleRecord } from "./measure-record.ts";
@@ -291,7 +291,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     service = described;
     let closeOracle: ClosePhase<"oracle"> | undefined;
     // Démarrage du candidat après chaque recréation de la pile, et
-    // redémarrage du legacy demandé par une porte (runner/candidate-restart.ts).
+    // redémarrage du legacy demandé par une porte (runner/candidate-start.ts).
     // `stackBefore` : l'état de la pile saine, candidat arrêté, comparé à celui
     // de la fin de l'oracle, et de chaque porte, pour voir un service tombé
     // pendant que le candidat tournait.
