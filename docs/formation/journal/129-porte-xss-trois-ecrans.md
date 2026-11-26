@@ -215,7 +215,35 @@ Couverture par les tests existants :
   `assigns each reserved dossier to exactly one scenario or gate`, dans
   `tests/seam-b/dataset.test.ts`.
 
-> À vérifier après l'exécution de la CI de la PR : le job des mesures (la référence et les quatre candidats XSS conformes à l'attendu, la durée de la phase `gates`, la durée des quatre étapes ajoutées), puis l'oracle à 38/38 et « Proof holds on 5 results » avec `D-0118`, et enfin les jobs `tests` et `typecheck`.
+**En CI, sur la vraie pile**, tête de la PR `dd5a226` (fusion de `main`
+dans la branche, après #130 et #153) :
+
+- job des mesures, [exécution 45904839677](https://github.com/karAmmi12/migrabench/actions/runs/45904839677) :
+  chaque cas est conforme à l'attendu.
+
+  | Mesure | Résultats XSS | Phase `gates` |
+  |---|---|---|
+  | `20261126T222801Z-dd5a226-reference-candidate` | `failed` à `executed/search` et `as-text/search`, `passed` aux quatre autres | 12 907 ms |
+  | `20261126T223520Z-dd5a226-conforming-candidates-xss-escapes` | six `passed` | 12 784 ms |
+  | `20261126T223619Z-dd5a226-defective-candidates-xss-sanitizes` | `as-text/search` `failed`, les cinq autres `passed` | 12 806 ms |
+  | `20261126T223717Z-dd5a226-defective-candidates-xss-injects-on-sheet` | `executed/sheet` `failed`, les cinq autres `passed` | 13 224 ms |
+  | `20261126T223816Z-dd5a226-defective-candidates-xss-executes-then-erases` | `executed/search` (constat `undefined`) et `as-text/search` `failed` | 12 840 ms |
+  | `20261126T223434Z-dd5a226-conforming-candidates-relay-untouched` | six `not-evaluable`, `examined: 0` | 913 ms |
+
+- **Durée ajoutée à la mesure en CI** : la phase `gates` du candidat de
+  référence durait 2 802 ms avant la porte XSS (mesure
+  `20261126T221443Z-1f990d7-reference-candidate`,
+  [exécution 45903361617](https://github.com/karAmmi12/migrabench/actions/runs/45903361617)),
+  et 12 907 ms avec elle. La porte ajoute donc 10,1 s par mesure, sous le
+  seuil de 5 minutes. Les quatre étapes de mesure ajoutées au job durent
+  ensemble 3 min 53 s (de 22:35:20Z à 22:39:13Z).
+- Oracle et preuve avec `D-0118`,
+  [exécution 45904839458](https://github.com/karAmmi12/migrabench/actions/runs/45904839458) :
+  `38 passed` à l'exécution complète et à chacune des cinq exécutions de la
+  preuve, puis `Proof holds on 5 results.`
+- `tests`, [exécution 45904839542](https://github.com/karAmmi12/migrabench/actions/runs/45904839542) :
+  `Test Files  99 passed (99)`.
+- `typecheck`, [exécution 45904839452](https://github.com/karAmmi12/migrabench/actions/runs/45904839452) : vert.
 
 ## Pour aller plus loin
 
