@@ -191,6 +191,19 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
     clôture gagne `gate-error-before-candidate`. La table des phases de la
     spec de l'étape 3 décrit l'étape 3 et n'est pas réécrite.
 - Les portes sont lancées par Playwright avec le Chromium figé par #78.
+- **Outils épinglés dans l'environnement** (décision de Karim, #128). Toute
+  porte qui épingle un outil déclare sa version installée par `tools()`
+  (`gates/registry.ts`). Le runner l'écrit dans l'environnement de la mesure,
+  sous `environment.gateTools`, une fois par mesure.
+  - Outils concernés : axe-core (#128), TypeScript (#136), ESLint et chacun de
+    ses plugins (#138), osv-scanner et la base OSV, avec la date et
+    l'empreinte de la base (#137), Lighthouse (#134).
+  - Les `values` d'un résultat restent des nombres (ADR 0008), et la version
+    n'y figure pas.
+  - Deux portes ne peuvent pas épingler un même outil à deux versions.
+- Le contexte donne aussi le dossier des bruts de la mesure (`rawDir`) : une
+  porte y écrit sous `gates/<porte>/` et cite chaque brut par son empreinte
+  (`gates/raw.ts`, ADR 0005).
 
 ### Porte du relais (G0, fil traceur)
 
@@ -240,6 +253,27 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
 - La forme réelle de la sortie d'axe est relevée sur une vraie page avant
   toute fixture. La version d'axe-core est épinglée et enregistrée, et ses
   tags WCAG sont fixés dans le ticket.
+- Précisions de #128, décidées par Karim :
+  - **Règles d'axe** : tags `wcag2a`, `wcag2aa`, `wcag21a` et `wcag21aa`
+    (WCAG 2.1 A et AA), sans `best-practice` ni `experimental`.
+    `@axe-core/playwright` et `axe-core` sont épinglés en 4.14.0. La version
+    est relevée dans `environment.gateTools`.
+  - **Écran non atteint** : il rend aussi les quatre `axe/*` non évaluables,
+    avec `examined: 0`, pour qu'un candidat n'échappe pas à axe en cassant un
+    écran. Les `values` gardent ce qui a été vu sur les écrans atteints :
+    `<écran>.reached`, puis `<écran>.violations`, `<écran>.violatingNodes` et
+    `<écran>.incomplete`.
+- Précisions de #128, prises par l'implémentation :
+  - **Écrans** : la recherche sans critère de l'oracle, puis `D-0003`,
+    dossier partagé `EN_INSTRUCTION`. La recherche et la fiche sont vues en
+    agent, la remise en instructeur.
+  - **`examined` de `tables-*`** : 1 par écran atteint. L'élément examiné est
+    l'écran, sinon un candidat sans aucun tableau serait non évaluable.
+  - **Recensement dans le DOM** : l'arbre d'accessibilité de Chromium range
+    les tableaux de mise en page du legacy en `LayoutTable`, et le legacy y
+    passerait. Le repli de `TRAPS.md` s'applique donc : un tableau est un
+    `table` sans `role="presentation"` ni `role="none"`. La preuve est la
+    sonde de `tests/fixtures/probe128-ec414b9/PROVENANCE.md`.
 
 ### XSS
 
