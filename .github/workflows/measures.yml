@@ -203,6 +203,25 @@ jobs:
         if: ${{ !cancelled() }}
         run: exec node scripts/run-measure-case.ts relay-untouched
 
+      # Porte XSS (#129) : le test négatif est le candidat de référence, qui
+      # échoue sur la recherche. Ces quatre relais ne réécrivent que les pages
+      # porteuses de la charge : l'oracle y réussit ses 38 scénarios.
+      - name: Porte XSS, candidat conforme qui échappe
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts xss-escapes
+
+      - name: Porte XSS, candidat qui assainit
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts xss-sanitizes
+
+      - name: Porte XSS, candidat qui injecte sur la fiche
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts xss-injects-on-sheet
+
+      - name: Porte XSS, candidat qui exécute puis efface
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts xss-executes-then-erases
+
       # La composition ajoutée par COMPOSE_FILE ne vaut que pour cette mesure :
       # la suivante recrée un legacy sain.
       - name: Candidat défectueux 7, pile volontairement cassée

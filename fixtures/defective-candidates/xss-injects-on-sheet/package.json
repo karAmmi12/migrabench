@@ -1,0 +1,7 @@
+{
+  "name": "xss-injects-on-sheet",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Candidat défectueux de la porte XSS : échappe sur la recherche, injecte le demandeur en HTML sur la fiche, après une requête.",
+  "type": "module"
+}

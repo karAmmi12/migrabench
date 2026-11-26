@@ -1,0 +1,7 @@
+{
+  "name": "xss-escapes",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Candidat conforme de la porte XSS : le relais de référence qui échappe le demandeur sur la recherche.",
+  "type": "module"
+}

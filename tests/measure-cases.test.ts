@@ -11,11 +11,11 @@ import { ACCESSIBILITY_MEASURES, GATE_MEASURES, MEASURES, readJsonFixture, readM
 function withoutGates(expected: MeasureCase, ...gates: string[]): MeasureCase {
   return { ...expected, gates: (expected.gates ?? []).filter(({ gate }) => !gates.includes(gate)) };
 }
-// Mesures d'avant la porte d'accessibilité (#128), donc d'avant celle de la
-// valeur témoin (#130).
-const beforeAccessibility = (expected: MeasureCase) => withoutGates(expected, "accessibility", "witness-value");
-// Mesures d'avant la porte de la valeur témoin (#130).
-const beforeWitnessValue = (expected: MeasureCase) => withoutGates(expected, "witness-value");
+// Mesures d'avant la porte d'accessibilité (#128), donc d'avant celles de la
+// valeur témoin (#130) et XSS (#129).
+const beforeAccessibility = (expected: MeasureCase) => withoutGates(expected, "accessibility", "witness-value", "xss");
+// Mesures d'avant la porte de la valeur témoin (#130), donc d'avant la porte XSS (#129).
+const beforeWitnessValue = (expected: MeasureCase) => withoutGates(expected, "witness-value", "xss");
 
 // Copie de la première mesure comptée du candidat de référence, produite par
 // le job des mesures sur main (exécution 45624689673, commit 52303ae) : son

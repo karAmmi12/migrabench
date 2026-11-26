@@ -1,0 +1,89 @@
+// Sonde #129 : forme réelle des signalements de __mbXss (addInitScript + exposeBinding) sur le vrai legacy.
+import { readFileSync, writeFileSync } from "node:fs";
+import { chromium } from "playwright-core";
+
+const users = JSON.parse(readFileSync("fixtures/users.json", "utf8"));
+const cred = (role) => { const u = users.find((x) => x.role === role); return { username: u.username, password: u.password }; };
+const PAYLOAD = '<img src=x onerror="window.__mbXss=1">';
+const browser = await chromium.connect("ws://127.0.0.1:8095/");
+console.log("chromium", browser.version());
+const out = {};
+
+async function arm(context, writes, label) {
+  await context.exposeBinding("__mbXssReport", (source, value) => {
+    const entry = { label: label(), value, sourceKeys: Object.keys(source), frameUrl: source.frame.url(), isMainFrame: source.frame === source.page?.mainFrame(), at: Date.now() };
+    writes.push(entry);
+  });
+  await context.addInitScript(() => {
+    const report = window.__mbXssReport;
+    window.__mbProbeBindingType = typeof report;
+    Object.defineProperty(window, "__mbXss", { configurable: false, enumerable: false, get() { return undefined; }, set(value) { report(typeof value === "string" ? value : JSON.stringify(value) ?? String(value)); } });
+  });
+}
+
+async function screenFacts(page, number) {
+  return {
+    url: page.url(),
+    bindingTypeAtInit: await page.evaluate(() => window.__mbProbeBindingType),
+    descriptor: await page.evaluate(() => { const d = Object.getOwnPropertyDescriptor(window, "__mbXss"); return d && { configurable: d.configurable, hasGet: typeof d.get, hasSet: typeof d.set }; }),
+    linksNamedNumber: await page.getByRole("link", { name: number, exact: true }).count(),
+    textNumberExact: await page.getByText(number, { exact: true }).count(),
+    textNumber: await page.getByText(number).count(),
+    payloadText: await page.getByText(PAYLOAD).count(),
+    innerTextHasPayload: await page.evaluate((p) => document.body.innerText.includes(p), PAYLOAD),
+    fieldsWithPayload: await page.evaluate((p) => [...document.querySelectorAll("input, textarea")].filter((e) => e.value.includes(p)).map((e) => ({ tag: e.tagName, id: e.id, readOnly: e.readOnly })), PAYLOAD),
+    imgs: await page.evaluate(() => [...document.querySelectorAll("img")].map((i) => i.outerHTML)),
+  };
+}
+
+// Écran 1 et 2, agent, D-0101.
+{
+  const writes = []; let step = "";
+  const ctx = await browser.newContext({ httpCredentials: cred("agent") });
+  await arm(ctx, writes, () => step);
+  const page = await ctx.newPage();
+  step = "search"; await page.goto("http://localhost:8080/");
+  await page.getByLabel(/^\s*Numéro(\s*[:*])*\s*$/).fill("D-0101");
+  step = "search D-0101"; await page.getByRole("button", { name: "Rechercher", exact: true }).click();
+  await page.getByRole("link", { name: "D-0101", exact: true }).waitFor();
+  await page.waitForLoadState("networkidle");
+  out.search = { writes: [...writes], facts: await screenFacts(page, "D-0101") };
+  // Tentatives d'effacement, depuis la page.
+  out.erase = await page.evaluate(() => {
+    const r = {};
+    r.deleteReturned = delete window.__mbXss;
+    try { window.__mbXss = undefined; r.assignUndefined = "no throw"; } catch (e) { r.assignUndefined = String(e); }
+    try { Object.defineProperty(window, "__mbXss", { value: 0 }); r.redefine = "no throw"; } catch (e) { r.redefine = String(e); }
+    window.__mbXssReport = () => {}; r.bindingOverwritten = true;
+    window.__mbXss = "after-overwrite";
+    return r;
+  });
+  await page.waitForTimeout(500);
+  out.eraseWrites = writes.slice(out.search.writes.length);
+  step = "sheet D-0101"; await page.getByRole("link", { name: "D-0101", exact: true }).click();
+  await page.getByLabel(/^\s*Objet(\s*[:*])*\s*$/).waitFor();
+  await page.waitForLoadState("networkidle");
+  const before = writes.length;
+  out.sheet = { writesSinceSearch: writes.slice(before), allWritesCount: writes.length, facts: await screenFacts(page, "D-0101") };
+  await ctx.close();
+}
+// Écran 3, instructeur, D-0118.
+{
+  const writes = []; let step = "";
+  const ctx = await browser.newContext({ httpCredentials: cred("instructeur") });
+  await arm(ctx, writes, () => step);
+  const page = await ctx.newPage();
+  step = "search"; await page.goto("http://localhost:8080/");
+  await page.getByLabel(/^\s*Numéro(\s*[:*])*\s*$/).fill("D-0118");
+  step = "search D-0118"; await page.getByRole("button", { name: "Rechercher", exact: true }).click();
+  step = "sheet D-0118"; await page.getByRole("link", { name: "D-0118", exact: true }).click();
+  await page.getByLabel(/^\s*Objet(\s*[:*])*\s*$/).waitFor();
+  step = "remise D-0118"; await page.getByRole("link", { name: "Remise", exact: true }).click();
+  await page.getByText("Second dossier réservé à la porte XSS", { exact: true }).first().waitFor();
+  await page.waitForLoadState("networkidle");
+  out.submission = { writes, facts: await screenFacts(page, "D-0118") };
+  await ctx.close();
+}
+await browser.close();
+writeFileSync(".probes/129/probe-output.json", `${JSON.stringify(out, null, 2)}\n`);
+console.log(JSON.stringify(out, null, 2));
