@@ -105,6 +105,11 @@ address ».
     45624689673 ;
   - `passed-rule.test.ts` : refuse toute comparaison de `outcome` à
     `"passed"` hors de `gates/result.ts`, avec ses témoins.
+- **Fixtures de vraies mesures** (`tests/fixtures/ci45812433661/`) : les
+  mesures du job des mesures de la PR, copiées sans modification avec leur
+  provenance. `tests/measure-cases.test.ts` y teste le contrôle des résultats
+  de portes attendus, avec deux témoins : une issue inattendue, et un constat
+  qui ne cite pas `curl/8.18.0`.
 - **Spec** (`docs/specs/04-gates.md`) : le nom de la cause, la place du relais
   dans la clôture, et les précisions de G0.
 
