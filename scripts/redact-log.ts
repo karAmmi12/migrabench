@@ -2,8 +2,8 @@
 // expurge le journal de l'agent qui a produit un candidat d'essai (procédure
 // de docs/candidat-essai.md, étape 5) avant de le verser dans la provenance.
 // Remplace le jeton d'abonnement, le répertoire personnel, le nom
-// d'utilisateur, le nom de la machine, le répertoire de travail et les
-// identifiants de session. Écrit à côté de la copie
+// d'utilisateur, le nom de la machine, le répertoire de travail, les
+// identifiants de session et le répertoire personnel de l'image de l'agent. Écrit à côté de la copie
 // `<copie>.redaction.json` : sha256 de l'original et nombre de remplacements
 // par étiquette, jamais les valeurs remplacées.
 //
@@ -35,6 +35,26 @@ export function redactLog(text: string, replacements: readonly Replacement[]): {
     redacted = parts.join(label);
   }
   return { text: redacted, counts };
+}
+
+/**
+ * `$HOME` de l'utilisateur `node` de l'image de l'agent
+ * (fixtures/trial-agent/Dockerfile). Ce n'est pas une donnée personnelle,
+ * mais aucun fichier de fixtures/trial-candidates/ ne contient `/home/` (#126).
+ */
+export const CONTAINER_HOME = "/home/node";
+
+/** Ce qu'il faut remplacer dans le journal d'un lancement, avec son étiquette. */
+export function replacementsFor(input: { token: string; home: string; user: string; host: string; workDirs: readonly string[]; log: string }): Replacement[] {
+  return [
+    { label: "<OAUTH_TOKEN>", value: input.token },
+    { label: "<HOME>", value: input.home },
+    { label: "<USER>", value: input.user },
+    { label: "<HOST>", value: input.host },
+    ...input.workDirs.map((value) => ({ label: "<WORKDIR>", value })),
+    ...sessionIdsOf(input.log).map((value) => ({ label: "<SESSION_ID>", value })),
+    { label: "<CONTAINER_HOME>", value: CONTAINER_HOME },
+  ];
 }
 
 /** Identifiants de session d'un journal `stream-json`, dans l'ordre, une fois chacun. */
@@ -71,15 +91,15 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   }
   const original = readFileSync(input);
   const text = original.toString("utf8");
-  const replacements: Replacement[] = [
-    { label: "<OAUTH_TOKEN>", value: token },
-    { label: "<HOME>", value: homedir() },
-    { label: "<USER>", value: userInfo().username },
-    { label: "<HOST>", value: hostname() },
+  const replacements = replacementsFor({
+    token,
+    home: homedir(),
+    user: userInfo().username,
+    host: hostname(),
     // Chemin donné et chemin réel : /tmp est un lien vers /private/tmp sous macOS.
-    ...[...new Set([resolve(workDir), realpathSync(workDir)])].map((value) => ({ label: "<WORKDIR>", value })),
-    ...sessionIdsOf(text).map((value) => ({ label: "<SESSION_ID>", value })),
-  ];
+    workDirs: [...new Set([resolve(workDir), realpathSync(workDir)])],
+    log: text,
+  });
   const result = redactLog(text, replacements);
   writeFileSync(output, result.text);
   writeFileSync(`${output}.redaction.json`, `${JSON.stringify({ original: `sha256:${sha256(original)}`, replacements: result.counts }, null, 2)}\n`);

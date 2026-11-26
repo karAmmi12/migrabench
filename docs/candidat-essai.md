@@ -157,7 +157,10 @@ Le script lit le jeton dans `CLAUDE_CODE_OAUTH_TOKEN` et refuse sans lui :
 la vérification ne serait pas faite. Il refuse aussi un répertoire de
 travail dont un fichier contient le jeton, puisque ce répertoire sera
 versionné. Puis il remplace les valeurs par `<OAUTH_TOKEN>`, `<HOME>`,
-`<USER>`, `<HOST>`, `<WORKDIR>` et `<SESSION_ID>`, et écrit à côté
+`<USER>`, `<HOST>`, `<WORKDIR>` et `<SESSION_ID>`, et `/home/node`, le
+`$HOME` de l'image de l'agent, par `<CONTAINER_HOME>` : ce n'est pas une
+donnée personnelle, mais aucun fichier sous `fixtures/trial-candidates/` ne
+contient `/home/` (#126). Il écrit à côté
 `session.jsonl.redaction.json` : le sha256 du journal original et le nombre
 de remplacements par étiquette, jamais les valeurs. Il contrôle enfin les
 fichiers du dépôt, suivis et non suivis hors fichiers ignorés par Git, et
