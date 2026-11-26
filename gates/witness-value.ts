@@ -10,16 +10,16 @@
 //   `remise-receipt-agent-chromium`), l'URL de l'entrée, l'emplacement
 //   (`request.url`, `request.headers.<nom>`, `request.postData`,
 //   `response.headers.<nom>`, `response.content`) et les formes trouvées.
-//   Viennent ensuite les réponses HTML, JS ou JSON (d'après `Content-Type`)
-//   dont le HAR n'a pas gardé le corps, avec le scénario, l'URL et le type ;
+//   Viennent ensuite les réponses dont le HAR n'a pas gardé le corps, à
+//   vérifier (`isUnread`), avec le scénario, l'URL et le type de média ;
 // - `values` : `hars`, le nombre de HAR lus, `responseBodiesAbsent`, le
 //   nombre d'entrées dont le HAR n'a pas gardé le corps de la réponse, tous
 //   types et réponses vides compris, sans effet sur l'issue, et
-//   `responseBodiesUnread`, celles d'entre elles qui sont HTML, JS ou JSON ;
+//   `responseBodiesUnread`, celles d'entre elles qui sont à vérifier ;
 // - `raw` : chaque HAR, par son chemin sous le dossier des bruts.
 //
-// Issue : `failed` dès une fuite ; sinon `not-evaluable` si une réponse
-// HTML, JS ou JSON n'a pas été lue (décision de Karim, #153) ; sinon
+// Issue : `failed` dès une fuite ; sinon `not-evaluable` si un corps à
+// vérifier n'a pas été lu (décisions de Karim, #153 et #158) ; sinon
 // `passed`.
 //
 // Forme réelle des HAR relevée par la sonde de #130
@@ -48,7 +48,7 @@ interface HarHeader {
 }
 interface HarEntry {
   request: { url: string; headers: HarHeader[]; postData?: { mimeType?: string; text?: string; params?: unknown[] } };
-  response: { headers: HarHeader[]; bodySize?: number; content: { text?: string; encoding?: string } };
+  response: { status: number; headers: HarHeader[]; bodySize?: number; content: { text?: string; encoding?: string } };
 }
 export interface Har {
   log: { entries: HarEntry[] };
@@ -96,13 +96,13 @@ function base64Core(bytes: Buffer, offset: number, encoding: "base64" | "base64u
   return encoded.slice(Math.ceil((offset * 8) / 6), Math.floor(((offset + bytes.length) * 8) / 6));
 }
 
-// Réponse HTML, JS ou JSON dont le HAR n'a pas gardé le corps (#153).
+// Réponse dont le HAR n'a pas gardé le corps, à vérifier (#153, #158), avec
+// son type de média, ou `null` sans `Content-Type`.
 export interface UnreadBody {
   scenario: string;
   url: string;
-  type: BodyType;
+  type: string | null;
 }
-type BodyType = "html" | "js" | "json";
 
 export function searchHars(hars: readonly { scenario: string; har: Har }[], value: string): { examined: number; findings: WitnessFinding[]; unread: UnreadBody[] } {
   const forms = witnessForms(value);
@@ -112,8 +112,7 @@ export function searchHars(hars: readonly { scenario: string; har: Har }[], valu
   for (const { scenario, har } of hars) {
     for (const entry of har.log.entries) {
       examined++;
-      const type = unreadBodyType(entry);
-      if (type !== undefined) unread.push({ scenario, url: entry.request.url, type });
+      if (isUnread(entry)) unread.push({ scenario, url: entry.request.url, type: mediaType(entry) });
       for (const [location, content] of places(entry)) {
         const found = forms.filter(({ pattern }) => content.includes(pattern)).map(({ name }) => name);
         if (found.length > 0) findings.push({ scenario, url: entry.request.url, location, forms: found });
@@ -123,21 +122,28 @@ export function searchHars(hars: readonly { scenario: string; har: Har }[], valu
   return { examined, findings, unread };
 }
 
-// Type d'un corps de réponse absent du HAR, s'il est HTML, JS ou JSON
-// d'après l'en-tête `Content-Type`. Une réponse vide (`bodySize: 0`, comme
-// les `302` du legacy) n'a pas de corps à lire ; une entrée sans réponse
-// (`net::ERR_EMPTY_RESPONSE`) n'a pas de `Content-Type`. Un corps jamais lu
-// par la page a `bodySize: -1` (sonde de #130).
-function unreadBodyType({ response }: HarEntry): BodyType | undefined {
-  if (response.content.text !== undefined || response.bodySize === 0) return undefined;
-  const header = response.headers.find(({ name }) => name.toLowerCase() === "content-type");
-  const media = header?.value.split(";")[0]?.trim().toLowerCase() ?? "";
-  if (media === "text/html" || media === "application/xhtml+xml") return "html";
-  if (JS_TYPES.has(media)) return "js";
-  if (media === "application/json" || media === "text/json" || media.endsWith("+json")) return "json";
-  return undefined;
+// Corps de réponse absent du HAR, à vérifier (décision de Karim, #158) : tout
+// corps absent, `Content-Type` absent ou inconnu compris, sauf trois cas. Un
+// corps jamais lu par la page n'a pas de taille mesurée (`bodySize: -1`,
+// sonde de #130) :
+// - une réponse vide (`bodySize: 0`, comme les `302` du legacy) ;
+// - une entrée sans réponse (`status: -1`, erreur réseau
+//   `net::ERR_EMPTY_RESPONSE`) ;
+// - un type sans intérêt connu : `image/*`, `font/*`, `audio/*`, `video/*`.
+function isUnread(entry: HarEntry): boolean {
+  const { response } = entry;
+  if (response.content.text !== undefined || response.bodySize === 0 || response.status === -1) return false;
+  const media = mediaType(entry);
+  return media === null || !IGNORED_TYPES.includes(media.split("/")[0]!);
 }
-const JS_TYPES = new Set(["text/javascript", "application/javascript", "application/x-javascript", "text/ecmascript", "application/ecmascript"]);
+const IGNORED_TYPES = ["image", "font", "audio", "video"];
+
+// Type de média de la réponse (`Content-Type` avant le `;`, en minuscules),
+// ou `null` sans `Content-Type`.
+function mediaType({ response }: HarEntry): string | null {
+  const header = response.headers.find(({ name }) => name.toLowerCase() === "content-type");
+  return header === undefined ? null : (header.value.split(";")[0] ?? "").trim().toLowerCase();
+}
 
 // Emplacements lus d'une entrée : URL, en-têtes et corps de la requête et de
 // la réponse. `queryString` répète l'URL. Relevé sur les HAR réels
@@ -180,8 +186,8 @@ export const witnessValueGate: Gate<string> = {
     const { examined, findings, unread } = searchHars(hars, value);
     const raw = Object.fromEntries(await Promise.all(hars.map(async ({ file }) => [relative(rawDir, file), await citedFileSha256(file)])));
     const values = { hars: hars.length, responseBodiesAbsent: hars.reduce((sum, { har }) => sum + responseBodiesAbsent(har), 0), responseBodiesUnread: unread.length };
-    // Une fuite constatée l'emporte ; sans fuite, un corps HTML, JS ou JSON
-    // non lu empêche de conclure (décision de Karim, #153).
+    // Une fuite constatée l'emporte ; sans fuite, un corps à vérifier non lu
+    // empêche de conclure (décisions de Karim, #153 et #158).
     return [judged({ gate: GATE, name: "absent-from-har", examined, passed: findings.length === 0, evaluable: unread.length === 0, findings: [...findings, ...unread], values, raw })];
   },
 };

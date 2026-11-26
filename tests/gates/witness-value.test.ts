@@ -164,7 +164,7 @@ describe("witnessValueGate", () => {
   it("counts the response bodies absent from the HAR", async () => {
     const probe = absoluteFixturePath("probe130-d110270/probe-unread.har");
     const [result] = await witnessValueGate.examine(context([probe], absoluteFixturePath("probe130-d110270")), VALUE);
-    expect(result!.values).toEqual({ hars: 1, responseBodiesAbsent: 6, responseBodiesUnread: 1 });
+    expect(result!.values).toEqual({ hars: 1, responseBodiesAbsent: 6, responseBodiesUnread: 5 });
   });
 
   it("is not evaluable without any HAR", async () => {
@@ -173,8 +173,8 @@ describe("witnessValueGate", () => {
   });
 });
 
-// Corps de réponse absents du HAR (#153) : la porte ne conclut pas « absent »
-// sur une réponse HTML, JS ou JSON qu'elle n'a pas lue. HAR réels : la sonde
+// Corps de réponse absents du HAR (#153, #158) : la porte ne conclut pas
+// « absent » sur une réponse qu'elle n'a pas lue. HAR réels : la sonde
 // de #130 avant lecture des corps, un `302` vide du legacy, et un candidat qui
 // coupe toute connexion.
 describe("unread response bodies", () => {
@@ -183,26 +183,41 @@ describe("unread response bodies", () => {
   const RELAY_UNTOUCHED = "ci45861318349/oracle-artifacts/20261126T165025Z-0d2eb7a-conforming-candidates-relay-untouched/oracle";
   const noResponse = () => readJsonFixture<Har>(`${RELAY_UNTOUCHED}/search-search-empty-form-chromium/scenario.har`);
 
-  it("lists an unread JSON body, and only the HTML, JS or JSON ones", () => {
-    // Sans lecture, six corps manquent : `application/json`, `text/plain` (2),
+  // Décision de Karim (#158) : tout corps absent est à vérifier, sauf d'un
+  // type sans intérêt connu.
+  it("lists every unread body but an image, with its media type", () => {
+    // Sans lecture, six corps manquent : `text/plain` (2), `application/json`,
     // `application/octet-stream` (2) et `image/png`.
-    expect(searchHars([{ scenario: "probe", har: probeUnread() }], SYNTHETIC).unread).toEqual([{ scenario: "probe", url: "http://127.0.0.1:8100/br-json", type: "json" }]);
+    expect(searchHars([{ scenario: "probe", har: probeUnread() }], SYNTHETIC).unread.map(({ url, type }) => [new URL(url).pathname, type])).toEqual([
+      ["/gzip-text", "text/plain"],
+      ["/br-json", "application/json"],
+      ["/binary", "application/octet-stream"],
+      ["/gzip-binary", "application/octet-stream"],
+      ["/header", "text/plain"],
+    ]);
   });
 
-  // Le HAR de la sonde, l'en-tête `Content-Type` de trois de ses entrées non
-  // lues changé.
-  it("names the type from the Content-Type of the response", () => {
+  // Le HAR de la sonde, l'en-tête `Content-Type` de ses entrées non lues
+  // retiré ou changé.
+  const withContentTypes = (types: Record<string, string | undefined>) => {
     const har = probeUnread();
-    const header = (path: string) => har.log.entries.find(({ request }) => request.url.endsWith(path))!.response.headers.find(({ name }) => name.toLowerCase() === "content-type")!;
-    header("/gzip-text").value = "text/html; charset=utf-8";
-    header("/header").value = "Text/JavaScript";
-    header("/binary").value = "application/problem+json";
-    expect(searchHars([{ scenario: "probe", har }], SYNTHETIC).unread.map(({ url, type }) => [new URL(url).pathname, type])).toEqual([
-      ["/gzip-text", "html"],
-      ["/br-json", "json"],
-      ["/binary", "json"],
-      ["/header", "js"],
-    ]);
+    for (const [path, type] of Object.entries(types)) {
+      const response = har.log.entries.find(({ request }) => request.url.endsWith(path))!.response;
+      const header = response.headers.find(({ name }) => name.toLowerCase() === "content-type")!;
+      if (type === undefined) response.headers = response.headers.filter((entry) => entry !== header);
+      else header.value = type;
+    }
+    return har;
+  };
+
+  it("lists an unread body without Content-Type", () => {
+    const har = withContentTypes({ "/br-json": undefined });
+    expect(searchHars([{ scenario: "probe", har }], SYNTHETIC).unread).toContainEqual({ scenario: "probe", url: "http://127.0.0.1:8100/br-json", type: null });
+  });
+
+  it("does not list an unread image, font, audio or video body", () => {
+    const har = withContentTypes({ "/gzip-text": "Image/SVG+XML", "/br-json": "font/woff2", "/binary": "audio/mpeg", "/gzip-binary": "video/mp4; codecs=avc1", "/header": "image/webp" });
+    expect(searchHars([{ scenario: "probe", har }], SYNTHETIC).unread).toEqual([]);
   });
 
   it("does not count an empty response, such as the 302 of the legacy", () => {
@@ -218,13 +233,13 @@ describe("unread response bodies", () => {
     const onHar = (dir: string, har: string) => ({ rawDir: absoluteFixturePath(dir), oracle: { resultFile: "", harFiles: [absoluteFixturePath(`${dir}/${har}`)] } }) as unknown as GateContext;
     const context = onHar("probe130-d110270", "probe-unread.har");
 
-    it("is not-evaluable when an HTML, JS or JSON body is absent, with the entries in its findings", async () => {
+    it("is not-evaluable when a body is absent, with the entries in its findings", async () => {
       const [result] = await witnessValueGate.examine(context, SYNTHETIC);
       expect(result).toMatchObject({
         outcome: "not-evaluable",
         examined: 10,
-        findings: [{ scenario: "probe130-d110270", url: "http://127.0.0.1:8100/br-json", type: "json" }],
-        values: { hars: 1, responseBodiesAbsent: 6, responseBodiesUnread: 1 },
+        findingsTotal: 5,
+        values: { hars: 1, responseBodiesAbsent: 6, responseBodiesUnread: 5 },
       });
     });
 
@@ -232,7 +247,7 @@ describe("unread response bodies", () => {
       const [result] = await witnessValueGate.examine(context, VALUE);
       expect(result).toMatchObject({ outcome: "failed" });
       expect(result!.findings.at(0)).toMatchObject({ location: "response.content", forms: expect.arrayContaining(["plain"]) });
-      expect(result!.findings.at(-1)).toEqual({ scenario: "probe130-d110270", url: "http://127.0.0.1:8100/br-json", type: "json" });
+      expect(result!.findings.at(-1)).toEqual({ scenario: "probe130-d110270", url: "http://127.0.0.1:8100/header", type: "text/plain" });
     });
 
     it("passes a candidate whose absent bodies have no response at all", async () => {
