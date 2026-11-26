@@ -31,10 +31,16 @@ export interface MeasureCase {
   witnesses?: boolean;
   // Mesure prévue pour compter : `counted`, arbre propre, origin/main connu.
   counted?: boolean;
+  // Résultats de portes attendus (#124) : leur issue, et un texte qu'un de
+  // leurs constats doit citer.
+  gates?: { gate: string; name: string; outcome: string; findingCites?: string }[];
 }
 
 const REFERENCE = "fixtures/reference-candidate";
 const DEFECTIVE = "fixtures/defective-candidates";
+const CONFORMING = "fixtures/conforming-candidates";
+// Porte du relais (#124).
+const RELAY = { gate: "relay", name: "legacy-port-untouched" };
 const NOT_RUN = "not-run";
 const AFTER_CONTRACT_NOT_RUN = { build: NOT_RUN, start: NOT_RUN, oracle: NOT_RUN, gates: NOT_RUN };
 
@@ -49,6 +55,8 @@ const reference: MeasureCase = {
   oracleJson: "kept",
   summary: { passed: 38, failed: 0, unreached: 0 },
   witnesses: true,
+  // Le relais appelle le port 8080 du legacy : le test négatif de la porte.
+  gates: [{ ...RELAY, outcome: "failed" }],
 };
 
 export const MEASURE_CASES = {
@@ -98,6 +106,29 @@ export const MEASURE_CASES = {
     oracleExecuted: true,
     oracleJson: "kept",
     summary: { failed: "at-least-one" },
+    gates: [{ ...RELAY, outcome: "failed" }],
+  },
+  // #124 : candidat qui appelle le port 8080 avec le User-Agent du healthcheck.
+  "relay-forged-healthcheck": {
+    candidate: `${DEFECTIVE}/relay-forged-healthcheck`,
+    exitCode: 0,
+    category: "completed",
+    reason: "ok",
+    oracleExecuted: true,
+    oracleJson: "kept",
+    witnesses: true,
+    gates: [{ ...RELAY, outcome: "failed", findingCites: '"curl/8.18.0"' }],
+  },
+  // #124 : candidat conforme, qui ne touche jamais le port 8080.
+  "relay-untouched": {
+    candidate: `${CONFORMING}/relay-untouched`,
+    exitCode: 0,
+    category: "completed",
+    reason: "ok",
+    oracleExecuted: true,
+    oracleJson: "kept",
+    witnesses: true,
+    gates: [{ ...RELAY, outcome: "passed" }],
   },
   // 7 : le legacy ne devient jamais sain.
   "broken-stack": {
@@ -182,6 +213,7 @@ interface MeasureView {
   oracle?: { executed?: unknown; summary?: Record<string, unknown> };
   accessLog?: { witnesses?: { name: string }[] };
   verdict?: { category?: unknown; reason?: unknown; evidence?: unknown };
+  gates?: { gate?: unknown; name?: unknown; outcome?: unknown; findings?: unknown[] }[];
 }
 
 export function caseProblems(expected: MeasureCase, { exitCode, record, oracle }: Observed): string[] {
@@ -225,6 +257,17 @@ export function caseProblems(expected: MeasureCase, { exitCode, record, oracle }
     const names = (measure.accessLog?.witnesses ?? []).map(({ name }) => name);
     if (!names.some((name) => name.startsWith("start"))) problems.push("accessLog.witnesses has no start witness");
     if (!names.includes("end")) problems.push("accessLog.witnesses has no end witness");
+  }
+
+  for (const { gate, name, outcome, findingCites } of expected.gates ?? []) {
+    const found = (measure.gates ?? []).find((result) => result.gate === gate && result.name === name);
+    if (found === undefined) problems.push(`gate ${gate}/${name} is missing`);
+    else {
+      if (found.outcome !== outcome) problems.push(`gate ${gate}/${name} is ${String(found.outcome)}, expected ${outcome}`);
+      if (findingCites !== undefined && !(found.findings ?? []).some((finding) => JSON.stringify(finding).includes(JSON.stringify(findingCites).slice(1, -1)))) {
+        problems.push(`gate ${gate}/${name}: no finding cites ${findingCites}`);
+      }
+    }
   }
 
   // Ni ORACLE_SALT ni ARCHIVE_SALT dans le job : le sel est toujours tiré, et

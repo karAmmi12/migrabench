@@ -1,0 +1,4 @@
+{
+  "contract": 1,
+  "start": "node server.js"
+}

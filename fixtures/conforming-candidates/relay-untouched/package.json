@@ -1,0 +1,7 @@
+{
+  "name": "relay-untouched",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Candidat conforme de la porte du relais : ne touche jamais le port 8080 du legacy.",
+  "type": "module"
+}

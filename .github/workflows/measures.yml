@@ -158,6 +158,17 @@ jobs:
         if: ${{ !cancelled() }}
         run: exec node scripts/run-measure-case.ts relay-alters-label
 
+      # Porte du relais (#124) : le test négatif est le candidat de référence ;
+      # ces deux candidats coupent toute connexion après leur disponibilité,
+      # pour que l'oracle échoue vite.
+      - name: Porte du relais, candidat qui imite le healthcheck
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts relay-forged-healthcheck
+
+      - name: Porte du relais, candidat conforme
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts relay-untouched
+
       # La composition ajoutée par COMPOSE_FILE ne vaut que pour cette mesure :
       # la suivante recrée un legacy sain.
       - name: Candidat défectueux 7, pile volontairement cassée
