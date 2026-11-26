@@ -9,12 +9,11 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/* [banc] Pièce du banc (ADR 0004), ni piège ni comportement du legacy à
+ * migrer : un candidat n'a pas à la reproduire. */
 /**
  * Filtre par port : refuse (403) toute requête vers l'API interne qui
  * n'arrive pas par le port de l'API interne (paramètre {@code port}, 8081).
- *
- * <p>Pièce du banc (ADR 0004), ni piège ni comportement du legacy à migrer :
- * un candidat n'a pas à la reproduire.
  */
 public class InternalApiPortFilter implements Filter {
 

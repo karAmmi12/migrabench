@@ -2,10 +2,9 @@ package fr.migrabench.legacy.web;
 
 import org.apache.struts.validator.ValidatorForm;
 
-/**
- * Formulaire de l'écran 2. Pas de {@code validate()} propre : les règles sont
- * seulement dans {@code validation.xml} (piège à préserver, TRAPS.md).
- */
+/* [banc] Pas de validate() propre : les règles sont seulement dans
+ * validation.xml (piège à préserver, TRAPS.md). */
+/** Formulaire de l'écran 2. */
 public class DossierForm extends ValidatorForm {
 
     private String number;

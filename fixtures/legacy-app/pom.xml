@@ -9,7 +9,7 @@
   <version>1.0.0</version>
   <packaging>war</packaging>
 
-  <!-- Legacy volontairement ancien : ne pas monter ces versions (CLAUDE.md). -->
+  <!-- [banc] Legacy volontairement ancien : ne pas monter ces versions (CLAUDE.md). -->
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
@@ -28,9 +28,9 @@
       <artifactId>struts-taglib</artifactId>
       <version>${struts.version}</version>
     </dependency>
-    <!-- Lecture du jeu de données (dossiers.json) au démarrage.
-         Version récente choisie exprès : une faille non choisie serait un
-         piège non déclaré. 2.18.11 : aucun avis OSV au 18/11/2026. -->
+    <!-- Lecture du jeu de données (dossiers.json) au démarrage. -->
+    <!-- [banc] Version récente choisie exprès : une faille non choisie serait
+         un piège non déclaré. 2.18.11 : aucun avis OSV au 18/11/2026. -->
 
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>

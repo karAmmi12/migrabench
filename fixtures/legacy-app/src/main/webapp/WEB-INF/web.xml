@@ -26,8 +26,9 @@
     <url-pattern>/*</url-pattern>
   </filter-mapping>
 
-  <!-- Filtre par port : pièce du banc, ni piège ni comportement à migrer
-       (ADR 0004). Refuse l'API interne si la requête n'arrive pas par 8081. -->
+  <!-- Filtre par port : refuse l'API interne si la requête n'arrive pas par
+       8081. -->
+  <!-- [banc] Pièce du banc, ni piège ni comportement à migrer (ADR 0004). -->
   <filter>
     <filter-name>internalApiPort</filter-name>
     <filter-class>fr.migrabench.legacy.api.InternalApiPortFilter</filter-class>
@@ -71,8 +72,9 @@
     <welcome-file>index.jsp</welcome-file>
   </welcome-file-list>
 
-  <!-- Authentification Tomcat en BASIC, sans écran de connexion (ADR 0003).
-       Les utilisateurs viennent de conf/tomcat-users.xml, généré depuis
+  <!-- Authentification Tomcat en BASIC, sans écran de connexion. Les
+       utilisateurs viennent de conf/tomcat-users.xml. -->
+  <!-- [banc] ADR 0003 ; tomcat-users.xml est généré depuis
        fixtures/users.json. -->
   <security-constraint>
     <web-resource-collection>
@@ -85,9 +87,10 @@
     </auth-constraint>
   </security-constraint>
 
-  <!-- L'API interne ignore l'identité de l'appelant (ADR 0003) : pas
-       d'authentification sur /api/*, motif plus précis que /*. Son isolation
-       tient au filtre par port et au réseau mb-internal (ADR 0004). -->
+  <!-- L'API interne ignore l'identité de l'appelant : pas d'authentification
+       sur /api/*, motif plus précis que /*. -->
+  <!-- [banc] ADR 0003. Son isolation tient au filtre par port et au réseau
+       mb-internal (ADR 0004). -->
   <security-constraint>
     <web-resource-collection>
       <web-resource-name>internal API</web-resource-name>

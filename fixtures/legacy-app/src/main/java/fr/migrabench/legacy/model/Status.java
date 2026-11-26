@@ -1,8 +1,9 @@
 package fr.migrabench.legacy.model;
 
+// [banc] Terme défini dans GLOSSARY.md.
 /**
- * Statut d'un dossier (GLOSSARY.md), avec le verrou qu'il pose sur les champs
- * modifiables de la fiche.
+ * Statut d'un dossier, avec le verrou qu'il pose sur les champs modifiables
+ * de la fiche.
  */
 public enum Status {
     BROUILLON("Brouillon", false, false),

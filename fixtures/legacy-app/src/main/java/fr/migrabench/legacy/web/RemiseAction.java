@@ -12,15 +12,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/* [banc] Piège « contrôle de rôle dans la vue » (TRAPS.md) : aucun rôle
+ * n'est vérifié ici, ni par l'attribut roles du mapping. Un POST avec les
+ * identifiants de l'agent remet le dossier. Ne pas corriger. */
 /**
  * Écran 3, bouton « Remettre » : remet le dossier, sans confirmation, puis
  * revient sur l'écran de remise. Une remise refusée par le service métier
  * (dossier pas {@code EN_INSTRUCTION}) reçoit 409. Un {@code GET} reçoit 405 :
  * un lien suivi ou préchargé ne doit pas remettre un dossier.
- *
- * <p>Piège « contrôle de rôle dans la vue » (TRAPS.md) : aucun rôle n'est
- * vérifié ici, ni par l'attribut {@code roles} du mapping. Un {@code POST}
- * avec les identifiants de l'agent remet le dossier. Ne pas corriger.
  */
 public class RemiseAction extends Action {
 

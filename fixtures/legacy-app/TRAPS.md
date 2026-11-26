@@ -5,6 +5,14 @@ soit **à corriger** (mesuré par une porte, le legacy y échoue), soit **à
 préserver** (mesuré par l'oracle, le legacy y passe). Voir
 `docs/adr/0001-pieges-a-corriger-et-a-preserver.md`.
 
+Chaque commentaire du legacy écrit pour le banc (piège, ADR, banc, oracle…)
+porte le marqueur `[banc]`. La copie expurgée que reçoit un agent
+(`scripts/legacy-copy.ts`, ADR 0010) retire ces commentaires, et un test
+échoue si un commentaire parle du banc sans le marqueur. Un commentaire qui
+mêle documentation du code et note du banc est scindé en deux. Le test
+cherche « porte » en mot entier : un commentaire du legacy évite le verbe
+(« le dossier de ce numéro », pas « qui porte ce numéro »).
+
 ## Contrôle de rôle dans la vue
 
 - **Famille** : à corriger.

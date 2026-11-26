@@ -11,17 +11,19 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
+/* [banc] Aucun contrôle de rôle ici, ni aucune règle de validation.xml
+ * (TRAPS.md). */
 /**
  * Service métier des dossiers : seul endroit où vivent les règles métier.
- * Les écrans et l'API interne passent par lui. Aucun contrôle de rôle ici,
- * ni aucune règle de {@code validation.xml}.
+ * Les écrans et l'API interne passent par lui.
  */
 public class DossierService {
 
     private final List<Dossier> dossiers;
     private final Clock clock;
 
-    /** @param clock horloge figée par le banc : toute date de remise en provient */
+    // [banc] L'horloge est figée par le banc.
+    /** @param clock horloge figée : toute date de remise en provient */
     public DossierService(List<Dossier> dossiers, Clock clock) {
         this.dossiers = new ArrayList<Dossier>(dossiers);
         this.clock = clock;
@@ -39,7 +41,7 @@ public class DossierService {
         return results;
     }
 
-    /** Le dossier qui porte ce numéro. */
+    /** Le dossier de ce numéro. */
     public synchronized Dossier read(String number) {
         return dossiers.get(indexOf(number));
     }
@@ -51,7 +53,7 @@ public class DossierService {
      * n'est pas une modification. Les valeurs ne sont pas validées : les
      * règles de saisie vivent seulement dans {@code validation.xml}.
      *
-     * @throws UnknownDossierException si aucun dossier ne porte ce numéro
+     * @throws UnknownDossierException si aucun dossier n'a ce numéro
      * @throws LockedFieldException si un champ verrouillé change
      */
     public synchronized Dossier update(String number, String applicant, String subject) {
@@ -68,12 +70,13 @@ public class DossierService {
         return updated;
     }
 
+    /* [banc] Aucun contrôle de rôle ici (piège « contrôle de rôle dans la
+     * vue », TRAPS.md). */
     /**
      * Remet le dossier : il passe irréversiblement de {@code EN_INSTRUCTION} à
-     * {@code REMIS}, daté du jour de l'horloge. Aucun contrôle de rôle ici
-     * (piège « contrôle de rôle dans la vue », TRAPS.md).
+     * {@code REMIS}, daté du jour de l'horloge.
      *
-     * @throws UnknownDossierException si aucun dossier ne porte ce numéro
+     * @throws UnknownDossierException si aucun dossier n'a ce numéro
      * @throws RefusedSubmissionException si le dossier n'est pas {@code EN_INSTRUCTION}
      */
     public synchronized Dossier submit(String number) {

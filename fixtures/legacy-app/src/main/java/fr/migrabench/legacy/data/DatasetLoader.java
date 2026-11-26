@@ -45,10 +45,9 @@ public final class DatasetLoader {
         }
     }
 
-    /**
-     * Forme du fichier. Le legacy ignore les réservations, qui ne servent
-     * qu'au banc (seam B) ; le champ existe pour que Jackson accepte la clé.
-     */
+    /* [banc] Le legacy ignore les réservations, qui ne servent qu'au banc
+     * (seam B) ; le champ existe pour que Jackson accepte la clé. */
+    /** Forme du fichier. */
     static class DatasetFile {
         public List<DossierRecord> dossiers;
         public Map<String, List<String>> reservations;

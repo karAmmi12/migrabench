@@ -12,9 +12,11 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 
+// [banc] Le banc fige l'horloge par cette variable.
 /**
  * Charge le jeu de données au démarrage et publie le service métier, avec
- * l'horloge figée par le banc dans {@value #FROZEN_DATE} (aaaa-mm-jj).
+ * l'horloge figée par la variable d'environnement {@value #FROZEN_DATE}
+ * (aaaa-mm-jj).
  */
 public class DossierServiceListener implements ServletContextListener {
 
