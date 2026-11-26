@@ -165,12 +165,22 @@ Mesure de diagnostic locale du candidat de référence
 - `examined` vaut 382 pour les quatre résultats d'axe.
 - La phase `gates` a duré 1 781 ms.
 
-> À vérifier après l'exécution de la CI de la PR : le job des mesures sur le
-> head SHA de la PR. Il faut relever l'issue de la porte pour `reference`,
-> `relay-untouched` et `relay-forged-healthcheck`, `environment.gateTools`,
-> et la durée de la phase `gates` du candidat de référence (durée ajoutée à la
-> mesure, à signaler à Karim au-delà de 5 minutes). Il faut aussi copier une
-> vraie mesure avec la porte en fixture.
+**En CI, sur la vraie pile** : job des mesures de
+l'[exécution 45861318349](https://github.com/karAmmi12/migrabench/actions/runs/45861318349),
+sur le commit `0d2eb7a`.
+
+| Mesure | Porte d'accessibilité | Phase `gates` |
+|---|---|---|
+| Candidat de référence | `failed` aux six résultats de tableaux, à `axe/critical` et à `axe/serious` ; `axe/moderate` et `axe/minor` `passed` | 2 285 ms |
+| `relay-forged-healthcheck` | dix résultats `not-evaluable` (aucun écran affiché) | 329 ms |
+| `relay-untouched` | dix résultats `not-evaluable` | 343 ms |
+
+- Chaque mesure relève `environment.gateTools: {"axe-core": "4.14.0"}`.
+- Durée ajoutée à la mesure en CI : 2,3 s pour le candidat de référence, sous
+  le seuil de 5 minutes.
+- Les mesures du candidat de référence et de `relay-untouched` sont copiées
+  dans `tests/fixtures/ci45861318349/`, avec leur provenance. Le contrôle des
+  cas y est testé, avec un témoin.
 
 > À vérifier après l'exécution de la CI de la PR : les jobs `tests`,
 > `typecheck`, `oracle` et `proof` sur le head SHA de la PR. L'oracle utilise
