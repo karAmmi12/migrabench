@@ -14,92 +14,162 @@ Ce que reçoit l'agent :
 Ces trois éléments passent le test témoin
 `tests/legacy-copy/legacy-copy-real.test.ts`.
 
-## 1. Le répertoire de travail
+L'agent tourne dans un conteneur Docker (`fixtures/trial-agent/Dockerfile`,
+lancé par `npm run trial:agent`) :
 
-Il est hors du dépôt et hors de `$HOME` : Claude Code lit les `CLAUDE.md`
-des répertoires parents, et le dépôt comme `$HOME` parlent du banc.
+- seul son répertoire de travail est monté, sous `/work` ; le reste du disque
+  de l'hôte n'y est pas ;
+- la configuration de Claude Code y est vierge (`CLAUDE_CONFIG_DIR` dans
+  l'image, rien de monté), et chaque lancement part d'un conteneur neuf ;
+- Claude Code y tourne en mode `bypassPermissions`, sans aucune question
+  d'autorisation (documentation de Claude Code, page `permission-modes` :
+  `--dangerously-skip-permissions` équivaut à `--permission-mode
+  bypassPermissions`), sous l'utilisateur `node` : la page `devcontainer`
+  (« Run without permission prompts ») précise que la CLI refuse ce mode
+  sous root ;
+- le conteneur a accès à Internet (API, registre npm). Il joint aussi les
+  ports publiés sur l'hôte : `trial:agent` prend donc le verrou du banc
+  pour toute sa durée et arrête la pile (`docker compose stop`) avant de
+  lancer le conteneur. Aucune mesure, aucun `npm test` ni `stack:up` ne
+  tourne pendant ce temps ; un arrêt ne coupe jamais une mesure en cours.
+
+## 1. Le jeton d'abonnement
+
+Sur l'hôte, une fois (le jeton vaut un an) :
+
+```sh
+claude setup-token
+```
+
+La commande ouvre le navigateur, comme `/login`, puis affiche le jeton sans
+l'enregistrer nulle part (documentation de Claude Code, page
+`authentication`, « Generate a long-lived token »). Il faut un abonnement
+Pro, Max, Ultra, Team ou Enterprise ; aucune clé d'API n'est utilisée.
+
+Le jeton ne s'écrit jamais dans un fichier du dépôt ni dans un journal
+versionné. Il vit dans le shell qui lance l'agent :
+
+```sh
+read -rs CLAUDE_CODE_OAUTH_TOKEN && export CLAUDE_CODE_OAUTH_TOKEN
+```
+
+`trial:agent` le passe au conteneur par son seul nom (`docker run -e
+CLAUDE_CODE_OAUTH_TOKEN`) : sa valeur n'apparaît dans aucune ligne de
+commande. L'agent peut le lire dans son environnement ; l'étape 5 vérifie
+qu'il n'est ni dans le journal ni dans le répertoire de travail.
+
+## 2. Le répertoire de travail et l'image
+
+Le répertoire est hors du dépôt et hors de `$HOME`.
 
 ```sh
 WORK=/tmp/trial-claude-$(date +%Y%m%d)
 npm run trial:copy -- "$WORK"
+npm run trial:agent -- build
 ```
 
-Le script refuse un répertoire dans le dépôt ou sous `$HOME`, un répertoire
-non vide, et un arbre de travail modifié sur ce qui fait la copie (legacy,
-kit, scripts). Il écrit `legacy-app/` et `brief.md`, puis affiche
+`trial:copy` refuse un répertoire dans le dépôt ou sous `$HOME`, un
+répertoire non vide, et un arbre de travail modifié sur ce qui fait la copie
+(legacy, kit, scripts). Il écrit `legacy-app/` et `brief.md`, puis affiche
 `benchCommit`, `files` et `copyDigest` : les garder pour la provenance.
 
-## 2. La sonde d'isolement
+`build` construit l'image `migrabench-trial-agent` : Node 22 et Claude Code
+à une version fixe, sans mise à jour automatique.
 
-Elle vérifie que la session de l'agent ne charge rien de la configuration
-de Karim. `CLAUDE_CONFIG_DIR` déplace tout ce qui vit sous `~/.claude`
-(`CLAUDE.md`, skills, plugins, réglages, sessions) et `.claude.json`
-(documentation de Claude Code, pages `env-vars` et `claude-directory`).
+## 3. La sonde d'isolement
+
+`isolation`, `probe` et `run` prennent le verrou du banc (refus, code 4, si
+un autre outil du banc le tient), arrêtent la pile, puis refusent de lancer
+le conteneur tant qu'un conteneur dont le nom commence par `migrabench`
+tourne encore.
+
+### 3a. Le disque et le réseau, vus du conteneur
 
 ```sh
-export CLAUDE_CONFIG_DIR="$(mktemp -d /tmp/claude-config-XXXXXX)"
-cd "$WORK"
-claude -p "Reply with one short sentence: what is two plus two?" \
-  --output-format stream-json --verbose > /tmp/probe.jsonl
+npm run trial:agent -- isolation "$WORK"
 ```
 
-La consigne est triviale et en anglais. On vérifie :
+Depuis le conteneur, le script vérifie, et sort en erreur à la première
+ligne `LEAK` :
 
-1. **la langue** : la réponse est en anglais. Une réponse en français
-   trahit le `CLAUDE.md` global de Karim (« Réponds toujours en
-   français ») ;
-2. **l'événement `system/init`** (le premier de type `system`, sous-type
-   `init`) :
-   - `cwd` vaut `$WORK` ;
-   - `skills`, `plugins`, `agents` et `mcp_servers` ne contiennent rien qui
-     vienne de Karim (aucun skill de `mattpocock-skills`, `fiche-ticket`,
-     aucun serveur MCP de claude.ai) ;
-   - `slash_commands` ne contient que des commandes intégrées ;
-3. **les fichiers** : `$WORK` ne contient que `legacy-app/` et `brief.md`.
+- que le chemin du dépôt et le `$HOME` de l'hôte n'existent pas ;
+- que les seuls points de montage sont `/`, `/work` et les trois fichiers que
+  Docker gère (`/etc/hosts`, `/etc/hostname`, `/etc/resolv.conf`) ;
+- que `/work` ne contient que `brief.md` et `legacy-app/` ;
+- que les ports 8080 et 8090 de l'hôte ne répondent pas. Sans `curl` ou
+  sans `host.docker.internal` dans le conteneur, ce contrôle n'examine rien :
+  il sort `UNCHECKED`, et la sonde échoue ;
+- qu'aucun fichier lisible du conteneur ne contient `migrabench` ni le nom
+  d'utilisateur de l'hôte.
 
-La documentation ne dit pas ce que fait un `CLAUDE_CONFIG_DIR` vierge pour
-la connexion. Si la sonde demande de se connecter, se connecter dans ce même
-`CLAUDE_CONFIG_DIR` (`claude`, puis `/login`), relancer la sonde, et noter le
-comportement observé dans la provenance.
+### 3b. La session de Claude Code
+
+```sh
+npm run trial:agent -- probe "$WORK" /tmp/probe.jsonl
+```
+
+La consigne est triviale et en anglais. Le script contrôle l'événement
+`system/init` du journal et sort en erreur sur un écart :
+
+- `cwd` vaut `/work` ;
+- `mcp_servers` est vide, et tous les `plugins` sont intégrés (`"path":
+  "builtin"`) ;
+- `permissionMode` vaut `bypassPermissions`.
+
+On vérifie à la main :
+
+1. **la langue** : la réponse (événement `result`) est en anglais ;
+2. **`skills`, `agents` et `slash_commands`** : rien qui vienne de Karim
+   (aucun skill de `mattpocock-skills`, `fiche-ticket`) ;
+3. **la connexion** : la réponse n'est pas « Not logged in ». Relevé le
+   26/11 dans le conteneur sans jeton : Claude Code 2.1.332 ne pose aucune
+   question de première installation en `-p`, il répond « Not logged in ·
+   Please run /login ». Le comportement avec le jeton se note dans la
+   provenance à la première sonde.
 
 Une fuite arrête la procédure : on la note, on corrige la copie ou
-l'environnement, et on reprend à l'étape 1.
+l'environnement, et on reprend à l'étape 2.
 
-## 3. Le lancement, par Karim
+## 4. Le lancement, par Karim
 
-Dans le même shell (même `CLAUDE_CONFIG_DIR`, même `$WORK`) :
+Dans le même shell (même jeton, même `$WORK`) :
 
 ```sh
-claude -p "$(cat <chemin du dépôt>/fixtures/trial-kit/prompt.md)" \
-  --output-format stream-json --verbose \
-  > /tmp/trial-claude.jsonl
+npm run trial:agent -- run "$WORK" /tmp/trial-claude.jsonl
 ```
 
-Karim lance la commande. Il choisit le mode d'autorisation
-(`--permission-mode`), et ce choix est noté. La commande exacte, la version de Claude
-Code (`claude --version`), le modèle (champ `model` de `system/init`), les
-heures de début et de fin sont notés dans la provenance au moment où ils
-sont relevés.
+Le script affiche la version de Claude Code, l'image et l'heure de début,
+lance `claude -p "<prompt.md>" --permission-mode bypassPermissions
+--output-format stream-json --verbose` dans le conteneur, puis l'heure de
+fin, le code de sortie et le contrôle de `system/init`. Ces valeurs, avec le
+modèle (champ `model` de `system/init`), vont dans la provenance.
 
-## 4. L'expurgation des journaux
+## 5. L'expurgation des journaux
 
-Le journal brut peut contenir le répertoire personnel, le nom
+Le journal brut peut contenir le jeton, le répertoire personnel, le nom
 d'utilisateur, le nom de la machine et les identifiants de session.
 
 ```sh
 npm run trial:redact -- /tmp/trial-claude.jsonl <provenance>/session.jsonl "$WORK"
 ```
 
-Le script remplace ces valeurs par `<HOME>`, `<USER>`, `<HOST>`,
-`<WORKDIR>` et `<SESSION_ID>`, et écrit à côté `session.jsonl.redaction.json` :
-le sha256 du journal original et le nombre de remplacements par étiquette,
-jamais les valeurs. Le remplacement se fait en sous-chaîne : un nom
-d'utilisateur ou de machine court peut aussi toucher du contenu légitime.
-On relit donc la copie, pour ces remplacements de trop comme pour une donnée
-personnelle restante (`/Users/`, `/home/`, adresse électronique). Le journal
-original reste hors du dépôt.
+Le script lit le jeton dans `CLAUDE_CODE_OAUTH_TOKEN` et refuse sans lui :
+la vérification ne serait pas faite. Il refuse aussi un répertoire de
+travail dont un fichier contient le jeton, puisque ce répertoire sera
+versionné. Puis il remplace les valeurs par `<OAUTH_TOKEN>`, `<HOME>`,
+`<USER>`, `<HOST>`, `<WORKDIR>` et `<SESSION_ID>`, et écrit à côté
+`session.jsonl.redaction.json` : le sha256 du journal original et le nombre
+de remplacements par étiquette, jamais les valeurs. Il contrôle enfin les
+fichiers du dépôt, suivis et non suivis hors fichiers ignorés par Git, et
+sort en erreur si l'un d'eux contient le jeton.
 
-## 5. La suite (ticket 1b)
+Le remplacement se fait en sous-chaîne : un nom d'utilisateur ou de machine
+court peut aussi toucher du contenu légitime. On relit donc la copie, pour
+ces remplacements de trop comme pour une donnée personnelle restante
+(`/Users/`, `/home/`, adresse électronique). Le journal original reste hors
+du dépôt. La pile se relance ensuite avec `npm run stack:up`.
+
+## 6. La suite (ticket 1b)
 
 Le candidat est versionné sous
 `fixtures/trial-candidates/<outil>-<date>/{candidate,provenance}` (spec de

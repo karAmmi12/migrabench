@@ -4,7 +4,8 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { BENCH_MARKER, expurgate, isExcluded, readLegacyFiles, unmarkedBenchComments } from "../../scripts/legacy-copy.ts";
+import { GATES } from "../../gates/registry.ts";
+import { BENCH_MARKER, expurgate, isExcluded, readLegacyFiles, REWRITES, unmarkedBenchComments } from "../../scripts/legacy-copy.ts";
 import { readBenchEnv, ROOT } from "../../shared/root.ts";
 
 const legacy = readLegacyFiles(ROOT);
@@ -28,21 +29,19 @@ const titlesOf = (suite: OracleSuite): string[] => [
 ];
 const scenarioNames = titlesOf(oracleResult);
 
-// Noms des portes et de leurs résultats (spec de l'étape 4), en mots entiers.
-// Sans `role` ni `auth`, vocabulaire Java EE que la copie garde (`role-name`,
-// `isUserInRole`, `auth-constraint`) : décision de Karim du 26/11 sur #125.
-const GATE_NAMES = [
-  "relay", "accessibility", "xss", "lighthouse", "tsc", "audit", "eslint", "har", "bundle",
-  "legacy-port-untouched", "tables-count", "tables-nested", "as-text",
-  "role-replay", "role-replay-control", "role-forced-browsing", "auth-read", "auth-write",
-];
+// Noms des portes et de leurs résultats, lus dans le registre des portes
+// (#124), en mots entiers : une porte ajoutée au registre entre dans le
+// témoin. Les noms ne sont jamais `role` ni `auth` seuls, vocabulaire Java EE
+// que la copie garde (`role-name`, `isUserInRole`, `auth-constraint`) :
+// décision de Karim du 26/11 sur #125.
+const GATE_NAMES = GATES.flatMap((gate) => [gate.name, ...Object.keys(gate.results)]);
 
 const { ARCHIVE_TOKEN } = await readBenchEnv();
 if (ARCHIVE_TOKEN === undefined) throw new Error("ARCHIVE_TOKEN missing from .env");
 
 // Termes cherchés en sous-chaîne, sans tenir compte de la casse.
 const SUBSTRINGS = [
-  "TRAPS", "piège", "trap", "scenario:", "gate:", "test:", "banc", "oracle", "témoin", "temoin",
+  "TRAPS", "piège", "trap", "scenario:", "gate:", "test:", "banc", "bench", "benchmark", "harness", "oracle", "témoin", "temoin",
   ARCHIVE_TOKEN, "XSS", "migrabench", "__mb", BENCH_MARKER, ...scenarioNames,
 ];
 // Termes cherchés en mots entiers : `réservé` ne doit pas prendre « Remise
@@ -69,6 +68,23 @@ describe("bench comments of fixtures/legacy-app", () => {
 describe("legacy copy given to the agent", () => {
   it("finds the oracle scenarios to look for", () => {
     expect(scenarioNames.length).toBeGreaterThanOrEqual(38);
+  });
+
+  it("finds the gates to look for in the registry", () => {
+    expect(GATE_NAMES).toContain("relay");
+    expect(GATE_NAMES).not.toContain("role");
+    expect(GATE_NAMES).not.toContain("auth");
+  });
+
+  it("finds the file of every rewrite of the copy", () => {
+    expect(REWRITES.filter((rewrite) => !legacy.some((file) => file.path === rewrite.path))).toEqual([]);
+  });
+
+  it("names no reservation in the dataset loader of the copy", () => {
+    const loader = copy.find((file) => file.path.endsWith("/DatasetLoader.java"));
+
+    expect(loader?.content).toBeDefined();
+    expect(loader?.content).not.toMatch(/reservation/i);
   });
 
   it.each(SUBSTRINGS.concat(WORDS).map((term) => [term]))("the witness finds %s planted in a file", (term) => {

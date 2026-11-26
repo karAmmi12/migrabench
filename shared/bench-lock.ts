@@ -1,7 +1,7 @@
 // Verrou du banc (spec de l'étape 3, « Verrou du banc ») : un fichier du
 // dossier d'état de l'utilisateur, hors du dépôt, que prennent `migrabench
-// measure`, `migrabench calibrate`, `npm run oracle`, `npm run stack:up` et
-// `npm test` (#94) pour toute leur durée. Deux outils du banc ne partagent
+// measure`, `migrabench calibrate`, `npm run oracle`, `npm run stack:up`,
+// `npm test` (#94) et `npm run trial:agent` pour toute leur durée. Deux outils du banc ne partagent
 // jamais la pile, commune à toute la machine : tous les worktrees et tous les
 // clones du dépôt voient le même verrou du banc (#92).
 //
@@ -12,7 +12,7 @@ import { linkSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "no
 import { homedir, hostname } from "node:os";
 import { dirname, isAbsolute, join } from "node:path";
 
-export type BenchTool = "measure" | "calibrate" | "oracle" | "stack-up" | "test";
+export type BenchTool = "measure" | "calibrate" | "oracle" | "stack-up" | "test" | "trial-agent";
 
 // Dossier d'état du banc, dans celui de l'utilisateur (#92) : la pile est
 // commune à toute la machine, donc à toutes les copies du dépôt.
@@ -151,7 +151,7 @@ function isOrphan(holder: BenchLockHolder): boolean {
 // demande de la retirer à la main ; un détenteur vivant n'est jamais dépossédé.
 // Commande qui liste les outils du banc en marche, de toutes les copies du
 // dépôt, avant de retirer une garde de reprise.
-const BENCH_TOOLS_RUNNING = 'pgrep -fl "runner/cli.ts|oracle/cli.ts|scripts/stack-up.ts|scripts/test.ts"';
+const BENCH_TOOLS_RUNNING = 'pgrep -fl "runner/cli.ts|oracle/cli.ts|scripts/stack-up.ts|scripts/test.ts|scripts/trial-agent.ts"';
 
 function takeOver(file: string, orphan: string, text: string): "taken" | "retry" | { message: string; holder: BenchLockHolder } {
   const guard = `${file}.takeover`;

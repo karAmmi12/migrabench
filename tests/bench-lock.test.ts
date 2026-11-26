@@ -170,7 +170,7 @@ describe("bench lock left mid-way by a crash", () => {
     // Les deux commandes exactes : vérifier qu'aucun outil du banc ne tourne,
     // puis retirer la garde.
     if (!lock.ok) {
-      expect(lock.message).toContain('pgrep -fl "runner/cli.ts|oracle/cli.ts|scripts/stack-up.ts|scripts/test.ts"');
+      expect(lock.message).toContain('pgrep -fl "runner/cli.ts|oracle/cli.ts|scripts/stack-up.ts|scripts/test.ts|scripts/trial-agent.ts"');
       expect(lock.message).toContain(`rm ${file}.takeover`);
     }
     expect(readFileSync(`${file}.takeover`, "utf8")).toBe(guard);

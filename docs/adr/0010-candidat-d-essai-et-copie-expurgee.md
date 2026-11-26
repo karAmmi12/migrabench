@@ -19,11 +19,19 @@ déterministe, que l'étape 6 réutilisera tel quel :
 - `dossiers.json` est réduit aux dossiers qui ne figurent dans aucune
   réservation, sans la clé `reservations` ;
 - le paquet Java `fr.migrabench.legacy` est renommé avec un nom métier
-  neutre.
+  neutre ;
+- les indices du banc hors commentaires, que le marqueur ne peut pas
+  retirer, sont réécrits dans la copie seule : un message d'erreur qui
+  parlait du banc, le champ `reservations` de `DatasetLoader`.
 
-L'agent tourne hors du dépôt et hors de `$HOME`, avec une configuration de
-Claude Code isolée (`CLAUDE_CONFIG_DIR` vers un répertoire vierge), dont une
-sonde prouve l'isolement.
+L'agent tourne dans un conteneur Docker qui ne monte que son répertoire de
+travail, avec une configuration de Claude Code vierge, propre au conteneur,
+et sans question d'autorisation (mode `bypassPermissions`, sous un
+utilisateur non root). Il s'authentifie avec un jeton d'abonnement
+(`claude setup-token`, variable `CLAUDE_CODE_OAUTH_TOKEN`), jamais écrit
+dans le dépôt ni dans un journal versionné. Une sonde prouve l'isolement,
+depuis le conteneur : ni le dépôt, ni le `$HOME` de l'hôte, ni la pile du
+banc n'y sont visibles.
 
 ## Options écartées
 
@@ -39,12 +47,20 @@ sonde prouve l'isolement.
 - **`--bare` avec une clé d'API** : l'isolement est documenté, mais la
   facturation à l'usage coûterait cher sur les N runs par outil de
   l'étape 6. La sonde de `CLAUDE_CONFIG_DIR` est gratuite et resservira.
+- **L'agent sur le poste de Karim, avec seulement `CLAUDE_CONFIG_DIR`
+  vierge** (première version de la procédure) : l'agent voyait tout le
+  disque, dont le dépôt et `$HOME`, et un mode sans question d'autorisation
+  y aurait été dangereux. Le conteneur borne à la fois ce qu'il voit et ce
+  qu'il peut abîmer.
 
 ## Conséquences
 
 - Un test sur `fixtures/legacy-app` échoue si un commentaire parle du banc
   sans porter le marqueur. Un test témoin échoue si la copie contient encore
   un mot du banc.
+- Le conteneur joint Internet et les ports publiés sur l'hôte : le script
+  qui le lance prend le verrou du banc et arrête la pile pour toute la durée
+  de l'agent. Aucune mesure ne tourne pendant un candidat d'essai.
 - Un candidat d'essai n'est jamais retouché pour passer une porte. Seules
   sont permises une correction pour respecter le contrat et le retrait d'une
   donnée personnelle, chacune dans un commit séparé, décrite dans la

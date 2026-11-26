@@ -5,6 +5,7 @@ import {
   commentsOf,
   expurgate,
   filterDataset,
+  type Rewrite,
   stripBenchComments,
   type SourceFile,
   unmarkedBenchComments,
@@ -145,6 +146,22 @@ describe("expurgate", () => {
     ]);
 
     expect(copy).toEqual([file("A.java", "class A {}"), file("src/main/resources/dossiers.json", '{\n  "dossiers": [\n  ]\n}\n')]);
+  });
+
+  it("rewrites the given text in its file, before the renames", () => {
+    const rewrites: Rewrite[] = [{ path: "src/main/java/fr/migrabench/legacy/A.java", from: '"the bench"', to: '"x"' }];
+    const copy = expurgate([file("src/main/java/fr/migrabench/legacy/A.java", 'String s = "the bench";'), file("B.java", '"the bench"')], rewrites);
+
+    expect(copy).toEqual([file("src/main/java/fr/mairie/dossiers/A.java", 'String s = "x";'), file("B.java", '"the bench"')]);
+  });
+
+  it.each([
+    ["absent", "class A {}"],
+    ["present twice", '"the bench" "the bench"'],
+  ])("refuses a rewrite whose text is %s in its file", (_case, content) => {
+    const rewrites: Rewrite[] = [{ path: "A.java", from: '"the bench"', to: '"x"' }];
+
+    expect(() => expurgate([file("A.java", content)], rewrites)).toThrow(/A\.java/);
   });
 });
 
