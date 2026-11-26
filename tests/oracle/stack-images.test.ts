@@ -2,11 +2,12 @@
 // du contexte de construction, portée par le label de chaque image. Elle prend
 // tout le contexte, moins ce que .dockerignore exclut, avec la sémantique de
 // Docker : un fichier qu'aucun COPY ne cite la change aussi.
-import { mkdtemp, mkdir, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { contextDigest } from "../../oracle/stack-images.ts";
+import { ROOT } from "../../shared/root.ts";
 
 let root: string;
 
@@ -93,5 +94,34 @@ describe("contextDigest", () => {
     expect(excluded).toBe(before);
     const [, kept] = await around(() => put("docs/KEEP.md", "changed"));
     expect(kept).not.toBe(excluded);
+  });
+});
+
+// Le vrai .dockerignore du dépôt (#156) : le dossier .claude/ de Claude Code
+// (réglages, hooks, skills, fichiers d'état des sessions) change sans cesse, et
+// aucune image n'en a besoin. Pendant #129, `.claude/scheduled_tasks.lock` a
+// fait refuser des mesures en `stack-not-from-this-copy`.
+describe("contextDigest with the .dockerignore of the repository", () => {
+  beforeEach(async () => {
+    await put(".dockerignore", await readFile(join(ROOT, ".dockerignore"), "utf8"));
+    await put(".claude/settings.json", "{}");
+    await put(".claude/hooks/session-node.sh", "#!/bin/sh\n");
+    await put(".claude/skills/fiche-ticket/SKILL.md", "skill");
+  });
+
+  it("does not change when a file of .claude/ changes or appears", async () => {
+    const [before, after] = await around(async () => {
+      await put(".claude/scheduled_tasks.lock", '{"pid":1}');
+      await put(".claude/settings.json", '{"changed":true}');
+      await put(".claude/settings.local.json", "{}");
+      await put(".claude/skills/fiche-ticket/SKILL.md", "changed");
+    });
+    expect(after).toBe(before);
+  });
+
+  // Témoin : le même .dockerignore laisse compter un fichier hors de .claude/.
+  it("still changes when a file outside .claude/ changes", async () => {
+    const [before, after] = await around(() => put("scripts/users.ts", "export const changed = 1;"));
+    expect(after).not.toBe(before);
   });
 });

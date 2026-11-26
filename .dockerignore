@@ -16,4 +16,6 @@ test-results
 results
 .dev-archive-salt
 .probes
-.claude/settings.local.json
+# Dossier de Claude Code (réglages, hooks, skills, fichiers d'état des
+# sessions) : aucune image n'en a besoin, et il change sans cesse (#156).
+.claude
