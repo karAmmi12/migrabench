@@ -28,6 +28,12 @@ describe("registry order", () => {
     expect(GATES.at(-1)?.name).toBe("relay");
   });
 
+  // Ordre de la spec : la valeur témoin ouvre les portes qui ne lisent que
+  // des fichiers, avant l'accessibilité (navigateur).
+  it("runs the witness value first", () => {
+    expect(GATES.map(({ name }) => name)).toEqual(["witness-value", "accessibility", "relay"]);
+  });
+
   // Témoin : un registre dans le désordre est refusé.
   it("refuses a gate of an earlier group after a later one", () => {
     const gates = [gate({ name: "writer", group: "writes" }), gate({ name: "reader", group: "browser-read" })];
