@@ -66,9 +66,29 @@ describe("verdict", () => {
     expect(() => verdict(stoppedAt("start", "registry-network-error", "proof line"))).toThrow(/registry-network-error.*start/);
   });
 
-  it("refuses any gates outcome other than ok while the gates are empty (step 3)", () => {
-    expect(() => verdict(stoppedAt("gates", "stack-down-while-candidate"))).toThrow(/stack-down-while-candidate.*gates/);
-    expect(() => verdict(stoppedAt("gates", "interrupted", "SIGINT"))).toThrow(/interrupted.*gates/);
+  // Étape 4 (ADR 0008) : une erreur de porte avant tout examen du candidat,
+  // dans la phase des portes ou dans la clôture (porte du relais).
+  it.each([
+    ["gates", "gate-error-before-candidate"],
+    ["closing", "gate-error-before-candidate"],
+    // Redémarrage du legacy demandé par une porte, candidat arrêté.
+    ["gates", "stack-failed-before-candidate"],
+    ["gates", "stack-not-from-this-copy"],
+    ["gates", "access-log-inactive"],
+    ["gates", "interrupted"],
+  ] as const)("counts %s ending in %s as an invalid measure with its evidence, exit code 3", (name, outcome) => {
+    expect(verdict(stoppedAt(name, outcome, "proof line"))).toEqual({
+      verdict: { category: "invalid", reason: outcome, evidence: "proof line" },
+      exitCode: 3,
+    });
+  });
+
+  it.each([
+    ["gates", "start-exited", "candidate-failure"],
+    ["gates", "start-not-ready", "candidate-failure"],
+    ["gates", "stack-down-while-candidate", "stack-down-while-candidate"],
+  ] as const)("counts %s ending in %s as a valid measure of category %s", (name, outcome, category) => {
+    expect(verdict(stoppedAt(name, outcome))).toEqual({ verdict: { category, reason: outcome }, exitCode: 0 });
   });
 
   it("refuses an invalid measure without evidence", () => {

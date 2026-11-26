@@ -16,6 +16,7 @@ export const INVALIDITY_CAUSES = [
   "oracle-error",
   "marker-out-of-place",
   "runner-error-before-candidate",
+  "gate-error-before-candidate",
   "interrupted",
 ] as const;
 export type InvalidityCause = (typeof INVALIDITY_CAUSES)[number];
@@ -36,8 +37,11 @@ type FailureOutcome = (typeof FAILURES)[FailureCategory][number];
 
 // Issues possibles de chaque phase (table de la spec) : `interrupted` dans
 // toute phase, `stack-down-while-candidate` à partir de la construction (une
-// erreur imprévue du runner dès le lancement de `npm ci`), et les portes,
-// vides à l'étape 3, n'ont que `ok` et `not-run`. `runner-error-before-candidate`
+// erreur imprévue du runner dès le lancement de `npm ci`). Les portes (étape
+// 4, ADR 0008) : une erreur de porte avant tout examen du candidat
+// (`gate-error-before-candidate`), dans la phase des portes ou dans la
+// clôture (porte du relais), et les issues d'un redémarrage du legacy demandé
+// par une porte, celles du démarrage. `runner-error-before-candidate`
 // reste possible en construction (Docker n'a pas démarré le conteneur de
 // `fetch` : `npm ci` n'a pas été lancé) et en clôture (mesure arrêtée avant la
 // construction) (#68).
@@ -47,8 +51,8 @@ export const PHASE_OUTCOMES = {
   build: ["ok", "build-failed", "build-timeout", "build-resource-limit", "registry-network-error", "runner-error-before-candidate", "stack-down-while-candidate", "interrupted"],
   start: ["ok", "stack-failed-before-candidate", "stack-not-from-this-copy", "access-log-inactive", "start-exited", "start-not-ready", "stack-down-while-candidate", "interrupted"],
   oracle: ["ok", "oracle-error", "stack-down-while-candidate", "interrupted"],
-  gates: ["ok"],
-  closing: ["ok", "marker-out-of-place", "access-log-inactive", "runner-error-before-candidate", "stack-down-while-candidate", "interrupted"],
+  gates: ["ok", "gate-error-before-candidate", "stack-failed-before-candidate", "stack-not-from-this-copy", "access-log-inactive", "start-exited", "start-not-ready", "stack-down-while-candidate", "interrupted"],
+  closing: ["ok", "marker-out-of-place", "access-log-inactive", "gate-error-before-candidate", "runner-error-before-candidate", "stack-down-while-candidate", "interrupted"],
 } as const satisfies Record<PhaseName, readonly ("ok" | FailureOutcome)[]>;
 
 // Issue d'une erreur imprévue du runner (#68) : invalide avant le lancement
