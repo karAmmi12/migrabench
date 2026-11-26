@@ -10,12 +10,15 @@
 // Le jeton est lu dans CLAUDE_CODE_OAUTH_TOKEN, celle du lancement : sans
 // elle, le script refuse, car la vérification ne serait pas faite. Il refuse
 // aussi un répertoire de travail dont un fichier contient le jeton, puisque
-// ce répertoire sera versionné.
-import { readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+// ce répertoire sera versionné, et contrôle enfin les fichiers du dépôt.
+import { existsSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { homedir, hostname, userInfo } from "node:os";
+import { execFileSync } from "node:child_process";
 import { join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { sha256 } from "../shared/digest.ts";
+import { ROOT } from "../shared/root.ts";
+import { TOKEN_VARIABLE } from "./trial-agent.ts";
 
 export interface Replacement {
   label: string;
@@ -56,9 +59,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.error("Usage: npm run trial:redact -- <log> <redacted copy> <work directory>");
     process.exit(1);
   }
-  const token = process.env.CLAUDE_CODE_OAUTH_TOKEN ?? "";
+  const token = process.env[TOKEN_VARIABLE] ?? "";
   if (token === "") {
-    console.error("CLAUDE_CODE_OAUTH_TOKEN is not set: export the token used for the run, so that its absence can be checked");
+    console.error(`${TOKEN_VARIABLE} is not set: export the token used for the run, so that its absence can be checked`);
     process.exit(1);
   }
   const leaks = filesContaining(workDir, token);
@@ -81,4 +84,15 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   writeFileSync(output, result.text);
   writeFileSync(`${output}.redaction.json`, `${JSON.stringify({ original: `sha256:${sha256(original)}`, replacements: result.counts }, null, 2)}\n`);
   console.log(JSON.stringify(result.counts));
+  // Le dépôt, copie expurgée comprise si elle y est : fichiers suivis et non
+  // suivis, hors fichiers ignorés par Git.
+  const repoFiles = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], { cwd: ROOT, encoding: "utf8" })
+    .split("\0")
+    .filter((path) => path !== "" && existsSync(join(ROOT, path)));
+  const repoLeaks = repoFiles.filter((path) => readFileSync(join(ROOT, path)).includes(Buffer.from(token)));
+  if (repoLeaks.length > 0) {
+    console.error(`The token is written in the repository, remove it before any commit:\n${repoLeaks.join("\n")}`);
+    process.exit(1);
+  }
+  console.log(`Token absent from the work directory, the redacted log and the ${repoFiles.length} files of the repository`);
 }

@@ -22,7 +22,10 @@ lancé par `npm run trial:agent`) :
 - la configuration de Claude Code y est vierge (`CLAUDE_CONFIG_DIR` dans
   l'image, rien de monté), et chaque lancement part d'un conteneur neuf ;
 - Claude Code y tourne en mode `bypassPermissions`, sans aucune question
-  d'autorisation, sous l'utilisateur `node` : Claude Code refuse ce mode
+  d'autorisation (documentation de Claude Code, page `permission-modes` :
+  `--dangerously-skip-permissions` équivaut à `--permission-mode
+  bypassPermissions`), sous l'utilisateur `node` : la page `devcontainer`
+  (« Run without permission prompts ») précise que la CLI refuse ce mode
   sous root ;
 - le conteneur a accès à Internet (API, registre npm). Il joint aussi les
   ports publiés sur l'hôte : la pile du banc doit être arrêtée.
@@ -94,7 +97,9 @@ ligne `LEAK` :
 - que les seuls points de montage sont `/`, `/work` et les trois fichiers que
   Docker gère (`/etc/hosts`, `/etc/hostname`, `/etc/resolv.conf`) ;
 - que `/work` ne contient que `brief.md` et `legacy-app/` ;
-- que les ports 8080 et 8090 de l'hôte ne répondent pas ;
+- que les ports 8080 et 8090 de l'hôte ne répondent pas. Sans `curl` ou
+  sans `host.docker.internal` dans le conteneur, ce contrôle n'examine rien :
+  il sort `UNCHECKED`, et la sonde échoue ;
 - qu'aucun fichier lisible du conteneur ne contient `migrabench` ni le nom
   d'utilisateur de l'hôte.
 
@@ -155,7 +160,9 @@ travail dont un fichier contient le jeton, puisque ce répertoire sera
 versionné. Puis il remplace les valeurs par `<OAUTH_TOKEN>`, `<HOME>`,
 `<USER>`, `<HOST>`, `<WORKDIR>` et `<SESSION_ID>`, et écrit à côté
 `session.jsonl.redaction.json` : le sha256 du journal original et le nombre
-de remplacements par étiquette, jamais les valeurs.
+de remplacements par étiquette, jamais les valeurs. Il contrôle enfin les
+fichiers du dépôt, suivis et non suivis hors fichiers ignorés par Git, et
+sort en erreur si l'un d'eux contient le jeton.
 
 Le remplacement se fait en sous-chaîne : un nom d'utilisateur ou de machine
 court peut aussi toucher du contenu légitime. On relit donc la copie, pour

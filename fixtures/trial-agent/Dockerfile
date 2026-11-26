@@ -7,7 +7,10 @@
 # automatique (documentation de Claude Code, page devcontainer : « install it
 # from your Dockerfile with npm install -g @anthropic-ai/claude-code@X.Y.Z [...]
 # and set DISABLE_AUTOUPDATER to 1 »). L'utilisateur est `node`, pas root :
-# Claude Code refuse le mode bypassPermissions sous root.
+# Claude Code refuse le mode bypassPermissions sous root (même page, « Run
+# without permission prompts » : « The CLI rejects this flag when launched as
+# root »). Vérifié le 26/11 : sous `node`, `system/init` donne
+# `"permissionMode":"bypassPermissions"`.
 FROM node:22.23.5-bookworm-slim@sha256:be979e5523c76fa4d5ca4ebd3099078f220aa47ec39c48ad5b5df9314debd6eb
 
 RUN apt-get update \

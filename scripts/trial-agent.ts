@@ -92,7 +92,9 @@ export function initFindings(log: string): string[] {
 // Contrôles faits dans le conteneur : arguments $1 le dépôt, $2 le $HOME de
 // l'hôte, $3 le nom d'utilisateur. Points de montage attendus : la racine,
 // /work, et les trois fichiers que Docker gère lui-même. Les ports 8080 et
-// 8090 sont ceux que docker-compose.yml publie sur l'hôte.
+// 8090 sont ceux que docker-compose.yml publie sur l'hôte. Sans curl ou sans
+// host.docker.internal, le contrôle des ports n'examine rien : il est
+// « UNCHECKED » et fait échouer la sonde, jamais réussi.
 const ISOLATION_SCRIPT = `
 status=0
 for path in "$1" "$2"; do
@@ -102,10 +104,12 @@ extra=$(awk '{print $5}' /proc/self/mountinfo | grep -v -E '^/(proc|sys|dev)(/|$
 if [ -n "$extra" ]; then echo "LEAK extra mounts: $extra"; status=1; else echo "ok mounts: / /work and Docker's /etc files only"; fi
 files=$(ls -A /work | tr '\\n' ' ')
 if [ "$files" = "brief.md legacy-app " ]; then echo "ok /work: $files"; else echo "LEAK /work holds: $files"; status=1; fi
-for port in 8080 8090; do
+if ! command -v curl >/dev/null || ! getent hosts host.docker.internal >/dev/null; then
+  echo "UNCHECKED host ports: no curl or no host.docker.internal in the container"; status=1
+else for port in 8080 8090; do
   code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "http://host.docker.internal:$port/")
   if [ "$code" = "000" ]; then echo "ok no answer on host port $port"; else echo "LEAK host port $port answers $code"; status=1; fi
-done
+done; fi
 hits=$(grep -rIlis -e migrabench -e "$3" / --exclude-dir=proc --exclude-dir=sys --exclude-dir=dev 2>/dev/null)
 if [ -n "$hits" ]; then echo "LEAK files naming the bench or the user:"; echo "$hits"; status=1; else echo "ok no file names the bench or the user"; fi
 exit $status
@@ -121,13 +125,17 @@ function workDirOf(argument: string | undefined): string {
   const dir = realpathSync(argument);
   const refusal = workDirRefusal(dir, { root: realpathSync(ROOT), home: realpathSync(homedir()) });
   if (refusal !== undefined) fail(refusal);
+  // Une virgule couperait l'option --mount de docker run.
+  if (dir.includes(",")) fail(`${dir} must not contain a comma`);
   refuseWhileBenchRuns();
   return dir;
 }
 
 // Refuse de lancer le conteneur pendant qu'un conteneur du banc tourne.
 function refuseWhileBenchRuns(): void {
-  const running = benchContainers(spawnSync("docker", ["ps", "--format", "{{.Names}}"], { encoding: "utf8" }).stdout);
+  const listing = spawnSync("docker", ["ps", "--format", "{{.Names}}"], { encoding: "utf8" });
+  if (listing.error !== undefined || listing.status !== 0) fail(`docker ps failed, the bench containers cannot be checked: ${listing.error?.message ?? listing.stderr}`);
+  const running = benchContainers(listing.stdout);
   if (running.length > 0) fail(`Stop the bench containers first (docker compose stop, in the repository):\n${running.join("\n")}`);
 }
 
@@ -135,13 +143,15 @@ function docker(args: readonly string[], logPath?: string): number {
   const out = logPath === undefined ? "inherit" : openSync(logPath, "w");
   const result = spawnSync("docker", args, { stdio: ["ignore", out, "inherit"] });
   if (typeof out === "number") closeSync(out);
+  if (result.error !== undefined) fail(`docker could not run: ${result.error.message}`);
   return result.status ?? 1;
 }
 
 // Lance Claude Code dans le conteneur, puis contrôle `system/init` du journal.
 function runClaude(workDir: string, prompt: string, logPath: string): number {
   if (!process.env[TOKEN_VARIABLE]) fail(`${TOKEN_VARIABLE} is not set: run claude setup-token, then export it in this shell`);
-  const version = spawnSync("docker", ["run", "--rm", AGENT_IMAGE, "claude", "--version"], { encoding: "utf8" }).stdout.trim();
+  const version = spawnSync("docker", ["run", "--rm", AGENT_IMAGE, "claude", "--version"], { encoding: "utf8" }).stdout?.trim() ?? "";
+  if (version === "") fail(`No Claude Code version in ${AGENT_IMAGE}: npm run trial:agent -- build`);
   const started = new Date().toISOString();
   console.log(JSON.stringify({ claudeCode: version, image: AGENT_IMAGE, started }));
   const status = docker(agentRunArgs(workDir, claudeArgs(prompt)), logPath);
