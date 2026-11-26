@@ -9,12 +9,18 @@ COPY scripts/users.ts scripts/generate-tomcat-users.ts ./
 RUN node --experimental-strip-types generate-tomcat-users.ts users.json tomcat-users.xml
 
 # 2. Build Maven du war.
+# Dépôt Maven local dans un cache de BuildKit, hors de l'image : en CI,
+# scripts/maven-cache.sh y verse le dépôt gardé d'une exécution à l'autre,
+# pour ne pas dépendre de Maven Central à chaque construction (#149). L'id du
+# cache est celui du script.
 FROM maven:3.9.16-eclipse-temurin-8 AS build
 WORKDIR /build
 COPY fixtures/legacy-app/pom.xml pom.xml
-RUN mvn -B -q dependency:go-offline
+RUN --mount=type=cache,id=migrabench-maven-repository,target=/root/.m2/repository,sharing=locked \
+    mvn -B -q dependency:go-offline
 COPY fixtures/legacy-app/src src
-RUN mvn -B -q package
+RUN --mount=type=cache,id=migrabench-maven-repository,target=/root/.m2/repository,sharing=locked \
+    mvn -B -q package
 
 # 3. Tomcat 9 sur JDK 8.
 FROM tomcat:9.0.124-jdk8-temurin
