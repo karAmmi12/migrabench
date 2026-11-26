@@ -6,6 +6,7 @@
 // de sortie, measure.json et oracle.json à l'issue attendue, et rend les
 // écarts, vides quand la mesure est celle attendue.
 
+import { IMPACTS, SCREENS } from "../gates/accessibility.ts";
 import type { GateOutcome } from "../gates/result.ts";
 
 export interface MeasureCase {
@@ -44,8 +45,7 @@ const CONFORMING = "fixtures/conforming-candidates";
 // Porte du relais (#124).
 const RELAY = { gate: "relay", name: "legacy-port-untouched" };
 // Porte d'accessibilité (#128) : ses résultats nommés, par écran et par gravité.
-const SCREENS = ["search", "sheet", "submission"];
-const accessibility = (outcomes: { tables: GateOutcome; axe: Record<"critical" | "serious" | "moderate" | "minor", GateOutcome> }) => [
+const accessibility = (outcomes: { tables: GateOutcome; axe: Record<(typeof IMPACTS)[number], GateOutcome> }) => [
   ...SCREENS.flatMap((screen) => [
     { gate: "accessibility", name: `tables-count/${screen}`, outcome: outcomes.tables },
     { gate: "accessibility", name: `tables-nested/${screen}`, outcome: outcomes.tables },

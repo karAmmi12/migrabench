@@ -51,6 +51,12 @@ export async function goToSheet(page: Page, number: string): Promise<void> {
 // du dossier est affiché en texte (récapitulatif).
 export async function goToSubmission(page: Page, number: string, subject: string): Promise<void> {
   await goToSheet(page, number);
+  await goToSubmissionFromSheet(page, subject);
+}
+
+// De la fiche affichée à la remise : clic sur « Remise », puis l'objet du
+// dossier affiché en texte.
+export async function goToSubmissionFromSheet(page: Page, subject: string): Promise<void> {
   await remiseLink(page).click();
   await atLeastOne(exactText(page, subject)).waitFor({ state: "visible" });
 }
