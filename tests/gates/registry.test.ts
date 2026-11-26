@@ -117,6 +117,19 @@ describe("runGates", () => {
     expect(results).toMatchObject([{ outcome: "errored", error: { stage: "on-candidate", cause: "gates-phase-timeout", message: "Gate test not run: the gates phase exceeded its deadline" } }]);
   });
 
+  // Coupée pendant sa préparation par l'échéance de la phase : elle n'a rien
+  // examiné, et l'échéance ne rend jamais la mesure invalide (règle 7).
+  it("gives cause gates-phase-timeout on-candidate to a gate cut by the deadline of the phase during its preparation", async () => {
+    const results = await runGates([gate({ timeoutMs: 60_000, prepare: never })], CONTEXT, { deadline: Date.now() + 20 });
+    expect(results).toMatchObject([{ outcome: "errored", error: { stage: "on-candidate", cause: "gates-phase-timeout" } }]);
+  });
+
+  // Son propre délai pendant la préparation reste une erreur avant le candidat.
+  it("keeps before-candidate for a gate past its own timeout during its preparation, even with a phase deadline", async () => {
+    const results = await runGates([gate({ timeoutMs: 20, prepare: never })], CONTEXT, { deadline: Date.now() + 60_000 });
+    expect(results).toMatchObject([{ error: { stage: "before-candidate", cause: "timeout" } }]);
+  });
+
   // Lancée, la porte a pu examiner une partie du candidat : `timeout`, pas
   // `gates-phase-timeout`.
   it("cuts a running gate at the deadline of the phase with cause timeout, when it comes before its own timeout", async () => {
