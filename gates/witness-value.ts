@@ -6,7 +6,8 @@
 // Un résultat jugé, `absent-from-har` :
 // - `examined` : les entrées lues, tous HAR confondus ;
 // - `findings` : un constat par emplacement où la valeur est trouvée, avec le
-//   scénario (dossier du HAR), l'URL de l'entrée, l'emplacement
+//   scénario (le dossier de son HAR, tel qu'oracle.json le cite, par exemple
+//   `remise-receipt-agent-chromium`), l'URL de l'entrée, l'emplacement
 //   (`request.url`, `request.headers.<nom>`, `request.postData`,
 //   `response.headers.<nom>`, `response.content`) et les formes trouvées ;
 // - `values` : `hars`, le nombre de HAR lus, et `responseBodiesAbsent`, le
@@ -57,6 +58,9 @@ interface Form {
   pattern: Buffer;
 }
 
+// Décalages de la valeur dans un message encodé en base64, modulo 3 octets.
+const OFFSETS = [0, 1, 2] as const;
+
 // Formes cherchées : en clair, encodée pour une URL, en base64 et base64url
 // aux trois décalages, en hexadécimal minuscules et majuscules. Deux formes
 // peuvent avoir le même motif (la valeur témoin est sa propre forme encodée
@@ -74,8 +78,6 @@ export function witnessForms(value: string): Form[] {
   ];
   return forms.map(([name, pattern]) => ({ name, pattern: Buffer.from(pattern, "utf8") }));
 }
-
-const OFFSETS = [0, 1, 2] as const;
 
 // Caractères base64 que seuls les octets de la valeur déterminent, quand elle
 // suit `offset` octets (modulo 3) dans le message encodé : ceux qui mêlent ses
@@ -102,8 +104,10 @@ export function searchHars(hars: readonly { scenario: string; har: Har }[], valu
 }
 
 // Emplacements lus d'une entrée : URL, en-têtes et corps de la requête et de
-// la réponse. Les cookies et `queryString` du HAR répètent les en-têtes et
-// l'URL. La recherche porte sur les octets : un texte en UTF-8, un corps en
+// la réponse. `queryString` répète l'URL. Relevé sur les HAR réels
+// (tests/fixtures/) : les cookies répètent les en-têtes `Cookie` et
+// `Set-Cookie`, et `postData.params` est vide, le formulaire étant dans
+// `postData.text` (sonde de #130). La recherche porte sur les octets : un texte en UTF-8, un corps en
 // base64 (`encoding`, corps binaire) une fois décodé.
 function places({ request, response }: HarEntry): [location: string, content: Buffer][] {
   const { text = "", encoding } = response.content;

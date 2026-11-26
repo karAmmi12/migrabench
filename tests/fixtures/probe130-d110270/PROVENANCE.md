@@ -79,8 +79,10 @@ createServer((req, res) => {
 
 ## `probe.ts`, version de `probe.har`
 
-Pour `probe-unread.har`, le fichier écrit était `probe.har` et le résumé
-`summary.json`.
+Tel qu'il a tourné pour `probe.har` : il écrivait `.probes/130/probe-read.har`,
+copié ici sous le nom `probe.har`. Pour `probe-unread.har`, il écrivait
+`.probes/130/probe.har` (résumé `summary.json`), copié ici sous le nom
+`probe-unread.har`.
 
 ```ts
 // Sonde de #130 : enregistre un HAR comme l'oracle (oracle/support.ts :
