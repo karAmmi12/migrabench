@@ -197,9 +197,11 @@ Observé : `Outcome: completed (ok)`, mesure
 oracle à 38 sur 38. La porte y rend `passed`, avec `examined: 199`, aucun
 constat, `values: { hars: 38, responseBodiesAbsent: 0 }`. Les 199 corps de
 réponse sont dans les HAR, tous en texte : 50 HTML, 48 JS, 99 JSON et 2
-`text/plain`. Le candidat lit chacune de ses réponses, et aucun corps de
-requête binaire n'y passe : la porte a lu tout ce qu'il a envoyé au
-navigateur pendant l'oracle.
+`text/plain`. Côté requêtes, les 8 `PUT /api/dossiers/<numéro>` gardent
+leur corps JSON dans `postData.text`. Le `POST /api/dossiers/D-0111/remise`
+n'a pas de `postData`, mais il n'envoie aucun corps (`Content-Length: 0`,
+`bodySize: 0`) : rien n'y est perdu. La porte a donc lu tout ce qui a
+circulé entre le navigateur et le candidat pendant l'oracle.
 
 Une première tentative, juste avant, a été refusée
 (`stack-not-from-this-copy`) : la pile venait d'être construite depuis la
