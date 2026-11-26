@@ -25,6 +25,20 @@ describe("judged result", () => {
     expect(result).toMatchObject({ kind: "judged", outcome: "failed", findings: [{ line: 2 }], findingsTotal: 1, findingsKept: 1 });
   });
 
+  // Une porte qui a examiné des éléments sans pouvoir conclure (#153) : la
+  // valeur témoin dont un corps de réponse manque au HAR.
+  it("is not-evaluable when the gate examined something but could not conclude", () => {
+    expect(judged({ gate: "test", name: "unread", examined: 5, passed: true, evaluable: false, findings: [{ body: "absent" }] })).toMatchObject({
+      outcome: "not-evaluable",
+      examined: 5,
+      findingsTotal: 1,
+    });
+  });
+
+  it("stays failed when the gate could not conclude everywhere but judged it failed", () => {
+    expect(judged({ gate: "test", name: "leak", examined: 5, passed: false, evaluable: false })).toMatchObject({ outcome: "failed" });
+  });
+
   // Une porte de test qui n'examine aucun élément : jamais une réussite.
   it("is not-evaluable when the gate examined 0 element, even judged passed", () => {
     expect(judged({ gate: "test", name: "nothing", examined: 0, passed: true, findings: [] })).toMatchObject({ outcome: "not-evaluable", examined: 0 });
