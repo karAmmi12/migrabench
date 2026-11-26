@@ -229,14 +229,43 @@ npm run migrabench -- measure --candidate fixtures/reference-candidate
 Le constat de `relay-forged-healthcheck` est cette ligne du journal :
 `… 172.19.0.4 "GET / HTTP/1.1" 401 "curl/8.18.0"`.
 
-> À vérifier après l'exécution de la CI de la PR : le job des mesures sur le
-> head SHA de la PR. Il faut relever le lien de l'exécution, l'issue de
-> `reference`, `relay-forged-healthcheck` et `relay-untouched`, et la durée
-> de chacune des deux nouvelles étapes (durée réelle ajoutée à la mesure en
-> CI, à signaler à Karim au-delà de 5 minutes).
+**En CI, sur la vraie pile** : [exécution 45812433661](https://github.com/karAmmi12/migrabench/actions/runs/45812433661)
+(job des mesures), head SHA `6a101d0` de la PR #141, artefact `measures` :
 
-> À vérifier après l'exécution de la CI de la PR : le job `tests` (`npm
-> test`) et le job `typecheck` sur le head SHA de la PR, avec leur lien.
+| Mesure | Verdict | `relay/legacy-port-untouched` |
+|---|---|---|
+| `20261126T114027Z-6a101d0-reference-candidate` | `completed (ok)` | `failed`, `examined` 205, `findingsTotal` 188, `findingsKept` 50 |
+| `20261126T114315Z-6a101d0-defective-candidates-relay-alters-label` | `completed (ok)` | `failed`, `examined` 268, `findingsTotal` 200 |
+| `20261126T114545Z-6a101d0-defective-candidates-relay-forged-healthcheck` | `completed (ok)` | `failed`, `examined` 17, 1 constat (`curl/8.18.0`) |
+| `20261126T114631Z-6a101d0-conforming-candidates-relay-untouched` | `completed (ok)` | `passed`, `examined` 16 |
+
+Les mesures arrêtées avant les portes (mesure interrompue, pile cassée,
+images d'une autre copie, configuration de Playwright cassée) ont `gates[]`
+vide et la phase `gates` à `not-run`, dans le même artefact.
+
+Durée réelle ajoutée au job des mesures, lue dans les étapes du job
+139883604437 (`started_at`, `completed_at`) :
+
+- « Porte du relais, candidat qui imite le healthcheck » : 45 s
+  (11:45:45 → 11:46:30) ;
+- « Porte du relais, candidat conforme » : 46 s (11:46:30 → 11:47:16).
+
+Soit 1 min 31 s au total, sous le seuil de 5 minutes. La porte du relais
+elle-même n'allonge pas la clôture de façon visible. Avec elle, la clôture du
+candidat de référence dure 10 352 ms ; sans elle, à l'étape 3, elle durait
+10 434 ms (mesure comptée `20261125T133422Z-52303ae-reference-candidate`).
+
+Ces mesures sont copiées sans modification dans
+`tests/fixtures/ci45812433661/` (provenance dans son `PROVENANCE.md`). Le
+contrôle des cas de CI y est testé (`tests/measure-cases.test.ts`, « relay
+gate (#124) »).
+
+**Tests et types en CI**, même head SHA `6a101d0` :
+
+- [exécution 45812433745](https://github.com/karAmmi12/migrabench/actions/runs/45812433745) :
+  job `tests` (`npm test`), réussi en 2 min 55 s ;
+- [exécution 45812433487](https://github.com/karAmmi12/migrabench/actions/runs/45812433487) :
+  job `typecheck`, réussi en 9 s.
 
 ## Pour aller plus loin
 
