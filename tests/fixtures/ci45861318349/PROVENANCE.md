@@ -20,3 +20,10 @@ dossier des bruts de la mesure), identiques octet pour octet (`cmp`) :
 |---|---|---|
 | `oracle-artifacts/20261126T164430Z-0d2eb7a-reference-candidate/oracle/remise-receipt-agent-chromium/scenario.har` | accusé de remise, agent : la valeur témoin dans le HTML de `remise.do` et dans l'URL de l'accusé | 5 |
 | `oracle-artifacts/20261126T164430Z-0d2eb7a-reference-candidate/oracle/search-search-empty-form-chromium/scenario.har` | recherche sans critère : la valeur n'y est pas | 3 |
+
+Ajoutés par #153, depuis le même artefact, identiques octet pour octet (`cmp`) :
+
+| Copie | Scénario | Entrées |
+|---|---|---|
+| `oracle-artifacts/20261126T164430Z-0d2eb7a-reference-candidate/oracle/sheet-sheet-save-brouillon-chromium/scenario.har` | enregistrement d'un brouillon : le `POST /enregistrer.do` du legacy répond `302`, `Content-Length: 0`, `Content-Type: text/html`, sans corps (`bodySize: 0`) | 8 |
+| `oracle-artifacts/20261126T165025Z-0d2eb7a-conforming-candidates-relay-untouched/oracle/search-search-empty-form-chromium/scenario.har` | candidat qui coupe toute connexion : une entrée sans réponse (`status -1`, `net::ERR_EMPTY_RESPONSE`, pas de `Content-Type`) | 1 |

@@ -59,9 +59,11 @@ interface ResultInput {
 }
 
 // Résultat jugé : `passed` ou `failed` selon le jugement de la porte, sauf si
-// elle n'a rien examiné.
-export function judged({ passed, ...input }: ResultInput & { passed: boolean }): JudgedResult {
-  return fields(input, "judged", input.examined === 0 ? "not-evaluable" : passed ? "passed" : "failed");
+// elle n'a rien examiné. `evaluable: false` : la porte a examiné des éléments
+// sans pouvoir conclure à une réussite (#153) ; un échec constaté reste
+// `failed`.
+export function judged({ passed, evaluable = true, ...input }: ResultInput & { passed: boolean; evaluable?: boolean }): JudgedResult {
+  return fields(input, "judged", input.examined === 0 ? "not-evaluable" : !passed ? "failed" : evaluable ? "passed" : "not-evaluable");
 }
 
 // Résultat relevé : des valeurs sans jugement, sauf s'il n'a rien examiné.

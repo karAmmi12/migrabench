@@ -109,8 +109,10 @@ suivante du même candidat compte à sa place, et le rapport le signale. Un
 _Éviter_ : mesure ratée, mesure annulée
 
 **Non évaluable** :
-Résultat d'une porte qui n'a examiné aucun élément. Il compte comme un échec,
-jamais comme une réussite. Un candidat qui ne démarre pas rend toutes ses
+Résultat d'une porte qui n'a examiné aucun élément, ou dont l'examen ne permet
+pas de conclure à une réussite (la valeur témoin dont un corps de réponse
+HTML, JS ou JSON manque au HAR, #153). Il compte comme un échec, jamais comme
+une réussite. Un candidat qui ne démarre pas rend toutes ses
 portes non évaluables. À distinguer d'une porte en erreur.
 
 **Résultat relevé** :
