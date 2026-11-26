@@ -64,7 +64,7 @@ Un dossier `nouvelle-application/`, à côté de `legacy-app/`, qui contient :
 | Variable | Contenu |
 |---|---|
 | `PORT` | Port d'écoute de la couche serveur. |
-| `LEGACY_API_URL` | Adresse de l'application actuelle pour son API interne, sans `/api` (par exemple `http://legacy:8081`). |
+| `LEGACY_API_URL` | Adresse de l'application actuelle pour son API interne, sans `/api` (par exemple `http://legacy-internal-api:8081`). |
 | `ARCHIVE_URL` | Adresse du service d'archivage, vue depuis la couche serveur. |
 | `ARCHIVE_TOKEN` | Jeton d'accès au service d'archivage. |
 | `USERS_FILE` | Chemin d'un fichier JSON des utilisateurs, en lecture seule. |

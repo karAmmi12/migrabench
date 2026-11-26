@@ -8,7 +8,7 @@ import { promisify } from "node:util";
 
 // Adresse vue depuis mb-internal, la même que LEGACY_API_URL pour la couche
 // serveur du candidat (ADR 0004).
-export const INTERNAL_API_URL = "http://legacy:8081";
+export const INTERNAL_API_URL = "http://legacy-internal-api:8081";
 
 export interface InternalResponse {
   status: number;

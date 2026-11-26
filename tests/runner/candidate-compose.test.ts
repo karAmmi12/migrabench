@@ -48,7 +48,7 @@ describe("candidateCompose", () => {
   it("passes the start variables of ADR 0004, and never the salt", () => {
     expect(service().environment).toEqual({
       PORT: "8100",
-      LEGACY_API_URL: "http://legacy:8081",
+      LEGACY_API_URL: "http://legacy-internal-api:8081",
       ARCHIVE_URL: "http://archive:8090",
       ARCHIVE_TOKEN: "mbtemoin-test",
       USERS_FILE: "/run/migrabench/users.json",
