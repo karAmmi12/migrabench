@@ -181,6 +181,30 @@ porte (exécution 45861318349, commit `0d2eb7a`) à 2 643 ms avec elle, soit
 environ 0,4 s, bien en dessous du seuil de 5 minutes. L'écart mêle la porte
 et la variation d'une exécution à l'autre.
 
+### Sur le candidat d'essai : la limite ne le touche pas
+
+Les candidats de la CI qui donnent `responseBodiesAbsent: 38` ne servent
+aucun écran. Pour un vrai candidat, mesure de diagnostic de
+`fixtures/trial-candidates/claude-code-20261126/candidate`, sur un arbre
+propre au commit `58115f5`, après `npm run stack:up` :
+
+```sh
+npm run migrabench -- measure --candidate fixtures/trial-candidates/claude-code-20261126/candidate
+```
+
+Observé : `Outcome: completed (ok)`, mesure
+`20261126T215900Z-58115f5-trial-candidates-claude-code-20261126-candidate`,
+oracle à 38 sur 38. La porte y rend `passed`, avec `examined: 199`, aucun
+constat, `values: { hars: 38, responseBodiesAbsent: 0 }`. Les 199 corps de
+réponse sont dans les HAR, tous en texte : 50 HTML, 48 JS, 99 JSON et 2
+`text/plain`. Le candidat lit chacune de ses réponses, et aucun corps de
+requête binaire n'y passe : la porte a lu tout ce qu'il a envoyé au
+navigateur pendant l'oracle.
+
+Une première tentative, juste avant, a été refusée
+(`stack-not-from-this-copy`) : la pile venait d'être construite depuis la
+branche de #130. Elle ne compte pas.
+
 ## Pour aller plus loin
 
 - La limite de `PROTOCOL.md` : un morceau de JS jamais demandé pendant
