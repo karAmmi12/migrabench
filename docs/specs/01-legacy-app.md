@@ -245,6 +245,9 @@ Chaque piège est planté tel quel et documenté dans `TRAPS.md` (ADR 0001).
   `D-0114` et `D-0115` (`test:internal-api`) et remettent leurs valeurs initiales. Le
   connecteur `8081` sert aussi les JSP, protégées par le `BASIC` comme sur
   `8080` : sans conséquence, le filtre par port ne porte que sur `/api/*`.
+  Précision de #78 : l'API interne s'appelle désormais par l'alias
+  `http://legacy-internal-api:8081`, propre à `mb-internal`, et Tomcat
+  n'écoute plus `8081` sur le réseau `default` (ADR 0004).
 - Tranché par #7 : le service d'archivage est écrit en TypeScript, lancé par
   Node 22 (`--experimental-strip-types`) sans dépendance, sur le port `8090`
   publié sur `127.0.0.1:8090`. Sa route est

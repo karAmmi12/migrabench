@@ -39,7 +39,7 @@ export function candidateCompose({ image, user, port, copyDir, usersFile, start,
         command: ["sh", "-c", start],
         environment: {
           PORT: String(port),
-          LEGACY_API_URL: "http://legacy:8081",
+          LEGACY_API_URL: "http://legacy-internal-api:8081",
           ARCHIVE_URL: "http://archive:8090",
           ARCHIVE_TOKEN: archiveToken,
           USERS_FILE,

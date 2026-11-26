@@ -14,7 +14,7 @@ const interfaces = Object.keys(networkInterfaces()).filter((name) => name !== "l
 // `reached` : la réponse obtenue, ou undefined et l'erreur de la tentative.
 async function tryReach() {
   try {
-    const response = await fetch("http://legacy:8081/", { signal: AbortSignal.timeout(5_000) });
+    const response = await fetch("http://legacy-internal-api:8081/", { signal: AbortSignal.timeout(5_000) });
     return { reached: `HTTP ${response.status}` };
   } catch (error) {
     return { failure: String(error.cause?.code ?? error.cause?.message ?? error.message) };
