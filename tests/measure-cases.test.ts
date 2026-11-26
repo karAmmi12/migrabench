@@ -4,7 +4,7 @@
 // mesure comptée du candidat de référence, au critère de fin (« Notes »).
 import { describe, expect, it } from "vitest";
 import { MEASURE_CASES, type MeasureCase, type Observed, caseProblems } from "../scripts/measure-cases.ts";
-import { GATE_MEASURES, MEASURES, readJsonFixture, readMeasure } from "./real-fixtures.ts";
+import { ACCESSIBILITY_MEASURES, GATE_MEASURES, MEASURES, readJsonFixture, readMeasure } from "./real-fixtures.ts";
 
 // Cas attendu, sans les résultats de la porte d'accessibilité (#128) : pour
 // les vraies mesures copiées d'avant cette porte.
@@ -226,5 +226,25 @@ describe("caseProblems, relay gate (#124)", () => {
     expect(caseProblems(beforeAccessibility(MEASURE_CASES["relay-forged-healthcheck"]), gateMeasure(GATE_MEASURES.reference))).toEqual([
       'gate relay/legacy-port-untouched: no finding cites "curl/8.18.0"',
     ]);
+  });
+});
+
+// Mesures de l'exécution 45861318349 (PR #147), les premières avec la porte
+// d'accessibilité : copies sans modification (tests/fixtures/ci45861318349/).
+describe("caseProblems, accessibility gate (#128)", () => {
+  const observedMeasure = (measure: { results: string }) => ({ exitCode: 0, record: readMeasure(measure), oracle: readJsonFixture<object>(`${measure.results}/oracle.json`) });
+
+  it.each([
+    ["reference", ACCESSIBILITY_MEASURES.reference],
+    ["relay-untouched", ACCESSIBILITY_MEASURES.relayUntouched],
+  ] as const)("has nothing to report for the real measure of case %s", (name, measure) => {
+    expect(caseProblems(MEASURE_CASES[name], observedMeasure(measure))).toEqual([]);
+  });
+
+  // Témoin : un candidat sans écran n'est pas pris pour le legacy.
+  it("names the accessibility results that are not the legacy ones", () => {
+    const problems = caseProblems(MEASURE_CASES.reference, observedMeasure(ACCESSIBILITY_MEASURES.relayUntouched));
+    expect(problems).toContain("gate accessibility/tables-count/search is not-evaluable, expected failed");
+    expect(problems).toContain("gate accessibility/axe/critical is not-evaluable, expected failed");
   });
 });
