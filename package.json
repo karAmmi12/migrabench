@@ -20,6 +20,7 @@
     "start-report:check": "node scripts/check-start-report.ts",
     "trial:copy": "node scripts/trial-copy.ts",
     "trial:redact": "node scripts/redact-log.ts",
+    "trial:agent": "node scripts/trial-agent.ts",
     "fetch:pull-heads": "git fetch --no-tags origin '+refs/pull/*/head:refs/remotes/origin/pull/*'"
   },
   "devDependencies": {
