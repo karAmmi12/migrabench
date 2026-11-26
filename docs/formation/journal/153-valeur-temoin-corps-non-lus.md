@@ -108,7 +108,16 @@ La porte du commit `389207d` appliquée aux HAR de l'exécution 45861318349
 | `relay-forged-healthcheck` | `passed` | 38 | 0 |
 | `relay-untouched` | `passed` | 38 | 0 |
 
-> À vérifier après l'exécution de la CI de la PR : issues de la porte dans le job des mesures lancé sur la branche (référence `failed`, `relay-alters-label` `failed`, `relay-forged-healthcheck` et `relay-untouched` `passed`), avec le lien et le commit.
+Sur la vraie pile, job des mesures lancé sur la branche
+([exécution 45903361617](https://github.com/karAmmi12/migrabench/actions/runs/45903361617),
+commit `1f990d7`, succès), relevé dans l'artefact `measures` :
+
+| Mesure | Issue | Entrées | Constats | `responseBodiesAbsent` | `responseBodiesUnread` |
+|---|---|---|---|---|---|
+| `20261126T221443Z-1f990d7-reference-candidate` | `failed` | 152 | 7 | 5 | 0 |
+| `20261126T221733Z-1f990d7-defective-candidates-relay-alters-label` | `failed` | 164 | 7 | 3 | 0 |
+| `20261126T222006Z-1f990d7-defective-candidates-relay-forged-healthcheck` | `passed` | 38 | 0 | 38 | 0 |
+| `20261126T222051Z-1f990d7-conforming-candidates-relay-untouched` | `passed` | 38 | 0 | 38 | 0 |
 
 ## Pour aller plus loin
 
