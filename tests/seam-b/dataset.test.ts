@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 interface Dossier {
   number: string;
+  applicant: string;
   status: string;
   filedOn: string;
   submittedOn?: string;
@@ -106,6 +107,18 @@ describe("dataset", () => {
 
     expect(dossier?.status).toBe("BROUILLON");
     expect(dataset.reservations["test:relay-fidelity"]).toEqual(["D-0117"]);
+  });
+
+  // L'écran 3 de la porte XSS : la fiche d'un BROUILLON n'a pas de lien
+  // « Remise » (TRAPS.md, « XSS »). Second dossier de gate:xss, même charge.
+  it("reserves D-0101 and D-0118, EN_INSTRUCTION with the same payload, to gate:xss alone", () => {
+    const payload = dataset.dossiers.find((entry) => entry.number === "D-0101")?.applicant;
+    const dossier = dataset.dossiers.find((entry) => entry.number === "D-0118");
+
+    expect(payload).toBe('<img src=x onerror="window.__mbXss=1">');
+    expect(dossier?.status).toBe("EN_INSTRUCTION");
+    expect(dossier?.applicant).toBe(payload);
+    expect(dataset.reservations["gate:xss"]).toEqual(["D-0101", "D-0118"]);
   });
 
   it("reserves only dossiers that exist in the reserved range", () => {

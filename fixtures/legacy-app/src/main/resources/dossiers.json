@@ -46,10 +46,11 @@
     { "number": "D-0114", "applicant": "Bastien Royer", "subject": "Occupation temporaire d'une place de marché", "status": "EN_INSTRUCTION", "filedOn": "2025-07-21" },
     { "number": "D-0115", "applicant": "Hugo Perrault", "subject": "Déclaration d'un puits domestique", "status": "REMIS", "filedOn": "2025-04-22", "submittedOn": "2025-06-09" },
     { "number": "D-0116", "applicant": "Sébastien Morin", "subject": "Déclaration d'un abri pour vélos", "status": "REMIS", "filedOn": "2025-05-12", "submittedOn": "2025-07-03" },
-    { "number": "D-0117", "applicant": "Martin Leroy", "subject": "Demande de branchement d'eau potable", "status": "BROUILLON", "filedOn": "2025-08-04" }
+    { "number": "D-0117", "applicant": "Martin Leroy", "subject": "Demande de branchement d'eau potable", "status": "BROUILLON", "filedOn": "2025-08-04" },
+    { "number": "D-0118", "applicant": "<img src=x onerror=\"window.__mbXss=1\">", "subject": "Second dossier réservé à la porte XSS", "status": "EN_INSTRUCTION", "filedOn": "2025-09-10" }
   ],
   "reservations": {
-    "gate:xss": ["D-0101"],
+    "gate:xss": ["D-0101", "D-0118"],
     "scenario:sheet-save-brouillon": ["D-0102"],
     "scenario:sheet-save-en-instruction": ["D-0103"],
     "scenario:sheet-ctrl-s": ["D-0104"],
