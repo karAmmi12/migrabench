@@ -6,10 +6,12 @@
 #
 #   scripts/maven-cache.sh import <dossier>  verse <dossier> dans le cache
 #   scripts/maven-cache.sh export <dossier>  copie le cache dans <dossier>
+#
+# MB_LEGACY_DOCKERFILE remplace le Dockerfile lu, pour les tests de ses gardes.
 set -euo pipefail
 
 cache_id=migrabench-maven-repository
-dockerfile="$(dirname "$0")/../fixtures/legacy-app/Dockerfile"
+dockerfile="${MB_LEGACY_DOCKERFILE:-$(dirname "$0")/../fixtures/legacy-app/Dockerfile}"
 
 usage() {
   echo "usage: $0 import|export <directory>" >&2
@@ -32,15 +34,15 @@ grep -q "id=$cache_id," "$dockerfile" || {
 mount="type=cache,id=$cache_id,target=/cache,sharing=locked"
 # Jamais --no-cache : BuildKit monterait alors un cache vide à la place de
 # celui-ci. Une valeur unique force la copie à chaque appel.
-run="run-$$-$RANDOM-$(date +%s)"
+cache_bust="$$-$RANDOM-$(date +%s)"
 
 case "$mode" in
   import)
     [ -d "$dir" ] || { echo "No directory $dir" >&2; exit 1; }
     # Le dossier est le contexte : monté en lecture, copié dans le cache.
-    docker buildx build --build-arg "RUN=$run" --output type=cacheonly -f - "$dir" <<DOCKERFILE
+    docker buildx build --build-arg "CACHE_BUST=$cache_bust" --output type=cacheonly -f - "$dir" <<DOCKERFILE
 FROM $image
-ARG RUN
+ARG CACHE_BUST
 RUN --mount=$mount --mount=type=bind,target=/seed cp -a /seed/. /cache/
 DOCKERFILE
     ;;
@@ -48,9 +50,9 @@ DOCKERFILE
     mkdir -p "$dir"
     context="$(mktemp -d)"
     trap 'rm -rf "$context"' EXIT
-    docker buildx build --build-arg "RUN=$run" --output "type=local,dest=$dir" -f - "$context" <<DOCKERFILE
+    docker buildx build --build-arg "CACHE_BUST=$cache_bust" --output "type=local,dest=$dir" -f - "$context" <<DOCKERFILE
 FROM $image AS copy
-ARG RUN
+ARG CACHE_BUST
 RUN --mount=$mount mkdir /export && cp -a /cache/. /export/
 FROM scratch
 COPY --from=copy /export /

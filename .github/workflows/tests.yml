@@ -120,13 +120,16 @@ jobs:
         run: docker compose up -d --build --wait
 
       # Pas de dépôt trouvé : celui que la construction vient de remplir est
-      # extrait du cache de BuildKit et sauvé sous la clé (#149).
+      # extrait du cache de BuildKit et sauvé sous la clé (#149). Un incident
+      # du cache ne fait jamais échouer le job.
       - name: Extraction du dépôt Maven
         if: steps.maven-repository.outputs.cache-hit != 'true'
+        continue-on-error: true
         run: scripts/maven-cache.sh export "$RUNNER_TEMP/maven-repository"
 
       - name: Sauvegarde du dépôt Maven
         if: steps.maven-repository.outputs.cache-hit != 'true'
+        continue-on-error: true
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/maven-repository
