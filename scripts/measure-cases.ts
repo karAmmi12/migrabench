@@ -178,7 +178,7 @@ export const MEASURE_CASES = {
   // `window.__mbXss` ; l'écriture de `undefined` reste signalée.
   "xss-executes-then-erases": xssCase(`${DEFECTIVE}/xss-executes-then-erases`, [
     ...xss({ "as-text/search": "failed" }).filter(({ name }) => name !== "executed/search"),
-    { gate: "xss", name: "executed/search", outcome: "failed", findingCites: '"undefined"' },
+    { gate: "xss", name: "executed/search", outcome: "failed", findingCites: "undefined" },
   ]),
   // 7 : le legacy ne devient jamais sain.
   "broken-stack": {
