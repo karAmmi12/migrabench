@@ -409,22 +409,30 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
   - `dossiers.json` filtré, chaque champ de chaque dossier gardé passant
     par le test témoin ;
   - le test témoin, avec cette liste : `TRAPS`, `piège`, `trap`,
-    `scenario:`, `gate:`, `test:`, `banc`, `oracle`, `témoin`, `temoin`, la
-    valeur témoin, `XSS`, `migrabench`, `__mb`, `réservé`, et les noms des
-    scénarios et des portes ;
+    `scenario:`, `gate:`, `test:`, `banc`, `bench`, `benchmark`,
+    `harness`, `oracle`, `témoin`, `temoin`, la valeur témoin, `XSS`,
+    `migrabench`, `__mb`, `réservé`, et les noms des scénarios et des
+    portes (ceux des portes lus dans le registre) ;
+  - les indices du banc hors commentaires réécrits dans la copie seule ;
   - le test « la copie compile et démarre », greffé sur un job de CI qui a
     déjà la pile ;
   - le prompt brouillon, rédigé comme une commande de client, et
     `brief.md` ;
   - la procédure.
 - **La procédure** :
-  1. le répertoire de travail est hors du dépôt et hors de `$HOME` ;
-  2. la sonde d'isolement : `CLAUDE_CONFIG_DIR` vierge et une consigne
-     triviale en anglais. On vérifie le français, `system/init` et les
-     skills listés. Une fuite arrête la procédure ;
+  1. le répertoire de travail est hors du dépôt et hors de `$HOME`, seul
+     monté dans le conteneur Docker de l'agent ; Claude Code y part d'un
+     `CLAUDE_CONFIG_DIR` vierge, sans question d'autorisation, authentifié
+     par le jeton d'abonnement de `claude setup-token` ;
+  2. la sonde d'isolement, depuis le conteneur : ni le dépôt, ni `$HOME`,
+     ni la pile du banc ne sont visibles ; puis une consigne triviale en
+     anglais. On vérifie le français, `system/init` et les skills listés.
+     Une fuite arrête la procédure ;
   3. le lancement de `claude -p … --output-format stream-json`, par Karim ;
-  4. l'expurgation des journaux (`<HOME>`, `<USER>`, `<SESSION_ID>`…), avec
-     le sha256 de l'original et la liste des remplacements.
+  4. l'expurgation des journaux (`<OAUTH_TOKEN>`, `<HOME>`, `<USER>`,
+     `<SESSION_ID>`…), avec le sha256 de l'original et la liste des
+     remplacements ; le jeton n'est ni dans le journal ni dans le
+     répertoire de travail.
 - **1b, le premier candidat d'essai** : la disposition
   `fixtures/trial-candidates/<outil>-<date>/{candidate,provenance}`. Seul
   `node_modules/` est retiré, et `dist/` et `build/` sont gardés. Le premier
