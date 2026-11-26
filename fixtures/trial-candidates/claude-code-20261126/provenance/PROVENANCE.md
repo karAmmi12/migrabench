@@ -105,8 +105,8 @@ contrat sur la sortie brute.
    `session.jsonl` (`memory_paths` de `system/init`, chemins des
    `shell-snapshots`), 1 fois dans `probe.jsonl` (`memory_paths`). Ce n'est
    pas une donnée personnelle, mais le test du dossier refuse tout chemin
-   sous le répertoire des comptes, comme pour l'hôte. Aucun changement du candidat. Les `.redaction.json` restent
-   ceux du script ; les sha256 des journaux versionnés deviennent :
+   sous le répertoire des comptes, comme pour l'hôte. Aucun changement du
+   candidat. Les `.redaction.json` restent ceux du script ; les sha256 des journaux versionnés deviennent :
    - `session.jsonl` : `a19dc7eb172e52fd91a9c5c5f9cb0807a2f5234d309aac8a9bd47d431c74aee3` ;
    - `probe.jsonl` : `545e8bf7d636a234fe4295edf57963d45fcba30ca3e78784b3c853edfb7591e5`.
 
@@ -116,9 +116,9 @@ contrat sur la sortie brute.
 |---|---|
 | Identifiant | `20261126T160304Z-cbaf6bd-trial-candidates-claude-code-20261126-candidate` |
 | Commit du banc | `cbaf6bd` (premier commit, sortie brute), `environment.worktree` : `clean` |
-| Commande | `npm run migrabench -- measure --candidate fixtures/trial-candidates/claude-code-20261126/candidate`, après `npm run stack:up`, sur le poste de Karim |
+| Commande | `npm run migrabench -- measure --candidate fixtures/trial-candidates/claude-code-20261126/candidate`, après `npm run stack:up`, lancée par la session du ticket #126 sur le poste de Karim |
 | `candidate.contentDigest` | `sha256:9e87d63f1ccf81915b93712910d64dc026e8b0e0b8d98d57c2391be77e1dcc06` |
-| Verdict | `completed` (`ok`), code de sortie 0 |
+| Verdict | `completed` (`ok`) : `verdict` de `measure.json` ; la commande a rendu le code 0 (sortie relevée dans la session) |
 | Phases | toutes `ok` : construction 5 821 ms, démarrage 6 027 ms, oracle 6 423 ms |
 | `oracle.summary` | 38 scénarios, 38 réussis, 0 échoué, 0 non atteint ; clavier 5 sur 5 |
 | Porte du relais | `legacy-port-untouched` : `passed`, 7 lignes examinées |
@@ -127,8 +127,15 @@ contrat sur la sortie brute.
 Ce n'est pas une mesure comptée (`counted: false`) : le sel est tiré par la
 mesure, pas imposé. `measure/measure.json` et `measure/oracle.json` sont
 copiés, octet pour octet, de
-`results/diagnostic/<identifiant>/` (sha256 `98d37f6f…99f8c3` et
-`9a2d08aa…69b9f`, ce dernier égal à `oracle.result` de `measure.json`).
+`results/diagnostic/<identifiant>/` :
+
+- `measure.json` : `98d37f6f9fe4cce8965b45897e23a0b7dc38dcecca0acd83bb57f83b2699f8c3` ;
+- `oracle.json` : `9a2d08aa3cbb2decb7aa08f361b78dca3453c26f3528fbe5faf398214be69b9f`,
+  égal à `oracle.result` de `measure.json`.
+
+Les commits qui suivent `cbaf6bd` ne touchent pas `candidate/`
+(`git diff cbaf6bd HEAD -- candidate` est vide) : le `contentDigest` mesuré
+reste celui du candidat versionné.
 
 ## Critère de repli
 

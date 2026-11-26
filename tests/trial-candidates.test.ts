@@ -18,7 +18,7 @@ function filesUnder(dir: string): string[] {
 }
 
 // Chaque fichier qui contient un chemin personnel, avec le chemin trouvé.
-function personalPaths(dir: string): { files: number; findings: string[] } {
+function scanPersonalPaths(dir: string): { files: number; findings: string[] } {
   const files = filesUnder(dir);
   const findings = files.flatMap((file) => {
     const content = readFileSync(file, "latin1");
@@ -29,18 +29,18 @@ function personalPaths(dir: string): { files: number; findings: string[] } {
 
 describe("trial candidates", () => {
   it("contain no personal path", () => {
-    const { files, findings } = personalPaths(join(ROOT, "fixtures/trial-candidates"));
+    const { files, findings } = scanPersonalPaths(join(ROOT, "fixtures/trial-candidates"));
     // Un contrôle qui n'a rien lu n'a rien prouvé.
     expect(files).toBeGreaterThan(0);
     expect(findings).toEqual([]);
   });
 
   it("detects a personal path (witness)", () => {
-    const dir = mkdtempSync(join(tmpdir(), "trial-candidates-"));
+    const dir = mkdtempSync(join(tmpdir(), "mb-trial-candidates-"));
     mkdirSync(join(dir, "candidate/src"), { recursive: true });
     writeFileSync(join(dir, "candidate/src/clean.ts"), "export const x = 1;\n");
     writeFileSync(join(dir, "candidate/src/mac.ts"), "const p = '/Users/someone/work';\n");
     writeFileSync(join(dir, "session.jsonl"), '{"cwd":"/home/someone"}\n');
-    expect(personalPaths(dir)).toEqual({ files: 3, findings: ["candidate/src/mac.ts: /Users/", "session.jsonl: /home/"] });
+    expect(scanPersonalPaths(dir)).toEqual({ files: 3, findings: ["candidate/src/mac.ts: /Users/", "session.jsonl: /home/"] });
   });
 });
