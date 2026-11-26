@@ -1,0 +1,11 @@
+{
+  "original": "sha256:98261aa3c6a8e7807082f320aafbc7ed5d21977518d91898114e87c0bf670213",
+  "replacements": {
+    "<OAUTH_TOKEN>": 0,
+    "<SESSION_ID>": 4,
+    "<WORKDIR>": 0,
+    "<HOST>": 0,
+    "<HOME>": 0,
+    "<USER>": 0
+  }
+}
