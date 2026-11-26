@@ -74,6 +74,31 @@ services:
       timeout: 2s
       retries: 30
 
+  # Navigateur du banc (#78) : Chromium et ses dépendances système figés par
+  # l'empreinte de l'image officielle de Playwright (oracle/browser.ts), avec
+  # le serveur de Playwright du dépôt (fixtures/browser/server.mjs). Sur
+  # default seul : il joint le legacy, le service d'archivage et le candidat
+  # par son relais local, jamais l'API interne (ADR 0004). Recréé à chaque
+  # exécution de l'oracle, comme le reste de la pile.
+  browser:
+    image: mcr.microsoft.com/playwright:v1.65.1-noble@sha256:1507cbfc550a63a6b7396791ca4f00df17beb56342d2447b3f106c306f525579
+    init: true
+    shm_size: 1gb
+    command: ["node", "/opt/bench/server.mjs"]
+    volumes:
+      - ./node_modules/playwright-core:/opt/playwright-core:ro
+      - ./fixtures/browser/server.mjs:/opt/bench/server.mjs:ro
+    ports:
+      - "127.0.0.1:8095:3000"
+    networks:
+      - default
+    healthcheck:
+      # Prêt quand le serveur de Playwright accepte une connexion.
+      test: ["CMD", "node", "-e", "require('node:net').connect(3000, '127.0.0.1').on('connect', () => process.exit(0)).on('error', () => process.exit(1))"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
 networks:
   # Réseau sans sortie vers l'extérieur (ADR 0004) : port 8081 du legacy
   # (API interne), service d'archivage, et couche serveur du candidat à venir.

@@ -9,7 +9,7 @@ import type { JSONReport } from "@playwright/test/reporter";
 import { fileSha256 } from "../shared/digest.ts";
 import { spawnCommand, stdoutOf } from "../shared/process.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, readBenchEnv, ROOT } from "../shared/root.ts";
-import { browserVersions } from "./browser-versions.ts";
+import { type BrowserImage, browserVersions } from "./browser-versions.ts";
 import { type CiRun, ciRunOf, resultFileName, timestamp } from "./ci-run.ts";
 import { artifactPaths, collect, type OracleSummary, unreachedSummary } from "./collect.ts";
 import { DEFAULT_BASE_URL, ORACLE_ENV } from "./env.ts";
@@ -67,9 +67,11 @@ export interface OracleEnvironment {
   benchCommit: string;
   worktree: WorktreeState;
   node: string;
-  // Chromium lancé par l'oracle et @playwright/test qui le pilote.
+  // Chromium du service `browser` et @playwright/test qui le pilote, puis
+  // l'image du navigateur réellement utilisée, avec sa plateforme (#78).
   chromium: string;
   playwright: string;
+  browserImage: BrowserImage;
   images: Record<string, string>;
   // Empreinte du contexte de construction de chaque image, calculée sur la
   // copie du dépôt et vérifiée sur le label de l'image en cours (#102) : elle
@@ -111,7 +113,7 @@ async function prepare(
   // Sortie brute, sans trim : une entrée commence par un espace (` M chemin`).
   const worktree = worktreeState((await spawnCommand("git", [...GIT_STATUS_ARGS])).stdout);
   const images = await stackImages();
-  const { chromium, playwright } = await browserVersions();
+  const { chromium, playwright, browserImage } = await browserVersions();
   const env = await readBenchEnv();
   const executionId = `${timestamp(startedAt)}-${randomBytes(4).toString("hex")}`;
   const artifacts = artifactsDir ?? `${ARTIFACTS_DIR_FROM_ROOT}/${executionId}`;
@@ -119,7 +121,7 @@ async function prepare(
     baseUrl,
     salt,
     saltImposed,
-    metadata: { benchCommit, worktree, node: process.version, chromium, playwright, images, imageContexts, frozenDate: env.FROZEN_DATE ?? null, baseUrl, artifacts, ...(ciRun === undefined ? {} : { ciRun }) },
+    metadata: { benchCommit, worktree, node: process.version, chromium, playwright, browserImage, images, imageContexts, frozenDate: env.FROZEN_DATE ?? null, baseUrl, artifacts, ...(ciRun === undefined ? {} : { ciRun }) },
     outputDir: join(ROOT, artifacts),
     reportFile: join(ROOT, artifacts, "report.json"),
     resultFile,
@@ -216,7 +218,8 @@ export async function listOracle(artifactsDir: string): Promise<OracleSummary> {
 export async function recreateStack(salt: string, accessLogDir?: string): Promise<StackContextDigests> {
   const digests = await stackContextDigests();
   try {
-    await spawnCommand("docker", ["compose", "up", "--detach", "--force-recreate", "--no-build", "--wait", ...SERVICES], {
+    // Le navigateur du banc (#78) est recréé avec la pile : même état initial.
+    await spawnCommand("docker", ["compose", "up", "--detach", "--force-recreate", "--no-build", "--wait", ...SERVICES, "browser"], {
       env: { ARCHIVE_SALT: salt, ...(accessLogDir === undefined ? {} : { MB_ACCESS_LOG_DIR: accessLogDir }) },
       inherit: true,
     });

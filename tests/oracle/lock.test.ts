@@ -1,14 +1,15 @@
 // Lecture de la variante `lock` (spec de l'étape 2, F11 et F12) dans un vrai
-// Chromium, sur un contenu posé par setContent : aucune pile Docker n'est
-// nécessaire. La variante est lue pour être enregistrée, jamais pour juger.
-import { type Browser, chromium } from "@playwright/test";
+// Chromium, celui du service `browser` de la pile (#78), sur un contenu posé
+// par setContent. La variante est lue pour être enregistrée, jamais pour juger.
+import type { Browser } from "@playwright/test";
+import { connectBenchBrowser } from "../../oracle/browser.ts";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { lockVariant } from "../../oracle/lock.ts";
 
 let browser: Browser;
 
 beforeAll(async () => {
-  browser = await chromium.launch();
+  browser = await connectBenchBrowser();
 });
 
 afterAll(async () => {

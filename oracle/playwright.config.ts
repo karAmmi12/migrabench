@@ -2,6 +2,7 @@
 // Lancée par executeOracle (oracle/execute.ts), qui fournit BASE_URL, le dossier de
 // sortie hors du dépôt, le fichier du reporter JSON et les métadonnées.
 import { defineConfig, devices } from "@playwright/test";
+import { BROWSER_WS_ENDPOINT } from "./browser.ts";
 import { DEFAULT_BASE_URL, ORACLE_ENV } from "./env.ts";
 
 const outputDir = process.env[ORACLE_ENV.outputDir] ?? "../test-results/oracle";
@@ -22,6 +23,8 @@ export default defineConfig({
   use: {
     baseURL: process.env.BASE_URL ?? DEFAULT_BASE_URL,
     trace: "on",
+    // Chromium du service `browser` (#78), jamais un navigateur local.
+    connectOptions: { wsEndpoint: BROWSER_WS_ENDPOINT },
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 });

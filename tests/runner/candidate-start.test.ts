@@ -82,13 +82,13 @@ beforeAll(async () => {
     `#!/bin/sh
 echo "$*" >> "${stubLog}"
 case "$DOCKER_STUB_MODE:$*" in
-  "stack-fails:compose up --detach --force-recreate --no-build --wait legacy archive") echo "docker stub: legacy unhealthy" >&2; exit 1 ;;
+  "stack-fails:compose up --detach --force-recreate --no-build --wait legacy archive browser") echo "docker stub: legacy unhealthy" >&2; exit 1 ;;
   "stack-fails:inspect legacy-id") echo '${state("unhealthy", 1)}'; exit 0 ;;
   "foreign-stack:inspect --format "*" legacy-id") echo '${labels(FOREIGN)}'; exit 0 ;;
   "candidate-runs:inspect --format {{.State.Running}} candidate-id") echo true; exit 0 ;;
 esac
 case "$*" in
-  "compose up --detach --force-recreate --no-build --wait legacy archive") exit 0 ;;
+  "compose up --detach --force-recreate --no-build --wait legacy archive browser") exit 0 ;;
   "compose ps --quiet legacy"|"compose ps --all --quiet legacy") echo legacy-id; exit 0 ;;
   "compose ps --quiet archive"|"compose ps --all --quiet archive") echo archive-id; exit 0 ;;
   "inspect --format "*" legacy-id") echo '${labels(digests.legacy)}'; exit 0 ;;
@@ -140,7 +140,7 @@ function keyCalls(): string[] {
   return readFileSync(stubLog, "utf8")
     .split("\n")
     .flatMap((call) => {
-      if (call === "compose up --detach --force-recreate --no-build --wait legacy archive") return ["stack recreated"];
+      if (call === "compose up --detach --force-recreate --no-build --wait legacy archive browser") return ["stack recreated"];
       if (call.endsWith(" rm --stop --force candidate")) return ["candidate removed"];
       if (call.endsWith(" up --detach --force-recreate --no-deps candidate")) return ["candidate recreated"];
       if (call.startsWith("witness ")) return [call];

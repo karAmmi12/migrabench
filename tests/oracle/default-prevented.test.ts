@@ -1,6 +1,7 @@
 // Mesure de `defaultPrevented` dans un vrai Chromium, sur une page servie par
-// page.route : aucune pile Docker n'est nécessaire.
-import { type Browser, chromium, type Page } from "@playwright/test";
+// page.route, dans le Chromium du service `browser` de la pile (#78).
+import type { Browser, Page } from "@playwright/test";
+import { connectBenchBrowser } from "../../oracle/browser.ts";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { pressAndReadDefaultPrevented } from "../../oracle/default-prevented.ts";
 
@@ -9,7 +10,7 @@ const ORIGIN = "http://mb.test";
 let browser: Browser;
 
 beforeAll(async () => {
-  browser = await chromium.launch();
+  browser = await connectBenchBrowser();
 });
 
 afterAll(async () => {
