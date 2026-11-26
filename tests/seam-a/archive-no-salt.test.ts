@@ -36,7 +36,9 @@ fetch(process.argv[1]).then(
 
 describe("stack started without ARCHIVE_SALT", () => {
   beforeAll(async () => {
-    await compose("up", "--detach", "--no-build", "--pull", "never", "--wait");
+    // Le legacy et le service d'archivage seuls : le navigateur du banc (#78)
+    // publie son port, déjà pris par la pile du banc.
+    await compose("up", "--detach", "--no-build", "--pull", "never", "--wait", "legacy", "archive");
   }, 300_000);
 
   afterAll(async () => {
