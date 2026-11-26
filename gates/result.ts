@@ -10,8 +10,11 @@ export type GateResultKind = "judged" | "measured";
 // Étape où une porte s'est mise en erreur, posée par le runner selon la partie qui a levé
 // l'erreur (préparation ou examen), jamais d'après le message.
 export type GateErrorStage = "before-candidate" | "on-candidate";
-// Liste fermée des causes : elle ne s'étend que par la spec.
-export const GATE_ERROR_CAUSES = ["timeout", "exception", "tool-missing"] as const;
+// Liste fermée des causes : elle ne s'étend que par la spec. `timeout` : la
+// porte a dépassé son délai, ou a été coupée en cours par l'échéance de la
+// phase. `gates-phase-timeout` : la porte n'a jamais été lancée, la phase
+// ayant dépassé son délai global ; elle n'a rien examiné.
+export const GATE_ERROR_CAUSES = ["timeout", "gates-phase-timeout", "exception", "tool-missing"] as const;
 export type GateErrorCause = (typeof GATE_ERROR_CAUSES)[number];
 
 export interface GateError {

@@ -95,7 +95,7 @@ async function runGate(gate: Gate, context: Omit<GateContext, "signal">, deadlin
   const fail = (stage: GateErrorStage, cause: GateErrorCause, message: string) =>
     Object.entries(gate.results).map(([name, kind]) => errored({ gate: gate.name, name, kind, error: { stage, cause, message } }));
   const remaining = deadline === undefined ? Infinity : deadline - Date.now();
-  if (remaining <= 0) return fail("on-candidate", "timeout", `Gate ${gate.name} not run: the gates phase exceeded its deadline`);
+  if (remaining <= 0) return fail("on-candidate", "gates-phase-timeout", `Gate ${gate.name} not run: the gates phase exceeded its deadline`);
   const timeoutMs = Math.min(gate.timeoutMs, remaining);
   const controller = new AbortController();
   let timer: NodeJS.Timeout | undefined;

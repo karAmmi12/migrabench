@@ -109,14 +109,17 @@ describe("runGates", () => {
 
   // Le temps de la phase a été pris par l'examen des portes précédentes, que
   // le candidat a pu ralentir : jamais une erreur avant le candidat.
-  it("gives cause timeout on-candidate to a gate reached after the deadline of the phase, without running it", async () => {
+  // Cause distincte de `timeout` : l'étape 5 voit que la porte n'a rien examiné.
+  it("gives cause gates-phase-timeout on-candidate to a gate reached after the deadline of the phase, without running it", async () => {
     let ran = false;
     const results = await runGates([gate({ examine: async () => { ran = true; return []; } })], CONTEXT, { deadline: Date.now() - 1 });
     expect(ran).toBe(false);
-    expect(results).toMatchObject([{ outcome: "errored", error: { stage: "on-candidate", cause: "timeout", message: "Gate test not run: the gates phase exceeded its deadline" } }]);
+    expect(results).toMatchObject([{ outcome: "errored", error: { stage: "on-candidate", cause: "gates-phase-timeout", message: "Gate test not run: the gates phase exceeded its deadline" } }]);
   });
 
-  it("cuts a gate at the deadline of the phase when it comes before its own timeout", async () => {
+  // Lancée, la porte a pu examiner une partie du candidat : `timeout`, pas
+  // `gates-phase-timeout`.
+  it("cuts a running gate at the deadline of the phase with cause timeout, when it comes before its own timeout", async () => {
     const results = await runGates([gate({ timeoutMs: 60_000, examine: never })], CONTEXT, { deadline: Date.now() + 20 });
     expect(results).toMatchObject([{ error: { stage: "on-candidate", cause: "timeout" } }]);
   });
