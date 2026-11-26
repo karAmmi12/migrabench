@@ -4,7 +4,7 @@
 // mesure comptée du candidat de référence, au critère de fin (« Notes »).
 import { describe, expect, it } from "vitest";
 import { MEASURE_CASES, type Observed, caseProblems } from "../scripts/measure-cases.ts";
-import { MEASURES, readJsonFixture, readMeasure } from "./real-fixtures.ts";
+import { GATE_MEASURES, MEASURES, readJsonFixture, readMeasure } from "./real-fixtures.ts";
 
 // Copie de la première mesure comptée du candidat de référence, produite par
 // le job des mesures sur main (exécution 45624689673, commit 52303ae) : son
@@ -187,5 +187,37 @@ describe("caseProblems, failures of #68 and interruption", () => {
     };
 
     expect(caseProblems(MEASURE_CASES.interrupted, observed(record, { exitCode: 3 }))).toEqual(["verdict.evidence is \"Interrupted by SIGTERM\", expected \"Interrupted by SIGINT\"", "oracle.json is present, expected absent"]);
+  });
+});
+
+// Mesures de l'exécution 45812433661 (PR #141), les premières avec un résultat
+// de porte : copies sans modification (tests/fixtures/ci45812433661/).
+describe("caseProblems, relay gate (#124)", () => {
+  const gateMeasure = (measure: { results: string }) => ({
+    exitCode: 0,
+    record: readMeasure(measure),
+    oracle: readJsonFixture<object>(`${measure.results}/oracle.json`),
+  });
+
+  it.each([
+    ["reference", GATE_MEASURES.reference],
+    ["relay-forged-healthcheck", GATE_MEASURES.relayForgedHealthcheck],
+    ["relay-untouched", GATE_MEASURES.relayUntouched],
+  ] as const)("has nothing to report for the real measure of case %s", (name, measure) => {
+    expect(caseProblems(MEASURE_CASES[name], gateMeasure(measure))).toEqual([]);
+  });
+
+  // Témoins : le contrôle sait voir une issue de porte et un constat qui manquent.
+  it("names a relay result that is not the expected one", () => {
+    expect(caseProblems(MEASURE_CASES["relay-untouched"], gateMeasure(GATE_MEASURES.relayForgedHealthcheck))).toEqual([
+      "gate relay/legacy-port-untouched is failed, expected passed",
+    ]);
+  });
+
+  it("names a relay result whose findings do not cite the forged User-Agent", () => {
+    // Le candidat de référence échoue aussi, mais aucun de ses constats gardés ne cite curl.
+    expect(caseProblems(MEASURE_CASES["relay-forged-healthcheck"], gateMeasure(GATE_MEASURES.reference))).toEqual([
+      'gate relay/legacy-port-untouched: no finding cites "curl/8.18.0"',
+    ]);
   });
 });
