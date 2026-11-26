@@ -356,6 +356,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
       candidateUrl: CANDIDATE_BASE_URL,
       candidateDir,
       builtCopyDir: copyDir,
+      rawDir,
       oracle: { resultFile: join(measureDir, "oracle.json"), harFiles: await harFiles(join(rawDir, "oracle")) },
       internalApi: { get: (path) => fetchFromInternal(`${INTERNAL_API_URL}${path}`, { method: "GET" }) },
       restartLegacy,
