@@ -316,6 +316,12 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
   fuite trouvée ailleurs reste prioritaire (`failed`). Les autres types et
   les réponses vides (`bodySize: 0`) sont comptés dans `values`, sans effet
   sur l'issue.
+  - `findings` donne d'abord les fuites, puis les corps non lus. Tronqué à
+    sa borne, un résultat `failed` peut perdre ces derniers ;
+    `values.responseBodiesUnread` en garde le nombre.
+  - `values` : `hars`, `responseBodiesAbsent` (tous les corps absents,
+    réponses vides comprises) et `responseBodiesUnread` (ceux qui sont HTML,
+    JS ou JSON).
 
 ### Rôle
 

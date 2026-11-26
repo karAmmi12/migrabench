@@ -9,22 +9,25 @@
 //   scénario (le dossier de son HAR, tel qu'oracle.json le cite, par exemple
 //   `remise-receipt-agent-chromium`), l'URL de l'entrée, l'emplacement
 //   (`request.url`, `request.headers.<nom>`, `request.postData`,
-//   `response.headers.<nom>`, `response.content`) et les formes trouvées ;
+//   `response.headers.<nom>`, `response.content`) et les formes trouvées.
 //   Viennent ensuite les réponses HTML, JS ou JSON (d'après `Content-Type`)
 //   dont le HAR n'a pas gardé le corps, avec le scénario, l'URL et le type ;
-// - issue : `failed` dès une fuite ; sinon `not-evaluable` si une de ces
-//   réponses n'a pas été lue (décision de Karim, #153) ; sinon `passed` ;
 // - `values` : `hars`, le nombre de HAR lus, `responseBodiesAbsent`, le
 //   nombre d'entrées dont le HAR n'a pas gardé le corps de la réponse, tous
 //   types et réponses vides compris, sans effet sur l'issue, et
 //   `responseBodiesUnread`, celles d'entre elles qui sont HTML, JS ou JSON ;
 // - `raw` : chaque HAR, par son chemin sous le dossier des bruts.
 //
+// Issue : `failed` dès une fuite ; sinon `not-evaluable` si une réponse
+// HTML, JS ou JSON n'a pas été lue (décision de Karim, #153) ; sinon
+// `passed`.
+//
 // Forme réelle des HAR relevée par la sonde de #130
 // (tests/fixtures/probe130-d110270/PROVENANCE.md), Playwright 1.65.1 : un corps
 // gzip ou br est gardé décompressé, en texte ; un corps binaire est gardé
 // décompressé, en base64 (`encoding: "base64"`) ; un corps de réponse que la
-// page n'a jamais lu est absent (`size: -1`, `bodySize: -1`, sans `text`) ; un corps de
+// page n'a jamais lu est absent (`size: -1`, `bodySize: -1`, sans `text`) ;
+// un corps de
 // requête binaire (`Uint8Array` avec des octets nuls) est vide, et un `Blob`
 // n'a pas de `postData`. Ces deux derniers cas échappent à la porte.
 import { readFile } from "node:fs/promises";

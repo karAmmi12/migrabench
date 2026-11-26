@@ -189,6 +189,8 @@ describe("unread response bodies", () => {
     expect(searchHars([{ scenario: "probe", har: probeUnread() }], SYNTHETIC).unread).toEqual([{ scenario: "probe", url: "http://127.0.0.1:8100/br-json", type: "json" }]);
   });
 
+  // Le HAR de la sonde, l'en-tête `Content-Type` de trois de ses entrées non
+  // lues changé.
   it("names the type from the Content-Type of the response", () => {
     const har = probeUnread();
     const header = (path: string) => har.log.entries.find(({ request }) => request.url.endsWith(path))!.response.headers.find(({ name }) => name.toLowerCase() === "content-type")!;
@@ -212,8 +214,9 @@ describe("unread response bodies", () => {
   });
 
   describe("witnessValueGate", () => {
-    const probeFile = absoluteFixturePath("probe130-d110270/probe-unread.har");
-    const context = { rawDir: absoluteFixturePath("probe130-d110270"), oracle: { resultFile: "", harFiles: [probeFile] } } as unknown as GateContext;
+    // Le contexte ne donne que ce que la porte lit : un HAR et son dossier.
+    const onHar = (dir: string, har: string) => ({ rawDir: absoluteFixturePath(dir), oracle: { resultFile: "", harFiles: [absoluteFixturePath(`${dir}/${har}`)] } }) as unknown as GateContext;
+    const context = onHar("probe130-d110270", "probe-unread.har");
 
     it("is not-evaluable when an HTML, JS or JSON body is absent, with the entries in its findings", async () => {
       const [result] = await witnessValueGate.examine(context, SYNTHETIC);
@@ -233,8 +236,7 @@ describe("unread response bodies", () => {
     });
 
     it("passes a candidate whose absent bodies have no response at all", async () => {
-      const file = absoluteFixturePath(`${RELAY_UNTOUCHED}/search-search-empty-form-chromium/scenario.har`);
-      const [result] = await witnessValueGate.examine({ rawDir: absoluteFixturePath(RELAY_UNTOUCHED), oracle: { resultFile: "", harFiles: [file] } } as unknown as GateContext, VALUE);
+      const [result] = await witnessValueGate.examine(onHar(RELAY_UNTOUCHED, "search-search-empty-form-chromium/scenario.har"), VALUE);
       expect(result).toMatchObject({ outcome: "passed", examined: 1, values: { hars: 1, responseBodiesAbsent: 1, responseBodiesUnread: 0 } });
     });
   });
