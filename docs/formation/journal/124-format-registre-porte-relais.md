@@ -178,6 +178,17 @@ address ».
   aucune porte ne l'appelle encore. Sa première preuve réelle viendra de la
   porte de rôle. L'option écartée est une porte de test injectable dans une
   mesure.
+  - Après la fusion, Karim a demandé un test sous faux `docker`, livré par
+    une PR de suite.
+  - Le démarrage du candidat et `restartLegacy()` sortent de
+    `runner/measure.ts` dans `runner/candidate-start.ts`, à comportement
+    constant. C'est ce qui permet de les tester.
+  - `tests/runner/candidate-start.test.ts` remplace Docker par un faux
+    `docker` en tête du PATH. Un serveur local joue le port `8080` du legacy
+    et écrit le journal d'accès à partir d'une vraie ligne de l'exécution
+    45624689673.
+  - La forme des sorties de `docker inspect` simulées a été relevée le
+    2026-11-26 sur le conteneur du legacy (Docker 29.1.3).
 
 ## Difficultés rencontrées
 
@@ -286,10 +297,50 @@ gate (#124) »).
 - [exécution 45812433487](https://github.com/karAmmi12/migrabench/actions/runs/45812433487) :
   job `typecheck`, réussi en 9 s.
 
+**`restartLegacy()` sous faux `docker`** :
+
+```sh
+npx vitest run tests/runner/candidate-start.test.ts
+```
+
+Observé sur le commit `7884623`, arbre propre : `Test Files  1 passed (1)`,
+`Tests  6 passed (6)`. Chaque cas suit le vrai registre des portes, qui
+laisse passer l'échec au lieu d'en faire une erreur de porte. Les six cas :
+
+| Cas | Issue | Verdict |
+|---|---|---|
+| Redémarrage réussi | Pile recréée, candidat retiré, témoin `start-2`, candidat recréé, dans cet ordre. Avec `end`, le contrôle du journal est `ok` et la porte du relais ne trouve aucun constat | — |
+| Legacy qui ne redevient pas sain | `stack-failed-before-candidate`, ni témoin ni candidat ensuite | Invalide |
+| Pile venue d'une autre copie | `stack-not-from-this-copy` | Invalide |
+| `start-2` absent du journal | `access-log-inactive`, candidat non recréé | Invalide |
+| Candidat recréé arrêté | `start-exited` | Échec du candidat |
+| Candidat recréé jamais disponible | `start-not-ready` | Échec du candidat |
+
+Rouge d'abord : les tests ont été écrits contre une extraction qui ne
+changeait rien au comportement. Chaque défaut ci-dessous a donc été injecté
+dans `runner/candidate-start.ts`, puis retiré. Observé pendant la session :
+
+- les trois premiers défauts sur le commit `247c48c`, avec le premier test
+  pas encore commité, puis commité tel quel dans `eabd056` ;
+- les quatre suivants sur le commit `eabd056`, avec le renommage et le test
+  réécrit pas encore commités, puis commités tels quels dans `7884623`.
+
+
+| Défaut injecté | Tests en échec |
+|---|---|
+| `restartLegacy()` sans recréation du candidat | 2 sur 3 |
+| Panne de la pile non convertie en `StackIncident` | 1 sur 3 |
+| Échec du candidat compté comme panne de la pile | 1 sur 3 |
+| Témoin envoyé avant l'arrêt du candidat | 3 sur 6 |
+| Pile d'une autre copie non convertie | 1 sur 6 |
+| Témoin manquant ignoré | 1 sur 6 |
+| `start-not-ready` compté comme `start-exited` | 1 sur 6 |
+
 ## Pour aller plus loin
 
 - **#131, porte de rôle** : premier appel réel de `restartLegacy()`, donc
-  sa première preuve sur la vraie pile (limite connue de ce ticket).
+  sa première preuve sur la vraie pile. Le test sous faux `docker` prouve
+  sa logique, pas un vrai `start-2` (limite connue).
 - **#136, `tsc --noEmit`** : première preuve réelle d'un `not-evaluable`,
   sur le candidat de référence, qui n'a pas de `tsconfig.json`.
 - **#100, étalonnage** : `FINDINGS_LIMIT`, les délais des portes et celui de

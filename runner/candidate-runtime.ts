@@ -106,11 +106,12 @@ export async function startCandidate({ compose }: CandidateService): Promise<voi
 export type StartFailure = "start-exited" | "start-not-ready";
 
 // Disponible dès qu'une réponse HTTP arrive, quel que soit son statut.
-export async function waitUntilReady({ compose }: CandidateService, readyTimeoutMs: number): Promise<"ok" | StartFailure> {
+// `url` : celle du banc par défaut, remplacée par les tests.
+export async function waitUntilReady({ compose }: CandidateService, readyTimeoutMs: number, url = CANDIDATE_BASE_URL): Promise<"ok" | StartFailure> {
   const deadline = Date.now() + readyTimeoutMs;
   while (Date.now() < deadline) {
     try {
-      await fetch(CANDIDATE_BASE_URL, { signal: AbortSignal.timeout(2_000), redirect: "manual" });
+      await fetch(url, { signal: AbortSignal.timeout(2_000), redirect: "manual" });
       return "ok";
     } catch {
       const container = await candidateContainer({ compose });
