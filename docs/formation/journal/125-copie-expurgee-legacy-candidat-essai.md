@@ -156,7 +156,10 @@ Observé sur `b1b3039` : `"files": 30`, et un `copyDigest`. Le répertoire
 contient `brief.md` et `legacy-app/`. `npm run trial:copy -- ~/trial-x`
 répond `must be outside the home directory`, avec le code 1.
 
-> À vérifier après l'exécution de la CI de la PR : durée du test « la copie compile et démarre » en CI (cache froid), à signaler à Karim si elle dépasse 5 min ; oracle vert sur la PR.
+CI de la PR #140 sur le commit `d2eb964` :
+
+- [Tests du banc, exécution 45737475837](https://github.com/karAmmi12/migrabench/actions/runs/45737475837) : `legacy copy: build 16192 ms, start 1458 ms`, `Test Files  86 passed (86)`, `Tests  917 passed (917)`. Le test « la copie compile et démarre » ajoute environ 18 s, sous le seuil de 5 minutes.
+- [Oracle, exécution 45737475934](https://github.com/karAmmi12/migrabench/actions/runs/45737475934) : `Scenarios: 38, passed: 38, failed: 0, unreached: 0`, malgré l'empreinte de la pile changée par les commentaires.
 
 ## Pour aller plus loin
 
