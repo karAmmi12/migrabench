@@ -73,15 +73,25 @@ La sonde a coûté 0,0238077 USD au prix public (`probe.jsonl`).
 
 | Fichier | sha256 de l'original (hors dépôt) | sha256 de la version expurgée | Remplacements |
 |---|---|---|---|
-| `session.jsonl` | `d131a242ec109aa5f046f266dd144f0c0c5fb3eb8c4f398a0769ab3ed25fc7af` | `9bf3698ebf9fda9cf426f91a36c31e0d0b03dc6a35d0ce302c64ae5c1dc4e6e2` | `<SESSION_ID>` : 200, les autres : 0 |
-| `probe.jsonl` | `98261aa3c6a8e7807082f320aafbc7ed5d21977518d91898114e87c0bf670213` | `eb3db18bd5b826d241b57f614ba813ae5dfe021617938f9f43eb61a34f493103` | `<SESSION_ID>` : 4, les autres : 0 |
+| `session.jsonl` | `d131a242ec109aa5f046f266dd144f0c0c5fb3eb8c4f398a0769ab3ed25fc7af` | `a19dc7eb172e52fd91a9c5c5f9cb0807a2f5234d309aac8a9bd47d431c74aee3` | `<SESSION_ID>` : 200, `<CONTAINER_HOME>` : 5, les autres : 0 |
+| `probe.jsonl` | `98261aa3c6a8e7807082f320aafbc7ed5d21977518d91898114e87c0bf670213` | `545e8bf7d636a234fe4295edf57963d45fcba30ca3e78784b3c853edfb7591e5` | `<SESSION_ID>` : 4, `<CONTAINER_HOME>` : 1, les autres : 0 |
 
 Expurgés par Karim avec `npm run trial:redact` ; les fichiers
 `.redaction.json` sont ceux que le script a écrits. Les originaux restent sur
 le poste de Karim. Relecture dans la session du ticket #126 : aucun
 répertoire personnel de l'hôte, aucune adresse électronique, aucun nom de
-Karim. Seul reste le répertoire personnel de l'image, remplacé ensuite (voir
-« Corrections »).
+Karim.
+
+L'expurgation a été faite deux fois (voir « Corrections ») :
+
+1. la première, au commit de la sortie brute (`cbaf6bd`), avec le script de
+   `2f457d7`, laissait le `$HOME` de l'image de l'agent (sha256 expurgés
+   `9bf3698ebf9fda9cf426f91a36c31e0d0b03dc6a35d0ce302c64ae5c1dc4e6e2` et
+   `eb3db18bd5b826d241b57f614ba813ae5dfe021617938f9f43eb61a34f493103`) ;
+2. la seconde, par Karim le 26/11 avec le script de `4600784`, qui remplace
+   aussi ce `$HOME` par `<CONTAINER_HOME>`. Sortie du script : « Token
+   absent from the work directory, the redacted log and the 494 files of the
+   repository », pour chacun des deux journaux.
 
 ## Le candidat
 
@@ -99,16 +109,22 @@ viennent chacune dans leur commit, décrit ci-dessous.
 Aucune correction au contrat : la mesure de diagnostic passe la phase du
 contrat sur la sortie brute.
 
-1. **Journaux, répertoire personnel de l'image** (commit `3e13586`) : le `$HOME` de
-   l'utilisateur `node` de l'image de l'agent est remplacé par
-   `<CONTAINER_HOME>` dans les deux journaux expurgés : 5 fois dans
-   `session.jsonl` (`memory_paths` de `system/init`, chemins des
-   `shell-snapshots`), 1 fois dans `probe.jsonl` (`memory_paths`). Ce n'est
-   pas une donnée personnelle, mais le test du dossier refuse tout chemin
-   sous le répertoire des comptes, comme pour l'hôte. Aucun changement du
-   candidat. Les `.redaction.json` restent ceux du script ; les sha256 des journaux versionnés deviennent :
-   - `session.jsonl` : `a19dc7eb172e52fd91a9c5c5f9cb0807a2f5234d309aac8a9bd47d431c74aee3` ;
-   - `probe.jsonl` : `545e8bf7d636a234fe4295edf57963d45fcba30ca3e78784b3c853edfb7591e5`.
+1. **Journaux, répertoire personnel de l'image** : le `$HOME` de
+   l'utilisateur `node` de l'image de l'agent (`CONTAINER_HOME` de
+   `scripts/redact-log.ts`) apparaît dans
+   `memory_paths` de `system/init` et dans les chemins des
+   `shell-snapshots`. Ce n'est pas une donnée personnelle, mais le test du
+   dossier refuse tout chemin sous le répertoire des comptes. Aucun
+   changement du candidat.
+   - `3e13586` : premier remplacement, à la main, par `<CONTAINER_HOME>`.
+     Il sortait des deux sortes de corrections que permet l'ADR 0010 ;
+     Karim a décidé (26/11) de le faire par le script.
+   - `4600784` : `trial:redact` remplace ce chemin par `<CONTAINER_HOME>` et
+     le compte dans `.redaction.json`.
+   - commit suivant : les journaux expurgés de nouveau par Karim depuis les
+     originaux. Ils sont identiques, octet pour octet, à ceux de `3e13586`
+     (mêmes sha256) ; seuls les `.redaction.json` changent, avec
+     `<CONTAINER_HOME>` : 5 et 1.
 
 ## Mesure de diagnostic
 

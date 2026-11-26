@@ -6,6 +6,7 @@
     "<WORKDIR>": 0,
     "<HOST>": 0,
     "<HOME>": 0,
+    "<CONTAINER_HOME>": 1,
     "<USER>": 0
   }
 }
