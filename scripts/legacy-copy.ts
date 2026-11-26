@@ -99,14 +99,47 @@ export function filterDataset(json: string): string {
 }
 
 /** La copie expurgée de ces fichiers du legacy, dans le même ordre. */
-export function expurgate(files: readonly SourceFile[]): SourceFile[] {
+export function expurgate(files: readonly SourceFile[], rewrites: readonly Rewrite[] = REWRITES): SourceFile[] {
   return files
     .filter((file) => !isExcluded(file.path))
     .map((file) => {
       const stripped = stripBenchComments(file.path, file.content);
-      const content = file.path === DATASET ? filterDataset(stripped) : stripped;
+      const filtered = file.path === DATASET ? filterDataset(stripped) : stripped;
+      const content = rewrites.filter((rewrite) => rewrite.path === file.path).reduce(applyRewrite, filtered);
       return { path: rename(file.path), content: rename(content) };
     });
+}
+
+/** Texte du legacy remplacé dans la copie seule, chemin d'avant les renommages. */
+export interface Rewrite {
+  path: string;
+  from: string;
+  to: string;
+}
+
+// Indices du banc hors commentaires, que le marqueur ne peut pas retirer : ils
+// sont réécrits dans la copie, jamais dans le legacy. Le message d'erreur
+// garde le nom de la variable ; le champ, que la copie n'alimente plus (sa clé
+// est retirée de dossiers.json), prend un nom neutre.
+export const REWRITES: readonly Rewrite[] = [
+  {
+    path: "src/main/java/fr/migrabench/legacy/web/DossierServiceListener.java",
+    from: '" is not set: the bench must freeze the clock"',
+    to: '" is not set"',
+  },
+  {
+    path: "src/main/java/fr/migrabench/legacy/data/DatasetLoader.java",
+    from: "public Map<String, List<String>> reservations;",
+    to: "public Map<String, List<String>> groups;",
+  },
+];
+
+// Le texte doit se trouver une fois exactement : un legacy qui a changé fait
+// échouer la copie au lieu de laisser passer l'indice.
+function applyRewrite(content: string, rewrite: Rewrite): string {
+  const parts = content.split(rewrite.from);
+  if (parts.length !== 2) throw new Error(`${rewrite.path}: expected ${rewrite.from} once, found it ${parts.length - 1} times`);
+  return parts.join(rewrite.to);
 }
 
 function rename(text: string): string {
