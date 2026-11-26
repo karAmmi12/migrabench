@@ -61,7 +61,9 @@ address ».
     désordre.
   - `runGates()` lance chaque porte : sa préparation (`prepare`), puis son
     examen (`examine`). Une erreur prend le `stage` de la partie qui l'a
-    levée, et la cause `timeout`, `tool-missing` ou `exception`.
+    levée, sauf une coupure par l'échéance de la phase, toujours
+    `on-candidate`. Sa cause est `timeout`, `gates-phase-timeout`,
+    `tool-missing` ou `exception`.
   - Il applique le délai de chaque porte et celui de la phase. Il laisse
     passer une panne de la pile (`StackIncident`). Il refuse des résultats
     qui ne correspondent pas aux résultats nommés déclarés par la porte.
@@ -138,8 +140,14 @@ address ».
   - Après la fusion de #141, Karim a demandé une cause propre,
     `gates-phase-timeout`, distincte de `timeout`, pour que l'étape 5 voie
     que la porte n'a rien examiné. Elle est livrée par une PR de suite.
-  - Une porte déjà lancée et coupée par l'échéance de la phase garde
-    `timeout` : elle a pu examiner une partie du candidat.
+  - Une porte lancée puis coupée par l'échéance de la phase est aussi
+    `on-candidate`. Coupée pendant sa préparation, elle prend
+    `gates-phase-timeout` ; pendant son examen, `timeout`, car elle a pu
+    examiner une partie du candidat.
+  - La revue « spec » de la PR de suite a trouvé un défaut présent depuis
+    #141 : l'échéance de la phase tombée pendant la préparation donnait
+    `before-candidate`, donc une mesure invalide. Corrigé, test rouge
+    d'abord.
 - **Candidat qui ne redémarre pas après `restartLegacy()` : échec du
   candidat.** Confirmé par Karim. Seule la pile qui ne redevient pas saine
   rend la mesure invalide. L'option « tout échec du redémarrage invalide la
