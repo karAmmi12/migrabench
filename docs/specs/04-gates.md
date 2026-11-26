@@ -290,6 +290,29 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
   repos, plus un court délai de conception documenté.
 - `examined` est le nombre d'affichages du dossier sur l'écran. Une ligne
   absente, ou un écran non atteint, donne `not-evaluable`.
+- Précisions de #129, décidées par Karim :
+  - **Le legacy échoue aussi à `as-text/search`.** La recherche rend la charge
+    en HTML : rien n'en est affiché en texte, comme chez un candidat qui
+    assainit. Le legacy échoue donc aux deux résultats de la recherche, et
+    passe les quatre autres. `TRAPS.md` est corrigé de même.
+- Précisions de #129, prises par l'implémentation :
+  - **Écrans** : la recherche par numéro de `D-0101` et sa fiche, en agent ;
+    la remise de `D-0118`, depuis sa fiche, en instructeur.
+  - **`as-text`** : la charge est dans le texte rendu de la page
+    (`innerText`) ou dans la valeur d'un champ visible.
+  - **`examined`** : les lignes de résultat (liens du numéro) sur la
+    recherche ; les éléments visibles qui affichent le numéro sur la fiche et
+    la remise.
+  - **Attribution** : la sonde de #129 montre que la charge s'exécute sur la
+    page de résultats qui mène à la fiche. Avant le clic qui mène à l'écran
+    jugé, la porte attend que l'écran précédent soit au repos. Seules les
+    écritures reçues ensuite comptent ; les autres restent dans le brut.
+  - **Attente** : aucune requête en cours pendant 500 ms, au plus 15 s, puis
+    1 s. Le repos est suivi par la porte elle-même, requête par requête :
+    l'état `networkidle` de Playwright ne se produit qu'une fois par document.
+    Un réseau jamais au repos est signalé par `values.networkIdle: 0`.
+  - **`findings`** d'`executed` : chaque écriture, sa valeur bornée à 200
+    caractères et l'URL du cadre.
 
 ### Valeur témoin
 

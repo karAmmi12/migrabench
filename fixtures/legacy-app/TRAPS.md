@@ -109,11 +109,13 @@ cherche « porte » en mot entier : un commentaire du legacy évite le verbe
   faille là où le legacy échappe : la recherche et la fiche de `D-0101`,
   et l'écran de remise d'un second dossier réservé `EN_INSTRUCTION`
   porteur de la même charge (la fiche d'un `BROUILLON` n'a pas de lien
-  « Remise »). Ce dossier est ajouté par le ticket de la porte XSS
-  (spec de l'étape 4) ; il sert la mesure, ce n'est pas un nouveau piège.
-  Le legacy échoue seulement au premier résultat de l'écran 1. Un candidat
-  qui assainit le HTML passe le premier et échoue au second. Un candidat qui
-  échappe le texte passe les deux.
+  « Remise »). Ce dossier est `D-0118`, `EN_INSTRUCTION`, ajouté à `gate:xss`
+  par la porte XSS (#129) : il sert la mesure, ce n'est pas un nouveau piège.
+  Le legacy échoue aux deux résultats de l'écran 1 : la charge y est rendue
+  en HTML, donc exécutée et jamais affichée en texte (décision de Karim,
+  #129). Il passe les écrans 2 et 3. Un candidat qui assainit le HTML passe
+  le premier et échoue au second. Un candidat qui échappe le texte passe les
+  deux.
 - **Extension possible, hors périmètre** : injecter la charge en modifiant le
   demandeur depuis l'écran 2.
 
