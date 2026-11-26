@@ -123,7 +123,10 @@ _Éviter_ : métrique, résultat informatif
 Résultat d'une porte qui a planté elle-même (exception, outil absent, délai
 dépassé). Avant tout examen du candidat, l'erreur rend la mesure invalide.
 Pendant l'examen, le candidat peut l'avoir provoquée : elle compte comme un
-échec, mais le rapport la distingue d'un échec, avec sa cause.
+échec, mais le rapport la distingue d'un échec, avec sa cause. Une porte que
+le délai global de la phase des portes empêche d'examiner quoi que ce soit
+compte de la même façon, avec sa cause propre (`gates-phase-timeout`) :
+le candidat a pu ralentir les portes précédentes.
 _Éviter_ : porte plantée, crash
 _Éviter_ : sans objet, ignoré, ok par défaut
 

@@ -95,14 +95,18 @@ async function runGate(gate: Gate, context: Omit<GateContext, "signal">, deadlin
   const fail = (stage: GateErrorStage, cause: GateErrorCause, message: string) =>
     Object.entries(gate.results).map(([name, kind]) => errored({ gate: gate.name, name, kind, error: { stage, cause, message } }));
   const remaining = deadline === undefined ? Infinity : deadline - Date.now();
-  if (remaining <= 0) return fail("on-candidate", "timeout", `Gate ${gate.name} not run: the gates phase exceeded its deadline`);
+  if (remaining <= 0) return fail("on-candidate", "gates-phase-timeout", `Gate ${gate.name} not run: the gates phase exceeded its deadline`);
   const timeoutMs = Math.min(gate.timeoutMs, remaining);
+  // L'échéance de la phase vient avant le délai de la porte : elle ne rend
+  // jamais la mesure invalide (règle 7), le temps ayant été pris par les
+  // portes précédentes.
+  const cutByPhase = remaining < gate.timeoutMs;
   const controller = new AbortController();
   let timer: NodeJS.Timeout | undefined;
   const timedOut = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
       controller.abort();
-      reject(new GateTimeout(`Gate ${gate.name} exceeded its timeout of ${timeoutMs} ms`));
+      reject(new GateTimeout(cutByPhase ? `Gate ${gate.name} cut by the gates phase deadline after ${timeoutMs} ms` : `Gate ${gate.name} exceeded its timeout of ${timeoutMs} ms`));
     }, timeoutMs);
   });
   const gateContext: GateContext = { ...context, signal: controller.signal };
@@ -114,8 +118,13 @@ async function runGate(gate: Gate, context: Omit<GateContext, "signal">, deadlin
     results = await Promise.race([gate.examine(gateContext, prepared), timedOut]);
   } catch (error) {
     if (error instanceof StackIncident) throw error;
+    const message = error instanceof Error ? error.message : String(error);
+    // Coupée par l'échéance de la phase : pendant la préparation, elle n'a
+    // rien examiné (`gates-phase-timeout`) ; pendant l'examen, elle a pu en
+    // examiner une partie (`timeout`). Toujours `on-candidate`.
+    if (error instanceof GateTimeout && cutByPhase) return fail("on-candidate", stage === "before-candidate" ? "gates-phase-timeout" : "timeout", message);
     const cause: GateErrorCause = error instanceof GateTimeout ? "timeout" : error instanceof ToolMissing ? "tool-missing" : "exception";
-    return fail(stage, cause, error instanceof Error ? error.message : String(error));
+    return fail(stage, cause, message);
   } finally {
     clearTimeout(timer);
   }

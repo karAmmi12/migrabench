@@ -27,7 +27,13 @@ Une porte en erreur porte l'étape où elle a planté (`stage`) :
 - **`on-candidate`** : pendant l'examen. Le candidat peut l'avoir provoquée
   (bundle géant, page qui ne finit pas de charger, code qui épuise `tsc`).
   Elle compte comme un échec, mais reste distincte de `failed` et porte sa
-  cause (`timeout`, `exception`, `tool-missing`).
+  cause (`timeout`, `gates-phase-timeout`, `exception`, `tool-missing`).
+  `gates-phase-timeout` est la cause d'une porte qui n'a rien examiné à
+  cause de l'échéance globale de la phase `gates` : jamais lancée, ou coupée
+  pendant sa préparation. Elle est `on-candidate`, puisque le candidat a pu
+  ralentir les portes précédentes, et l'échéance de la phase ne rend jamais
+  la mesure invalide. Sa cause la sépare de `timeout`, pour que le rapport
+  sache qu'elle n'a rien examiné (précision ajoutée après #124).
 
 Le verdict de la mesure ne dépend pas des portes, sauf pour une erreur
 `before-candidate`. Un échec à une porte est un résultat du candidat,
@@ -56,5 +62,5 @@ agrégé par le score de l'étape 5, pas un incident de la mesure.
   `"passed"` hors du module de `gateResultPassed`, et échoue s'il en trouve.
 - Tant que l'étalonnage sous charge (#100) n'est pas fait, aucune porte n'a
   de critère fondé sur un seuil de performance absolu. Une erreur
-  `on-candidate` de cause `timeout` est signalée telle quelle, pour être
-  relue après l'étalonnage.
+  `on-candidate` de cause `timeout` ou `gates-phase-timeout` est signalée
+  telle quelle, pour être relue après l'étalonnage.
