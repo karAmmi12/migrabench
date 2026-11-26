@@ -28,15 +28,15 @@ import { dirname, join, relative } from "node:path";
 import { type GateContext, StackIncident } from "../gates/context.ts";
 import { GATES, GATES_PHASE_TIMEOUT_MS, gatesOf, runGates } from "../gates/registry.ts";
 import { beforeCandidateEvidence, type GateResult } from "../gates/result.ts";
-import { executeOracle, type ExecuteOracleResult, listOracle, OracleError, recreateStack, StackFailed } from "../oracle/execute.ts";
+import { executeOracle, type ExecuteOracleResult, listOracle, OracleError, StackFailed } from "../oracle/execute.ts";
 import { SERVICES, stackContextDigests, StackNotFromCopy, verifyBuiltImages } from "../oracle/stack-images.ts";
-import { saveServiceLogs, type ServiceState, type StackDown, stackDown, stackStates } from "../oracle/stack-state.ts";
+import { saveServiceLogs, type StackDown, stackDown, stackStates } from "../oracle/stack-state.ts";
 import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
-import { checkAccessLog } from "./access-log.ts";
-import { ACCESS_LOG_FILE, closeAccessLog, sendWitness, witnessEvidence } from "./witness.ts";
+import { ACCESS_LOG_FILE, closeAccessLog } from "./witness.ts";
 import { readSeamAMarkers } from "../shared/seam-a-marker.ts";
 import { fetchFromInternal, INTERNAL_API_URL } from "../shared/internal-api.ts";
 import { contentDigest } from "./candidate-content.ts";
+import { CandidateNotStarted, candidateStarter } from "./candidate-restart.ts";
 import { contractPhase, type ContractPhaseResult } from "./contract-phase.ts";
 import { candidateName, measureId as measureIdOf } from "./measure-id.ts";
 import { type AccessLogRecord, type CandidateRecord, measureRecord, type OracleRecord } from "./measure-record.ts";
@@ -61,10 +61,7 @@ import {
   isDirectory,
   removeCandidate,
   RUNTIME_IMAGE,
-  startCandidate,
-  type StartFailure,
   stopCandidate,
-  waitUntilReady,
 } from "./candidate-runtime.ts";
 import { type ContainerUser, containerUser } from "./container-user.ts";
 import { cpuShortfall, type Limits, measureLimits, SAFETY_CAP } from "./limits.ts";
@@ -293,25 +290,12 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     const described = await candidateService({ rawDir, copyDir, user: containerUserOfRunner, start, limits });
     service = described;
     let closeOracle: ClosePhase<"oracle"> | undefined;
-    // État de la pile saine, candidat arrêté : comparé à celui de la fin de
-    // l'oracle, et de chaque porte, pour voir un service tombé pendant que le
-    // candidat tournait.
-    let stackBefore: ServiceState[] = [];
-    // Pile recréée et saine : candidat arrêté, requête témoin de début
-    // suivante, puis candidat recréé et attendu. Après l'exécution de l'oracle,
-    // et à chaque redémarrage du legacy demandé par une porte.
-    const readyCandidate = async (): Promise<void> => {
-      await stopCandidate(described);
-      const name = `start-${startWitnesses.length + 1}`;
-      startWitnesses.push(name);
-      const witness = await sendWitness(name, { accessLogDir, marker });
-      const check = checkAccessLog({ log: witness.log, marker, expected: startWitnesses, seamAMarkers: [] });
-      if (check.outcome === "access-log-inactive") throw new CandidateNotStarted(check.outcome, witnessEvidence(witness, check));
-      stackBefore = await stackStates();
-      await startCandidate(described);
-      const ready = await waitUntilReady(described, limits.readyTimeoutMs);
-      if (ready !== "ok") throw new CandidateNotStarted(ready);
-    };
+    // Démarrage du candidat après chaque recréation de la pile, et
+    // redémarrage du legacy demandé par une porte (runner/candidate-restart.ts).
+    // `stackBefore` : l'état de la pile saine, candidat arrêté, comparé à celui
+    // de la fin de l'oracle, et de chaque porte, pour voir un service tombé
+    // pendant que le candidat tournait.
+    const { readyCandidate, restartLegacy, stackBefore } = candidateStarter({ service: described, salt: measureSalt, accessLogDir, marker, readyTimeoutMs: limits.readyTimeoutMs, startWitnesses });
     let result: ExecuteOracleResult;
     try {
       result = await executeOracle({
@@ -356,7 +340,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     // l'oracle est gardé. La panne passe devant une erreur de l'oracle de la
     // même exécution, que le candidat a pu provoquer en la faisant tomber :
     // invalider la mesure lui offrirait une seconde chance (règle 7).
-    const down = stackDown(stackBefore, await stackStates());
+    const down = stackDown(stackBefore(), await stackStates());
     // La mesure est alors décidée, et la pile n'est plus sûre : les portes ne
     // tournent pas (#124).
     if (down !== undefined) return void closeOracle?.("stack-down-while-candidate", await saveServiceLogs(rawDir, down.services), down.detail);
@@ -374,17 +358,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
       builtCopyDir: copyDir,
       oracle: { resultFile: join(measureDir, "oracle.json"), harFiles: await harFiles(join(rawDir, "oracle")) },
       internalApi: { get: (path) => fetchFromInternal(`${INTERNAL_API_URL}${path}`, { method: "GET" }) },
-      restartLegacy: async () => {
-        try {
-          await recreateStack(measureSalt, accessLogDir);
-          await readyCandidate();
-        } catch (error) {
-          if (error instanceof StackFailed) throw new StackIncident("stack-failed-before-candidate", error.message);
-          if (error instanceof StackNotFromCopy) throw new StackIncident("stack-not-from-this-copy", error.message);
-          if (error instanceof CandidateNotStarted) throw new StackIncident(error.outcome, error.detail);
-          throw error;
-        }
-      },
+      restartLegacy,
     };
     try {
       // Les résultats des portes passées restent dans gateResults si une
@@ -392,7 +366,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
       await runGates(gatesOf(GATES, "gates"), gateContext, {
         deadline: Date.now() + GATES_PHASE_TIMEOUT_MS,
         afterEach: async () => {
-          const fell = stackDown(stackBefore, await stackStates());
+          const fell = stackDown(stackBefore(), await stackStates());
           if (fell !== undefined) throw new StackDownDuringGates(fell);
         },
         results: gateResults,
@@ -547,18 +521,6 @@ async function isFile(path: string): Promise<boolean> {
     return (await stat(path)).isFile();
   } catch {
     return false;
-  }
-}
-
-// Levée par le rappel pour arrêter l'exécution de l'oracle avant Playwright.
-// `detail` : la preuve d'une issue qui rend la mesure invalide.
-class CandidateNotStarted extends Error {
-  readonly outcome: "access-log-inactive" | StartFailure;
-  readonly detail: string | undefined;
-  constructor(outcome: CandidateNotStarted["outcome"], detail?: string) {
-    super(`The candidate did not start: ${outcome}`);
-    this.outcome = outcome;
-    this.detail = detail;
   }
 }
 
