@@ -21,11 +21,14 @@ FROM tomcat:9.0.124-jdk8-temurin
 RUN rm -rf /usr/local/tomcat/webapps/*
 COPY --from=users /work/tomcat-users.xml /usr/local/tomcat/conf/tomcat-users.xml
 COPY --from=build /build/target/ROOT.war /usr/local/tomcat/webapps/ROOT.war
-# Second connecteur : 8081 pour l'API interne, non publié sur l'hôte. Il
-# écoute sur toutes les interfaces : limite connue de l'ADR 0004.
+# Second connecteur : 8081 pour l'API interne, non publié sur l'hôte. Dans
+# la composition, il n'écoute que sur l'adresse du legacy dans mb-internal,
+# nommée par la propriété système mb.internalApiAddress (docker-compose.yml) :
+# un conteneur du réseau default ne le joint pas (ADR 0004, #78). Sans la
+# propriété (image lancée seule), il écoute sur toutes les interfaces.
 # Le grep fait échouer le build si l'insertion rate.
-RUN sed -i 's|<Connector port="8080" protocol="HTTP/1.1"|<Connector port="8081" protocol="HTTP/1.1" connectionTimeout="20000" maxParameterCount="1000" />\n    &|' conf/server.xml \
- && grep -q '<Connector port="8081"' conf/server.xml
+RUN sed -i 's|<Connector port="8080" protocol="HTTP/1.1"|<Connector port="8081" address="${mb.internalApiAddress:-0.0.0.0}" protocol="HTTP/1.1" connectionTimeout="20000" maxParameterCount="1000" />\n    &|' conf/server.xml \
+ && grep -q '<Connector port="8081" address="${mb.internalApiAddress:-0.0.0.0}"' conf/server.xml
 # Journal d'accès du banc (#67), instrumentation et non piège (TRAPS.md) :
 # connecteur 8080 seul, en ajout dans logs/migrabench/access.log, que le banc
 # monte depuis l'hôte (docker-compose.yml). UMASK 0022 : Tomcat crée ses

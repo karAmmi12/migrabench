@@ -12,12 +12,17 @@ services:
         org.migrabench.context-digest: ${MB_LEGACY_CONTEXT_DIGEST:-}
     # Seul le port 8080 (JSP) est publié. Le port 8081 (API interne) n'est
     # pas joignable depuis l'hôte ; la couche serveur du candidat l'appelle
-    # par mb-internal. Limite connue : default le joint aussi (ADR 0004).
+    # par mb-internal. Tomcat n'écoute 8081 que sur l'adresse du legacy dans
+    # mb-internal, nommée par l'alias legacy-internal-api : default ne le
+    # joint pas (ADR 0004, #78).
     ports:
       - "127.0.0.1:8080:8080"
+    environment:
+      CATALINA_OPTS: "-Dmb.internalApiAddress=legacy-internal-api"
     networks:
-      - default
-      - mb-internal
+      default: {}
+      mb-internal:
+        aliases: [legacy-internal-api]
     # Valeurs du banc (horloge figée FROZEN_DATE, valeur témoin ARCHIVE_TOKEN),
     # passées telles quelles au conteneur : une variable du shell ne peut pas
     # les remplacer. Sans FROZEN_DATE, le legacy refuse de démarrer.
