@@ -162,9 +162,16 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
     `gates-phase-timeout`. Elle est `on-candidate` parce que le temps a été
     pris par l'examen des portes précédentes, que le candidat a pu ralentir.
     Sa cause est distincte de `timeout` pour que l'étape 5 voie qu'elle n'a
-    rien examiné. Une porte déjà lancée, coupée par l'échéance de la phase
-    avant son propre délai, garde la cause `timeout` : elle a pu examiner
-    une partie du candidat ;
+    rien examiné. Une porte lancée puis coupée par l'échéance de la phase,
+    avant son propre délai, est aussi `on-candidate`, jamais
+    `before-candidate` :
+    - coupée pendant sa préparation, elle n'a rien examiné : cause
+      `gates-phase-timeout` ;
+    - coupée pendant son examen, elle a pu examiner une partie du candidat :
+      cause `timeout`.
+
+    Seul le délai propre d'une porte, dépassé pendant sa préparation, donne
+    `before-candidate` ;
   - un redémarrage du legacy demandé par une porte qui échoue prend l'issue
     du démarrage : pile qui ne redevient pas saine ou construite depuis une
     autre copie, ou requête témoin `start-N` absente, la mesure est
