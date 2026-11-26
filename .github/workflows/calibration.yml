@@ -82,11 +82,6 @@ jobs:
       - name: Installation des dépendances
         run: npm ci
 
-      # Versions du navigateur et de Playwright relevées dans l'environnement,
-      # comme pour une mesure.
-      - name: Installation de Chromium pour Playwright
-        run: npx playwright install --with-deps chromium
-
       # Empreinte du contexte de construction de chaque image, posée en label
       # au build : une mesure, l'oracle et l'étalonnage refusent une pile dont
       # les images ne viennent pas de cette copie du dépôt (#102).

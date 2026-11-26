@@ -94,8 +94,6 @@ jobs:
       - name: Installation des dépendances
         run: npm ci
 
-      - name: Installation de Chromium pour Playwright
-        run: npx playwright install --with-deps chromium
 
       # Empreinte du contexte de construction de chaque image, posée en label
       # au build : une mesure, l'oracle et l'étalonnage refusent une pile dont
@@ -159,8 +157,6 @@ jobs:
       - name: Installation des dépendances
         run: npm ci
 
-      - name: Installation de Chromium pour Playwright
-        run: npx playwright install --with-deps chromium
 
       # Empreinte du contexte de construction de chaque image, posée en label
       # au build : une mesure, l'oracle et l'étalonnage refusent une pile dont
