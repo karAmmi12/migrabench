@@ -8,6 +8,7 @@
 import { type GateContext, StackIncident } from "./context.ts";
 import { accessibilityGate } from "./accessibility.ts";
 import { relayGate } from "./relay.ts";
+import { xssGate } from "./xss.ts";
 import { type GateErrorCause, type GateErrorStage, type GateResult, type GateResultKind, errored } from "./result.ts";
 
 // Groupes, dans l'ordre où leurs portes tournent : celles qui ne lisent que
@@ -38,7 +39,7 @@ export interface Gate<Prepared = unknown> {
 }
 
 // Portes de la mesure, dans l'ordre fixe.
-export const GATES: readonly Gate[] = [accessibilityGate as Gate, relayGate as Gate];
+export const GATES: readonly Gate[] = [accessibilityGate as Gate, xssGate as Gate, relayGate as Gate];
 
 // Outil d'analyse absent : cause `tool-missing`, à l'étape où il manque.
 export class ToolMissing extends Error {

@@ -28,6 +28,13 @@ describe("registry order", () => {
     expect(GATES.at(-1)?.name).toBe("relay");
   });
 
+  // Spec de l'étape 4 : accessibilité, XSS, puis Lighthouse, parmi les portes
+  // à navigateur qui ne font que lire.
+  it("runs the XSS gate right after the accessibility gate", () => {
+    const names = GATES.map(({ name }) => name);
+    expect(names.indexOf("xss")).toBe(names.indexOf("accessibility") + 1);
+  });
+
   // Témoin : un registre dans le désordre est refusé.
   it("refuses a gate of an earlier group after a later one", () => {
     const gates = [gate({ name: "writer", group: "writes" }), gate({ name: "reader", group: "browser-read" })];

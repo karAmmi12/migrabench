@@ -1,0 +1,7 @@
+{
+  "name": "xss-executes-then-erases",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Candidat défectueux de la porte XSS : exécute la charge sur la recherche, puis efface window.__mbXss.",
+  "type": "module"
+}

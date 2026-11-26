@@ -1,0 +1,126 @@
+{
+  "search": {
+    "writes": [
+      {
+        "label": "search D-0101",
+        "value": "1",
+        "sourceKeys": [
+          "context",
+          "page",
+          "frame"
+        ],
+        "frameUrl": "http://localhost:8080/rechercher.do;jsessionid=38373550E6FC24823BABFE7A13829E70?number=D-0101&applicant=&status=&filedFrom=&filedTo=",
+        "isMainFrame": true,
+        "at": 1795730862887
+      }
+    ],
+    "facts": {
+      "url": "http://localhost:8080/rechercher.do;jsessionid=38373550E6FC24823BABFE7A13829E70?number=D-0101&applicant=&status=&filedFrom=&filedTo=",
+      "bindingTypeAtInit": "function",
+      "descriptor": {
+        "configurable": false,
+        "hasGet": "function",
+        "hasSet": "function"
+      },
+      "linksNamedNumber": 1,
+      "textNumberExact": 1,
+      "textNumber": 1,
+      "payloadText": 0,
+      "innerTextHasPayload": false,
+      "fieldsWithPayload": [],
+      "imgs": [
+        "<img src=\"x\" onerror=\"window.__mbXss=1\">"
+      ]
+    }
+  },
+  "erase": {
+    "deleteReturned": false,
+    "assignUndefined": "no throw",
+    "redefine": "TypeError: Cannot redefine property: __mbXss",
+    "bindingOverwritten": true
+  },
+  "eraseWrites": [
+    {
+      "label": "search D-0101",
+      "value": "undefined",
+      "sourceKeys": [
+        "context",
+        "page",
+        "frame"
+      ],
+      "frameUrl": "http://localhost:8080/rechercher.do;jsessionid=38373550E6FC24823BABFE7A13829E70?number=D-0101&applicant=&status=&filedFrom=&filedTo=",
+      "isMainFrame": true,
+      "at": 1795730863418
+    },
+    {
+      "label": "search D-0101",
+      "value": "after-overwrite",
+      "sourceKeys": [
+        "context",
+        "page",
+        "frame"
+      ],
+      "frameUrl": "http://localhost:8080/rechercher.do;jsessionid=38373550E6FC24823BABFE7A13829E70?number=D-0101&applicant=&status=&filedFrom=&filedTo=",
+      "isMainFrame": true,
+      "at": 1795730863418
+    }
+  ],
+  "sheet": {
+    "writesSinceSearch": [],
+    "allWritesCount": 3,
+    "facts": {
+      "url": "http://localhost:8080/fiche.do?number=D-0101",
+      "bindingTypeAtInit": "function",
+      "descriptor": {
+        "configurable": false,
+        "hasGet": "function",
+        "hasSet": "function"
+      },
+      "linksNamedNumber": 0,
+      "textNumberExact": 1,
+      "textNumber": 1,
+      "payloadText": 0,
+      "innerTextHasPayload": false,
+      "fieldsWithPayload": [
+        {
+          "tag": "INPUT",
+          "id": "applicant",
+          "readOnly": false
+        }
+      ],
+      "imgs": []
+    }
+  },
+  "submission": {
+    "writes": [
+      {
+        "label": "sheet D-0118",
+        "value": "1",
+        "sourceKeys": [
+          "context",
+          "page",
+          "frame"
+        ],
+        "frameUrl": "http://localhost:8080/rechercher.do;jsessionid=088621BC2D9FA8D2952272927AFCFCAA?number=D-0118&applicant=&status=&filedFrom=&filedTo=",
+        "isMainFrame": true,
+        "at": 1795730864665
+      }
+    ],
+    "facts": {
+      "url": "http://localhost:8080/remise.do?number=D-0118",
+      "bindingTypeAtInit": "function",
+      "descriptor": {
+        "configurable": false,
+        "hasGet": "function",
+        "hasSet": "function"
+      },
+      "linksNamedNumber": 0,
+      "textNumberExact": 1,
+      "textNumber": 1,
+      "payloadText": 1,
+      "innerTextHasPayload": true,
+      "fieldsWithPayload": [],
+      "imgs": []
+    }
+  }
+}

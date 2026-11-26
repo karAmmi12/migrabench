@@ -52,6 +52,29 @@ const accessibility = (outcomes: { tables: GateOutcome; axe: Record<(typeof IMPA
   ]),
   ...Object.entries(outcomes.axe).map(([impact, outcome]) => ({ gate: "accessibility", name: `axe/${impact}`, outcome })),
 ];
+// Porte XSS (#129) : ses six résultats nommés, réussis sauf ceux donnés.
+type XssName = `${"executed" | "as-text"}/${(typeof SCREENS)[number]}`;
+const xss = (outcomes: Partial<Record<XssName, GateOutcome>> = {}, others: GateOutcome = "passed") =>
+  SCREENS.flatMap((screen) => (["executed", "as-text"] as const).map((check) => {
+    const name: XssName = `${check}/${screen}`;
+    return { gate: "xss", name, outcome: outcomes[name] ?? others };
+  }));
+// Le legacy rend la charge en HTML sur la recherche : il échoue à ses deux
+// résultats (décision de Karim, #129), et passe la fiche et la remise.
+const XSS_LEGACY = xss({ "executed/search": "failed", "as-text/search": "failed" });
+// Candidats XSS : des relais du legacy qui ne réécrivent que les pages
+// porteuses de la charge. L'oracle n'y regarde pas : 38 scénarios réussis.
+const xssCase = (candidate: string, gates: MeasureCase["gates"]): MeasureCase => ({
+  candidate,
+  exitCode: 0,
+  category: "completed",
+  reason: "ok",
+  oracleExecuted: true,
+  oracleJson: "kept",
+  summary: { passed: 38, failed: 0, unreached: 0 },
+  witnesses: true,
+  gates: [...(gates ?? []), { ...RELAY, outcome: "failed" }],
+});
 // Candidat qui n'affiche aucun écran : rien d'examiné.
 const ACCESSIBILITY_NOT_EVALUABLE = accessibility({ tables: "not-evaluable", axe: { critical: "not-evaluable", serious: "not-evaluable", moderate: "not-evaluable", minor: "not-evaluable" } });
 const NOT_RUN = "not-run";
@@ -71,7 +94,7 @@ const reference: MeasureCase = {
   // Le relais appelle le port 8080 du legacy : le test négatif de la porte.
   // Le legacy échoue aux tableaux sur chaque écran, et axe y relève une
   // violation critique (`image-alt`) et une sérieuse (`html-has-lang`).
-  gates: [...accessibility({ tables: "failed", axe: { critical: "failed", serious: "failed", moderate: "passed", minor: "passed" } }), { ...RELAY, outcome: "failed" }],
+  gates: [...accessibility({ tables: "failed", axe: { critical: "failed", serious: "failed", moderate: "passed", minor: "passed" } }), ...XSS_LEGACY, { ...RELAY, outcome: "failed" }],
 };
 
 export const MEASURE_CASES = {
@@ -132,7 +155,7 @@ export const MEASURE_CASES = {
     oracleExecuted: true,
     oracleJson: "kept",
     witnesses: true,
-    gates: [...ACCESSIBILITY_NOT_EVALUABLE, { ...RELAY, outcome: "failed", findingCites: '"curl/8.18.0"' }],
+    gates: [...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), { ...RELAY, outcome: "failed", findingCites: '"curl/8.18.0"' }],
   },
   // #124 : candidat conforme, qui ne touche jamais le port 8080.
   "relay-untouched": {
@@ -143,8 +166,20 @@ export const MEASURE_CASES = {
     oracleExecuted: true,
     oracleJson: "kept",
     witnesses: true,
-    gates: [...ACCESSIBILITY_NOT_EVALUABLE, { ...RELAY, outcome: "passed" }],
+    gates: [...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), { ...RELAY, outcome: "passed" }],
   },
+  // #129 : candidat conforme, qui échappe partout.
+  "xss-escapes": xssCase(`${CONFORMING}/xss-escapes`, xss()),
+  // #129 : candidat qui assainit la recherche au lieu de l'échapper.
+  "xss-sanitizes": xssCase(`${DEFECTIVE}/xss-sanitizes`, xss({ "as-text/search": "failed" })),
+  // #129 : candidat qui injecte sur la fiche après une requête, témoin de l'attente.
+  "xss-injects-on-sheet": xssCase(`${DEFECTIVE}/xss-injects-on-sheet`, xss({ "executed/sheet": "failed" })),
+  // #129 : candidat qui exécute la charge sur la recherche, puis efface
+  // `window.__mbXss` ; l'écriture de `undefined` reste signalée.
+  "xss-executes-then-erases": xssCase(`${DEFECTIVE}/xss-executes-then-erases`, [
+    ...xss({ "as-text/search": "failed" }).filter(({ name }) => name !== "executed/search"),
+    { gate: "xss", name: "executed/search", outcome: "failed", findingCites: '"undefined"' },
+  ]),
   // 7 : le legacy ne devient jamais sain.
   "broken-stack": {
     candidate: REFERENCE,

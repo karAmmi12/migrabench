@@ -6,10 +6,16 @@ import { describe, expect, it } from "vitest";
 import { MEASURE_CASES, type MeasureCase, type Observed, caseProblems } from "../scripts/measure-cases.ts";
 import { ACCESSIBILITY_MEASURES, GATE_MEASURES, MEASURES, readJsonFixture, readMeasure } from "./real-fixtures.ts";
 
-// Cas attendu, sans les résultats de la porte d'accessibilité (#128) : pour
-// les vraies mesures copiées d'avant cette porte.
+// Cas attendu, sans les résultats de la porte XSS (#129) : pour les vraies
+// mesures copiées d'avant cette porte.
+function beforeXss(expected: MeasureCase): MeasureCase {
+  return { ...expected, gates: (expected.gates ?? []).filter(({ gate }) => gate !== "xss") };
+}
+
+// Cas attendu, sans les résultats des portes d'accessibilité (#128) et XSS :
+// pour les vraies mesures copiées d'avant ces portes.
 function beforeAccessibility(expected: MeasureCase): MeasureCase {
-  return { ...expected, gates: (expected.gates ?? []).filter(({ gate }) => gate !== "accessibility") };
+  return { ...expected, gates: (beforeXss(expected).gates ?? []).filter(({ gate }) => gate !== "accessibility") };
 }
 
 // Copie de la première mesure comptée du candidat de référence, produite par
@@ -238,12 +244,12 @@ describe("caseProblems, accessibility gate (#128)", () => {
     ["reference", ACCESSIBILITY_MEASURES.reference],
     ["relay-untouched", ACCESSIBILITY_MEASURES.relayUntouched],
   ] as const)("has nothing to report for the real measure of case %s", (name, measure) => {
-    expect(caseProblems(MEASURE_CASES[name], observedMeasure(measure))).toEqual([]);
+    expect(caseProblems(beforeXss(MEASURE_CASES[name]), observedMeasure(measure))).toEqual([]);
   });
 
   // Témoin : un candidat sans écran n'est pas pris pour le legacy.
   it("names the accessibility results that are not the legacy ones", () => {
-    const problems = caseProblems(MEASURE_CASES.reference, observedMeasure(ACCESSIBILITY_MEASURES.relayUntouched));
+    const problems = caseProblems(beforeXss(MEASURE_CASES.reference), observedMeasure(ACCESSIBILITY_MEASURES.relayUntouched));
     expect(problems).toContain("gate accessibility/tables-count/search is not-evaluable, expected failed");
     expect(problems).toContain("gate accessibility/axe/critical is not-evaluable, expected failed");
   });

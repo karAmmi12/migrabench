@@ -1,0 +1,7 @@
+{
+  "name": "xss-sanitizes",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Candidat défectueux de la porte XSS : le relais de référence qui assainit le demandeur sur la recherche au lieu de l'échapper.",
+  "type": "module"
+}
