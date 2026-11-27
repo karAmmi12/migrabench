@@ -262,7 +262,7 @@ Les jobs ont tourné sur le commit `08927c2` :
   commit `622d332`, dernier job des mesures avant Lighthouse) à 33 733 ms,
   soit **+21,3 s par mesure**, sous le seuil de 5 minutes.
 - Le job des mesures entier passe de 12 min 43 s à 17 min 46 s, soit
-  +5 min 3 s. Ce sont onze mesures qui atteignent la phase `gates` : cet
+  +5 min 3 s. Ce sont neuf mesures qui atteignent la phase `gates` : cet
   écart est signalé à Karim.
 - Le LHR d'une passe qui n'aboutit pas, celle de `relay-untouched`, est copié
   dans `tests/fixtures/ci46002940746/`.
