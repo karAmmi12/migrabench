@@ -333,15 +333,18 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
   scénario, l'URL, l'emplacement et la forme trouvée. Le candidat de
   référence échoue.
 - **Corps non lus** (décisions de Karim, #153 puis #158) : la porte ne
-  conclut pas « absent » sur une réponse qu'elle n'a pas lue. Si le corps
-  d'une réponse manque au HAR, le résultat est `not-evaluable`, avec ces
-  entrées dans `findings` (scénario, URL, type de média, `null` sans
-  `Content-Type`). Une fuite trouvée ailleurs reste prioritaire (`failed`).
-  Sont écartés, comptés dans `values` sans effet sur l'issue :
+  conclut pas « absent » sur une réponse qu'elle n'a pas lue. Un **corps non
+  lu** est un corps de réponse absent du HAR, hors trois cas. S'il y en a
+  un, le résultat est `not-evaluable`, avec ces entrées dans `findings`
+  (scénario, URL, type de média du premier `Content-Type`, `null` s'il est
+  absent ou vide). Une fuite trouvée ailleurs reste prioritaire (`failed`).
+  Les trois cas écartés, comptés dans `responseBodiesAbsent` sans effet sur
+  l'issue :
   - la réponse vide (`bodySize: 0`) ;
   - l'entrée sans réponse (`status: -1`, erreur réseau) ;
   - les types sans intérêt connu : `image/*`, `font/*`, `audio/*`,
-    `video/*`.
+    `video/*`, avec un sous-type non vide. Un type mal formé (`image`,
+    `image/`) est inconnu, donc non lu.
 
   Un corps jamais lu n'a pas de taille mesurée dans le HAR (`bodySize: -1`,
   sonde de #130) : la règle ne s'appuie donc pas sur la taille.
@@ -349,8 +352,8 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
     sa borne, un résultat `failed` peut perdre ces derniers ;
     `values.responseBodiesUnread` en garde le nombre.
   - `values` : `hars`, `responseBodiesAbsent` (tous les corps absents,
-    réponses vides comprises) et `responseBodiesUnread` (ceux qui sont à
-    vérifier).
+    réponses vides et entrées sans réponse comprises) et
+    `responseBodiesUnread` (les corps non lus).
 
 ### Rôle
 

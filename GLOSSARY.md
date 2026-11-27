@@ -110,8 +110,8 @@ _Éviter_ : mesure ratée, mesure annulée
 
 **Non évaluable** :
 Résultat d'une porte qui n'a examiné aucun élément, ou dont l'examen ne permet
-pas de conclure à une réussite (la valeur témoin dont un corps de réponse à
-vérifier manque au HAR, #153 et #158). Il compte comme un échec, jamais comme
+pas de conclure à une réussite (la valeur témoin face à un corps de réponse
+non lu, absent du HAR, #153 et #158). Il compte comme un échec, jamais comme
 une réussite. Un candidat qui ne démarre pas rend toutes ses
 portes non évaluables. À distinguer d'une porte en erreur.
 

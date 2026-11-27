@@ -136,7 +136,8 @@ Le vocabulaire du domaine du legacy et les termes dérivés sont définis dans
   évaluable, sauf fuite trouvée ailleurs (#153, #158). Seuls sont écartés la
   réponse vide, l'entrée sans réponse et les types sans intérêt connu
   (`image/*`, `font/*`, `audio/*`, `video/*`, d'après `Content-Type`) : une
-  réponse sans `Content-Type` ou d'un type inconnu est à vérifier. Un
+  réponse sans `Content-Type`, ou d'un type mal formé ou inconnu, compte
+  comme un corps non lu. Un
   candidat qui déclare une image pour servir du texte y échappe.
 - Les portes de rôle et d'authentification rejouent des requêtes en
   transplantant les valeurs liées à la session (cookies, jeton anti-CSRF) :

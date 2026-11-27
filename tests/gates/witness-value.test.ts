@@ -215,6 +215,17 @@ describe("unread response bodies", () => {
     expect(searchHars([{ scenario: "probe", har }], SYNTHETIC).unread).toContainEqual({ scenario: "probe", url: "http://127.0.0.1:8100/br-json", type: null });
   });
 
+  it("lists an unread body whose Content-Type is empty or malformed", () => {
+    const har = withContentTypes({ "/gzip-text": "", "/br-json": "image", "/binary": "image/", "/gzip-binary": "/png" });
+    expect(searchHars([{ scenario: "probe", har }], SYNTHETIC).unread.map(({ url, type }) => [new URL(url).pathname, type])).toEqual([
+      ["/gzip-text", null],
+      ["/br-json", "image"],
+      ["/binary", "image/"],
+      ["/gzip-binary", "/png"],
+      ["/header", "text/plain"],
+    ]);
+  });
+
   it("does not list an unread image, font, audio or video body", () => {
     const har = withContentTypes({ "/gzip-text": "Image/SVG+XML", "/br-json": "font/woff2", "/binary": "audio/mpeg", "/gzip-binary": "video/mp4; codecs=avc1", "/header": "image/webp" });
     expect(searchHars([{ scenario: "probe", har }], SYNTHETIC).unread).toEqual([]);
