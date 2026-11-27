@@ -5,6 +5,7 @@
 // Une porte sépare sa préparation (avant de lire quoi que ce soit du
 // candidat) de son examen. Le registre pose `stage` selon la partie qui a levé
 // l'erreur, jamais d'après le message (ADR 0008).
+import { BenchBrowserUnreachable } from "../shared/bench-browser.ts";
 import { type GateContext, StackIncident } from "./context.ts";
 import { accessibilityGate } from "./accessibility.ts";
 import { authGate } from "./auth.ts";
@@ -148,7 +149,8 @@ async function runGate(gate: Gate, context: Omit<GateContext, "signal">, deadlin
     // rien examiné (`gates-phase-timeout`) ; pendant l'examen, elle a pu en
     // examiner une partie (`timeout`). Toujours `on-candidate`.
     if (error instanceof GateTimeout && cutByPhase) return fail("on-candidate", stage === "before-candidate" ? "gates-phase-timeout" : "timeout", message);
-    const cause: GateErrorCause = error instanceof GateTimeout ? "timeout" : error instanceof ToolMissing ? "tool-missing" : "exception";
+    const cause: GateErrorCause =
+      error instanceof GateTimeout ? "timeout" : error instanceof ToolMissing ? "tool-missing" : error instanceof BenchBrowserUnreachable ? "bench-browser-unreachable" : "exception";
     return fail(stage, cause, message);
   } finally {
     clearTimeout(timer);

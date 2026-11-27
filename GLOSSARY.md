@@ -100,8 +100,9 @@ vers le registre imposé de l'installation des dépendances ; marqueur du banc
 hors de son moment prévu dans le journal d'accès du legacy, ou requête
 témoin absente de ce journal ; erreur imprévue du runner avant le lancement
 de `npm ci` ; erreur d'une porte avant qu'elle ait examiné quoi que ce soit
-du candidat ; interruption de la mesure, qui est conservée et toujours
-signalée. La raison est enregistrée dans son résultat, ou, si l'erreur est
+du candidat ; connexion du banc à son navigateur qui n'aboutit pas, pendant
+l'oracle ou une porte (`bench-browser-unreachable`, #168) ; interruption de
+la mesure, qui est conservée et toujours signalée. La raison est enregistrée dans son résultat, ou, si l'erreur est
 découverte après coup, dans un document ajouté qui cite les mesures
 concernées, la raison et la preuve. La mesure
 suivante du même candidat compte à sa place, et le rapport le signale. Un
@@ -123,7 +124,9 @@ _Éviter_ : métrique, résultat informatif
 
 **Porte en erreur** :
 Résultat d'une porte qui a planté elle-même (exception, outil absent, délai
-dépassé). Avant tout examen du candidat, l'erreur rend la mesure invalide.
+dépassé, navigateur du banc injoignable). Avant tout examen du candidat,
+l'erreur rend la mesure invalide. Un navigateur du banc injoignable la rend
+invalide à toute étape, avec sa cause propre (`bench-browser-unreachable`).
 Pendant l'examen, le candidat peut l'avoir provoquée : elle compte comme un
 échec, mais le rapport la distingue d'un échec, avec sa cause. Une porte que
 le délai global de la phase des portes empêche d'examiner quoi que ce soit
@@ -131,6 +134,14 @@ compte de la même façon, avec sa cause propre (`gates-phase-timeout`) :
 le candidat a pu ralentir les portes précédentes.
 _Éviter_ : porte plantée, crash
 _Éviter_ : sans objet, ignoré, ok par défaut
+
+**Navigateur du banc** :
+Chromium du service `browser`, dans lequel l'oracle et les portes affichent
+le candidat. Le banc le joint par deux passerelles, avec le jeton de la pile
+(#134, #160) : celle du serveur de Playwright et celle du CDP. Le candidat
+ne le joint pas. Une connexion du banc qui n'y aboutit pas est une panne du
+banc (`bench-browser-unreachable`, #168).
+_Éviter_ : navigateur de test, Chromium du candidat
 
 **Valeur témoin** :
 Valeur unique et connue d'un secret serveur, injectée par le banc, dont la

@@ -17,6 +17,7 @@ export const INVALIDITY_CAUSES = [
   "marker-out-of-place",
   "runner-error-before-candidate",
   "gate-error-before-candidate",
+  "bench-browser-unreachable",
   "interrupted",
 ] as const;
 export type InvalidityCause = (typeof INVALIDITY_CAUSES)[number];
@@ -44,14 +45,16 @@ type FailureOutcome = (typeof FAILURES)[FailureCategory][number];
 // par une porte, celles du démarrage. `runner-error-before-candidate`
 // reste possible en construction (Docker n'a pas démarré le conteneur de
 // `fetch` : `npm ci` n'a pas été lancé) et en clôture (mesure arrêtée avant la
-// construction) (#68).
+// construction) (#68). Navigateur du banc injoignable
+// (`bench-browser-unreachable`, #168) : dans l'oracle et dans les portes,
+// les seules phases qui s'y connectent.
 export const PHASE_OUTCOMES = {
   preparation: ["ok", "runner-error-before-candidate", "stack-not-from-this-copy", "interrupted"],
   contract: ["ok", "contract-invalid", "runner-error-before-candidate", "interrupted"],
   build: ["ok", "build-failed", "build-timeout", "build-resource-limit", "registry-network-error", "runner-error-before-candidate", "stack-down-while-candidate", "interrupted"],
   start: ["ok", "stack-failed-before-candidate", "stack-not-from-this-copy", "access-log-inactive", "start-exited", "start-not-ready", "stack-down-while-candidate", "interrupted"],
-  oracle: ["ok", "oracle-error", "stack-down-while-candidate", "interrupted"],
-  gates: ["ok", "gate-error-before-candidate", "stack-failed-before-candidate", "stack-not-from-this-copy", "access-log-inactive", "start-exited", "start-not-ready", "stack-down-while-candidate", "interrupted"],
+  oracle: ["ok", "oracle-error", "bench-browser-unreachable", "stack-down-while-candidate", "interrupted"],
+  gates: ["ok", "gate-error-before-candidate", "bench-browser-unreachable", "stack-failed-before-candidate", "stack-not-from-this-copy", "access-log-inactive", "start-exited", "start-not-ready", "stack-down-while-candidate", "interrupted"],
   closing: ["ok", "marker-out-of-place", "access-log-inactive", "gate-error-before-candidate", "runner-error-before-candidate", "stack-down-while-candidate", "interrupted"],
 } as const satisfies Record<PhaseName, readonly ("ok" | FailureOutcome)[]>;
 

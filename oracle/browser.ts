@@ -5,7 +5,9 @@
 //
 // Le serveur de Playwright n'est joint que par sa passerelle, avec le jeton de
 // la pile en tête du chemin (#160, shared/browser-token.ts).
+import { appendFileSync, readFileSync } from "node:fs";
 import { type Browser, chromium } from "@playwright/test";
+import { BenchBrowserUnreachable } from "../shared/bench-browser.ts";
 import { maskBrowserToken } from "../shared/browser-token.ts";
 
 // Image du service `browser`, la même que dans docker-compose.yml : son
@@ -18,15 +20,57 @@ export const BROWSER_IMAGE = "mcr.microsoft.com/playwright:v1.65.1-noble@sha256:
 export const BROWSER_WS_ENDPOINT = "ws://127.0.0.1:8095/";
 
 // Point d'entrée du serveur de Playwright pour le porteur du jeton.
-export function browserWsEndpoint(token: string): string {
-  return `${BROWSER_WS_ENDPOINT}${token}/`;
+export function browserWsEndpoint(token: string, endpoint = BROWSER_WS_ENDPOINT): string {
+  return `${endpoint}${token}/`;
 }
 
-/** Connexion au navigateur du banc ; le jeton est retiré du message d'un échec. */
-export async function connectBenchBrowser(token: string): Promise<Browser> {
+/**
+ * Connexion au navigateur du banc. Un échec lève BenchBrowserUnreachable
+ * (#168), le jeton retiré du message. `endpoint` : pour les tests. Sans délai
+ * propre, comme avant #168 : une connexion lente, que des pages du candidat
+ * auraient pu ralentir, est coupée par le délai de la porte ou du scénario,
+ * au compte du candidat, jamais rendue injoignable.
+ */
+export async function connectBenchBrowser(token: string, endpoint = BROWSER_WS_ENDPOINT): Promise<Browser> {
   try {
-    return await chromium.connect(browserWsEndpoint(token));
+    return await chromium.connect(browserWsEndpoint(token, endpoint));
   } catch (error) {
-    throw new Error(maskBrowserToken((error as Error).message, token));
+    throw new BenchBrowserUnreachable(`Could not connect to the Playwright gateway of the bench browser: ${maskBrowserToken((error as Error).message, token)}`);
   }
+}
+
+/**
+ * Contrôle de la fixture des scénarios de l'oracle (#168), avant que
+ * Playwright ne se connecte pour un worker : une connexion du banc, aussitôt
+ * fermée. Son échec est ajouté à `logFile`, une ligne JSON, puis levé. Le
+ * fichier est un brut du banc, que le candidat ne peut pas écrire : la mesure
+ * le lit, jamais le message d'un scénario, qu'une page peut remplir.
+ */
+export async function checkBenchBrowser(token: string, logFile: string, endpoint = BROWSER_WS_ENDPOINT): Promise<void> {
+  let browser: Browser;
+  try {
+    browser = await connectBenchBrowser(token, endpoint);
+  } catch (error) {
+    if (error instanceof BenchBrowserUnreachable) appendFileSync(logFile, `${JSON.stringify({ at: new Date().toISOString(), message: error.message })}\n`);
+    throw error;
+  }
+  await browser.close();
+}
+
+/** Échecs écrits par checkBenchBrowser, un message chacun ; aucun si le fichier n'existe pas. */
+export function readBenchBrowserFailures(logFile: string): string[] {
+  let text: string;
+  try {
+    text = readFileSync(logFile, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+    throw error;
+  }
+  return text
+    .split("\n")
+    .filter((line) => line !== "")
+    .map((line) => {
+      const { at, message } = JSON.parse(line) as { at: string; message: string };
+      return `${at} ${message}`;
+    });
 }

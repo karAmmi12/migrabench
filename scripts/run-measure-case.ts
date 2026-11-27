@@ -5,7 +5,8 @@
 // candidat de référence, aussi sur le constat de démarrage de `start.log`
 // (scripts/start-report.ts), avec le marqueur lu dans measure.json pour la
 // sonde. Pour `legacy-stopped-during-oracle`, le legacy est arrêté dès que
-// Playwright tourne (panne de #68).
+// Playwright tourne (panne de #68) ; pour `browser-stopped-during-oracle`,
+// le service `browser` (#168).
 // Lancé par `exec` : SIGINT et SIGTERM sont relayés à la mesure.
 // Code de sortie : 0 si la mesure est celle attendue, 1 sinon.
 import { spawnSync } from "node:child_process";
@@ -27,11 +28,18 @@ const before = artifactDirs();
 const measure = startMeasure(expected.candidate, expected.args, expected.env);
 relaySignals(measure.child);
 
-if (name === "legacy-stopped-during-oracle") {
+// Service arrêté dès que Playwright tourne : le legacy (#68) ou le
+// navigateur du banc (#168).
+const STOPPED_DURING_ORACLE: Partial<Record<string, { service: string; issue: string }>> = {
+  "legacy-stopped-during-oracle": { service: "legacy", issue: "#68" },
+  "browser-stopped-during-oracle": { service: "browser", issue: "#168" },
+};
+const stopped = STOPPED_DURING_ORACLE[name];
+if (stopped !== undefined) {
   await waitForOracleRunning(before, measure);
-  console.log("Playwright runs: stopping the legacy (#68).");
-  const stop = spawnSync("docker", ["compose", "stop", "legacy"], { cwd: ROOT, stdio: "inherit" });
-  if (stop.status !== 0) throw new Error(`docker compose stop legacy exited with ${stop.status}`);
+  console.log(`Playwright runs: stopping the ${stopped.service} (${stopped.issue}).`);
+  const stop = spawnSync("docker", ["compose", "stop", stopped.service], { cwd: ROOT, stdio: "inherit" });
+  if (stop.status !== 0) throw new Error(`docker compose stop ${stopped.service} exited with ${stop.status}`);
 }
 
 const { exitCode, measureDir } = await measure.done;

@@ -122,16 +122,56 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
 - `raw` cite les bruts par leur empreinte (ADR 0005).
 - `error`, présent seulement si `outcome` vaut `errored`, contient
   `{ "stage": "before-candidate" | "on-candidate", "cause": "timeout" |
-  "gates-phase-timeout" | "exception" | "tool-missing", "message": "…" }`.
+  "gates-phase-timeout" | "exception" | "tool-missing" |
+  "bench-browser-unreachable", "message": "…" }`.
   La liste des causes est fermée et ne s'étend que par la spec.
   `gates-phase-timeout` a été ajoutée après G0, à la demande de Karim.
+  `bench-browser-unreachable` a été ajoutée par #168, à la demande de Karim.
 - `gateResultPassed(result)`, une fonction pure, est la seule règle de
   réussite. Elle n'accepte qu'un résultat jugé, le compilateur refusant un
   résultat relevé.
 - Un résultat `errored` de `stage` `before-candidate` rend la mesure
   invalide, avec la raison `gate-error-before-candidate`, fixée par G0
   (#124) dans la liste fermée des causes d'invalidité. Aucun autre résultat
-  ne change le verdict de la mesure.
+  ne change le verdict de la mesure, sauf la cause
+  `bench-browser-unreachable` (ci-dessous).
+- **Navigateur du banc injoignable** (#168, décision de Karim du 27/11) :
+  depuis #160, le candidat ne joint pas le navigateur du banc. Une connexion
+  du banc qui n'y aboutit pas est donc une panne du banc, et la mesure est
+  invalide, avec la raison `bench-browser-unreachable`, ajoutée à la liste
+  fermée des causes d'invalidité :
+  - toute connexion du banc lève une erreur typée,
+    `BenchBrowserUnreachable` (`shared/bench-browser.ts`), le jeton retiré
+    du message. C'est le cas de `connectBenchBrowser` (passerelle du serveur
+    de Playwright), de `launchCdpChromium` et de la connexion de puppeteer
+    (passerelle CDP) ;
+  - une porte qui la lève est `errored`, de cause
+    `bench-browser-unreachable`, à l'étape où elle l'a levée. À toute étape,
+    la phase `gates` finit en `bench-browser-unreachable`, avant
+    `gate-error-before-candidate`, avec une ligne par résultat concerné ;
+  - dans l'oracle, la fixture des scénarios se connecte une fois au
+    navigateur du banc avant la connexion de Playwright pour le worker. Son
+    échec est écrit dans un brut du banc (`oracle-bench-browser.log`, à côté
+    du dossier `oracle/`), que le candidat ne peut pas écrire. La mesure lit
+    ce fichier. Elle ne déduit jamais la panne du message d'un scénario,
+    qu'une page du candidat peut remplir. Les scénarios du worker n'ont ni
+    HAR ni trace : l'exécution n'est pas collectée (précision du ticket :
+    la collecte refuse un scénario sans eux, relevé sur la mesure
+    `20261127T204222Z-03e4c21-reference-candidate`). La phase `oracle` finit
+    en `bench-browser-unreachable`, avec les lignes du fichier pour preuve,
+    `oracle.executed` vaut `false`, les 38 scénarios sont comptés non
+    atteints, et les portes ne tournent pas. Le relevé de la version du
+    navigateur, avant Playwright, finit de même ;
+  - une panne du legacy ou du service d'archivage de la même exécution
+    (`stack-down-while-candidate`) passe devant, comme devant `oracle-error` ;
+  - seule la connexion est visée. Un navigateur qui se ferme pendant qu'il
+    affiche une page du candidat reste au compte du candidat ;
+  - limites : le JavaScript d'une page du candidat joint `run-server` sur
+    `127.0.0.1:3001` dans le conteneur `browser` (suivi par #169). Et un
+    service qui tombe entre la connexion de contrôle de la fixture et celle
+    de Playwright n'est pas écrit : les scénarios du worker échouent au
+    compte du candidat. Playwright ne laisse pas attraper l'échec de sa
+    propre connexion.
 
 ### Registre, contexte et ordre
 
@@ -188,7 +228,8 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
   - si la phase `oracle` ne finit pas `ok` (pile tombée, erreur de
     l'oracle), la mesure est déjà décidée : ni les portes ni la porte du
     relais ne tournent ;
-  - issues de la phase `gates` : `ok`, `gate-error-before-candidate`, celles
+  - issues de la phase `gates` : `ok`, `gate-error-before-candidate`,
+    `bench-browser-unreachable` (#168), celles
     d'un redémarrage (`stack-failed-before-candidate`,
     `stack-not-from-this-copy`, `access-log-inactive`, `start-exited`,
     `start-not-ready`), `stack-down-while-candidate` et `interrupted`. La

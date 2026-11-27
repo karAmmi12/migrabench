@@ -3,13 +3,15 @@
 // Trois temps : préparer (sel, pile recréée, environnement), lancer
 // (Playwright), collecter (empreintes, statuts, sel, résultat versionné).
 import { randomBytes } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { JSONReport } from "@playwright/test/reporter";
+import { BenchBrowserUnreachable } from "../shared/bench-browser.ts";
 import { BROWSER_TOKEN_ENV, maskBrowserToken, newBrowserToken } from "../shared/browser-token.ts";
 import { fileSha256 } from "../shared/digest.ts";
 import { spawnCommand, stdoutOf } from "../shared/process.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, readBenchEnv, ROOT } from "../shared/root.ts";
+import { readBenchBrowserFailures } from "./browser.ts";
 import { type BrowserImage, browserVersions } from "./browser-versions.ts";
 import { type CiRun, ciRunOf, resultFileName, timestamp } from "./ci-run.ts";
 import { artifactPaths, collect, type OracleSummary, unreachedSummary } from "./collect.ts";
@@ -61,9 +63,17 @@ export interface ExecuteOracleResult {
   errorMessages: string[];
 }
 
+// Navigateur du banc injoignable (#168) : BenchBrowserUnreachable, au relevé
+// de sa version avant Playwright ou pour un worker de Playwright.
 export async function executeOracle({ baseUrl = DEFAULT_BASE_URL, salt, saltImposed, browserToken = newBrowserToken(), ...options }: ExecuteOracleOptions = {}): Promise<ExecuteOracleResult> {
   const prepared = await prepare(baseUrl, salt ?? randomBytes(32).toString("hex"), saltImposed ?? salt !== undefined, { ...options, browserToken });
   const report = await launch(prepared);
+  // Navigateur du banc injoignable pour un worker (#168) : écrit par la
+  // fixture des scénarios dans un brut du banc. Les scénarios du worker n'ont
+  // ni HAR ni trace : rien n'est collecté, et l'exécution n'a pas de résultat.
+  const benchBrowserLog = benchBrowserLogOf(prepared.outputDir);
+  const unreachable = readBenchBrowserFailures(benchBrowserLog);
+  if (unreachable.length > 0) throw new BenchBrowserUnreachable(`The bench browser was unreachable for ${unreachable.length} Playwright worker(s):\n${unreachable.join("\n")}`, benchBrowserLog);
   return collectAndWrite(prepared, report);
 }
 
@@ -139,6 +149,8 @@ async function prepare(
 // Sorties de Playwright, à côté du dossier des bruts de l'exécution :
 // Playwright vide ce dossier à son démarrage.
 const PLAYWRIGHT_LOG_SUFFIX = "-playwright.log";
+// Échecs de connexion au navigateur du banc (#168), à côté lui aussi.
+const benchBrowserLogOf = (outputDir: string) => `${outputDir}-bench-browser.log`;
 // Lignes de la fin des sorties de Playwright reprises dans la preuve d'une
 // erreur de l'oracle.
 const LOG_TAIL_LINES = 20;
@@ -157,6 +169,8 @@ export class OracleError extends Error {
 async function launch({ baseUrl, salt, browserToken, metadata, outputDir, reportFile }: PreparedExecution): Promise<string> {
   await mkdir(dirname(outputDir), { recursive: true });
   const log = `${outputDir}${PLAYWRIGHT_LOG_SUFFIX}`;
+  // Seuls les échecs de cette exécution comptent.
+  await rm(benchBrowserLogOf(outputDir), { force: true });
   // Code de sortie ignoré : un scénario échoué rend 1, et c'est la collecte qui juge.
   const { code } = await spawnCommand("npx", ["playwright", "test", "--config", CONFIG], {
     env: {
@@ -168,6 +182,7 @@ async function launch({ baseUrl, salt, browserToken, metadata, outputDir, report
       [ORACLE_ENV.outputDir]: outputDir,
       [ORACLE_ENV.report]: reportFile,
       [ORACLE_ENV.metadata]: JSON.stringify(metadata),
+      [ORACLE_ENV.benchBrowserLog]: benchBrowserLogOf(outputDir),
     },
     inherit: true,
     logFile: log,

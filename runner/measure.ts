@@ -27,13 +27,14 @@ import { mkdir, readdir, rename, stat, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import { type GateContext, StackIncident } from "../gates/context.ts";
 import { GATES, GATES_PHASE_TIMEOUT_MS, gatesOf, gateTools, runGates } from "../gates/registry.ts";
-import { beforeCandidateEvidence, type GateResult } from "../gates/result.ts";
+import { beforeCandidateEvidence, benchBrowserEvidence, type GateResult } from "../gates/result.ts";
 import { executeOracle, type ExecuteOracleResult, listOracle, OracleError, StackFailed } from "../oracle/execute.ts";
 import { SERVICES, stackContextDigests, StackNotFromCopy, verifyBuiltImages } from "../oracle/stack-images.ts";
 import { saveServiceLogs, type StackDown, stackDown, stackStates } from "../oracle/stack-state.ts";
 import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
 import { ACCESS_LOG_FILE, closeAccessLog } from "./witness.ts";
 import { readSeamAMarkers } from "../shared/seam-a-marker.ts";
+import { BenchBrowserUnreachable } from "../shared/bench-browser.ts";
 import { newBrowserToken } from "../shared/browser-token.ts";
 import { fetchFromInternal, INTERNAL_API_URL } from "../shared/internal-api.ts";
 import { contentDigest } from "./candidate-content.ts";
@@ -325,6 +326,17 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
       if (error instanceof StackNotFromCopy) return void closeStart("stack-not-from-this-copy", {}, error.message);
       if (error instanceof StackFailed) return void closeStart("stack-failed-before-candidate", await saveServiceLogs(rawDir, SERVICES), error.message);
       if (error instanceof CandidateNotStarted) return void closeStart(error.outcome, {}, error.detail);
+      // Navigateur du banc injoignable (#168), au relevé de sa version avant
+      // Playwright ou pour un worker : l'oracle n'a pas de résultat, et la
+      // clôture compte ses scénarios non atteints. Une panne du legacy ou du
+      // service d'archivage de la même exécution passe devant, comme devant
+      // une erreur de l'oracle (règle 7).
+      if (error instanceof BenchBrowserUnreachable && closeOracle !== undefined) {
+        const down = stackDown(stackBefore(), await stackStates());
+        if (down !== undefined) return void closeOracle("stack-down-while-candidate", await saveServiceLogs(rawDir, down.services), down.detail);
+        const raw = error.log === undefined ? {} : { [relative(rawDir, error.log)]: await digestOf(error.log) };
+        return void closeOracle("bench-browser-unreachable", raw, error.message);
+      }
       // Playwright n'a écrit aucun rapport (#68) : oracle non exécuté, sans
       // compte des scénarios, que la liste ne donnerait pas non plus.
       if (error instanceof OracleError && closeOracle !== undefined) {
@@ -383,6 +395,10 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
       if (error instanceof StackDownDuringGates) return void closeGates("stack-down-while-candidate", await saveServiceLogs(rawDir, error.down.services), error.down.detail);
       throw error;
     }
+    // Navigateur du banc injoignable (#168), à toute étape, avant une erreur
+    // de porte avant le candidat : sa cause est la plus précise.
+    const unreachable = benchBrowserEvidence(gateResults);
+    if (unreachable !== undefined) return void closeGates("bench-browser-unreachable", {}, unreachable);
     const gateError = beforeCandidateEvidence(gateResults);
     closeGates(gateError === undefined ? "ok" : "gate-error-before-candidate", {}, gateError);
   };

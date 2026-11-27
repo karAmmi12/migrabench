@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { type GateContext, StackIncident } from "../../gates/context.ts";
 import { checkGateOrder, type Gate, GATES, gateTools, gatesOf, runGates, ToolMissing } from "../../gates/registry.ts";
 import { type GateResult, judged, measured } from "../../gates/result.ts";
+import { BenchBrowserUnreachable } from "../../shared/bench-browser.ts";
 
 // Le contexte n'est pas lu par les portes de test.
 const CONTEXT = {} as GateContext;
@@ -114,6 +115,15 @@ describe("runGates", () => {
     const on = await runGates([gate({ examine: async () => { throw new ToolMissing("tsc not found"); } })], CONTEXT);
     expect(before).toMatchObject([{ error: { stage: "before-candidate", cause: "tool-missing", message: "osv-scanner not found" } }]);
     expect(on).toMatchObject([{ error: { stage: "on-candidate", cause: "tool-missing", message: "tsc not found" } }]);
+  });
+
+  // Navigateur du banc injoignable (#168) : sa cause propre, à l'étape où
+  // la connexion a échoué.
+  it("gives cause bench-browser-unreachable to an unreachable bench browser, at the stage where it was", async () => {
+    const before = await runGates([gate({ prepare: async () => { throw new BenchBrowserUnreachable("Playwright gateway refused: 403"); } })], CONTEXT);
+    const on = await runGates([gate({ examine: async () => { throw new BenchBrowserUnreachable("connect ECONNREFUSED 127.0.0.1:8095"); } })], CONTEXT);
+    expect(before).toMatchObject([{ outcome: "errored", error: { stage: "before-candidate", cause: "bench-browser-unreachable", message: "Playwright gateway refused: 403" } }]);
+    expect(on).toMatchObject([{ outcome: "errored", error: { stage: "on-candidate", cause: "bench-browser-unreachable", message: "connect ECONNREFUSED 127.0.0.1:8095" } }]);
   });
 
   it("gives cause timeout to a gate past its timeout, at the stage where it was", async () => {

@@ -396,6 +396,14 @@ Règles des issues :
   sont un brut (`oracle-playwright.log`, à côté du dossier `oracle/`, que
   Playwright vide à son démarrage), et `oracle.executed` est `false`, sans
   compte des scénarios (#68).
+- **`bench-browser-unreachable`** (ajoutée par #168) : une connexion du
+  banc à son navigateur n'a pas abouti, au relevé de sa version avant
+  Playwright ou pour un worker de Playwright. L'exécution n'est pas
+  collectée, `oracle.executed` est `false`, et les 38 scénarios sont comptés
+  non atteints. Une `stack-down-while-candidate` de la même exécution passe
+  devant. Le détail, la preuve et les limites sont dans la spec de l'étape 4,
+  « Navigateur du banc injoignable » ; la table des phases ci-dessus n'est
+  pas réécrite.
 - **Candidat qui s'arrête pendant l'oracle** : pas d'issue propre. Les
   scénarios échouent ou ne sont pas atteints, et la mesure est complète.
 - **Oracle non lancé** : si la mesure s'arrête avant la phase 5, le résultat
@@ -414,7 +422,9 @@ Règles des issues :
   `registry-network-error`, `stack-failed-before-candidate`,
   `stack-not-from-this-copy`, `access-log-inactive`, `oracle-error`, `marker-out-of-place`,
   `runner-error-before-candidate` et `interrupted`, celles du glossaire. Le
-  verdict refuse toute autre cause.
+  verdict refuse toute autre cause. L'étape 4 y ajoute `gate-error-before-candidate`
+  (#124), et `bench-browser-unreachable` (#168), issue possible de la phase
+  `oracle` (spec de l'étape 4, « Navigateur du banc injoignable »).
 
 ### Contenu de `measure.json`
 
@@ -842,6 +852,8 @@ couvertes par les tests Vitest du contrat, pas par des candidats.
     avec un seul worker Playwright, ses 38 scénarios attendent chacun leur
     délai de 30 s, que `--timeout-cap-ms` ne plafonne pas (exécution
     45603633524 du job des mesures, coupée à 10 min).
+  - le navigateur du banc arrêté pendant l'oracle (#168) :
+    `bench-browser-unreachable`, code `3`, oracle non collecté.
 - **Seam 2 : Vitest sur les fonctions pures**, en TDD (rouge d'abord) :
   - **contrat** : chaque champ du schéma, champ inconnu, `url` refusée avec
     son message, `package-lock.json` absent, chaque sorte de source

@@ -13,8 +13,9 @@ import { test as base, expect, type Page } from "@playwright/test";
 import { parseUsersWithoutUnknown, type Role, UNKNOWN_USER } from "../scripts/users.ts";
 import { BROWSER_TOKEN_ENV } from "../shared/browser-token.ts";
 import { archiveReference } from "./archive-reference.ts";
-import { browserWsEndpoint } from "./browser.ts";
+import { browserWsEndpoint, checkBenchBrowser } from "./browser.ts";
 import { REACH_ANNOTATION, REREAD_ANNOTATION } from "./collect.ts";
+import { ORACLE_ENV } from "./env.ts";
 import { goToSearch, goToSheet, goToSubmission } from "./navigation.ts";
 import { skippedStepAnnotation, type VariantKey, type Variants, variantAnnotation } from "./variants.ts";
 
@@ -51,15 +52,30 @@ function browserToken(): string {
   return token;
 }
 
+// Fichier des échecs de connexion au navigateur du banc, passé par executeOracle (#168).
+function benchBrowserLog(): string {
+  const file = process.env[ORACLE_ENV.benchBrowserLog];
+  if (!file) throw new Error(`No ${ORACLE_ENV.benchBrowserLog}: the oracle runs through executeOracle (npm run oracle)`);
+  return file;
+}
+
 export const test = base.extend<{ identity: Identity }>({
   identity: ["agent", { option: true }],
   // Point d'entrée de la configuration, avec le jeton de la pile en tête du
   // chemin (#160) : ajouté ici, il n'est jamais recopié dans le résultat, qui
   // reprend la configuration.
+  //
+  // Avant que Playwright ne se connecte pour le worker, une connexion de
+  // contrôle (#168) : si le navigateur du banc est injoignable, l'échec est
+  // écrit dans le fichier du banc, que lit la mesure, et les scénarios du
+  // worker échouent. Playwright ne laisse pas attraper l'échec de sa propre
+  // connexion (fixture `browser`, qui dépend de celle-ci).
   connectOptions: [
     async ({ connectOptions }, use) => {
       if (connectOptions === undefined) throw new Error("The oracle configuration names no Playwright server");
-      await use({ ...connectOptions, wsEndpoint: browserWsEndpoint(browserToken()) });
+      const token = browserToken();
+      await checkBenchBrowser(token, benchBrowserLog());
+      await use({ ...connectOptions, wsEndpoint: browserWsEndpoint(token) });
     },
     { scope: "worker" },
   ],
