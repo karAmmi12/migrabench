@@ -433,10 +433,13 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
     méthode : en agent puis en instructeur, la porte recherche, ouvre la
     fiche, enregistre, puis remet, sur les dossiers `gate:auth` ajoutés par
     ce ticket (au moins un `BROUILLON` et un `EN_INSTRUCTION`).
-- **Le rejeu** retire `Authorization` et tous les cookies. Les autres
-  valeurs liées à la session sont transplantées depuis une session
-  **anonyme** (`BASE_URL` ouvert sans identifiants). Une valeur absente de
-  la session anonyme est retirée.
+- **Le rejeu** n'envoie jamais les cookies ni l'en-tête `Authorization` de
+  la session authentifiée ; les cookies et les autres valeurs liées à la
+  session sont transplantés depuis une session **anonyme** (`BASE_URL`
+  ouvert sans identifiants), et retirés s'ils n'y existent pas (décision de
+  Karim du 27/11 sur #132 : un attaquant sans identifiants a ses propres
+  cookies anonymes, et un jeton anti-CSRF lié à un cookie anonyme ne doit
+  pas suffire à faire passer une écriture sans contrôle).
 - **Le contrôle** rejoue les mêmes requêtes avec une nouvelle session
   authentifiée : agent pour les lectures, et pour les écritures la session
   qui en avait le droit.
