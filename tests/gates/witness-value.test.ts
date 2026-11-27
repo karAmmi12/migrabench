@@ -183,7 +183,7 @@ describe("unread response bodies", () => {
   const RELAY_UNTOUCHED = "ci45861318349/oracle-artifacts/20261126T165025Z-0d2eb7a-conforming-candidates-relay-untouched/oracle";
   const noResponse = () => readJsonFixture<Har>(`${RELAY_UNTOUCHED}/search-search-empty-form-chromium/scenario.har`);
 
-  // Décision de Karim (#158) : tout corps absent est à vérifier, sauf d'un
+  // Décision de Karim (#158) : tout corps absent est non lu, sauf d’un
   // type sans intérêt connu.
   it("lists every unread body but an image, with its media type", () => {
     // Sans lecture, six corps manquent : `text/plain` (2), `application/json`,
