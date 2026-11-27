@@ -6,7 +6,7 @@
 // (tests/fixtures/probe132-ca289e1/PROVENANCE.md).
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { type AuthObservation, type Replay, authDossiersOf, authGate, authResults, datasetNumbersOf, harUnits, NO_CONTROL_NUMBER, NO_CONTROL_WRITE, numbersIn } from "../../gates/auth.ts";
+import { type AuthObservation, type Replay, authDossiersOf, authGate, authResults, datasetNumbersOf, harUnits, NO_CONTROL_NUMBER, NO_CONTROL_WRITE, numbersIn, replayUnit, type ReplayUnit } from "../../gates/auth.ts";
 import { type Received, sessionBoundValues, transplant } from "../../gates/transplant.ts";
 import type { Har } from "../../gates/witness-value.ts";
 import { readJsonFixture } from "../real-fixtures.ts";
@@ -96,6 +96,47 @@ describe("sessionBoundValues", () => {
     expect(values.find(({ where }) => where === "query:status")).toMatchObject({ found: true, changed: false });
     const { request } = transplant(recorded, { source: received, target: ANONYMOUS, authorization: null, sessionBound: bound });
     expect(new URL(request.url).searchParams.get("status")).toBe("REMIS");
+  });
+});
+
+// Candidat à jeton anti-CSRF lié à son propre cookie, posé par la première
+// réponse (fixtures/defective-candidates/auth-csrf-write-unchecked) : le
+// rejeu ouvre lui-même la session, et prend le jeton qui va avec son cookie.
+describe("replayUnit", () => {
+  const page = (token: string) => `<html><head>\n<meta name="csrf-token" content="${token}"></head><body>D-0119</body></html>`;
+  const SOURCE_TOKEN = "a".repeat(64);
+  const home = { method: "GET", url: `${CANDIDATE}/`, headers: {}, body: null };
+  const post = { method: "POST", url: `${CANDIDATE}/enregistrer.do`, headers: { cookie: "csrf-session=source0000", "content-type": "application/x-www-form-urlencoded" }, body: `_csrf=${SOURCE_TOKEN}&number=D-0119` };
+  const unit: ReplayUnit = {
+    source: "path:agent",
+    role: "agent",
+    path: true,
+    requests: [
+      { request: home, received: { cookies: [], responses: [] } },
+      { request: post, received: { cookies: [{ name: "csrf-session", value: "source0000" }], responses: [{ method: "GET", url: `${CANDIDATE}/`, headers: [], body: page(SOURCE_TOKEN) }] } },
+    ],
+  };
+  // Une nouvelle session par cookie absent, et son jeton dans chaque page.
+  const fakeCandidate = () => {
+    const received: { method: string; cookie: string | undefined; body: string | null }[] = [];
+    let sessions = 0;
+    const send = async (request: { method: string; headers: Record<string, string>; body: string | null }) => {
+      received.push({ method: request.method, cookie: request.headers.cookie, body: request.body });
+      if (request.headers.cookie === undefined) {
+        sessions += 1;
+        return { status: 401, headers: [{ name: "Set-Cookie", value: `csrf-session=fresh${sessions}; Path=/` }], body: page(`${"b".repeat(63)}${sessions}`) };
+      }
+      return { status: 302, headers: [], body: "" };
+    };
+    return { received, send };
+  };
+
+  it("sends the cookie set by its own first response, with the token that goes with it", async () => {
+    const candidate = fakeCandidate();
+    const { replay, bound } = await replayUnit(unit, { authorization: null, sessionBound: [new Set(), new Set(["form:_csrf"])], numbers: NUMBERS, send: candidate.send });
+    expect(candidate.received[1]).toEqual({ method: "POST", cookie: "csrf-session=fresh1", body: `_csrf=${"b".repeat(63)}1&number=D-0119` });
+    expect(replay.responses.map(({ status, numbers }) => [status, numbers])).toEqual([[401, ["D-0119"]], [302, []]]);
+    expect(bound.map((set) => [...set].sort())).toEqual([[], ["cookie:csrf-session", "form:_csrf"]]);
   });
 });
 

@@ -12,8 +12,12 @@
 //      le remet. Toutes les requêtes émises vers le candidat, quelle que soit
 //      leur méthode. Une étape non atteinte arrête l'unité, ce qui a été
 //      enregistré est gardé, et l'étape est citée.
-// 2. Le legacy est redémarré, puis le **contrôle** rejoue les unités avec une
-//    nouvelle session authentifiée, qui a ouvert BASE_URL : l'agent pour les
+// Chaque unité rejouée ouvre elle-même sa session : comme le scénario ou le
+// parcours qu'elle rejoue, elle part d'un jar vide et commence par BASE_URL.
+// Ce que cette session a reçu, réponses rejouées et cookies posés, sert à la
+// transplantation (`replayUnit`).
+// 2. Le legacy est redémarré, puis le **contrôle** rejoue les unités dans une
+//    nouvelle session authentifiée : l'agent pour les
 //    unités des HAR, qui ne font que lire, et pour une unité du parcours,
 //    l'utilisateur qui l'a enregistrée, seul à avoir le droit d'y écrire. Il
 //    relève, requête par requête, les valeurs liées à la session : celles que
@@ -21,7 +25,7 @@
 //    `sessionBoundValues` de gates/transplant.ts, décision de Karim du 27/11
 //    sur #132).
 // 3. Le legacy est redémarré, puis chaque unité est rejouée dans une session
-//    **anonyme** (BASE_URL ouvert sans identifiants) : jamais les cookies ni
+//    **anonyme** (BASE_URL ouvert sans identifiants, par le rejeu) : jamais les cookies ni
 //    l'`Authorization` de la session authentifiée ; les cookies et les valeurs
 //    liées à la session sont transplantés depuis la session anonyme, et
 //    retirés s'ils n'y existent pas (décision de Karim du 27/11 sur #132). Les
@@ -47,7 +51,7 @@ import { ROOT } from "../shared/root.ts";
 import type { GateContext } from "./context.ts";
 import { saveGateRaw } from "./raw.ts";
 import type { Gate } from "./registry.ts";
-import { applySetCookies, basic, benchCredentials, type Credentials, firstLine, newSession, sameOrigin, send, watch, withBrowser } from "./replay.ts";
+import { applySetCookies, basic, benchCredentials, type Credentials, firstLine, newSession, sameOrigin, type Sent, send, watch, withBrowser } from "./replay.ts";
 import { judged, type JudgedResult } from "./result.ts";
 import { type Received, type ReceivedResponse, type RecordedRequest, sessionBoundValues, type TransplantedValue, transplant } from "./transplant.ts";
 import { settle, trackNetwork } from "./settle.ts";
@@ -297,39 +301,48 @@ async function recordPath(context: GateContext, prepared: Prepared): Promise<{ u
   });
 }
 
-// Session cible : BASE_URL ouvert, avec ces identifiants ou sans. Ce qu'elle
-// a reçu sert à la transplantation.
-async function targetSession(context: GateContext, credentials: Credentials | undefined): Promise<{ received: Received; navigation?: string }> {
-  return withBrowser(async (browser) => {
-    const { browserContext, page } = await newSession(browser, context, credentials);
-    const watched = watch(page);
-    const inFlight = trackNetwork(page);
-    let navigation: string | undefined;
-    try {
-      try {
-        await page.goto("/");
-        await settle(page, inFlight);
-      } catch (error) {
-        navigation = firstLine(error);
-      }
-      await watched.done();
-      const cookies = (await browserContext.cookies(context.candidateUrl)).map(({ name, value }) => ({ name, value }));
-      return { received: { cookies, responses: watched.responses }, ...(navigation === undefined ? {} : { navigation }) };
-    } finally {
-      await browserContext.close();
-    }
-  });
+// Rejeu d'une unité, qui ouvre elle-même sa session : comme le scénario ou le
+// parcours enregistré, elle part d'un jar vide et commence à BASE_URL. Ce
+// qu'elle a reçu, réponses rejouées et cookies posés, sert à la
+// transplantation. `sessionBound` : les valeurs liées à la session de chaque
+// requête, par rang ; absent, la règle par défaut de gates/transplant.ts.
+// Rend aussi les valeurs liées à la session relevées par ce rejeu (règle
+// différentielle, `sessionBoundValues`).
+export async function replayUnit(
+  unit: ReplayUnit,
+  options: { authorization: string | null; sessionBound?: readonly ReadonlySet<string>[]; numbers: readonly string[]; send: (request: RecordedRequest) => Promise<Sent>; aborted?: () => boolean },
+): Promise<{ replay: Pick<Replay, "requests" | "pathRequests" | "responses" | "values">; bound: Set<string>[]; sent: unknown[] }> {
+  const replay: Pick<Replay, "requests" | "pathRequests" | "responses" | "values"> = { requests: 0, pathRequests: 0, responses: [], values: [] };
+  const jar = new Map<string, string>();
+  const replayed: ReceivedResponse[] = [];
+  const bound: Set<string>[] = [];
+  const sent: unknown[] = [];
+  for (const [index, { request: recorded, received }] of unit.requests.entries()) {
+    if (options.aborted?.() === true) throw new Error("Auth gate aborted");
+    const target: Received = { cookies: [...jar].map(([name, value]) => ({ name, value })), responses: replayed };
+    const sessionBound = options.sessionBound === undefined ? undefined : (options.sessionBound[index] ?? new Set<string>());
+    const { request, values } = transplant(recorded, { source: received, target, authorization: options.authorization, ...(sessionBound === undefined ? {} : { sessionBound }) });
+    const answer = await options.send(request);
+    replay.requests += 1;
+    if (unit.path) replay.pathRequests += 1;
+    replay.values.push(...values);
+    bound.push(sessionBoundValues(values));
+    const numbers = numbersIn(`${answer.body}\n${answer.headers.map(({ name, value }) => `${name}: ${value}`).join("\n")}`, options.numbers);
+    replay.responses.push({ unit: unit.source, method: request.method, url: request.url, status: answer.status, numbers, ...(answer.error === undefined ? {} : { error: answer.error }) });
+    replayed.push({ method: request.method, url: request.url, headers: answer.headers, body: answer.body });
+    applySetCookies(jar, answer.headers);
+    sent.push({ request, values, status: answer.status, headers: answer.headers, body: answer.body });
+  }
+  return { replay, bound, sent };
 }
 
-// Rejoue chaque unité dans la session cible que lui donne `targetFor`, avec
-// son propre jar de cookies. `bound` : les valeurs liées à la session de
-// chaque requête, par unité et par rang ; absent, la règle par défaut de
-// gates/transplant.ts. Rend aussi celles que ce rejeu a observedBoundes.
+// Rejoue chaque unité, avec l'`Authorization` que lui donne `authorizationFor`
+// (null : sans identifiants), entre deux lectures de l'état des dossiers.
 async function replayUnits(
   context: GateContext,
   prepared: Prepared,
   units: readonly ReplayUnit[],
-  targetFor: (unit: ReplayUnit) => Promise<{ received: Received; authorization: string | null }>,
+  authorizationFor: (unit: ReplayUnit) => string | null,
   bound?: ReadonlyMap<string, readonly Set<string>[]>,
 ): Promise<{ replay: Replay; raw: unknown[]; bound: Map<string, Set<string>[]> }> {
   const replay: Replay = { requests: 0, pathRequests: 0, responses: [], values: [], before: await statesOf(context, prepared), after: {} };
@@ -337,29 +350,19 @@ async function replayUnits(
   const observedBound = new Map<string, Set<string>[]>();
   for (const unit of units) {
     if (unit.requests.length === 0) continue;
-    const unitBound: Set<string>[] = [];
-    observedBound.set(unit.source, unitBound);
-    const { received: target, authorization } = await targetFor(unit);
-    const jar = new Map(target.cookies.map(({ name, value }) => [name, value]));
-    const replayed: ReceivedResponse[] = [];
-    const sent: unknown[] = [];
-    for (const [index, { request: recorded, received }] of unit.requests.entries()) {
-      if (context.signal.aborted) throw new Error("Auth gate aborted");
-      const targetNow: Received = { cookies: [...jar].map(([name, value]) => ({ name, value })), responses: [...target.responses, ...replayed] };
-      const sessionBound = bound === undefined ? undefined : (bound.get(unit.source)?.[index] ?? new Set<string>());
-      const { request, values } = transplant(recorded, { source: received, target: targetNow, authorization, ...(sessionBound === undefined ? {} : { sessionBound }) });
-      unitBound.push(sessionBoundValues(values));
-      const answer = await send(request, context.signal);
-      replay.requests += 1;
-      if (unit.path) replay.pathRequests += 1;
-      replay.values.push(...values);
-      const numbers = numbersIn(`${answer.body}\n${answer.headers.map(({ name, value }) => `${name}: ${value}`).join("\n")}`, prepared.numbers);
-      replay.responses.push({ unit: unit.source, method: request.method, url: request.url, status: answer.status, numbers, ...(answer.error === undefined ? {} : { error: answer.error }) });
-      replayed.push({ method: request.method, url: request.url, headers: answer.headers, body: answer.body });
-      applySetCookies(jar, answer.headers);
-      sent.push({ request, values, status: answer.status, headers: answer.headers, body: answer.body });
-    }
-    raw.push({ unit: unit.source, target, sent });
+    const done = await replayUnit(unit, {
+      authorization: authorizationFor(unit),
+      ...(bound === undefined ? {} : { sessionBound: bound.get(unit.source) ?? [] }),
+      numbers: prepared.numbers,
+      send: (request) => send(request, context.signal),
+      aborted: () => context.signal.aborted,
+    });
+    replay.requests += done.replay.requests;
+    replay.pathRequests += done.replay.pathRequests;
+    replay.responses.push(...done.replay.responses);
+    replay.values.push(...done.replay.values);
+    observedBound.set(unit.source, done.bound);
+    raw.push({ unit: unit.source, sent: done.sent });
   }
   replay.after = await statesOf(context, prepared);
   return { replay, raw, bound: observedBound };
@@ -388,18 +391,12 @@ export const authGate: Gate<Prepared> = {
       return authResults({ skipped, unreached: path.unreached, anonymous: nothing, control: nothing }, Object.fromEntries([recordingRaw]));
     }
     await context.restartLegacy();
-    const targets = new Map<Role, Awaited<ReturnType<typeof targetSession>>>();
-    const control = await replayUnits(context, prepared, units, async ({ role }) => {
-      const target = targets.get(role) ?? (await targetSession(context, prepared.credentials[role]));
-      targets.set(role, target);
-      return { received: target.received, authorization: basic(prepared.credentials[role]) };
-    });
+    const control = await replayUnits(context, prepared, units, ({ role }) => basic(prepared.credentials[role]));
     const bound = Object.fromEntries([...control.bound].map(([unit, sets]) => [unit, sets.map((set) => [...set])]));
-    const controlRaw = await save("control.json", { navigation: Object.fromEntries([...targets].map(([role, { navigation }]) => [role, navigation])), sessionBound: bound, replay: control.replay, units: control.raw });
+    const controlRaw = await save("control.json", { sessionBound: bound, replay: control.replay, units: control.raw });
     await context.restartLegacy();
-    const anonymousTarget = await targetSession(context, undefined);
-    const anonymous = await replayUnits(context, prepared, units, async () => ({ received: anonymousTarget.received, authorization: null }), control.bound);
-    const anonymousRaw = await save("anonymous.json", { navigation: anonymousTarget.navigation, replay: anonymous.replay, units: anonymous.raw });
+    const anonymous = await replayUnits(context, prepared, units, () => null, control.bound);
+    const anonymousRaw = await save("anonymous.json", { replay: anonymous.replay, units: anonymous.raw });
     return authResults({ skipped, unreached: path.unreached, anonymous: anonymous.replay, control: control.replay }, Object.fromEntries([recordingRaw, controlRaw, anonymousRaw]));
   },
 };

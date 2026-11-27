@@ -81,10 +81,9 @@ export async function withBrowser<T>(run: (browser: Browser) => Promise<T>): Pro
   }
 }
 
-// Une session du navigateur sur le candidat, avec ces identifiants, ou
-// anonyme sans eux.
-export async function newSession(browser: Browser, context: GateContext, credentials: Credentials | undefined): Promise<{ browserContext: BrowserContext; page: Page }> {
-  const browserContext = await browser.newContext({ baseURL: context.candidateUrl, ...(credentials === undefined ? {} : { httpCredentials: credentials }) });
+// Une session du navigateur sur le candidat, avec ces identifiants.
+export async function newSession(browser: Browser, context: GateContext, credentials: Credentials): Promise<{ browserContext: BrowserContext; page: Page }> {
+  const browserContext = await browser.newContext({ baseURL: context.candidateUrl, httpCredentials: credentials });
   return { browserContext, page: await browserContext.newPage() };
 }
 
