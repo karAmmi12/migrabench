@@ -333,7 +333,7 @@ jobs:
 
   # Rassemble les groupes (#163). Son nom, `measures`, est celui que cherche
   # scripts/ci-scope.ts pour savoir si les mesures ont réussi sur un commit :
-  # il réussit seulement si chaque groupe a réussi. Son résumé donne la durée
+  # il réussit seulement si chaque job de groupe a réussi. Son résumé donne la durée
   # de chaque groupe, leur somme et le plus long.
   measures:
     needs: [changes, measure-group]
@@ -353,15 +353,9 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Durées des jobs de mesures
+      # Échoue si un groupe n'a pas réussi : la conclusion de chaque job est
+      # lue sur l'API, et non déduite du résultat global de la matrice.
+      - name: Durées et issue des jobs de mesures
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/write-measure-durations.ts
-
-      - name: Issue des groupes
-        if: always()
-        env:
-          RESULT: ${{ needs.measure-group.result }}
-        run: |
-          echo "Groupes de mesures : $RESULT"
-          test "$RESULT" = success

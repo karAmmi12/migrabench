@@ -59,6 +59,11 @@ describe("measureDurations", () => {
     expect(durations.totalSeconds).toBe(1860);
     expect(durations.longest).toEqual({ name: "measures / role", seconds: 840 });
     expect(durations.spanSeconds).toBe(850);
+    expect(durations.unsuccessful).toEqual(["measures / xss"]);
+  });
+
+  it("lists no unsuccessful job when every group succeeded", () => {
+    expect(measureDurations(parseJobTimings(recorded), () => true).unsuccessful).toEqual([]);
   });
 
   it("refuses when no group job is found: a summary of nothing is no summary", () => {

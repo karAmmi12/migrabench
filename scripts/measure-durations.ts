@@ -12,6 +12,8 @@ export interface MeasureDurations {
   longest: { name: string; seconds: number };
   // Du premier départ à la dernière fin.
   spanSeconds: number;
+  // Jobs qui n'ont pas réussi : le job `measures` échoue s'il y en a un.
+  unsuccessful: string[];
 }
 
 // Réponse de `GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{n}/jobs`.
@@ -49,6 +51,7 @@ export function measureDurations(all: JobTiming[], isMeasureJob: (name: string) 
     totalSeconds: jobs.reduce((sum, job) => sum + job.seconds, 0),
     longest: { name: longest.name, seconds: longest.seconds },
     spanSeconds: seconds(firstStart, lastEnd),
+    unsuccessful: jobs.filter((job) => job.conclusion !== "success").map((job) => job.name),
   };
 }
 
