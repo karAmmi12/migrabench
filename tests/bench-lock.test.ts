@@ -6,7 +6,7 @@ import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFi
 import { hostname, tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { acquireBenchLock } from "../shared/bench-lock.ts";
+import { acquireBenchLock, NPM_TEST_PID, npmTestLockProblem } from "../shared/bench-lock.ts";
 
 const HOLD = new URL("./fixtures/bench-lock/hold.ts", import.meta.url).pathname;
 const NPM_TEST = new URL("../scripts/test.ts", import.meta.url).pathname;
@@ -238,7 +238,7 @@ process.stdin.on("end", () => lock.release());
 describe("npm test holding the bench lock", () => {
   const FAKE_VITEST = `import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 const lock = process.env.FAKE_VITEST_LOCK;
-writeFileSync(process.env.FAKE_VITEST_SEEN, JSON.stringify({ pid: process.pid, args: process.argv.slice(2), lock: existsSync(lock) ? JSON.parse(readFileSync(lock, "utf8")) : null }));
+writeFileSync(process.env.FAKE_VITEST_SEEN, JSON.stringify({ pid: process.pid, args: process.argv.slice(2), npmTestPid: process.env.MIGRABENCH_NPM_TEST_PID ?? null, lock: existsSync(lock) ? JSON.parse(readFileSync(lock, "utf8")) : null }));
 const exit = process.env.FAKE_VITEST_EXIT;
 if (exit === "wait") {
   // Interrompu : chaque signal reçu est noté ; le premier lance un nettoyage
@@ -294,7 +294,7 @@ if (exit === "wait") {
     return { status, stderr };
   }
 
-  function readSeen({ seen }: Repo): { pid: number; args: string[]; lock: Record<string, unknown> | null } {
+  function readSeen({ seen }: Repo): { pid: number; args: string[]; npmTestPid: string | null; lock: Record<string, unknown> | null } {
     return JSON.parse(readFileSync(seen, "utf8"));
   }
 
@@ -304,9 +304,11 @@ if (exit === "wait") {
     const outcome = npmTest(copied, ["tests/one.test.ts", "--reporter=default"]);
 
     expect(outcome).toEqual({ status: 0, stderr: "" });
-    const { args, lock } = readSeen(copied);
+    const { args, npmTestPid, lock } = readSeen(copied);
     expect(args).toEqual(["run", "tests/one.test.ts", "--reporter=default"]);
     expect(lock).toMatchObject({ tool: "test", host: hostname() });
+    // #163 : Vitest reçoit le PID du détenteur, que vérifie son globalSetup.
+    expect(npmTestPid).toBe(String(lock?.pid));
     expect(existsSync(copied.file)).toBe(false);
   });
 
@@ -460,4 +462,72 @@ describe("bench lock file", () => {
 
     expect(child.stdout).toContain(`rm ${join(state, "migrabench", "bench-lock.takeover")}`);
   });
+});
+
+// #163 : Vitest ne démarre que sous le verrou du banc tenu par `npm test`.
+// Son globalSetup (tests/bench-lock-held.setup.ts) appelle npmTestLockProblem.
+describe("vitest only under the bench lock held by npm test", () => {
+  const USE_NPM_TEST = "use npm test -- <file>";
+
+  function held(tool: "test" | "measure") {
+    const file = lockFile();
+    const lock = acquireBenchLock({ tool, file });
+    if (!lock.ok) throw new Error(lock.message);
+    return { file, release: lock.release };
+  }
+
+  it("refuses without the variable set by npm test", () => {
+    const { file, release } = held("test");
+    try {
+      expect(npmTestLockProblem({}, file)).toContain(USE_NPM_TEST);
+    } finally {
+      release();
+    }
+  });
+
+  it("refuses when the bench lock is free", () => {
+    expect(npmTestLockProblem({ [NPM_TEST_PID]: String(process.pid) }, lockFile())).toContain(USE_NPM_TEST);
+  });
+
+  it("refuses when another bench tool holds the bench lock", () => {
+    const { file, release } = held("measure");
+    try {
+      const problem = npmTestLockProblem({ [NPM_TEST_PID]: String(process.pid) }, file);
+      expect(problem).toContain("The bench lock is held by measure");
+      expect(problem).toContain(USE_NPM_TEST);
+    } finally {
+      release();
+    }
+  });
+
+  it("refuses when npm test holds the bench lock under another PID", () => {
+    const { file, release } = held("test");
+    try {
+      expect(npmTestLockProblem({ [NPM_TEST_PID]: String(process.pid + 1) }, file)).toContain(USE_NPM_TEST);
+    } finally {
+      release();
+    }
+  });
+
+  it("accepts the bench lock held by the npm test that launched vitest", () => {
+    const { file, release } = held("test");
+    try {
+      expect(npmTestLockProblem({ [NPM_TEST_PID]: String(process.pid) }, file)).toBeUndefined();
+    } finally {
+      release();
+    }
+  });
+
+  // Témoin : le vrai Vitest, lancé directement depuis le dépôt, refuse avant
+  // tout test. Ce Vitest-ci tient le verrou du banc, mais pas pour lui.
+  it("stops a real vitest launched directly, before any test", () => {
+    const root = new URL("..", import.meta.url).pathname;
+    const { [NPM_TEST_PID]: _pid, ...env } = process.env;
+
+    const direct = spawnSync(process.execPath, [join(root, "node_modules", "vitest", "vitest.mjs"), "run", "tests/ci-scope.test.ts"], { cwd: root, env, encoding: "utf8" });
+
+    expect(direct.status).not.toBe(0);
+    expect(direct.stdout + direct.stderr).toContain(USE_NPM_TEST);
+    expect(direct.stdout + direct.stderr).not.toMatch(/Test Files .* passed/);
+  }, 60_000);
 });

@@ -13,12 +13,15 @@
 // temporaire par ses tests.
 import { spawn } from "node:child_process";
 import { constants } from "node:os";
-import { acquireBenchLockOrExit } from "../shared/bench-lock.ts";
+import { acquireBenchLockOrExit, NPM_TEST_PID } from "../shared/bench-lock.ts";
 
 const VITEST = new URL("../node_modules/vitest/vitest.mjs", import.meta.url).pathname;
 
 const lock = acquireBenchLockOrExit({ tool: "test" });
 
+// Vitest reçoit le PID de ce processus, détenteur du verrou du banc : son
+// globalSetup refuse de démarrer sans lui (#163, tests/bench-lock-held.setup.ts).
+//
 // Vitest tourne dans son propre groupe de processus (`detached`) : Ctrl+C,
 // envoyé par le terminal au groupe de premier plan, ne l'atteint que par le
 // relais ci-dessous. Sinon il recevrait SIGINT deux fois, du terminal et du
@@ -26,7 +29,11 @@ const lock = acquireBenchLockOrExit({ tool: "test" });
 // milieu de son nettoyage (#94). Ce processus ne peut pas savoir si un SIGINT
 // visait son groupe ou lui seul : il relaie donc toujours, et Vitest ne
 // l'entend que de lui.
-const vitest = spawn(process.execPath, [VITEST, "run", ...process.argv.slice(2)], { stdio: "inherit", detached: true });
+const vitest = spawn(process.execPath, [VITEST, "run", ...process.argv.slice(2)], {
+  stdio: "inherit",
+  detached: true,
+  env: { ...process.env, [NPM_TEST_PID]: String(process.pid) },
+});
 
 // Interruption : la première est relayée à Vitest, une seule fois. npm relaie
 // lui aussi SIGINT et SIGTERM à ce processus, qui les reçoit donc en double

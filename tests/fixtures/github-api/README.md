@@ -29,3 +29,13 @@ gh api "repos/karAmmi12/migrabench/actions/workflows/oracle.yml/runs?event=pull_
 gh api "repos/karAmmi12/migrabench/actions/workflows/oracle.yml/runs?event=pull_request&branch=ci%2F76-ci-minutes&status=completed&per_page=100" \
   | jq "$redact" > oracle-runs-pr79-status-completed.json
 ```
+
+Workflow « Mesures », enregistré le 2026-11-27 pour `scripts/measure-durations.ts`
+(#163) : `measures-jobs-run46015618324.json`, les jobs de l'exécution
+46015618324 (PR #162), quand les mesures tenaient en un seul job `measures`.
+La réponse ne porte aucun e-mail : elle est telle que l'API l'a rendue.
+
+```sh
+gh api "repos/karAmmi12/migrabench/actions/runs/46015618324/attempts/1/jobs" \
+  > measures-jobs-run46015618324.json
+```

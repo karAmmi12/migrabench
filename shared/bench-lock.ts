@@ -117,6 +117,26 @@ export function acquireBenchLockOrExit(options: AcquireOptions): Extract<BenchLo
   return lock;
 }
 
+// Variable que `npm test` (scripts/test.ts) pose au lancement de Vitest : son
+// propre PID, celui du détenteur du verrou du banc (#163).
+export const NPM_TEST_PID = "MIGRABENCH_NPM_TEST_PID";
+
+// Ce qui empêche Vitest de démarrer, ou undefined : il ne tourne que sous le
+// verrou du banc tenu par le `npm test` qui l'a lancé (#163). Un Vitest lancé
+// directement, sans le verrou du banc, a rendu invalide une mesure en cours.
+export function npmTestLockProblem(env: NodeJS.ProcessEnv = process.env, file: string = BENCH_LOCK_FILE): string | undefined {
+  const usage = "Vitest runs only under the bench lock held by npm test: use npm test -- <file>";
+  const pid = env[NPM_TEST_PID];
+  if (pid === undefined) return `${usage} (${NPM_TEST_PID} is not set).`;
+  const text = readText(file);
+  if (text === undefined) return `${usage} (the bench lock is free).\n${benchLockPathLine(file)}`;
+  const holder = parseHolder(file, text);
+  if (holder.tool !== "test" || String(holder.pid) !== pid) {
+    return `${usage}.\n${heldMessage(holder)}, not by npm test PID ${pid}.\n${benchLockPathLine(file)}`;
+  }
+  return undefined;
+}
+
 // Message de refus : l'outil, son processus et l'heure de prise.
 export function heldMessage({ tool, pid, startedAt, command, host, measureId, takenAt }: BenchLockHolder): string {
   const measure = measureId === undefined ? "" : `, measure ${measureId}`;
