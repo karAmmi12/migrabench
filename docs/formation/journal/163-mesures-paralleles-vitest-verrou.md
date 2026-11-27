@@ -144,9 +144,28 @@ npm run typecheck
 
 Vert dans la session, sur le commit `97b0a3c`.
 
-> À vérifier après l'exécution de la CI de la PR : durée de chaque groupe, durée totale et plus long job (résumé du job `measures`), lien et head SHA.
+En CI, sur la tête de la PR `9f98cdb`, [exécution 46024842542](https://github.com/karAmmi12/migrabench/actions/runs/46024842542)
+du workflow « Mesures », succès. Résumé du job `measures` :
 
-> À vérifier après l'exécution de la CI de la PR : `tests` (nombre de tests), `typecheck`, liens et head SHA.
+| Job | Durée | Conclusion |
+|---|---|---|
+| measures / defective | 8 min 55 s | success |
+| measures / reference | 6 min 11 s | success |
+| measures / xss | 11 min 53 s | success |
+| measures / role | 13 min 19 s | success |
+
+- Durée totale (somme des jobs) : 40 min 18 s
+- Plus long job : measures / role, 13 min 19 s
+- Du premier départ à la dernière fin : 13 min 20 s
+
+Les 25 étapes de mesure du workflow y ont tourné une fois chacune, toutes en
+succès (API des jobs, étapes non `skipped`), et quatre artefacts
+`measures-<groupe>` sont publiés.
+
+Sur le même commit : `tests`, [exécution 46024842576](https://github.com/karAmmi12/migrabench/actions/runs/46024842576) :
+`Tests  1181 passed (1181)` ; `typecheck`, [exécution 46024842547](https://github.com/karAmmi12/migrabench/actions/runs/46024842547) :
+vert ; oracle, [exécution 46024842592](https://github.com/karAmmi12/migrabench/actions/runs/46024842592) : vert.
+Tests ciblés en local sur `9f98cdb`, arbre propre : `Tests  112 passed (112)`.
 
 ## Pour aller plus loin
 
