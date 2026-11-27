@@ -9,17 +9,21 @@ import { randomBytes } from "node:crypto";
 import { writeFileSync } from "node:fs";
 import { contextDigestEnv, stackContextDigests } from "../oracle/stack-images.ts";
 import { acquireBenchLockOrExit } from "../shared/bench-lock.ts";
+import { BROWSER_TOKEN_ENV, DEV_BROWSER_TOKEN_FILE, newBrowserToken } from "../shared/browser-token.ts";
 import { DEV_SALT_FILE, DEV_SALT_FILE_FROM_ROOT } from "./dev-archive-salt.ts";
 
 const lock = acquireBenchLockOrExit({ tool: "stack-up" });
 const salt = randomBytes(32).toString("hex");
+// Jeton du navigateur du banc (#134), relu par les tests comme le sel.
+const browserToken = newBrowserToken();
 let up;
 try {
   // Écrit avant le démarrage : le fichier donne toujours le dernier sel passé à la pile.
   writeFileSync(DEV_SALT_FILE, `${salt}\n`, { mode: 0o600 });
+  writeFileSync(DEV_BROWSER_TOKEN_FILE, `${browserToken}\n`, { mode: 0o600 });
   up = spawnSync("docker", ["compose", "up", "--detach", "--build", "--wait"], {
     stdio: "inherit",
-    env: { ...process.env, ...contextDigestEnv(await stackContextDigests()), ARCHIVE_SALT: salt },
+    env: { ...process.env, ...contextDigestEnv(await stackContextDigests()), ARCHIVE_SALT: salt, [BROWSER_TOKEN_ENV]: browserToken },
   });
 } finally {
   lock.release();

@@ -15,6 +15,7 @@ test-results
 .oracle-artifacts
 results
 .dev-archive-salt
+.dev-browser-token
 .probes
 # Dossier de Claude Code (réglages, hooks, skills, fichiers d'état des
 # sessions) : aucune image n'en a besoin, et il change sans cesse (#156).

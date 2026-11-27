@@ -34,6 +34,7 @@ import { saveServiceLogs, type StackDown, stackDown, stackStates } from "../orac
 import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
 import { ACCESS_LOG_FILE, closeAccessLog } from "./witness.ts";
 import { readSeamAMarkers } from "../shared/seam-a-marker.ts";
+import { newBrowserToken } from "../shared/browser-token.ts";
 import { fetchFromInternal, INTERNAL_API_URL } from "../shared/internal-api.ts";
 import { contentDigest } from "./candidate-content.ts";
 import { CandidateNotStarted, candidateStarter } from "./candidate-start.ts";
@@ -221,6 +222,9 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
   // Sans `recursive` : un dossier de mesure existant n'est jamais réécrit.
   await mkdir(measureDir);
   const measureSalt = salt ?? randomBytes(32).toString("hex");
+  // Jeton du navigateur de la mesure (#134) : passé au service `browser` à
+  // chaque recréation de la pile, et donné aux portes seulement.
+  const browserToken = newBrowserToken();
   // Marqueur de la mesure : jamais transmis au candidat, écrit dans
   // measure.json à la fin seulement. Le journal d'accès du legacy est écrit
   // dans le dossier des bruts, qui survit aux recréations de la pile.
@@ -295,7 +299,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
     // `stackBefore` : l'état de la pile saine, candidat arrêté, comparé à celui
     // de la fin de l'oracle, et de chaque porte, pour voir un service tombé
     // pendant que le candidat tournait.
-    const { readyCandidate, restartLegacy, stackBefore } = candidateStarter({ service: described, salt: measureSalt, accessLogDir, marker, readyTimeoutMs: limits.readyTimeoutMs, startWitnesses });
+    const { readyCandidate, restartLegacy, stackBefore } = candidateStarter({ service: described, salt: measureSalt, browserToken, accessLogDir, marker, readyTimeoutMs: limits.readyTimeoutMs, startWitnesses });
     let result: ExecuteOracleResult;
     try {
       result = await executeOracle({
@@ -308,6 +312,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
         // en oracle.json, si la mesure n'est pas interrompue (#71).
         resultFile: join(rawDir, COLLECTED_RESULT),
         accessLogDir,
+        browserToken,
         onStackReady: async () => {
           await readyCandidate();
           closeStart();
@@ -359,6 +364,7 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
       rawDir,
       oracle: { resultFile: join(measureDir, "oracle.json"), harFiles: await harFiles(join(rawDir, "oracle")) },
       internalApi: { get: (path) => fetchFromInternal(`${INTERNAL_API_URL}${path}`, { method: "GET" }) },
+      browserToken,
       restartLegacy,
     };
     try {

@@ -18,8 +18,10 @@ test-results/
 # Mesures de diagnostic de `migrabench measure`, un dossier par mesure : hors
 # de Git, seules les mesures prévues pour compter sont versionnées (étape 3).
 results/diagnostic/
-# Sel de développement tiré par `npm run stack:up`, relu par `npm test` (#33).
+# Sel de développement (#33) et jeton du navigateur (#134) tirés par
+# `npm run stack:up`, relus par `npm test`.
 .dev-archive-salt
+.dev-browser-token
 *.har
 # Sauf les HAR copiés de vraies sorties, lus par les tests des portes (#130).
 !tests/fixtures/**/*.har

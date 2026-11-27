@@ -2,7 +2,8 @@
 // défectueux ») : il n'est pas défectueux en lui-même, il prouve que chaque
 // protection du démarrage tient sur une vraie pile (ADR 0007). Il tente
 // d'écrire dans son code, de lire le socket Docker, de lire ARCHIVE_SALT, et
-// regarde s'il tourne en root ; il reprend le constat de la construction
+// regarde s'il tourne en root, et tente de joindre la passerelle CDP du navigateur
+// du banc (#134) ; il reprend le constat de la construction
 // (build.js), et écrit son environnement pour le contrôle du marqueur (#74).
 // Il écrit le constat sur sa sortie, que le runner garde dans le brut
 // `start.log` (lu par `npm run start-report:check -- probe`). Sur PORT, il
@@ -28,6 +29,24 @@ function buildReport() {
   } catch (error) {
     return { attempt: "reach-internal-api-during-build", refused: false, detail: `no build report: ${error.message}` };
   }
+}
+
+// Passerelle CDP du navigateur du banc (#134), joint depuis le réseau `default` :
+// sans le jeton de la pile, la découverte DevTools et le lancement d'un
+// Chromium sont refusés. Seuls deux `403` prouvent le refus ; une erreur de
+// connexion laisse le doute (passerelle non jointe, donc rien d'examiné).
+async function attemptCdpGateway() {
+  const tries = [
+    ["GET", "http://browser:9222/json/version"],
+    ["POST", "http://browser:9222/launch"],
+  ];
+  const statuses = [];
+  try {
+    for (const [method, url] of tries) statuses.push(`${method} ${url} ${(await fetch(url, { method })).status}`);
+  } catch (error) {
+    return { attempt: "reach-browser-cdp", refused: false, detail: `${statuses.join(", ")} ${error.message}: ${error.cause?.code ?? ""}`.trim() };
+  }
+  return { attempt: "reach-browser-cdp", refused: statuses.every((status) => status.endsWith(" 403")), detail: statuses.join(", ") };
 }
 
 const attempts = [
@@ -56,6 +75,7 @@ const attempts = [
     if (uid !== 0) throw new Error(`uid ${uid}`);
     return "uid 0";
   }),
+  await attemptCdpGateway(),
   // Le marqueur de la mesure ne doit jamais arriver jusqu'au candidat (#74).
   // La sonde ne le connaît pas : elle écrit tout son environnement, et le
   // contrôle (`start-report:check -- probe … --marker`) l'y cherche. La valeur

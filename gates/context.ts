@@ -22,6 +22,9 @@ export interface GateContext {
   rawDir: string;
   // Client de l'API interne du legacy, en lecture seulement.
   internalApi: { get(path: string): Promise<InternalResponse> };
+  // Jeton du navigateur de la mesure (shared/browser-token.ts) : ouvre le
+  // passerelle CDP du service `browser` (gates/cdp-browser.ts, #134).
+  browserToken: string;
   // Redémarre le legacy, recrée le candidat, attend qu'ils soient sains et
   // envoie la requête témoin `start-N` suivante. Un échec lève StackIncident.
   restartLegacy(): Promise<void>;

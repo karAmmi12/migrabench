@@ -36,6 +36,8 @@ export interface CandidateStarterOptions {
   service: CandidateService;
   // Sel de la mesure, repassé au service d'archivage recréé.
   salt: string;
+  // Jeton du navigateur de la mesure, repassé au service `browser` recréé (#134).
+  browserToken: string;
   // Journal d'accès vivant du legacy, et marqueur de la mesure.
   accessLogDir: string;
   marker: string;
@@ -55,7 +57,7 @@ export interface CandidateStarter {
   stackBefore(): ServiceState[];
 }
 
-export function candidateStarter({ service, salt, accessLogDir, marker, readyTimeoutMs, startWitnesses, legacyUrl, candidateUrl }: CandidateStarterOptions): CandidateStarter {
+export function candidateStarter({ service, salt, browserToken, accessLogDir, marker, readyTimeoutMs, startWitnesses, legacyUrl, candidateUrl }: CandidateStarterOptions): CandidateStarter {
   let stackBefore: ServiceState[] = [];
   const readyCandidate = async (): Promise<void> => {
     await stopCandidate(service);
@@ -71,7 +73,7 @@ export function candidateStarter({ service, salt, accessLogDir, marker, readyTim
   };
   const restartLegacy = async (): Promise<void> => {
     try {
-      await recreateStack(salt, accessLogDir);
+      await recreateStack(salt, { accessLogDir, browserToken });
       await readyCandidate();
     } catch (error) {
       if (error instanceof StackFailed) throw new StackIncident("stack-failed-before-candidate", error.message);

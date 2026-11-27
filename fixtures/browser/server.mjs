@@ -10,8 +10,13 @@
 // « Accusé de remise » du legacy, écrit en dur sur `localhost:8090`. Seuls ces
 // trois ports sont relayés. Le service est sur le réseau `default` seul : il
 // ne joint pas l'API interne (ADR 0004).
+//
+// Passerelle CDP (#134, cdp-gateway.mjs) : un Chromium de l'image, lancé à la
+// demande du porteur du jeton de la pile, pour Lighthouse.
 import { spawn } from "node:child_process";
+import { createRequire } from "node:module";
 import { createConnection, createServer } from "node:net";
+import { startCdpGateway } from "./cdp-gateway.mjs";
 
 const ROUTES = [
   [8080, "legacy", 8080],
@@ -33,6 +38,14 @@ for (const [local, host, port] of ROUTES) {
   }
 }
 
+// Chromium complet de l'image (pas le headless shell de Playwright), celui
+// que Playwright lancerait avec le canal `chromium`.
+const { chromium } = createRequire(import.meta.url)("/opt/playwright-core");
+const gateway = startCdpGateway({ port: 9222, token: process.env.MB_BROWSER_TOKEN, executablePath: chromium.executablePath() });
+
 const server = spawn(process.execPath, ["/opt/playwright-core/cli.js", "run-server", "--port", "3000", "--host", "0.0.0.0"], { stdio: "inherit" });
-server.on("exit", (code) => process.exit(code ?? 1));
+server.on("exit", (code) => {
+  gateway.closeAll();
+  process.exit(code ?? 1);
+});
 for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => server.kill(signal));

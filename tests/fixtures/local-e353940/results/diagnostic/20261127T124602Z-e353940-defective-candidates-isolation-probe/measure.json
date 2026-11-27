@@ -1,0 +1,642 @@
+{
+  "format": 1,
+  "measureId": "20261127T124602Z-e353940-defective-candidates-isolation-probe",
+  "counted": false,
+  "candidate": {
+    "path": "fixtures/defective-candidates/isolation-probe",
+    "contentDigest": "sha256:b445bf3218fda00bc91e734cdca30d86aef8309940249534d7c971c9971a9cf4",
+    "contract": 1,
+    "build": "node build.js",
+    "start": "node server.js"
+  },
+  "environment": {
+    "benchCommit": "e353940238fa981b6c2b885447bce93ed4e3dc5f",
+    "worktree": "clean",
+    "node": "v22.23.5",
+    "chromium": "159.0.8154.6",
+    "playwright": "1.65.1",
+    "browserImage": {
+      "reference": "mcr.microsoft.com/playwright:v1.65.1-noble@sha256:1507cbfc550a63a6b7396791ca4f00df17beb56342d2447b3f106c306f525579",
+      "image": "sha256:1507cbfc550a63a6b7396791ca4f00df17beb56342d2447b3f106c306f525579",
+      "platform": "linux/arm64"
+    },
+    "images": {
+      "legacy": "sha256:dafcbda6ee87fb6b97222e6dc346c7c870e7506bb3d7e582817bb4cfd3ba67fb",
+      "archive": "sha256:daf81605fcd3739ab0e5b4d5ae9da56e33d9fd45f0abd2da7ee3b41792e5d6ef"
+    },
+    "imageContexts": {
+      "legacy": "sha256:d93b1db7299135880c9627fb555611f6add4643f3f6b5a86eea75088cb9498d4",
+      "archive": "sha256:d93b1db7299135880c9627fb555611f6add4643f3f6b5a86eea75088cb9498d4"
+    },
+    "frozenDate": "2025-11-15",
+    "baseUrl": "http://127.0.0.1:8100",
+    "artifacts": ".oracle-artifacts/20261127T124602Z-e353940-defective-candidates-isolation-probe/oracle",
+    "gateTools": {
+      "axe-core": "4.14.0",
+      "lighthouse": "13.6.0"
+    },
+    "runtimeImage": "sha256:c12b2ff7205346f4f9138adf01097ca4bbf17e8d6908d9530f4715ccd56ee536",
+    "containerUser": {
+      "uid": 501,
+      "gid": 20
+    },
+    "composeOverride": "sha256:1ee7adc04b04a1420ca0fb7c23fbeaf925f9bf01df5b557079e4fb3a33fa863c",
+    "port": 8100,
+    "limits": {
+      "provisional": false,
+      "source": "calibration",
+      "calibration": {
+        "file": "results/calibration/20261124T232316Z-aeb3037-ci45509307133.1-1.json",
+        "digest": "sha256:0cd1bfcf0fadd21658abdd4fdf67d49917954aa0922af15d532f6a99f27be9dc"
+      },
+      "multiples": {
+        "timeouts": 5,
+        "resources": 2
+      },
+      "buildTimeoutMs": 39405,
+      "readyTimeoutMs": 3430,
+      "buildMemoryBytes": 665845760,
+      "buildCpus": 1.89,
+      "start": {
+        "provisional": true,
+        "source": "build-limits",
+        "memoryBytes": 665845760,
+        "cpus": 1.89,
+        "pids": 256
+      }
+    },
+    "lock": {
+      "takenAt": "2026-11-27T12:46:02.638Z"
+    }
+  },
+  "salt": "0b2f052aca9fc63ea0bb85f93bccff92f7eb996585b1b6f154d93c4862521396",
+  "saltImposed": false,
+  "marker": "0cf370edbe48c013732063adf8f8e216415ffdb4c7bc5fc5722352af4130b92f",
+  "phases": [
+    {
+      "name": "preparation",
+      "outcome": "ok",
+      "startedAt": "2026-11-27T12:46:02.639Z",
+      "durationMs": 1119,
+      "raw": {}
+    },
+    {
+      "name": "contract",
+      "outcome": "ok",
+      "startedAt": "2026-11-27T12:46:03.758Z",
+      "durationMs": 1,
+      "raw": {}
+    },
+    {
+      "name": "build",
+      "outcome": "ok",
+      "startedAt": "2026-11-27T12:46:03.759Z",
+      "durationMs": 6391,
+      "raw": {
+        "fetch.log": "sha256:bfe01d8d3eb038c217ce8f8fbc2686e5e1354d9e8e663f8f61b8a5225e3b5317",
+        "npm-logs/fetch/2026-11-27T12_46_03_947Z-debug-0.log": "sha256:2479655e788cd6fb0c04d32fc938f64d4ade31cfe2806ec605f6a426131b2db5",
+        "install.log": "sha256:bde5484bc7c9b7fcb6dabccb2368a9ef27d4db35d67a82272207d8ad056779be",
+        "npm-logs/install/2026-11-27T12_46_04_502Z-debug-0.log": "sha256:e9aa169ff0e571363166b49d7cf9162fab7075d8a87c24f8c732c623ed7835cc",
+        "build.log": "sha256:b49c8f504bcf2208976b92765dca9f9e5418e2763bafe81eec5644e856400d37"
+      }
+    },
+    {
+      "name": "start",
+      "outcome": "ok",
+      "startedAt": "2026-11-27T12:46:10.150Z",
+      "durationMs": 5945,
+      "raw": {
+        "start.log": "sha256:3d1d38119a5e2b1b67920bfcd7030ff7d37a44be5e91ed6a79b12693647083f0"
+      }
+    },
+    {
+      "name": "oracle",
+      "outcome": "ok",
+      "startedAt": "2026-11-27T12:46:16.095Z",
+      "durationMs": 4441,
+      "raw": {}
+    },
+    {
+      "name": "gates",
+      "outcome": "ok",
+      "startedAt": "2026-11-27T12:46:20.536Z",
+      "durationMs": 16743,
+      "raw": {}
+    },
+    {
+      "name": "closing",
+      "outcome": "ok",
+      "startedAt": "2026-11-27T12:46:37.279Z",
+      "durationMs": 1507,
+      "raw": {
+        "access.log": "sha256:91ac9246bb4c8ca1c76c2f1f57bfb983809b24218ae717772e84a575d03b850a"
+      }
+    }
+  ],
+  "oracle": {
+    "executed": true,
+    "result": "sha256:03a18132f5c7e2116e3811cb62d9b89ad54a0f4e11df275d9c93d1c28ccdc692",
+    "summary": {
+      "scenarios": 38,
+      "passed": 0,
+      "failed": 0,
+      "unreached": 38,
+      "passRate": 0,
+      "reachedPassRate": null,
+      "keyboard": {
+        "passed": 0,
+        "total": 5
+      }
+    }
+  },
+  "accessLog": {
+    "log": "sha256:91ac9246bb4c8ca1c76c2f1f57bfb983809b24218ae717772e84a575d03b850a",
+    "lines": 15,
+    "witnesses": [
+      {
+        "name": "start-1",
+        "line": 2
+      },
+      {
+        "name": "end",
+        "line": 15
+      }
+    ]
+  },
+  "gates": [
+    {
+      "gate": "witness-value",
+      "name": "absent-from-har",
+      "kind": "judged",
+      "outcome": "passed",
+      "examined": 38,
+      "findings": [],
+      "findingsTotal": 0,
+      "findingsKept": 0,
+      "values": {
+        "hars": 38,
+        "responseBodiesAbsent": 38,
+        "responseBodiesUnread": 0
+      },
+      "raw": {
+        "oracle/remise-receipt-agent-chromium/scenario.har": "sha256:eb0ee10d0bfb091fab9a54d7f00b09ab93f2beb844fdc0eab44c3cf90a5cd731",
+        "oracle/remise-receipt-instructeur-chromium/scenario.har": "sha256:91e2ae1478c94c3c0ecd43d3fd69fc21f5294d9a1a0492b48eec2a39324c892b",
+        "oracle/remise-remise-agent-reserved-chromium/scenario.har": "sha256:80ccb7ec60c99547595c8a683b423a467c7d957e06a664fcd24d7a6195ff4e70",
+        "oracle/remise-remise-instructeur-chromium/scenario.har": "sha256:526b9c797f737cdbb0d0987085c10a8ed04e3b5cf02ba8fec120d57ca68bf506",
+        "oracle/remise-remise-remis-chromium/scenario.har": "sha256:b4199246b2b9137f30752bb82b51b1cf93491ef526428c38f9e9169097396b85",
+        "oracle/remise-remise-summary-chromium/scenario.har": "sha256:48e17804f4baa8c751e90cec7e362e5879e0d13597d56cb80f3998ba09fd6745",
+        "oracle/search-auth-no-credentials-chromium/scenario.har": "sha256:02a851cd1aa938396df23ba02bbf7b346aff199acc08a56394a38c60ba4dcef4",
+        "oracle/search-auth-unknown-user-chromium/scenario.har": "sha256:5af2800b7bfb9ffc1fcb1b7511e23c0c0686920480a4f3c4e855cc5eea7c9b73",
+        "oracle/search-search-applicant-accents-chromium/scenario.har": "sha256:38b4a809f081b3d536ca46efc7a93ed911b2007ca42246389c73bc9b45d54da0",
+        "oracle/search-search-applicant-contains-case-chromium/scenario.har": "sha256:acf1c2aa81164fec01d94a6ea25632f92869b20c4ece02bb29fbdc67e5c4fc6d",
+        "oracle/search-search-criteria-and-chromium/scenario.har": "sha256:dda2c891e81854086c7e463e18d9efdc4fd50bc4cf84ca597e63d0c92f1a58e1",
+        "oracle/search-search-empty-form-chromium/scenario.har": "sha256:13e5fac90d50ed863a4517137c7c7ecb8049f827e973aa88591413379c5e92d2",
+        "oracle/search-search-filed-from-format-chromium/scenario.har": "sha256:cd901fd627e4e3027c92f2322b761d773a5fb734c04eaad54c74c5bd88a59660",
+        "oracle/search-search-filed-from-only-chromium/scenario.har": "sha256:4b073d0f5e315efdf650eb58033c5c22d3b1f704d6cb371690227d3ab3a11bda",
+        "oracle/search-search-filed-range-order-chromium/scenario.har": "sha256:5ae53d2c2ca063ede9a97bed34ddcde349c9d8c126032e86b7ed2bbc8278e897",
+        "oracle/search-search-filed-same-day-chromium/scenario.har": "sha256:07e0456fc118917559cdb89f37a35c28671914bd9c22251368d0d3da0a90ed3b",
+        "oracle/search-search-filed-to-format-chromium/scenario.har": "sha256:23c50f94c0c6c70306c2bbc13040542a6e56f85f1bae90c4b44fbaf1a440e8b4",
+        "oracle/search-search-filed-to-only-chromium/scenario.har": "sha256:7ca2833ee32f1c4921fcd39fda96f5623550759631869c5005a170e41bd92f05",
+        "oracle/search-search-initial-focus-chromium/scenario.har": "sha256:9d6ddcc0aa6cde8554a6c418f18318063016e52a14c0a9416ca6f55c6ba43f5d",
+        "oracle/search-search-no-result-chromium/scenario.har": "sha256:2b3a1cc67dca5939929b0190c77ad5e37ef38c15649fe1e97df0eca665c651d0",
+        "oracle/search-search-number-exact-chromium/scenario.har": "sha256:b5ed39c0dc0aff570008734414d34982667e8faee518fec266efc3c3e73bd3f3",
+        "oracle/search-search-number-mask-chromium/scenario.har": "sha256:a2f24438ea69a8c1b3ef46e548c88d38dd6eb15276b115e1dcf0061b6e1ee9cf",
+        "oracle/search-search-number-spaces-chromium/scenario.har": "sha256:9cdf882caf9783cec24ae126a54bf60491af78fb1108892a909f694e46ca09bb",
+        "oracle/search-search-status-chromium/scenario.har": "sha256:4e9dc50b6529c83463b89f7a7bec46fa21a2e771f78d220916e24a5bf821be98",
+        "oracle/sheet-sheet-applicant-maxlength-chromium/scenario.har": "sha256:9463d8c995c4821f90e243430a3e7758d90797df9078d6bbf565bd122f409b83",
+        "oracle/sheet-sheet-applicant-required-chromium/scenario.har": "sha256:c789ebaaa86aa77683834e37d8328aa2982e49f7a8104032ae72c3629cd658ab",
+        "oracle/sheet-sheet-content-chromium/scenario.har": "sha256:008671e6c3eccfad2e3fdef2b91c269f54eceb58c3debc277c51384dbc0d7fc0",
+        "oracle/sheet-sheet-ctrl-s-chromium/scenario.har": "sha256:568f04095255f7c4a0d24e98c21ba0d646b457d3c5b0df693a5fa17a9c8fc991",
+        "oracle/sheet-sheet-ctrl-s-remis-chromium/scenario.har": "sha256:a530a78425c07cdeb0f4613249aa185237cdd8dc5c98fe3d572d5ed0bd6b5044",
+        "oracle/sheet-sheet-initial-focus-chromium/scenario.har": "sha256:ab8f325462d942ac0168e6400289f66b4cbe957b5803b862c8e95d785b9ebf16",
+        "oracle/sheet-sheet-lock-en-instruction-chromium/scenario.har": "sha256:5bc75e9b442697687e5b0ad684fa08d2aa0411e437953cadeed8f14c9c407b52",
+        "oracle/sheet-sheet-lock-remis-chromium/scenario.har": "sha256:035b22740a9a84bcd919341c521687b14ab293ec57c044143718f0d730dd6a15",
+        "oracle/sheet-sheet-remise-link-chromium/scenario.har": "sha256:fcb517dcff2861dc54bcbac0e2d602bdded683a92c05fa1c6f9995facc82d35f",
+        "oracle/sheet-sheet-save-brouillon-chromium/scenario.har": "sha256:343a21aab4cd558df02e7596bcbffd672cfd0a60dea01466c795635e680ee708",
+        "oracle/sheet-sheet-save-en-instruction-chromium/scenario.har": "sha256:bc06c53d3bf5bf59f2cd840ee02c65cb808f00d23eea1e7575f099b27a99de2c",
+        "oracle/sheet-sheet-subject-maxlength-chromium/scenario.har": "sha256:ea4896881cb5a1b6378456e28680d3c10b8dad7c06304e7dd909bf57507c19b1",
+        "oracle/sheet-sheet-subject-required-chromium/scenario.har": "sha256:7f74701f8258e17af4ae0748378e944a6f9335b68c4bce1766fb3672104d72a6",
+        "oracle/sheet-sheet-tab-order-chromium/scenario.har": "sha256:6d08a32044fdd3bd8e57ee79b357605b795be66e9bb8d4dfc89ee97afe88b1b4"
+      }
+    },
+    {
+      "gate": "accessibility",
+      "name": "tables-count/search",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "search",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "tables-nested/search",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "search",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "tables-count/sheet",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "sheet",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "tables-nested/sheet",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "sheet",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "tables-count/submission",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "submission",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "tables-nested/submission",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "submission",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "axe/critical",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "search",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        },
+        {
+          "screen": "sheet",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        },
+        {
+          "screen": "submission",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 3,
+      "findingsKept": 3,
+      "values": {
+        "violations": 0,
+        "violatingNodes": 0,
+        "incomplete": 0,
+        "search.reached": 0,
+        "sheet.reached": 0,
+        "submission.reached": 0
+      },
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "axe/serious",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "search",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        },
+        {
+          "screen": "sheet",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        },
+        {
+          "screen": "submission",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 3,
+      "findingsKept": 3,
+      "values": {
+        "violations": 0,
+        "violatingNodes": 0,
+        "incomplete": 0,
+        "search.reached": 0,
+        "sheet.reached": 0,
+        "submission.reached": 0
+      },
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "axe/moderate",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "search",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        },
+        {
+          "screen": "sheet",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        },
+        {
+          "screen": "submission",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 3,
+      "findingsKept": 3,
+      "values": {
+        "violations": 0,
+        "violatingNodes": 0,
+        "incomplete": 0,
+        "search.reached": 0,
+        "sheet.reached": 0,
+        "submission.reached": 0
+      },
+      "raw": {}
+    },
+    {
+      "gate": "accessibility",
+      "name": "axe/minor",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "search",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        },
+        {
+          "screen": "sheet",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        },
+        {
+          "screen": "submission",
+          "unreached": "sheet D-0003",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 3,
+      "findingsKept": 3,
+      "values": {
+        "violations": 0,
+        "violatingNodes": 0,
+        "incomplete": 0,
+        "search.reached": 0,
+        "sheet.reached": 0,
+        "submission.reached": 0
+      },
+      "raw": {}
+    },
+    {
+      "gate": "xss",
+      "name": "executed/search",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "search",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {
+        "gates/xss/search.json": "sha256:6ce1dd10a16cea90c0822f9f89c7487c8ddff23a0d050be3c8e5bce23b275aa8"
+      }
+    },
+    {
+      "gate": "xss",
+      "name": "as-text/search",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "search",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {
+        "gates/xss/search.json": "sha256:6ce1dd10a16cea90c0822f9f89c7487c8ddff23a0d050be3c8e5bce23b275aa8"
+      }
+    },
+    {
+      "gate": "xss",
+      "name": "executed/sheet",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "sheet",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {
+        "gates/xss/sheet.json": "sha256:a53362a5d81c2e3ac981ed091094ef992f9c131150afe77e7ad85fbe73117725"
+      }
+    },
+    {
+      "gate": "xss",
+      "name": "as-text/sheet",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "sheet",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {
+        "gates/xss/sheet.json": "sha256:a53362a5d81c2e3ac981ed091094ef992f9c131150afe77e7ad85fbe73117725"
+      }
+    },
+    {
+      "gate": "xss",
+      "name": "executed/submission",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "submission",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {
+        "gates/xss/submission.json": "sha256:8674b843415b2f47805e179a74df8b7fab14f01915942953da86605dbecafb8e"
+      }
+    },
+    {
+      "gate": "xss",
+      "name": "as-text/submission",
+      "kind": "judged",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "screen": "submission",
+          "unreached": "search",
+          "message": "page.goto: net::ERR_EMPTY_RESPONSE at http://127.0.0.1:8100/"
+        }
+      ],
+      "findingsTotal": 1,
+      "findingsKept": 1,
+      "values": {},
+      "raw": {
+        "gates/xss/submission.json": "sha256:8674b843415b2f47805e179a74df8b7fab14f01915942953da86605dbecafb8e"
+      }
+    },
+    {
+      "gate": "lighthouse",
+      "name": "performance",
+      "kind": "measured",
+      "outcome": "not-evaluable",
+      "examined": 0,
+      "findings": [
+        {
+          "pass": 1,
+          "reason": "CHROME_INTERSTITIAL_ERROR: Chrome prevented page load with an interstitial. Make sure you are testing the correct URL and that the server is properly responding to all requests."
+        },
+        {
+          "pass": 2,
+          "reason": "CHROME_INTERSTITIAL_ERROR: Chrome prevented page load with an interstitial. Make sure you are testing the correct URL and that the server is properly responding to all requests."
+        },
+        {
+          "pass": 3,
+          "reason": "CHROME_INTERSTITIAL_ERROR: Chrome prevented page load with an interstitial. Make sure you are testing the correct URL and that the server is properly responding to all requests."
+        }
+      ],
+      "findingsTotal": 3,
+      "findingsKept": 3,
+      "values": {
+        "pass1.completed": 0,
+        "pass2.completed": 0,
+        "pass3.completed": 0
+      },
+      "raw": {
+        "gates/lighthouse/pass-1.json": "sha256:6f4aae984bffdfb5c8e5814e3dd60816d780a7497acc79c34629fd1f48028e18",
+        "gates/lighthouse/pass-2.json": "sha256:0d14d3a355255013b77598ea5207773f17aa4456ea444ecc0cceb5299346e1c1",
+        "gates/lighthouse/pass-3.json": "sha256:64a8251003d43b73f8d3194539ec46d54eddcc7f5be0cad73e6b8c5721b9a332"
+      }
+    },
+    {
+      "gate": "relay",
+      "name": "legacy-port-untouched",
+      "kind": "judged",
+      "outcome": "passed",
+      "examined": 14,
+      "findings": [],
+      "findingsTotal": 0,
+      "findingsKept": 0,
+      "values": {},
+      "raw": {
+        "access.log": "sha256:91ac9246bb4c8ca1c76c2f1f57bfb983809b24218ae717772e84a575d03b850a"
+      }
+    }
+  ],
+  "verdict": {
+    "category": "completed",
+    "reason": "ok"
+  }
+}
