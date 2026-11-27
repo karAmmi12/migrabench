@@ -21,8 +21,9 @@ export type Decision = { run: boolean; reason: string };
 
 // Jobs qui ne tournent que sur une PR qui touche leurs chemins.
 const JOB_PATHS: Partial<Record<HeavyJob, string[]>> = {
-  // Ce que prouve le job proof : l'oracle, le legacy, la pile et les résultats versionnés.
-  proof: ["oracle/", "fixtures/legacy-app/", "docker-compose.yml", "results/oracle/"],
+  // Ce que prouve le job proof : l'oracle, le legacy, la pile (navigateur du
+  // banc compris, #160) et les résultats versionnés.
+  proof: ["oracle/", "fixtures/legacy-app/", "fixtures/browser/", "docker-compose.yml", "results/oracle/"],
   // Ce qui fait les relevés de l'étalonnage (#72) : le candidat d'étalonnage,
   // l'image d'exécution, sa construction et son démarrage, son contrat, le
   // relevé des ressources, et le workflow lui-même. Pas results/calibration/ :
@@ -40,7 +41,8 @@ const JOB_PATHS: Partial<Record<HeavyJob, string[]>> = {
     ".github/workflows/calibration.yml",
   ],
   // Ce que le job des mesures exécute (#74) : le workflow, ses scripts, les
-  // candidats défectueux et conformes (#124), et la pile cassée. Pas runner/ :
+  // candidats défectueux et conformes (#124), le navigateur du banc et ses
+  // passerelles (#160), et la pile cassée. Pas runner/ :
   // ses changements sont couverts par Vitest, et le job dure une vingtaine de minutes ; il se lance
   // à la main (workflow_dispatch) pour la mesure comptée sur main.
   measures: [
@@ -52,6 +54,7 @@ const JOB_PATHS: Partial<Record<HeavyJob, string[]>> = {
     "scripts/start-report.ts",
     "fixtures/defective-candidates/",
     "fixtures/conforming-candidates/",
+    "fixtures/browser/",
     "tests/fixtures/broken-stack/",
   ],
 };
