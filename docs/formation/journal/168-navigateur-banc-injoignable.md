@@ -191,7 +191,20 @@ browser-stopped-during-oracle: verdict is stack-down-while-candidate (stack-down
 Au commit 92d1da6 (fiche comprise), arbre propre : `Test Files  107 passed
 (107)`, `Tests  1216 passed (1216)`.
 
-> À vérifier après l'exécution de la CI de la PR : le cas `browser-stopped-during-oracle` dans le job des mesures (groupe `defective`), lien de l'exécution, head SHA, ligne du résumé.
+En CI, job des mesures, groupe `defective`
+(https://github.com/karAmmi12/migrabench/actions/runs/46066444233, head SHA
+f3adfaa) :
+
+```
+browser-stopped-during-oracle: results/diagnostic/20261127T210030Z-f3adfaa-reference-candidate is the expected measure (invalid, bench-browser-unreachable, exit code 3).
+```
+
+Le cas a pris 42 s (lancé à 21:00:30, conclu à 21:01:11, horodatages du
+journal). Le groupe `auth` de la même exécution a échoué : il venait de #167,
+fusionné dans `main` pendant la PR, et la branche ne connaissait pas encore
+ses cas (`Usage:`, code 2). Après la fusion de `main` (commit 2dae5a4), `npm
+test` est vert en local, arbre propre : `Test Files  108 passed (108)`,
+`Tests  1240 passed (1240)`.
 
 ## Pour aller plus loin
 
