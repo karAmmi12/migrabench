@@ -99,9 +99,12 @@ const TRANSPORT_HEADERS = new Set([
 ]);
 const isValueHeader = (name: string) => !TRANSPORT_HEADERS.has(name) && !name.startsWith("sec-") && !name.startsWith(":");
 
+// Chemin sans ses paramètres de chemin (`;jsessionid=…`).
+export const withoutPathParams = (pathname: string) => pathname.replace(/;[^/]*/g, "");
+
 // Clé d'une réponse : méthode et chemin, sans paramètres de chemin ni requête.
 export function responseKey({ method, url }: { method: string; url: string }): string {
-  return `${method} ${new URL(url).pathname.replace(/;[^/]*/g, "")}`;
+  return `${method} ${withoutPathParams(new URL(url).pathname)}`;
 }
 
 // Parties textuelles d'une réponse : son corps et chacun de ses en-têtes.

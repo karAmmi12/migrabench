@@ -2,8 +2,8 @@
 // porte ») : bouton masqué dans la vue. Pour l'agent, la remise d'un dossier
 // `EN_INSTRUCTION` garde « Remise réservée aux instructeurs », et ajoute le
 // formulaire de remise, masqué (`display:none`). Rien ne contrôle le rôle à la
-// remise. Issue attendue : mesure complète, `role/role-replay` échoué, le
-// contrôle et `role/role-forced-browsing` réussis (un bouton masqué n'est pas
+// remise. Issue attendue : mesure complète, `role-check/role-replay` échoué, le
+// contrôle et `role-check/role-forced-browsing` réussis (un bouton masqué n'est pas
 // cliquable).
 import { createRelay, userOf } from "./relay.js";
 

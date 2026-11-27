@@ -40,7 +40,7 @@ import type { GateContext } from "./context.ts";
 import type { Gate } from "./registry.ts";
 import { saveGateRaw } from "./raw.ts";
 import { judged, type JudgedResult } from "./result.ts";
-import { type Received, type ReceivedResponse, type RecordedRequest, type TransplantedValue, transplant } from "./role-transplant.ts";
+import { type Received, type ReceivedResponse, type RecordedRequest, type TransplantedValue, transplant, withoutPathParams } from "./role-transplant.ts";
 import { settle, trackNetwork } from "./settle.ts";
 
 // Jamais `role` seul : vocabulaire Java EE que la copie expurgée garde
@@ -53,6 +53,8 @@ export const NOT_REPLAYABLE = "transformation de session non rejouable : jeton p
 // la pile et du candidat, chacun sous le délai de disponibilité, et trois
 // sessions de navigateur. Étalonné par #100.
 const ROLE_TIMEOUT_MS = 15 * 60_000;
+// Clic de l'instructeur sur « Remettre », à l'enregistrement. Valeur de conception.
+const CLICK_TIMEOUT_MS = 10_000;
 // Clic d'essai sur un bouton « Remettre » : au-delà, il n'est pas cliquable.
 const TRIAL_CLICK_TIMEOUT_MS = 2_000;
 // Délai d'une requête rejouée. Valeur de conception.
@@ -203,7 +205,10 @@ interface Recording {
   cookies: Received["cookies"];
   responses: Watched["responses"];
   sheetUrl: string;
-  remiseUrl: string;
+  submissionUrl: string;
+  // Le réseau a-t-il été au repos après le clic ? Sinon, des requêtes ont pu
+  // manquer à l'enregistrement : le brut le dit.
+  networkIdle: boolean;
 }
 
 class Unrecorded extends Error {
@@ -225,7 +230,7 @@ async function record(context: GateContext, prepared: Prepared): Promise<{ recor
       const sheetUrl = page.url();
       step = `remise ${prepared.number}`;
       await goToSubmissionFromSheet(page, prepared.subject);
-      const remiseUrl = page.url();
+      const submissionUrl = page.url();
       await settle(page, inFlight);
       step = "Remettre";
       const before = await statusOf(context, prepared.number);
@@ -239,14 +244,14 @@ async function record(context: GateContext, prepared: Prepared): Promise<{ recor
         requests.push(entry);
         reading.push(request.allHeaders().then((headers) => void (entry.headers = headers)));
       });
-      await button(page, "Remettre").click({ timeout: TRIAL_CLICK_TIMEOUT_MS * 5 });
-      await settle(page, inFlight);
+      await button(page, "Remettre").click({ timeout: CLICK_TIMEOUT_MS });
+      const networkIdle = await settle(page, inFlight);
       await Promise.all(reading);
       await watched.done();
       if (requests.length === 0) throw new Unrecorded(step, "No request to the candidate after the click on Remettre");
       const after = await statusOf(context, prepared.number);
       if (after !== SUBMITTED) throw new Unrecorded(step, `The internal API does not confirm the submission: ${prepared.number} is ${after}`);
-      return { recording: { requests, cookies, responses: watched.responses, sheetUrl, remiseUrl } };
+      return { recording: { requests, cookies, responses: watched.responses, sheetUrl, submissionUrl, networkIdle } };
     } catch (error) {
       if (error instanceof Unrecorded) return { step: error.step, message: error.message };
       // Écran ou bouton non atteint : rien d'enregistré. Une erreur de l'API
@@ -296,18 +301,22 @@ async function targetSession(browser: Browser, context: GateContext, prepared: P
   const inFlight = trackNetwork(page);
   let step = "search";
   let navigation: { step: string; message: string } | undefined;
+  let cookies: Received["cookies"] = [];
   try {
-    await goToSheet(page, prepared.number);
-    step = `remise ${prepared.number}`;
-    if ((await remiseLink(page).count()) > 0) await remiseLink(page).first().click();
-    else await page.goto(recording.remiseUrl);
-    await settle(page, inFlight);
-  } catch (error) {
-    navigation = { step, message: firstLine(error) };
+    try {
+      await goToSheet(page, prepared.number);
+      step = `remise ${prepared.number}`;
+      if ((await remiseLink(page).count()) > 0) await remiseLink(page).first().click();
+      else await page.goto(recording.submissionUrl);
+      await settle(page, inFlight);
+    } catch (error) {
+      navigation = { step, message: firstLine(error) };
+    }
+    await watched.done();
+    cookies = (await browserContext.cookies(context.candidateUrl)).map(({ name, value }) => ({ name, value }));
+  } finally {
+    await browserContext.close();
   }
-  await watched.done();
-  const cookies = (await browserContext.cookies(context.candidateUrl)).map(({ name, value }) => ({ name, value }));
-  await browserContext.close();
   return { received: { cookies, responses: watched.responses }, ...(navigation === undefined ? {} : { navigation }) };
 }
 
@@ -316,7 +325,11 @@ function applySetCookies(jar: Map<string, string>, headers: readonly { name: str
     if (name.toLowerCase() !== "set-cookie") continue;
     const [pair = ""] = value.split(";");
     const equal = pair.indexOf("=");
-    if (equal > 0) jar.set(pair.slice(0, equal).trim(), pair.slice(equal + 1).trim());
+    if (equal <= 0) continue;
+    const cookie = pair.slice(0, equal).trim();
+    // Cookie effacé par le candidat : retiré du jar.
+    if (/;\s*max-age=(0|-\d+)\s*(;|$)/i.test(value)) jar.delete(cookie);
+    else jar.set(cookie, pair.slice(equal + 1).trim());
   }
 }
 
@@ -361,7 +374,7 @@ async function clickable(page: Page): Promise<boolean> {
 // URL comparées sans paramètres de chemin (`;jsessionid=…`).
 const comparable = (url: string) => {
   const parsed = new URL(url);
-  parsed.pathname = parsed.pathname.replace(/;[^/]*/g, "");
+  parsed.pathname = withoutPathParams(parsed.pathname);
   return parsed.toString();
 };
 
@@ -373,17 +386,20 @@ async function forcedBrowsing(context: GateContext, prepared: Prepared, recordin
       const inFlight = trackNetwork(page);
       let unreached: ForcedAttempt["unreached"];
       try {
-        await reach(page);
-        await settle(page, inFlight);
-      } catch (error) {
-        unreached = { step: attempt, message: firstLine(error) };
+        try {
+          await reach(page);
+          await settle(page, inFlight);
+        } catch (error) {
+          unreached = { step: attempt, message: firstLine(error) };
+        }
+        attempts.push({ attempt, url: page.url(), clickable: await clickable(page), ...(unreached === undefined ? {} : { unreached }) });
+      } finally {
+        await browserContext.close();
       }
-      attempts.push({ attempt, url: page.url(), clickable: await clickable(page), ...(unreached === undefined ? {} : { unreached }) });
-      await browserContext.close();
     };
-    const direct = comparable(recording.remiseUrl);
+    const direct = comparable(recording.submissionUrl);
     if (direct !== comparable(new URL("/", context.candidateUrl).toString()) && direct !== comparable(recording.sheetUrl)) {
-      await tryAs("direct-url", async (page) => void (await page.goto(recording.remiseUrl)));
+      await tryAs("direct-url", async (page) => void (await page.goto(recording.submissionUrl)));
     }
     await tryAs("clicks", async (page) => {
       await goToSheet(page, prepared.number);

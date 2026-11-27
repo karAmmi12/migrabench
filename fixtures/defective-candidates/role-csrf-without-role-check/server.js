@@ -1,8 +1,8 @@
 // Candidat défectueux de la porte de rôle (spec de l'étape 4, « Témoins par
 // porte ») : jeton anti-CSRF sans contrôle de rôle (csrf.js). La remise exige
 // le jeton de sa session, mais pas le rôle d'instructeur. Issue attendue :
-// mesure complète, `role/role-replay` échoué (le jeton de l'agent est
-// transplanté), le contrôle et `role/role-forced-browsing` réussis.
+// mesure complète, `role-check/role-replay` échoué (le jeton de l'agent est
+// transplanté), le contrôle et `role-check/role-forced-browsing` réussis.
 import { hasValidToken, isSubmission, withToken } from "./csrf.js";
 import { createRelay } from "./relay.js";
 
