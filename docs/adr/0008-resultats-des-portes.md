@@ -11,7 +11,10 @@ d'éléments examinés et l'une de ces cinq issues :
 - `not-evaluable` : rien n'a été examiné, ou ce qui a été examiné ne permet
   pas de conclure à une réussite (précision ajoutée le 26/11/2026 après #153,
   décision de Karim : la valeur témoin dont le corps d'une réponse HTML, JS
-  ou JSON manque au HAR ; un échec constaté reste `failed`) ;
+  ou JSON manque au HAR ; un échec constaté reste `failed`). Précisé le
+  27/11/2026, décision de Karim (#158) : tout corps absent du HAR, sauf
+  réponse vide, entrée sans réponse ou type sans intérêt connu (`image/*`,
+  `font/*`, `audio/*`, `video/*`) ;
 - `errored` : la porte a planté elle-même.
 
 Chaque porte déclare, pour chacun de ses résultats nommés, s'il est jugé ou
