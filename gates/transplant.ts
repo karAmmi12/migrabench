@@ -1,5 +1,6 @@
 // Transplantation d'une requête enregistrée vers une autre session (spec de
-// l'étape 4, « Rôle ») : fonctions pures, sans navigateur ni réseau.
+// l'étape 4, « Rôle » et « Authentification ») : fonctions pures, sans
+// navigateur ni réseau, communes aux deux portes.
 //
 // - L'identité passe par BASIC (ADR 0003) : `Authorization` est toujours
 //   remplacé par celui de l'utilisateur visé, même absent de la requête. Vers
@@ -9,6 +10,14 @@
 //   (en-tête ou corps). Elle est remplacée par la valeur trouvée au même
 //   endroit dans la session cible, et retirée si cet endroit n'y est pas,
 //   comme pour la porte d'authentification.
+// - Règle différentielle (décision de Karim du 27/11 sur #132) : quand
+//   `sessionBound` est donné, seules les valeurs qu'il nomme sont liées à la
+//   session ; les autres (numéro de dossier, statut…) sont gardées telles
+//   quelles, même vues dans ce que la session a reçu. Les cookies restent
+//   toujours transplantés. `sessionBoundValues` écrit la règle : une valeur
+//   est liée à la session si une nouvelle session, de même droit, en reçoit
+//   une autre au même endroit. La porte d'authentification l'applique ; la
+//   porte de rôle garde la règle précédente, jusqu'à son alignement.
 //
 // Les valeurs lues dans la requête (`where`) :
 // - `cookie:<nom>`, chaque cookie de l'en-tête `Cookie` ;
@@ -273,13 +282,26 @@ export interface TransplantOptions {
   // `Authorization` de l'utilisateur visé, ou null vers une session anonyme :
   // l'en-tête est alors retiré.
   authorization: string | null;
+  // Valeurs liées à la session (`where`), par la règle différentielle
+  // (`sessionBoundValues`). Absent : toute valeur vue dans ce que la session
+  // source a reçu.
+  sessionBound?: ReadonlySet<string>;
+}
+
+// Règle différentielle : les valeurs d'une requête liées à la session sont
+// celles qu'une transplantation vers une nouvelle session de même droit a
+// trouvées au même endroit, avec une autre valeur. Une valeur introuvable ou
+// identique dans cette session n'est pas liée à la session.
+export function sessionBoundValues(values: readonly TransplantedValue[]): Set<string> {
+  return new Set(values.filter(({ found, changed }) => found && changed).map(({ where }) => where));
 }
 
 // La requête rejouée dans la session cible, et chaque valeur liée à la session.
-export function transplant(request: RecordedRequest, { source, target, authorization }: TransplantOptions): { request: RecordedRequest; values: TransplantedValue[] } {
+export function transplant(request: RecordedRequest, { source, target, authorization, sessionBound }: TransplantOptions): { request: RecordedRequest; values: TransplantedValue[] } {
   const values: TransplantedValue[] = [];
   const rewrite = (where: string, value: string): string | undefined => {
     if (value === "") return value;
+    if (sessionBound !== undefined && !where.startsWith("cookie:") && !sessionBound.has(where)) return value;
     const place = placeOf(value, where, source);
     if (place === undefined) return value;
     const next = valueAt(place, target);
