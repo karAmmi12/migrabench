@@ -5,8 +5,10 @@
 // cinq variables de démarrage, jamais ARCHIVE_SALT, et écrire dans son
 // dossier temporaire.
 //
-// Les journaux sont des copies des vrais `start.log` de l'exécution 45624689673
-// (tests/fixtures/ci45624689673/PROVENANCE.md). Chaque variante réécrit la
+// Les journaux sont des copies de vrais `start.log` : celui du candidat de
+// référence vient de l'exécution 45624689673 (tests/fixtures/ci45624689673/),
+// celui de la sonde d'une mesure locale, la première avec la tentative sur le
+// relais CDP (tests/fixtures/local-e353940/, #134). Chaque variante réécrit la
 // ligne de constat du vrai journal, en gardant son préfixe (service, horodatage).
 import { describe, expect, it } from "vitest";
 import { MASKED, probeReportProblems, referenceReportProblems, START_REPORT_PREFIX } from "../scripts/start-report.ts";
@@ -30,8 +32,8 @@ function reportOf<R>(log: string): R {
 type Attempt = { attempt: string; refused?: boolean; detail?: string; environment?: Record<string, string> };
 
 // Sonde d'isolation : son journal et le marqueur de sa mesure, lu dans son measure.json.
-const PROBE_LOG = readFixture(`${MEASURES.probe.artifacts}/start.log`);
-const MARKER = readMeasure(MEASURES.probe).marker;
+const PROBE_LOG = readFixture(`${MEASURES.probeWithCdp.artifacts}/start.log`);
+const MARKER = readMeasure(MEASURES.probeWithCdp).marker;
 const ATTEMPTS = reportOf<{ attempts: Attempt[] }>(PROBE_LOG).attempts;
 const ENVIRONMENT = ATTEMPTS.find((entry) => entry.attempt === "read-measure-marker")!.environment!;
 
@@ -58,6 +60,14 @@ describe("probeReportProblems", () => {
     const attempts = ATTEMPTS.map((entry) => (entry.attempt === "run-as-root" ? { attempt: "run-as-root", refused: false, detail: "uid 0" } : entry));
 
     expect(probeReportProblems(MARKER, probeLog({ attempts }))).toEqual(["Start report 1: run-as-root was not refused: uid 0"]);
+  });
+
+  // Témoin du relais CDP (#134) : un relais joint qui ne refuse pas est vu.
+  it("names a CDP relay that answered the probe", () => {
+    const detail = "GET http://browser:9222/json/version 200, POST http://browser:9222/launch 403";
+    const attempts = ATTEMPTS.map((entry) => (entry.attempt === "reach-browser-cdp" ? { attempt: "reach-browser-cdp", refused: false, detail } : entry));
+
+    expect(probeReportProblems(MARKER, probeLog({ attempts }))).toEqual([`Start report 1: reach-browser-cdp was not refused: ${detail}`]);
   });
 
   it("names an attempt missing from the report", () => {

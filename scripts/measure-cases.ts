@@ -63,6 +63,8 @@ const xss = (outcomes: Partial<Record<XssName, GateOutcome>> = {}, others: GateO
   }));
 // Porte Lighthouse (#134) : relevée, sans seuil.
 const LIGHTHOUSE = { gate: "lighthouse", name: "performance" };
+// Un candidat sans écran : aucune passe n'aboutit.
+const LIGHTHOUSE_NOT_EVALUABLE = { ...LIGHTHOUSE, outcome: "not-evaluable" as const };
 // Le legacy rend la charge en HTML sur la recherche : il échoue à ses deux
 // résultats (décision de Karim, #129), et passe la fiche et la remise.
 const XSS_LEGACY = xss({ "executed/search": "failed", "as-text/search": "failed" });
@@ -169,7 +171,7 @@ export const MEASURE_CASES = {
     oracleExecuted: true,
     oracleJson: "kept",
     witnesses: true,
-    gates: [{ ...WITNESS_VALUE, outcome: "passed" }, ...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), { ...RELAY, outcome: "failed", findingCites: '"curl/8.18.0"' }],
+    gates: [{ ...WITNESS_VALUE, outcome: "passed" }, ...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), LIGHTHOUSE_NOT_EVALUABLE, { ...RELAY, outcome: "failed", findingCites: '"curl/8.18.0"' }],
   },
   // #124 : candidat conforme, qui ne touche jamais le port 8080.
   "relay-untouched": {
@@ -180,7 +182,7 @@ export const MEASURE_CASES = {
     oracleExecuted: true,
     oracleJson: "kept",
     witnesses: true,
-    gates: [{ ...WITNESS_VALUE, outcome: "passed" }, ...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), { ...RELAY, outcome: "passed" }],
+    gates: [{ ...WITNESS_VALUE, outcome: "passed" }, ...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), LIGHTHOUSE_NOT_EVALUABLE, { ...RELAY, outcome: "passed" }],
   },
   // #129 : candidat conforme, qui échappe partout.
   "xss-escapes": xssCase(`${CONFORMING}/xss-escapes`, xss()),
