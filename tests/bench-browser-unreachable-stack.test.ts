@@ -12,8 +12,10 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import puppeteer from "puppeteer-core";
 import { afterAll, describe, expect, it } from "vitest";
 import { launchCdpChromium } from "../gates/cdp-browser.ts";
+import { connectCdp } from "../gates/lighthouse.ts";
 import { checkBenchBrowser, connectBenchBrowser, readBenchBrowserFailures } from "../oracle/browser.ts";
 import { BenchBrowserUnreachable } from "../shared/bench-browser.ts";
 import { stackBrowserToken } from "../shared/browser-token.ts";
@@ -63,7 +65,19 @@ describe("bench browser unreachable", { timeout: 60_000 }, () => {
 
   it("is raised by a CDP gateway that nothing listens to", async () => {
     const token = stackBrowserToken();
-    await unreachable(launchCdpChromium(token, `http://127.0.0.1:${await closedPort()}`), token);
+    const error = await unreachable(launchCdpChromium(token, `http://127.0.0.1:${await closedPort()}`), token);
+    expect(error.message).toContain("ECONNREFUSED");
+  });
+
+  // Connexion de puppeteer (porte Lighthouse) à un point d'entrée CDP où
+  // rien n'écoute : le Chromium lancé est arrêté.
+  it("is raised by a puppeteer connection that nothing listens to, after closing the Chromium", async () => {
+    const token = stackBrowserToken();
+    let closed = false;
+    const chromium = { browserWSEndpoint: `ws://127.0.0.1:${await closedPort()}/${token}/cdp/x`, close: async () => void (closed = true) };
+    const error = await unreachable(connectCdp(puppeteer, chromium, token), token);
+    expect(error.message).toContain("ECONNREFUSED");
+    expect(closed).toBe(true);
   });
 
   // Fixture des scénarios de l'oracle : l'échec est écrit dans le fichier du

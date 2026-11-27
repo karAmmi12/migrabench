@@ -71,7 +71,7 @@ export async function executeOracle({ baseUrl = DEFAULT_BASE_URL, salt, saltImpo
   // Navigateur du banc injoignable pour un worker (#168) : écrit par la
   // fixture des scénarios dans un brut du banc. Les scénarios du worker n'ont
   // ni HAR ni trace : rien n'est collecté, et l'exécution n'a pas de résultat.
-  const benchBrowserLog = `${prepared.outputDir}${BENCH_BROWSER_LOG_SUFFIX}`;
+  const benchBrowserLog = benchBrowserLogOf(prepared.outputDir);
   const unreachable = readBenchBrowserFailures(benchBrowserLog);
   if (unreachable.length > 0) throw new BenchBrowserUnreachable(`The bench browser was unreachable for ${unreachable.length} Playwright worker(s):\n${unreachable.join("\n")}`, benchBrowserLog);
   return collectAndWrite(prepared, report);
@@ -150,7 +150,7 @@ async function prepare(
 // Playwright vide ce dossier à son démarrage.
 const PLAYWRIGHT_LOG_SUFFIX = "-playwright.log";
 // Échecs de connexion au navigateur du banc (#168), à côté lui aussi.
-const BENCH_BROWSER_LOG_SUFFIX = "-bench-browser.log";
+const benchBrowserLogOf = (outputDir: string) => `${outputDir}-bench-browser.log`;
 // Lignes de la fin des sorties de Playwright reprises dans la preuve d'une
 // erreur de l'oracle.
 const LOG_TAIL_LINES = 20;
@@ -170,7 +170,7 @@ async function launch({ baseUrl, salt, browserToken, metadata, outputDir, report
   await mkdir(dirname(outputDir), { recursive: true });
   const log = `${outputDir}${PLAYWRIGHT_LOG_SUFFIX}`;
   // Seuls les échecs de cette exécution comptent.
-  await rm(`${outputDir}${BENCH_BROWSER_LOG_SUFFIX}`, { force: true });
+  await rm(benchBrowserLogOf(outputDir), { force: true });
   // Code de sortie ignoré : un scénario échoué rend 1, et c'est la collecte qui juge.
   const { code } = await spawnCommand("npx", ["playwright", "test", "--config", CONFIG], {
     env: {
@@ -182,7 +182,7 @@ async function launch({ baseUrl, salt, browserToken, metadata, outputDir, report
       [ORACLE_ENV.outputDir]: outputDir,
       [ORACLE_ENV.report]: reportFile,
       [ORACLE_ENV.metadata]: JSON.stringify(metadata),
-      [ORACLE_ENV.benchBrowserLog]: `${outputDir}${BENCH_BROWSER_LOG_SUFFIX}`,
+      [ORACLE_ENV.benchBrowserLog]: benchBrowserLogOf(outputDir),
     },
     inherit: true,
     logFile: log,

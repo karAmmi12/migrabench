@@ -109,7 +109,10 @@ Le vocabulaire du domaine du legacy et les termes dérivés sont définis dans
   joindre `run-server` sur `127.0.0.1:3001`, dans le conteneur `browser`,
   sans jeton : en y épuisant le navigateur, il pourrait rendre injoignable
   la connexion suivante du banc, et transformer son échec en invalidité.
-  Ce trou est suivi par #169.
+  Ce trou est suivi par #169. Enfin, dans l'oracle, la panne n'est vue que
+  par une connexion de contrôle faite juste avant celle de Playwright : un
+  service qui tombe entre les deux fait échouer les scénarios du worker au
+  compte du candidat.
 - Seul Chromium est mesuré. Un candidat qui fonctionne mal dans Firefox ou
   Safari n'est pas pénalisé.
 - La recherche de secret porte sur la valeur témoin en clair et sur ses

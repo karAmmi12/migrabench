@@ -326,8 +326,6 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
       if (error instanceof StackNotFromCopy) return void closeStart("stack-not-from-this-copy", {}, error.message);
       if (error instanceof StackFailed) return void closeStart("stack-failed-before-candidate", await saveServiceLogs(rawDir, SERVICES), error.message);
       if (error instanceof CandidateNotStarted) return void closeStart(error.outcome, {}, error.detail);
-      // Playwright n'a écrit aucun rapport (#68) : oracle non exécuté, sans
-      // compte des scénarios, que la liste ne donnerait pas non plus.
       // Navigateur du banc injoignable (#168), au relevé de sa version avant
       // Playwright ou pour un worker : l'oracle n'a pas de résultat, et la
       // clôture compte ses scénarios non atteints. Une panne du legacy ou du
@@ -339,6 +337,8 @@ async function measure({ candidate, candidateDir, salt, limits, limitsRecord, st
         const raw = error.log === undefined ? {} : { [relative(rawDir, error.log)]: await digestOf(error.log) };
         return void closeOracle("bench-browser-unreachable", raw, error.message);
       }
+      // Playwright n'a écrit aucun rapport (#68) : oracle non exécuté, sans
+      // compte des scénarios, que la liste ne donnerait pas non plus.
       if (error instanceof OracleError && closeOracle !== undefined) {
         if (interruption.signal() === undefined) oracle = { executed: false };
         return void closeOracle("oracle-error", { [relative(rawDir, error.log)]: await digestOf(error.log) }, error.message);

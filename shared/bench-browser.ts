@@ -9,8 +9,6 @@
 // affiche une page du candidat reste au compte du candidat : la page tourne
 // dans ce navigateur.
 
-export const BENCH_BROWSER_UNREACHABLE = "bench-browser-unreachable";
-
 // Le message ne porte jamais le jeton : l'appelant le retire. `log` : le brut
 // du banc qui prouve la panne, s'il y en a un (échecs écrits par la fixture
 // des scénarios de l'oracle).

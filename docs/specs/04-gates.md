@@ -155,7 +155,9 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
     du dossier `oracle/`), que le candidat ne peut pas écrire. La mesure lit
     ce fichier. Elle ne déduit jamais la panne du message d'un scénario,
     qu'une page du candidat peut remplir. Les scénarios du worker n'ont ni
-    HAR ni trace : l'exécution n'est pas collectée. La phase `oracle` finit
+    HAR ni trace : l'exécution n'est pas collectée (précision du ticket :
+    la collecte refuse un scénario sans eux, relevé sur la mesure
+    `20261127T204222Z-03e4c21-reference-candidate`). La phase `oracle` finit
     en `bench-browser-unreachable`, avec les lignes du fichier pour preuve,
     `oracle.executed` vaut `false`, les 38 scénarios sont comptés non
     atteints, et les portes ne tournent pas. Le relevé de la version du
@@ -164,8 +166,12 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
     (`stack-down-while-candidate`) passe devant, comme devant `oracle-error` ;
   - seule la connexion est visée. Un navigateur qui se ferme pendant qu'il
     affiche une page du candidat reste au compte du candidat ;
-  - limite : le JavaScript d'une page du candidat joint `run-server` sur
-    `127.0.0.1:3001` dans le conteneur `browser` (suivi par #169).
+  - limites : le JavaScript d'une page du candidat joint `run-server` sur
+    `127.0.0.1:3001` dans le conteneur `browser` (suivi par #169). Et un
+    service qui tombe entre la connexion de contrôle de la fixture et celle
+    de Playwright n'est pas écrit : les scénarios du worker échouent au
+    compte du candidat. Playwright ne laisse pas attraper l'échec de sa
+    propre connexion.
 
 ### Registre, contexte et ordre
 

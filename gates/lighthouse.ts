@@ -103,8 +103,22 @@ interface Prepared {
 // Message d'une erreur, sur sa première ligne, sans le jeton du navigateur :
 // l'adresse DevTools le porte, et le message finit dans measure.json.
 export function errorMessage(error: unknown, token: string): string {
-  const message = error instanceof Error ? (error.message.split("\n")[0] ?? "") : String(error);
+  // puppeteer rejette une connexion refusée par un ErrorEvent de `ws`, qui
+  // porte un `message` sans être une Error (#168).
+  const text = error instanceof Error ? error.message : typeof error === "object" && error !== null && "message" in error ? String(error.message) : String(error);
+  const message = text.split("\n")[0] ?? "";
   return message.replaceAll(token, "<token>");
+}
+
+// Connexion de puppeteer au Chromium lancé par la passerelle CDP : son échec
+// arrête ce Chromium et lève BenchBrowserUnreachable (#168).
+export async function connectCdp(puppeteer: Pick<typeof import("puppeteer-core").default, "connect">, chromium: CdpChromium, token: string) {
+  try {
+    return await puppeteer.connect({ browserWSEndpoint: chromium.browserWSEndpoint, defaultViewport: null });
+  } catch (error) {
+    await chromium.close().catch(() => undefined);
+    throw new BenchBrowserUnreachable(`Could not connect to the CDP gateway: ${errorMessage(error, token)}`);
+  }
 }
 
 // Arrête le Chromium sans masquer ce qui a été relevé : un échec de l'arrêt
@@ -143,13 +157,7 @@ export const lighthouseGate: Gate<Prepared> = {
     // leur échec rend la mesure invalide (`bench-browser-unreachable`,
     // #168), jamais un échec du candidat.
     const chromium = await launchCdpChromium(context.browserToken);
-    let browser;
-    try {
-      browser = await puppeteer.connect({ browserWSEndpoint: chromium.browserWSEndpoint, defaultViewport: null });
-    } catch (error) {
-      await chromium.close().catch(() => undefined);
-      throw new BenchBrowserUnreachable(`Could not connect to the CDP gateway: ${errorMessage(error, context.browserToken)}`);
-    }
+    const browser = await connectCdp(puppeteer, chromium, context.browserToken);
     return { chromium, browser, authorization: `Basic ${Buffer.from(`${agent.username}:${agent.password}`).toString("base64")}`, lighthouse, config };
   },
   examine: async (context, prepared) => {
