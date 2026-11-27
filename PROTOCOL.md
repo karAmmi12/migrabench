@@ -148,9 +148,16 @@ Le vocabulaire du domaine du legacy et les termes dérivés sont définis dans
   **conforme** dans ce cas est donc pénalisé, puisque non évaluable compte
   comme un échec. C'est visible, mais pas neutre : le constat le dit en
   clair, pour une relecture humaine.
+- La porte d'authentification ne tient pour liée à la session qu'une valeur
+  qui change d'une session authentifiée à une autre (#132). Une valeur liée
+  à l'utilisateur, mais identique d'une session à l'autre, est rejouée telle
+  quelle sans identifiants.
 - La porte d'authentification juge une réponse rejouée sans identifiants sur
   les seuls numéros de dossier du jeu de données. Une réponse qui listerait
-  des demandeurs sans leur numéro passerait.
+  des demandeurs sans leur numéro passerait. À l'inverse, une réponse de
+  refus qui recopie l'URL demandée (une redirection vers une page de
+  connexion qui garde l'adresse d'origine, par exemple) y montre le numéro,
+  et fait échouer la porte à tort.
 - La comparaison HAR compare des valeurs, pas des noms de champs. Elle
   ignore les valeurs vides et triviales, et normalise les dates. Tout autre
   changement légitime de représentation (montants, casse) apparaît comme un

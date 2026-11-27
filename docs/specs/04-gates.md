@@ -449,6 +449,54 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
     contient un ;
   - `auth-write` : l'état des dossiers `gate:auth`, lu par l'API interne, est
     le même avant et après. Évaluable seulement si le contrôle le change.
+- Précisions de #132, prises par l'implémentation (sonde :
+  `tests/fixtures/probe132-ca289e1/PROVENANCE.md`) :
+  - **Les dossiers** : `D-0119` (`BROUILLON`) et `D-0120` (`EN_INSTRUCTION`),
+    réservés à `gate:auth`. L'agent enregistre un nouvel objet sur `D-0119` ;
+    l'instructeur enregistre un nouvel objet sur `D-0120`, puis le remet.
+  - **Les unités** : chaque HAR de l'oracle (un scénario) et chaque
+    utilisateur du parcours forment une unité, rejouée dans l'ordre. Une
+    unité rejouée ouvre elle-même sa session : comme le scénario ou le
+    parcours qu'elle rejoue, elle part d'un jar de cookies vide et commence
+    par `BASE_URL`. La session anonyme, comme celle du contrôle, est donc
+    celle que le rejeu ouvre, et ce qu'elle a reçu (réponses rejouées et
+    cookies posés) sert à la transplantation. Une session ouverte à part par
+    le navigateur ferait doublon : le premier `GET /` rejoué recevrait un
+    autre cookie que celui de son jeton.
+  - **Valeurs liées à la session : règle différentielle** (décision de Karim
+    du 27/11 sur #132). Le contrôle tourne en premier. Une valeur de la
+    requête est liée à la session si la nouvelle session authentifiée du
+    contrôle en reçoit une autre au même endroit (identifiant de session,
+    jeton anti-CSRF). Seules celles-là sont transplantées depuis la session
+    anonyme, ou retirées si elle ne les a pas ; les autres (numéro de
+    dossier, statut, demandeur) sont rejouées telles quelles. La règle
+    précédente, « toute valeur vue dans ce que la session a reçu », retirait
+    `status=REMIS` d'une recherche, la page `401` de la session anonyme ne
+    contenant rien. La règle est écrite une seule fois, dans
+    `gates/transplant.ts` (`sessionBoundValues`, option `sessionBound`) ; la
+    porte de rôle s'y alignera (#166).
+  - **Le contrôle** : l'agent pour les unités des HAR, qui ne font que lire ;
+    pour une unité du parcours, l'utilisateur qui l'a enregistrée, seul à
+    avoir le droit d'y écrire. Ses lectures sont donc faites par lui.
+  - **L'ordre** : enregistrement du parcours, redémarrage du legacy,
+    contrôle, redémarrage, rejeu anonyme. L'état des dossiers est lu avant et
+    après chacun des deux rejeux. Sans aucune requête à rejouer, rien n'est
+    redémarré et les deux résultats sont `not-evaluable`.
+  - **Parcours non atteint** : l'étape est citée dans les constats
+    d'`auth-write`, et les requêtes déjà émises sont rejouées.
+  - **Un numéro dans une réponse** : cherché en mot entier dans le corps et
+    les en-têtes, quel que soit le statut. Un numéro vu reste `failed`
+    (#153), comme un dossier changé.
+  - **`examined`** : les requêtes rejouées sans identifiants pour
+    `auth-read`, celles du parcours pour `auth-write`. `values` :
+    `requests`, `skipped`, `transplanted`, `removed` pour `auth-read` ;
+    `requests`, `dossiers`, `changedByReplay`, `changedByControl` pour
+    `auth-write`.
+  - **Nom** : `auth-check`, jamais `auth` seul (décision de Karim du 26/11
+    sur #125).
+  - **Bruts** : `gates/auth-check/recording.json`, `control.json` (avec les
+    valeurs liées à la session de chaque requête) et `anonymous.json`, cités
+    par les deux résultats.
 
 ### Comparaison HAR (relevée)
 
