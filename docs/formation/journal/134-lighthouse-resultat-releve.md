@@ -278,6 +278,15 @@ Les jobs ont tourné sur le commit `08927c2` :
 - Le job des mesures entier passe de 12 min 43 s à 17 min 46 s, soit
   +5 min 3 s. Ce sont neuf mesures qui atteignent la phase `gates` : cet
   écart est signalé à Karim.
+- **Après le correctif de la passerelle** (`d905931`), toute la CI est
+  verte : `tests` ([exécution 46007311289](https://github.com/karAmmi12/migrabench/actions/runs/46007311289)),
+  `typecheck` ([exécution 46007311348](https://github.com/karAmmi12/migrabench/actions/runs/46007311348)),
+  `oracle` et `proof` ([exécution 46007311235](https://github.com/karAmmi12/migrabench/actions/runs/46007311235)).
+  Le job des mesures y est sauté par le périmètre de CI. Une mesure locale
+  sur un arbre propre à `d905931` le remplace
+  (`20261127T133436Z-d905931-reference-candidate`) : `completed`, Lighthouse
+  `measured`, `examined` 3, phase `gates` 29 848 ms, service `browser` sain
+  après la mesure.
 - Le LHR d'une passe qui n'aboutit pas, celle de `relay-untouched`, est copié
   dans `tests/fixtures/ci46002940746/`.
 
