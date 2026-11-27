@@ -18,6 +18,7 @@ import { ciRunOf, resultFileName } from "../oracle/ci-run.ts";
 import { recreateStack, stackImages } from "../oracle/execute.ts";
 import type { StackContextDigests } from "../oracle/stack-images.ts";
 import { GIT_STATUS_ARGS, worktreeState } from "../oracle/worktree.ts";
+import { newBrowserToken } from "../shared/browser-token.ts";
 import { citedFileSha256 as digestOf } from "../shared/digest.ts";
 import { spawnCommand, stdoutOf } from "../shared/process.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, readBenchEnv, ROOT } from "../shared/root.ts";
@@ -42,7 +43,6 @@ import { contractPhase } from "./contract-phase.ts";
 import { measureLimits, SAFETY_CAP } from "./limits.ts";
 import { CALIBRATION_DIR_FROM_ROOT, LOCAL_CALIBRATION_DIR_FROM_ROOT } from "./paths.ts";
 import { cgroupUsage, type ResourceUsage } from "./resource-usage.ts";
-import { newBrowserToken } from "../shared/browser-token.ts";
 
 export const CALIBRATION_CANDIDATE = "fixtures/calibration-candidate";
 export const CALIBRATION_FORMAT = 1;

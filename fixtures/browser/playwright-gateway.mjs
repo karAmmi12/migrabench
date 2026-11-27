@@ -22,7 +22,7 @@ import { headServer, relayTo, respond, tokenRequest } from "./token-gateway.mjs"
 export function routePlaywrightRequest(head, token) {
   const request = tokenRequest(head, token);
   if (request === undefined || request.method !== "GET") return { kind: "refused" };
-  return { kind: "playwright", head: `GET ${request.path} HTTP/1.1${request.rest}` };
+  return { kind: "playwright", head: `GET ${request.path} HTTP/1.1${request.headerTail}` };
 }
 
 /**

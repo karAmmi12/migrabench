@@ -176,6 +176,10 @@ async function launch({ baseUrl, salt, browserToken, metadata, outputDir, report
     // l'interruption de la mesure arrête en entier (#71).
     processGroup: true,
   });
+  // Le journal brut est gardé avec la mesure : un échec de connexion au
+  // navigateur y citerait le jeton (#160).
+  const logText = await readFile(log, "utf8").catch(() => undefined);
+  if (logText !== undefined) await writeFile(log, maskBrowserToken(logText, browserToken));
   try {
     return await readFile(reportFile, "utf8");
   } catch (error) {

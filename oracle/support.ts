@@ -44,9 +44,6 @@ function credentialsOf(identity: Identity): { username: string; password: string
   return { username: user.username, password: user.password };
 }
 
-// Chaque scénario a son propre contexte : identifiants par httpCredentials, et
-// un HAR dédié, corps compris, sans filtre d'URL (toutes origines). Le HAR est
-// joint au résultat sous le nom « har », que la collecte cite par empreinte.
 // Jeton du navigateur de l'exécution, passé par executeOracle (#160).
 function browserToken(): string {
   const token = process.env[BROWSER_TOKEN_ENV];
@@ -66,6 +63,9 @@ export const test = base.extend<{ identity: Identity }>({
     },
     { scope: "worker" },
   ],
+  // Chaque scénario a son propre contexte : identifiants par httpCredentials, et
+  // un HAR dédié, corps compris, sans filtre d'URL (toutes origines). Le HAR est
+  // joint au résultat sous le nom « har », que la collecte cite par empreinte.
   context: async ({ browser, baseURL, identity }, use, testInfo) => {
     const harPath = testInfo.outputPath("scenario.har");
     const credentials = credentialsOf(identity);

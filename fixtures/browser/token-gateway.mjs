@@ -25,11 +25,12 @@ function sameToken(given, token) {
 /**
  * Requête d'un porteur du jeton, d'après son en-tête complet (jusqu'à la
  * ligne vide) : sa méthode, son chemin sans `/<jeton>`, et la suite de
- * l'en-tête après la ligne de requête. `undefined` si le jeton manque, est
- * faux, ou si la ligne de requête est mal formée.
+ * l'en-tête après la ligne de requête (`headerTail`, depuis son `\r\n`).
+ * `undefined` si le jeton manque, est faux, ou si la ligne de requête est mal
+ * formée.
  * @param {string} head
  * @param {string | undefined} token
- * @returns {{ method: string, path: string, rest: string } | undefined}
+ * @returns {{ method: string, path: string, headerTail: string } | undefined}
  */
 export function tokenRequest(head, token) {
   if (token === undefined || token.length < MIN_TOKEN_LENGTH) return undefined;
@@ -39,7 +40,7 @@ export function tokenRequest(head, token) {
   if (match === null) return undefined;
   const [, method, given, path] = match;
   if (!sameToken(given, token)) return undefined;
-  return { method, path, rest: head.slice(lineEnd) };
+  return { method, path, headerTail: head.slice(lineEnd) };
 }
 
 /** Réponse HTTP complète, puis fermeture de la connexion. */
@@ -50,7 +51,10 @@ export function respond(socket, status, body) {
 
 /**
  * Relaie une connexion acceptée vers `port` de la boucle locale, avec l'en-tête
- * réécrit `head` et ce qui a déjà été reçu après l'en-tête d'origine.
+ * réécrit `head` et ce qui a déjà été reçu après l'en-tête d'origine. Seule la
+ * première requête de la connexion est contrôlée : la suite (keep-alive, ou
+ * les trames du WebSocket) est relayée telle quelle, à qui a déjà donné le
+ * jeton.
  */
 export function relayTo(socket, port, head, body) {
   const upstream = createConnection({ host: "127.0.0.1", port });

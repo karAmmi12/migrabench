@@ -68,12 +68,12 @@ export function routeRequest(head, token) {
   const refused = { kind: "refused" };
   const request = tokenRequest(head, token);
   if (request === undefined) return refused;
-  const { method, path, rest } = request;
+  const { method, path, headerTail } = request;
   if (method === "POST" && path === "/launch") return { kind: "launch" };
   const close = /^\/close\/(\d+)$/.exec(path);
   if (method === "POST" && close !== null) return { kind: "close", id: close[1] };
   const cdp = /^\/cdp\/(\d+)(\/devtools\/[^ ]*)$/.exec(path);
-  if (method === "GET" && cdp !== null) return { kind: "cdp", id: cdp[1], head: `GET ${cdp[2]} HTTP/1.1${rest}` };
+  if (method === "GET" && cdp !== null) return { kind: "cdp", id: cdp[1], head: `GET ${cdp[2]} HTTP/1.1${headerTail}` };
   return refused;
 }
 
