@@ -76,6 +76,10 @@ describe("verdict", () => {
     ["gates", "stack-not-from-this-copy"],
     ["gates", "access-log-inactive"],
     ["gates", "interrupted"],
+    // Navigateur du banc injoignable (#168) : le candidat ne le joint pas
+    // depuis #160, une panne du banc.
+    ["oracle", "bench-browser-unreachable"],
+    ["gates", "bench-browser-unreachable"],
   ] as const)("counts %s ending in %s as an invalid measure with its evidence, exit code 3", (name, outcome) => {
     expect(verdict(stoppedAt(name, outcome, "proof line"))).toEqual({
       verdict: { category: "invalid", reason: outcome, evidence: "proof line" },

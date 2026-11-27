@@ -2,7 +2,7 @@
 // résultat ») : deux sortes, cinq issues, `examined` toujours présent,
 // `findings` borné.
 import { describe, expect, it } from "vitest";
-import { beforeCandidateEvidence, errored, FINDINGS_LIMIT, gateResultPassed, judged, measured } from "../../gates/result.ts";
+import { beforeCandidateEvidence, benchBrowserEvidence, errored, FINDINGS_LIMIT, gateResultPassed, judged, measured } from "../../gates/result.ts";
 
 describe("judged result", () => {
   it("is passed when the gate examined something and judged it passed", () => {
@@ -119,5 +119,24 @@ describe("beforeCandidateEvidence", () => {
       errored({ gate: "tsc", name: "tsc", kind: "judged", error: error("on-candidate", "out of memory") }),
     ];
     expect(beforeCandidateEvidence(results)).toBeUndefined();
+  });
+});
+
+// Navigateur du banc injoignable (#168) : à toute étape, la mesure est
+// invalide ; chaque résultat concerné est cité.
+describe("benchBrowserEvidence", () => {
+  it("cites every result errored because the bench browser was unreachable, at any stage", () => {
+    const results = [
+      errored({ gate: "xss", name: "xss/executed", kind: "judged", error: { stage: "before-candidate", cause: "bench-browser-unreachable", message: "403" } }),
+      errored({ gate: "role-check", name: "role-replay", kind: "judged", error: { stage: "on-candidate", cause: "bench-browser-unreachable", message: "ECONNREFUSED" } }),
+      errored({ gate: "tsc", name: "tsc", kind: "judged", error: { stage: "on-candidate", cause: "exception", message: "out of memory" } }),
+    ];
+    expect(benchBrowserEvidence(results)).toBe(
+      ["Gate xss, result xss/executed: bench browser unreachable before-candidate: 403", "Gate role-check, result role-replay: bench browser unreachable on-candidate: ECONNREFUSED"].join("\n"),
+    );
+  });
+
+  it("is undefined when the bench browser was reached", () => {
+    expect(benchBrowserEvidence([errored({ gate: "tsc", name: "tsc", kind: "judged", error: { stage: "before-candidate", cause: "exception", message: "x" } })])).toBeUndefined();
   });
 });
