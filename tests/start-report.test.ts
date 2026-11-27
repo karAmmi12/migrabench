@@ -70,6 +70,14 @@ describe("probeReportProblems", () => {
     expect(probeReportProblems(MARKER, probeLog({ attempts }))).toEqual([`Start report 1: reach-browser-cdp was not refused: ${detail}`]);
   });
 
+  // Témoin du serveur de Playwright (#160) : un serveur joint qui ne refuse pas est vu.
+  it("names a Playwright server that answered the probe", () => {
+    const detail = "GET http://browser:3000/json 200, upgrade http://browser:3000/ 428";
+    const attempts = ATTEMPTS.map((entry) => (entry.attempt === "reach-browser-playwright" ? { attempt: "reach-browser-playwright", refused: false, detail } : entry));
+
+    expect(probeReportProblems(MARKER, probeLog({ attempts }))).toEqual([`Start report 1: reach-browser-playwright was not refused: ${detail}`]);
+  });
+
   it("names an attempt missing from the report", () => {
     const attempts = ATTEMPTS.filter((entry) => entry.attempt !== "read-docker-socket");
 
