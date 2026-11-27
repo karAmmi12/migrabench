@@ -1,0 +1,7 @@
+{
+  "name": "auth-read-and-write-unchecked",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Candidat défectueux de la porte d'authentification : lecture et écriture sans contrôle.",
+  "type": "module"
+}

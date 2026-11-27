@@ -1,0 +1,2084 @@
+{
+  "stateBefore": {
+    "D-0117": {
+      "number": "D-0117",
+      "applicant": "Martin Leroy",
+      "subject": "Demande de branchement d'eau potable",
+      "status": "BROUILLON",
+      "filedOn": "2025-08-04",
+      "submittedOn": null
+    },
+    "D-0112": {
+      "number": "D-0112",
+      "applicant": "Maïwenn O'Neill",
+      "subject": "Demande d'autorisation de « vide-grenier »",
+      "status": "EN_INSTRUCTION",
+      "filedOn": "2025-08-18",
+      "submittedOn": null
+    }
+  },
+  "anonymous": {
+    "requests": [
+      {
+        "step": "start",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/",
+        "headers": {
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "connection": "keep-alive",
+          "host": "127.0.0.1:8080",
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "none",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+          "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Linux\""
+        },
+        "body": null
+      }
+    ],
+    "responses": [
+      {
+        "step": "start",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/",
+        "status": 401,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Language",
+            "value": "en"
+          },
+          {
+            "name": "Content-Length",
+            "value": "687"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=utf-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 15:59:51 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          },
+          {
+            "name": "WWW-Authenticate",
+            "value": "Basic realm=\"migrabench\""
+          }
+        ],
+        "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+        "error": null
+      }
+    ],
+    "cookies": []
+  },
+  "agent": {
+    "requests": [
+      {
+        "step": "sheet",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/",
+        "headers": {
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "cache-control": "no-cache",
+          "connection": "keep-alive",
+          "host": "127.0.0.1:8080",
+          "pragma": "no-cache",
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "none",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+          "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Linux\""
+        },
+        "body": null
+      },
+      {
+        "step": "sheet",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/rechercher.do;jsessionid=082885ABBD52B40FC5132E69F21607DB?number=D-0117&applicant=&status=&filedFrom=&filedTo=",
+        "headers": {
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "authorization": "Basic YWdlbnQ6YWdlbnQtbWI=",
+          "cache-control": "no-cache",
+          "connection": "keep-alive",
+          "cookie": "JSESSIONID=082885ABBD52B40FC5132E69F21607DB",
+          "host": "127.0.0.1:8080",
+          "pragma": "no-cache",
+          "referer": "http://127.0.0.1:8080/",
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+          "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Linux\""
+        },
+        "body": null
+      },
+      {
+        "step": "sheet",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/fiche.do?number=D-0117",
+        "headers": {
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "authorization": "Basic YWdlbnQ6YWdlbnQtbWI=",
+          "cache-control": "no-cache",
+          "connection": "keep-alive",
+          "cookie": "JSESSIONID=0BBF2A427CE5B9F1A2BB31B32501C136",
+          "host": "127.0.0.1:8080",
+          "pragma": "no-cache",
+          "referer": "http://127.0.0.1:8080/rechercher.do;jsessionid=082885ABBD52B40FC5132E69F21607DB?number=D-0117&applicant=&status=&filedFrom=&filedTo=",
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+          "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Linux\""
+        },
+        "body": null
+      },
+      {
+        "step": "save",
+        "method": "POST",
+        "url": "http://127.0.0.1:8080/enregistrer.do",
+        "headers": {
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "authorization": "Basic YWdlbnQ6YWdlbnQtbWI=",
+          "cache-control": "no-cache",
+          "connection": "keep-alive",
+          "content-length": "98",
+          "content-type": "application/x-www-form-urlencoded",
+          "cookie": "JSESSIONID=0BBF2A427CE5B9F1A2BB31B32501C136",
+          "host": "127.0.0.1:8080",
+          "origin": "http://127.0.0.1:8080",
+          "pragma": "no-cache",
+          "referer": "http://127.0.0.1:8080/fiche.do?number=D-0117",
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+          "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Linux\""
+        },
+        "body": "number=D-0117&applicant=Martin+Leroy&subject=Objet+modifi%C3%A9+par+la+sonde+de+%23132+%28agent%29"
+      },
+      {
+        "step": "save",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/fiche.do?number=D-0117",
+        "headers": {
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "authorization": "Basic YWdlbnQ6YWdlbnQtbWI=",
+          "cache-control": "no-cache",
+          "connection": "keep-alive",
+          "cookie": "JSESSIONID=0BBF2A427CE5B9F1A2BB31B32501C136",
+          "host": "127.0.0.1:8080",
+          "pragma": "no-cache",
+          "referer": "http://127.0.0.1:8080/fiche.do?number=D-0117",
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+          "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Linux\""
+        },
+        "body": null
+      }
+    ],
+    "responses": [
+      {
+        "step": "sheet",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "2604"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 15:59:52 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          },
+          {
+            "name": "Set-Cookie",
+            "value": "JSESSIONID=082885ABBD52B40FC5132E69F21607DB; Path=/; HttpOnly"
+          }
+        ],
+        "body": "\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Recherche de dossiers</title>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Recherche de dossiers</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            \n            <form name=\"searchForm\" method=\"get\" action=\"/rechercher.do;jsessionid=082885ABBD52B40FC5132E69F21607DB\">\n              <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n                <tr>\n                  <td><label for=\"number\">Numéro</label></td>\n                  <td><input type=\"text\" name=\"number\" size=\"10\" value=\"\" id=\"number\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"applicant\">Demandeur</label></td>\n                  <td><input type=\"text\" name=\"applicant\" size=\"30\" value=\"\" id=\"applicant\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"status\">Statut</label></td>\n                  <td>\n                    <select name=\"status\" id=\"status\"><option value=\"\">Tous</option>\n                      <option value=\"BROUILLON\">Brouillon</option>\n                      <option value=\"EN_INSTRUCTION\">En instruction</option>\n                      <option value=\"REMIS\">Remis</option></select>\n                  </td>\n                </tr>\n                <tr>\n                  <td><label for=\"filedFrom\">Déposé du</label></td>\n                  <td><input type=\"text\" name=\"filedFrom\" size=\"10\" value=\"\" id=\"filedFrom\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"filedTo\">Déposé au</label></td>\n                  <td><input type=\"text\" name=\"filedTo\" size=\"10\" value=\"\" id=\"filedTo\"></td>\n                </tr>\n                <tr>\n                  <td>&nbsp;</td>\n                  <td><input type=\"submit\" value=\"Rechercher\"></td>\n                </tr>\n              </table>\n            </form>\n<script type=\"text/javascript\" language=\"JavaScript\">\n  <!--\n  var focusControl = document.forms[\"searchForm\"].elements[\"number\"];\n\n  if (focusControl != null && focusControl.type != \"hidden\" && !focusControl.disabled && focusControl.style.display != \"none\") {\n     focusControl.focus();\n  }\n  // -->\n</script>\n\n          </td>\n        </tr>\n        \n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      },
+      {
+        "step": "sheet",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/rechercher.do;jsessionid=082885ABBD52B40FC5132E69F21607DB?number=D-0117&applicant=&status=&filedFrom=&filedTo=",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "3352"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 15:59:52 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          },
+          {
+            "name": "Set-Cookie",
+            "value": "JSESSIONID=0BBF2A427CE5B9F1A2BB31B32501C136; Path=/; HttpOnly"
+          }
+        ],
+        "body": "\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Recherche de dossiers</title>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Recherche de dossiers</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            \n            <form name=\"searchForm\" method=\"get\" action=\"/rechercher.do\">\n              <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n                <tr>\n                  <td><label for=\"number\">Numéro</label></td>\n                  <td><input type=\"text\" name=\"number\" size=\"10\" value=\"D-0117\" id=\"number\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"applicant\">Demandeur</label></td>\n                  <td><input type=\"text\" name=\"applicant\" size=\"30\" value=\"\" id=\"applicant\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"status\">Statut</label></td>\n                  <td>\n                    <select name=\"status\" id=\"status\"><option value=\"\" selected=\"selected\">Tous</option>\n                      <option value=\"BROUILLON\">Brouillon</option>\n                      <option value=\"EN_INSTRUCTION\">En instruction</option>\n                      <option value=\"REMIS\">Remis</option></select>\n                  </td>\n                </tr>\n                <tr>\n                  <td><label for=\"filedFrom\">Déposé du</label></td>\n                  <td><input type=\"text\" name=\"filedFrom\" size=\"10\" value=\"\" id=\"filedFrom\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"filedTo\">Déposé au</label></td>\n                  <td><input type=\"text\" name=\"filedTo\" size=\"10\" value=\"\" id=\"filedTo\"></td>\n                </tr>\n                <tr>\n                  <td>&nbsp;</td>\n                  <td><input type=\"submit\" value=\"Rechercher\"></td>\n                </tr>\n              </table>\n            </form>\n<script type=\"text/javascript\" language=\"JavaScript\">\n  <!--\n  var focusControl = document.forms[\"searchForm\"].elements[\"number\"];\n\n  if (focusControl != null && focusControl.type != \"hidden\" && !focusControl.disabled && focusControl.style.display != \"none\") {\n     focusControl.focus();\n  }\n  // -->\n</script>\n\n          </td>\n        </tr>\n        \n        <tr>\n          <td>\n            \n            \n              <table border=\"1\" cellpadding=\"3\" cellspacing=\"0\">\n                <tr>\n                  <th>Numéro</th>\n                  <th>Demandeur</th>\n                  <th>Objet</th>\n                  <th>Statut</th>\n                  <th>Déposé le</th>\n                </tr>\n                \n                <tr>\n                  <td><a href=\"/fiche.do?number=D-0117\">D-0117</a></td>\n                  \n                  <td>Martin Leroy</td>\n                  <td>Demande de branchement d&#39;eau potable</td>\n                  <td>Brouillon</td>\n                  <td>04/08/2025</td>\n                </tr>\n                \n              </table>\n            \n          </td>\n        </tr>\n        \n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      },
+      {
+        "step": "sheet",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/fiche.do?number=D-0117",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "2589"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 15:59:52 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          }
+        ],
+        "body": "\n\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Fiche dossier</title>\n\n<script type=\"text/javascript\">\ndocument.onkeydown = function (event) {\n  event = event || window.event;\n  if (event.ctrlKey && event.keyCode == 83) {\n    if (event.preventDefault) {\n      event.preventDefault();\n    } else {\n      event.returnValue = false;\n    }\n\n    document.forms[\"dossierForm\"].submit();\n\n    return false;\n  }\n};\n</script>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Fiche dossier</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            \n            <form name=\"dossierForm\" method=\"post\" action=\"/enregistrer.do\">\n              <input type=\"hidden\" name=\"number\" value=\"D-0117\">\n              \n              <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n                <tr>\n                  <td>Numéro</td>\n                  <td>D-0117</td>\n                </tr>\n                <tr>\n                  <td>Statut</td>\n                  <td>Brouillon</td>\n                </tr>\n                <tr>\n                  <td>Déposé le</td>\n                  <td>04/08/2025</td>\n                </tr>\n                <tr>\n                  <td><label for=\"applicant\">Demandeur</label></td>\n                  <td><input type=\"text\" name=\"applicant\" size=\"50\" tabindex=\"2\" value=\"Martin Leroy\" id=\"applicant\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"subject\">Objet</label></td>\n                  <td><input type=\"text\" name=\"subject\" size=\"80\" tabindex=\"1\" value=\"Demande de branchement d&#39;eau potable\" id=\"subject\"></td>\n                </tr>\n                \n                <tr>\n                  <td>&nbsp;</td>\n                  <td><input type=\"submit\" tabindex=\"3\" value=\"Enregistrer\"></td>\n                </tr>\n                \n              </table>\n            </form>\n<script type=\"text/javascript\" language=\"JavaScript\">\n  <!--\n  var focusControl = document.forms[\"dossierForm\"].elements[\"subject\"];\n\n  if (focusControl != null && focusControl.type != \"hidden\" && !focusControl.disabled && focusControl.style.display != \"none\") {\n     focusControl.focus();\n  }\n  // -->\n</script>\n\n            \n          </td>\n        </tr>\n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      },
+      {
+        "step": "save",
+        "method": "POST",
+        "url": "http://127.0.0.1:8080/enregistrer.do",
+        "status": 302,
+        "headers": [
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "0"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 15:59:52 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          },
+          {
+            "name": "Location",
+            "value": "/fiche.do?number=D-0117"
+          }
+        ],
+        "body": null,
+        "error": "Error: response.body: Response body is unavailable for redirect responses"
+      },
+      {
+        "step": "save",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/fiche.do?number=D-0117",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "2592"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 15:59:52 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          }
+        ],
+        "body": "\n\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Fiche dossier</title>\n\n<script type=\"text/javascript\">\ndocument.onkeydown = function (event) {\n  event = event || window.event;\n  if (event.ctrlKey && event.keyCode == 83) {\n    if (event.preventDefault) {\n      event.preventDefault();\n    } else {\n      event.returnValue = false;\n    }\n\n    document.forms[\"dossierForm\"].submit();\n\n    return false;\n  }\n};\n</script>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Fiche dossier</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            \n            <form name=\"dossierForm\" method=\"post\" action=\"/enregistrer.do\">\n              <input type=\"hidden\" name=\"number\" value=\"D-0117\">\n              \n              <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n                <tr>\n                  <td>Numéro</td>\n                  <td>D-0117</td>\n                </tr>\n                <tr>\n                  <td>Statut</td>\n                  <td>Brouillon</td>\n                </tr>\n                <tr>\n                  <td>Déposé le</td>\n                  <td>04/08/2025</td>\n                </tr>\n                <tr>\n                  <td><label for=\"applicant\">Demandeur</label></td>\n                  <td><input type=\"text\" name=\"applicant\" size=\"50\" tabindex=\"2\" value=\"Martin Leroy\" id=\"applicant\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"subject\">Objet</label></td>\n                  <td><input type=\"text\" name=\"subject\" size=\"80\" tabindex=\"1\" value=\"Objet modifié par la sonde de #132 (agent)\" id=\"subject\"></td>\n                </tr>\n                \n                <tr>\n                  <td>&nbsp;</td>\n                  <td><input type=\"submit\" tabindex=\"3\" value=\"Enregistrer\"></td>\n                </tr>\n                \n              </table>\n            </form>\n<script type=\"text/javascript\" language=\"JavaScript\">\n  <!--\n  var focusControl = document.forms[\"dossierForm\"].elements[\"subject\"];\n\n  if (focusControl != null && focusControl.type != \"hidden\" && !focusControl.disabled && focusControl.style.display != \"none\") {\n     focusControl.focus();\n  }\n  // -->\n</script>\n\n            \n          </td>\n        </tr>\n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      }
+    ],
+    "cookies": [
+      {
+        "name": "JSESSIONID",
+        "value": "0BBF2A427CE5B9F1A2BB31B32501C136"
+      }
+    ]
+  },
+  "instructeur": {
+    "requests": [
+      {
+        "step": "sheet",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/",
+        "headers": {
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "cache-control": "no-cache",
+          "connection": "keep-alive",
+          "host": "127.0.0.1:8080",
+          "pragma": "no-cache",
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "none",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+          "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Linux\""
+        },
+        "body": null
+      },
+      {
+        "step": "sheet",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/rechercher.do;jsessionid=572B52DBC7452CE170ACD92CA62C37E1?number=D-0112&applicant=&status=&filedFrom=&filedTo=",
+        "headers": {
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "authorization": "Basic aW5zdHJ1Y3RldXI6aW5zdHJ1Y3RldXItbWI=",
+          "cache-control": "no-cache",
+          "connection": "keep-alive",
+          "cookie": "JSESSIONID=572B52DBC7452CE170ACD92CA62C37E1",
+          "host": "127.0.0.1:8080",
+          "pragma": "no-cache",
+          "referer": "http://127.0.0.1:8080/",
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+          "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Linux\""
+        },
+        "body": null
+      },
+      {
+        "step": "sheet",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+        "headers": {
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "authorization": "Basic aW5zdHJ1Y3RldXI6aW5zdHJ1Y3RldXItbWI=",
+          "cache-control": "no-cache",
+          "connection": "keep-alive",
+          "cookie": "JSESSIONID=9DFC5D6B3902CF0270691D21F70C57F0",
+          "host": "127.0.0.1:8080",
+          "pragma": "no-cache",
+          "referer": "http://127.0.0.1:8080/rechercher.do;jsessionid=572B52DBC7452CE170ACD92CA62C37E1?number=D-0112&applicant=&status=&filedFrom=&filedTo=",
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+          "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Linux\""
+        },
+        "body": null
+      },
+      {
+        "step": "save",
+        "method": "POST",
+        "url": "http://127.0.0.1:8080/enregistrer.do",
+        "headers": {
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "authorization": "Basic aW5zdHJ1Y3RldXI6aW5zdHJ1Y3RldXItbWI=",
+          "cache-control": "no-cache",
+          "connection": "keep-alive",
+          "content-length": "114",
+          "content-type": "application/x-www-form-urlencoded",
+          "cookie": "JSESSIONID=9DFC5D6B3902CF0270691D21F70C57F0",
+          "host": "127.0.0.1:8080",
+          "origin": "http://127.0.0.1:8080",
+          "pragma": "no-cache",
+          "referer": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+          "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Linux\""
+        },
+        "body": "number=D-0112&applicant=Ma%C3%AFwenn+O%27Neill&subject=Objet+modifi%C3%A9+par+la+sonde+de+%23132+%28instructeur%29"
+      },
+      {
+        "step": "save",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+        "headers": {
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "authorization": "Basic aW5zdHJ1Y3RldXI6aW5zdHJ1Y3RldXItbWI=",
+          "cache-control": "no-cache",
+          "connection": "keep-alive",
+          "cookie": "JSESSIONID=9DFC5D6B3902CF0270691D21F70C57F0",
+          "host": "127.0.0.1:8080",
+          "pragma": "no-cache",
+          "referer": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+          "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Linux\""
+        },
+        "body": null
+      },
+      {
+        "step": "remise",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/remise.do?number=D-0112",
+        "headers": {
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "authorization": "Basic aW5zdHJ1Y3RldXI6aW5zdHJ1Y3RldXItbWI=",
+          "cache-control": "no-cache",
+          "connection": "keep-alive",
+          "cookie": "JSESSIONID=9DFC5D6B3902CF0270691D21F70C57F0",
+          "host": "127.0.0.1:8080",
+          "pragma": "no-cache",
+          "referer": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+          "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Linux\""
+        },
+        "body": null
+      },
+      {
+        "step": "submit",
+        "method": "POST",
+        "url": "http://127.0.0.1:8080/remettre.do",
+        "headers": {
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "authorization": "Basic aW5zdHJ1Y3RldXI6aW5zdHJ1Y3RldXItbWI=",
+          "cache-control": "no-cache",
+          "connection": "keep-alive",
+          "content-length": "13",
+          "content-type": "application/x-www-form-urlencoded",
+          "cookie": "JSESSIONID=9DFC5D6B3902CF0270691D21F70C57F0",
+          "host": "127.0.0.1:8080",
+          "origin": "http://127.0.0.1:8080",
+          "pragma": "no-cache",
+          "referer": "http://127.0.0.1:8080/remise.do?number=D-0112",
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+          "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Linux\""
+        },
+        "body": "number=D-0112"
+      },
+      {
+        "step": "submit",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/remise.do?number=D-0112",
+        "headers": {
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "authorization": "Basic aW5zdHJ1Y3RldXI6aW5zdHJ1Y3RldXItbWI=",
+          "cache-control": "no-cache",
+          "connection": "keep-alive",
+          "cookie": "JSESSIONID=9DFC5D6B3902CF0270691D21F70C57F0",
+          "host": "127.0.0.1:8080",
+          "pragma": "no-cache",
+          "referer": "http://127.0.0.1:8080/remise.do?number=D-0112",
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+          "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Linux\""
+        },
+        "body": null
+      }
+    ],
+    "responses": [
+      {
+        "step": "sheet",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "2604"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 15:59:53 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          },
+          {
+            "name": "Set-Cookie",
+            "value": "JSESSIONID=572B52DBC7452CE170ACD92CA62C37E1; Path=/; HttpOnly"
+          }
+        ],
+        "body": "\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Recherche de dossiers</title>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Recherche de dossiers</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            \n            <form name=\"searchForm\" method=\"get\" action=\"/rechercher.do;jsessionid=572B52DBC7452CE170ACD92CA62C37E1\">\n              <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n                <tr>\n                  <td><label for=\"number\">Numéro</label></td>\n                  <td><input type=\"text\" name=\"number\" size=\"10\" value=\"\" id=\"number\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"applicant\">Demandeur</label></td>\n                  <td><input type=\"text\" name=\"applicant\" size=\"30\" value=\"\" id=\"applicant\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"status\">Statut</label></td>\n                  <td>\n                    <select name=\"status\" id=\"status\"><option value=\"\">Tous</option>\n                      <option value=\"BROUILLON\">Brouillon</option>\n                      <option value=\"EN_INSTRUCTION\">En instruction</option>\n                      <option value=\"REMIS\">Remis</option></select>\n                  </td>\n                </tr>\n                <tr>\n                  <td><label for=\"filedFrom\">Déposé du</label></td>\n                  <td><input type=\"text\" name=\"filedFrom\" size=\"10\" value=\"\" id=\"filedFrom\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"filedTo\">Déposé au</label></td>\n                  <td><input type=\"text\" name=\"filedTo\" size=\"10\" value=\"\" id=\"filedTo\"></td>\n                </tr>\n                <tr>\n                  <td>&nbsp;</td>\n                  <td><input type=\"submit\" value=\"Rechercher\"></td>\n                </tr>\n              </table>\n            </form>\n<script type=\"text/javascript\" language=\"JavaScript\">\n  <!--\n  var focusControl = document.forms[\"searchForm\"].elements[\"number\"];\n\n  if (focusControl != null && focusControl.type != \"hidden\" && !focusControl.disabled && focusControl.style.display != \"none\") {\n     focusControl.focus();\n  }\n  // -->\n</script>\n\n          </td>\n        </tr>\n        \n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      },
+      {
+        "step": "sheet",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/rechercher.do;jsessionid=572B52DBC7452CE170ACD92CA62C37E1?number=D-0112&applicant=&status=&filedFrom=&filedTo=",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "3369"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 15:59:53 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          },
+          {
+            "name": "Set-Cookie",
+            "value": "JSESSIONID=9DFC5D6B3902CF0270691D21F70C57F0; Path=/; HttpOnly"
+          }
+        ],
+        "body": "\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Recherche de dossiers</title>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Recherche de dossiers</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            \n            <form name=\"searchForm\" method=\"get\" action=\"/rechercher.do\">\n              <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n                <tr>\n                  <td><label for=\"number\">Numéro</label></td>\n                  <td><input type=\"text\" name=\"number\" size=\"10\" value=\"D-0112\" id=\"number\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"applicant\">Demandeur</label></td>\n                  <td><input type=\"text\" name=\"applicant\" size=\"30\" value=\"\" id=\"applicant\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"status\">Statut</label></td>\n                  <td>\n                    <select name=\"status\" id=\"status\"><option value=\"\" selected=\"selected\">Tous</option>\n                      <option value=\"BROUILLON\">Brouillon</option>\n                      <option value=\"EN_INSTRUCTION\">En instruction</option>\n                      <option value=\"REMIS\">Remis</option></select>\n                  </td>\n                </tr>\n                <tr>\n                  <td><label for=\"filedFrom\">Déposé du</label></td>\n                  <td><input type=\"text\" name=\"filedFrom\" size=\"10\" value=\"\" id=\"filedFrom\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"filedTo\">Déposé au</label></td>\n                  <td><input type=\"text\" name=\"filedTo\" size=\"10\" value=\"\" id=\"filedTo\"></td>\n                </tr>\n                <tr>\n                  <td>&nbsp;</td>\n                  <td><input type=\"submit\" value=\"Rechercher\"></td>\n                </tr>\n              </table>\n            </form>\n<script type=\"text/javascript\" language=\"JavaScript\">\n  <!--\n  var focusControl = document.forms[\"searchForm\"].elements[\"number\"];\n\n  if (focusControl != null && focusControl.type != \"hidden\" && !focusControl.disabled && focusControl.style.display != \"none\") {\n     focusControl.focus();\n  }\n  // -->\n</script>\n\n          </td>\n        </tr>\n        \n        <tr>\n          <td>\n            \n            \n              <table border=\"1\" cellpadding=\"3\" cellspacing=\"0\">\n                <tr>\n                  <th>Numéro</th>\n                  <th>Demandeur</th>\n                  <th>Objet</th>\n                  <th>Statut</th>\n                  <th>Déposé le</th>\n                </tr>\n                \n                <tr>\n                  <td><a href=\"/fiche.do?number=D-0112\">D-0112</a></td>\n                  \n                  <td>Maïwenn O'Neill</td>\n                  <td>Demande d&#39;autorisation de « vide-grenier »</td>\n                  <td>En instruction</td>\n                  <td>18/08/2025</td>\n                </tr>\n                \n              </table>\n            \n          </td>\n        </tr>\n        \n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      },
+      {
+        "step": "sheet",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "2708"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 15:59:53 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          }
+        ],
+        "body": "\n\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Fiche dossier</title>\n\n<script type=\"text/javascript\">\ndocument.onkeydown = function (event) {\n  event = event || window.event;\n  if (event.ctrlKey && event.keyCode == 83) {\n    if (event.preventDefault) {\n      event.preventDefault();\n    } else {\n      event.returnValue = false;\n    }\n\n    document.forms[\"dossierForm\"].submit();\n\n    return false;\n  }\n};\n</script>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Fiche dossier</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            \n            <form name=\"dossierForm\" method=\"post\" action=\"/enregistrer.do\">\n              <input type=\"hidden\" name=\"number\" value=\"D-0112\">\n              \n              <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n                <tr>\n                  <td>Numéro</td>\n                  <td>D-0112</td>\n                </tr>\n                <tr>\n                  <td>Statut</td>\n                  <td>En instruction</td>\n                </tr>\n                <tr>\n                  <td>Déposé le</td>\n                  <td>18/08/2025</td>\n                </tr>\n                <tr>\n                  <td><label for=\"applicant\">Demandeur</label></td>\n                  <td><input type=\"text\" name=\"applicant\" size=\"50\" tabindex=\"2\" value=\"Maïwenn O&#39;Neill\" readonly=\"readonly\" id=\"applicant\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"subject\">Objet</label></td>\n                  <td><input type=\"text\" name=\"subject\" size=\"80\" tabindex=\"1\" value=\"Demande d&#39;autorisation de « vide-grenier »\" id=\"subject\"></td>\n                </tr>\n                \n                <tr>\n                  <td>&nbsp;</td>\n                  <td><input type=\"submit\" tabindex=\"3\" value=\"Enregistrer\"></td>\n                </tr>\n                \n              </table>\n            </form>\n<script type=\"text/javascript\" language=\"JavaScript\">\n  <!--\n  var focusControl = document.forms[\"dossierForm\"].elements[\"subject\"];\n\n  if (focusControl != null && focusControl.type != \"hidden\" && !focusControl.disabled && focusControl.style.display != \"none\") {\n     focusControl.focus();\n  }\n  // -->\n</script>\n\n            \n            <p><a href=\"/remise.do?number=D-0112\">Remise</a></p>\n            \n          </td>\n        </tr>\n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      },
+      {
+        "step": "save",
+        "method": "POST",
+        "url": "http://127.0.0.1:8080/enregistrer.do",
+        "status": 302,
+        "headers": [
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "0"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 15:59:53 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          },
+          {
+            "name": "Location",
+            "value": "/fiche.do?number=D-0112"
+          }
+        ],
+        "body": null,
+        "error": "Error: response.body: Response body is unavailable for redirect responses"
+      },
+      {
+        "step": "save",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "2709"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 15:59:53 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          }
+        ],
+        "body": "\n\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Fiche dossier</title>\n\n<script type=\"text/javascript\">\ndocument.onkeydown = function (event) {\n  event = event || window.event;\n  if (event.ctrlKey && event.keyCode == 83) {\n    if (event.preventDefault) {\n      event.preventDefault();\n    } else {\n      event.returnValue = false;\n    }\n\n    document.forms[\"dossierForm\"].submit();\n\n    return false;\n  }\n};\n</script>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Fiche dossier</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            \n            <form name=\"dossierForm\" method=\"post\" action=\"/enregistrer.do\">\n              <input type=\"hidden\" name=\"number\" value=\"D-0112\">\n              \n              <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n                <tr>\n                  <td>Numéro</td>\n                  <td>D-0112</td>\n                </tr>\n                <tr>\n                  <td>Statut</td>\n                  <td>En instruction</td>\n                </tr>\n                <tr>\n                  <td>Déposé le</td>\n                  <td>18/08/2025</td>\n                </tr>\n                <tr>\n                  <td><label for=\"applicant\">Demandeur</label></td>\n                  <td><input type=\"text\" name=\"applicant\" size=\"50\" tabindex=\"2\" value=\"Maïwenn O&#39;Neill\" readonly=\"readonly\" id=\"applicant\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"subject\">Objet</label></td>\n                  <td><input type=\"text\" name=\"subject\" size=\"80\" tabindex=\"1\" value=\"Objet modifié par la sonde de #132 (instructeur)\" id=\"subject\"></td>\n                </tr>\n                \n                <tr>\n                  <td>&nbsp;</td>\n                  <td><input type=\"submit\" tabindex=\"3\" value=\"Enregistrer\"></td>\n                </tr>\n                \n              </table>\n            </form>\n<script type=\"text/javascript\" language=\"JavaScript\">\n  <!--\n  var focusControl = document.forms[\"dossierForm\"].elements[\"subject\"];\n\n  if (focusControl != null && focusControl.type != \"hidden\" && !focusControl.disabled && focusControl.style.display != \"none\") {\n     focusControl.focus();\n  }\n  // -->\n</script>\n\n            \n            <p><a href=\"/remise.do?number=D-0112\">Remise</a></p>\n            \n          </td>\n        </tr>\n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      },
+      {
+        "step": "remise",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/remise.do?number=D-0112",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "1573"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 15:59:54 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          }
+        ],
+        "body": "\n\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Remise du dossier</title>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Remise du dossier</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n              <tr>\n                <td>Numéro</td>\n                <td>D-0112</td>\n              </tr>\n              <tr>\n                <td>Demandeur</td>\n                <td>Maïwenn O&#39;Neill</td>\n              </tr>\n              <tr>\n                <td>Objet</td>\n                <td>Objet modifié par la sonde de #132 (instructeur)</td>\n              </tr>\n              <tr>\n                <td>Statut</td>\n                <td>En instruction</td>\n              </tr>\n              <tr>\n                <td>Déposé le</td>\n                <td>18/08/2025</td>\n              </tr>\n            </table>\n          </td>\n        </tr>\n        <tr>\n          <td>\n\n\n\n            <form name=\"dossierForm\" method=\"post\" action=\"/remettre.do\">\n              <input type=\"hidden\" name=\"number\" value=\"D-0112\">\n              <input type=\"submit\" value=\"Remettre\">\n            </form>\n\n\n\n\n          </td>\n        </tr>\n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      },
+      {
+        "step": "submit",
+        "method": "POST",
+        "url": "http://127.0.0.1:8080/remettre.do",
+        "status": 302,
+        "headers": [
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "0"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 15:59:54 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          },
+          {
+            "name": "Location",
+            "value": "/remise.do?number=D-0112"
+          }
+        ],
+        "body": null,
+        "error": "Error: response.body: Response body is unavailable for redirect responses"
+      },
+      {
+        "step": "submit",
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/remise.do?number=D-0112",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "1537"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 15:59:54 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          }
+        ],
+        "body": "\n\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Remise du dossier</title>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Remise du dossier</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n              <tr>\n                <td>Numéro</td>\n                <td>D-0112</td>\n              </tr>\n              <tr>\n                <td>Demandeur</td>\n                <td>Maïwenn O&#39;Neill</td>\n              </tr>\n              <tr>\n                <td>Objet</td>\n                <td>Objet modifié par la sonde de #132 (instructeur)</td>\n              </tr>\n              <tr>\n                <td>Statut</td>\n                <td>Remis</td>\n              </tr>\n              <tr>\n                <td>Déposé le</td>\n                <td>18/08/2025</td>\n              </tr>\n            </table>\n          </td>\n        </tr>\n        <tr>\n          <td>\n\n\n            <p>Dossier remis le 15/11/2025</p>\n\n            <p><a href=\"http://localhost:8090/accuse-de-remise?jeton=mbtemoin-7c41e9a2b58d306f&amp;numero=D-0112\">Accusé de remise</a></p>\n\n\n          </td>\n        </tr>\n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      }
+    ],
+    "cookies": [
+      {
+        "name": "JSESSIONID",
+        "value": "9DFC5D6B3902CF0270691D21F70C57F0"
+      }
+    ]
+  },
+  "stateAfterRecording": {
+    "D-0117": {
+      "number": "D-0117",
+      "applicant": "Martin Leroy",
+      "subject": "Objet modifié par la sonde de #132 (agent)",
+      "status": "BROUILLON",
+      "filedOn": "2025-08-04",
+      "submittedOn": null
+    },
+    "D-0112": {
+      "number": "D-0112",
+      "applicant": "Maïwenn O'Neill",
+      "subject": "Objet modifié par la sonde de #132 (instructeur)",
+      "status": "REMIS",
+      "filedOn": "2025-08-18",
+      "submittedOn": "2025-11-15"
+    }
+  },
+  "stateAfterRestart": {
+    "D-0117": {
+      "number": "D-0117",
+      "applicant": "Martin Leroy",
+      "subject": "Demande de branchement d'eau potable",
+      "status": "BROUILLON",
+      "filedOn": "2025-08-04",
+      "submittedOn": null
+    },
+    "D-0112": {
+      "number": "D-0112",
+      "applicant": "Maïwenn O'Neill",
+      "subject": "Demande d'autorisation de « vide-grenier »",
+      "status": "EN_INSTRUCTION",
+      "filedOn": "2025-08-18",
+      "submittedOn": null
+    }
+  },
+  "replayNoCookie": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "none",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/rechercher.do;jsessionid=082885ABBD52B40FC5132E69F21607DB?number=D-0117&applicant=&status=&filedFrom=&filedTo=",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/fiche.do?number=D-0117",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/rechercher.do;jsessionid=082885ABBD52B40FC5132E69F21607DB?number=D-0117&applicant=&status=&filedFrom=&filedTo=",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8080/enregistrer.do",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "content-type": "application/x-www-form-urlencoded",
+        "origin": "http://127.0.0.1:8080",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/fiche.do?number=D-0117",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "content-length": "98"
+      },
+      "sentBody": "number=D-0117&applicant=Martin+Leroy&subject=Objet+modifi%C3%A9+par+la+sonde+de+%23132+%28agent%29",
+      "status": 401,
+      "headers": [
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/fiche.do?number=D-0117",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/fiche.do?number=D-0117",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "none",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/rechercher.do;jsessionid=572B52DBC7452CE170ACD92CA62C37E1?number=D-0112&applicant=&status=&filedFrom=&filedTo=",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/rechercher.do;jsessionid=572B52DBC7452CE170ACD92CA62C37E1?number=D-0112&applicant=&status=&filedFrom=&filedTo=",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8080/enregistrer.do",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "content-type": "application/x-www-form-urlencoded",
+        "origin": "http://127.0.0.1:8080",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "content-length": "114"
+      },
+      "sentBody": "number=D-0112&applicant=Ma%C3%AFwenn+O%27Neill&subject=Objet+modifi%C3%A9+par+la+sonde+de+%23132+%28instructeur%29",
+      "status": 401,
+      "headers": [
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/remise.do?number=D-0112",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8080/remettre.do",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "content-type": "application/x-www-form-urlencoded",
+        "origin": "http://127.0.0.1:8080",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/remise.do?number=D-0112",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "content-length": "13"
+      },
+      "sentBody": "number=D-0112",
+      "status": 401,
+      "headers": [
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/remise.do?number=D-0112",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/remise.do?number=D-0112",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    }
+  ],
+  "stateAfterReplayNoCookie": {
+    "D-0117": {
+      "number": "D-0117",
+      "applicant": "Martin Leroy",
+      "subject": "Demande de branchement d'eau potable",
+      "status": "BROUILLON",
+      "filedOn": "2025-08-04",
+      "submittedOn": null
+    },
+    "D-0112": {
+      "number": "D-0112",
+      "applicant": "Maïwenn O'Neill",
+      "subject": "Demande d'autorisation de « vide-grenier »",
+      "status": "EN_INSTRUCTION",
+      "filedOn": "2025-08-18",
+      "submittedOn": null
+    }
+  },
+  "anonymousCookieSent": "",
+  "replayAnonymousCookie": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "none",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/rechercher.do;jsessionid=082885ABBD52B40FC5132E69F21607DB?number=D-0117&applicant=&status=&filedFrom=&filedTo=",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/fiche.do?number=D-0117",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/rechercher.do;jsessionid=082885ABBD52B40FC5132E69F21607DB?number=D-0117&applicant=&status=&filedFrom=&filedTo=",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8080/enregistrer.do",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "content-type": "application/x-www-form-urlencoded",
+        "origin": "http://127.0.0.1:8080",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/fiche.do?number=D-0117",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "content-length": "98"
+      },
+      "sentBody": "number=D-0117&applicant=Martin+Leroy&subject=Objet+modifi%C3%A9+par+la+sonde+de+%23132+%28agent%29",
+      "status": 401,
+      "headers": [
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/fiche.do?number=D-0117",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/fiche.do?number=D-0117",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "none",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/rechercher.do;jsessionid=572B52DBC7452CE170ACD92CA62C37E1?number=D-0112&applicant=&status=&filedFrom=&filedTo=",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/rechercher.do;jsessionid=572B52DBC7452CE170ACD92CA62C37E1?number=D-0112&applicant=&status=&filedFrom=&filedTo=",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8080/enregistrer.do",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "content-type": "application/x-www-form-urlencoded",
+        "origin": "http://127.0.0.1:8080",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "content-length": "114"
+      },
+      "sentBody": "number=D-0112&applicant=Ma%C3%AFwenn+O%27Neill&subject=Objet+modifi%C3%A9+par+la+sonde+de+%23132+%28instructeur%29",
+      "status": 401,
+      "headers": [
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/remise.do?number=D-0112",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8080/remettre.do",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "content-type": "application/x-www-form-urlencoded",
+        "origin": "http://127.0.0.1:8080",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/remise.do?number=D-0112",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "content-length": "13"
+      },
+      "sentBody": "number=D-0112",
+      "status": 401,
+      "headers": [
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8080/remise.do?number=D-0112",
+      "sentHeaders": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "http://127.0.0.1:8080/remise.do?number=D-0112",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+      },
+      "sentBody": null,
+      "status": 401,
+      "headers": [
+        "Cache-Control",
+        "private",
+        "WWW-Authenticate",
+        "Basic realm=\"migrabench\"",
+        "Content-Type",
+        "text/html;charset=utf-8",
+        "Content-Language",
+        "en",
+        "Content-Length",
+        "687",
+        "Date",
+        "Fri, 27 Nov 2026 15:59:57 GMT",
+        "Keep-Alive",
+        "timeout=20",
+        "Connection",
+        "keep-alive"
+      ],
+      "body": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/9.0.124</h3></body></html>",
+      "numbersInBody": [],
+      "numbersInHeaders": []
+    }
+  ],
+  "stateAfterReplayAnonymousCookie": {
+    "D-0117": {
+      "number": "D-0117",
+      "applicant": "Martin Leroy",
+      "subject": "Demande de branchement d'eau potable",
+      "status": "BROUILLON",
+      "filedOn": "2025-08-04",
+      "submittedOn": null
+    },
+    "D-0112": {
+      "number": "D-0112",
+      "applicant": "Maïwenn O'Neill",
+      "subject": "Demande d'autorisation de « vide-grenier »",
+      "status": "EN_INSTRUCTION",
+      "filedOn": "2025-08-18",
+      "submittedOn": null
+    }
+  }
+}
