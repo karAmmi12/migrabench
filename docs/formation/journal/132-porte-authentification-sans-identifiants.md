@@ -239,13 +239,32 @@ Couverture par les tests existants :
 
 **En CI, sur la vraie pile :**
 
-> À vérifier après l'exécution de la CI de la PR : le job des mesures (groupes `reference`, `role`, `auth`), chaque cas conforme à l'attendu, avec le lien et le commit.
+CI de la PR #167, sur le commit `e7db902` :
 
-> À vérifier après l'exécution de la CI de la PR : la durée ajoutée par la porte à la mesure du candidat de référence en CI (étape « Candidat de référence », comparée à la dernière exécution des mesures sur `main`), à signaler à Karim au-delà de 5 minutes.
+- [mesures](https://github.com/karAmmi12/migrabench/actions/runs/46036178378) :
+  chaque groupe est vert, et chaque cas est contrôlé sans écart par
+  `scripts/run-measure-case.ts`. Le contrôle couvre la référence, avec
+  `auth-read` et `auth-write` réussis et les témoins `start-1` à `start-6`,
+  ainsi que les deux candidats d'authentification et les candidats de rôle.
+  Durées des groupes :
+  - `reference` : 8 min 55 s ;
+  - `auth` : 9 min 1 s ;
+  - `role` : 18 min 27 s, le plus long, pour un délai de 30 min ;
+- [oracle et preuve](https://github.com/karAmmi12/migrabench/actions/runs/46036178391),
+  avec `D-0119` et `D-0120` : `38 passed` à l'exécution complète et à chacune
+  des cinq exécutions de la preuve, puis `Proof holds on 5 results.` ;
+- [tests](https://github.com/karAmmi12/migrabench/actions/runs/46036178446) :
+  `Test Files  105 passed (105)`, `Tests  1205 passed (1205)` ;
+- [typecheck](https://github.com/karAmmi12/migrabench/actions/runs/46036178455) :
+  succès.
 
-> À vérifier après l'exécution de la CI de la PR : l'oracle avec `D-0119` et `D-0120`, 38 réussis à l'exécution complète et à chacune des cinq exécutions de la preuve.
-
-> À vérifier après l'exécution de la CI de la PR : `tests` et `typecheck` verts, avec leurs liens.
+**Durée ajoutée.** L'étape « Candidat de référence » dure 2 min 36 s dans
+l'exécution [46024842542](https://github.com/karAmmi12/migrabench/actions/runs/46024842542)
+(commit `9f98cdb`, sans écart avec `ca289e1` sous `gates/`, `runner/`,
+`oracle/`, `fixtures/` et `scripts/`). Elle dure 3 min 30 s dans 46036178378.
+La porte ajoute donc 54 s par mesure, sous le seuil de 5 minutes. Le groupe
+`role` passe de 13 min 19 s à 18 min 27 s, car chacune de ses quatre mesures
+porte aussi la porte.
 
 ## Pour aller plus loin
 
