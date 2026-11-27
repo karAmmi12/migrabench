@@ -61,6 +61,8 @@ const xss = (outcomes: Partial<Record<XssName, GateOutcome>> = {}, others: GateO
     const name: XssName = `${check}/${screen}`;
     return { gate: "xss", name, outcome: outcomes[name] ?? others };
   }));
+// Porte Lighthouse (#134) : relevée, sans seuil.
+const LIGHTHOUSE = { gate: "lighthouse", name: "performance" };
 // Le legacy rend la charge en HTML sur la recherche : il échoue à ses deux
 // résultats (décision de Karim, #129), et passe la fiche et la remise.
 const XSS_LEGACY = xss({ "executed/search": "failed", "as-text/search": "failed" });
@@ -97,8 +99,15 @@ const reference: MeasureCase = {
   // Le relais appelle le port 8080 du legacy : le test négatif de la porte.
   // Le legacy échoue aux tableaux sur chaque écran, et axe y relève une
   // violation critique (`image-alt`) et une sérieuse (`html-has-lang`). Le
-  // lien « Accusé de remise » porte la valeur témoin.
-  gates: [{ ...WITNESS_VALUE, outcome: "failed", findingCites: "accuse-de-remise" }, ...accessibility({ tables: "failed", axe: { critical: "failed", serious: "failed", moderate: "passed", minor: "passed" } }), ...XSS_LEGACY, { ...RELAY, outcome: "failed" }],
+  // lien « Accusé de remise » porte la valeur témoin. Lighthouse relève
+  // l'écran d'arrivée du legacy.
+  gates: [
+    { ...WITNESS_VALUE, outcome: "failed", findingCites: "accuse-de-remise" },
+    ...accessibility({ tables: "failed", axe: { critical: "failed", serious: "failed", moderate: "passed", minor: "passed" } }),
+    ...XSS_LEGACY,
+    { ...LIGHTHOUSE, outcome: "measured" },
+    { ...RELAY, outcome: "failed" },
+  ],
 };
 
 export const MEASURE_CASES = {
