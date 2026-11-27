@@ -1,0 +1,68 @@
+// Sonde 2 de #131 : corps des réponses captés par page.on("response") et
+// response.body(), en instructeur puis en agent, jusqu'à la remise de D-0112 ;
+// clic sur « Remettre » en instructeur ; rejeu en Node du POST enregistré,
+// avec l'Authorization et le cookie de l'agent, legacy redémarré entre les deux.
+import { execFileSync } from "node:child_process";
+import { writeFileSync } from "node:fs";
+import { request as httpRequest } from "node:http";
+import type { Page, Request } from "@playwright/test";
+import { acquireBenchLockOrExit } from "../../shared/bench-lock.ts";
+import { connectBenchBrowser } from "../../oracle/browser.ts";
+import { fetchFromInternal, INTERNAL_API_URL } from "../../shared/internal-api.ts";
+import { goToSheet, button } from "../../oracle/navigation.ts";
+
+const BASE = "http://127.0.0.1:8080";
+const status = async () => JSON.parse((await fetchFromInternal(`${INTERNAL_API_URL}/api/dossiers/D-0112`)).body).status;
+const restart = () => { execFileSync("docker", ["restart", "migrabench-legacy-1"]); for (let i = 0; i < 60; i++) { try { execFileSync("curl", ["-sf", "-o", "/dev/null", `${BASE}/`]); return; } catch { execFileSync("sleep", ["1"]); } } };
+const out: Record<string, any> = {};
+
+async function session(role: string, password: string, click: boolean) {
+  const browser = await connectBenchBrowser();
+  const context = await browser.newContext({ baseURL: BASE, httpCredentials: { username: role, password } });
+  const page = await context.newPage();
+  const responses: any[] = [];
+  const pending: Promise<unknown>[] = [];
+  let clicked = false;
+  const posted: any[] = [];
+  page.on("request", (r: Request) => { if (clicked) pending.push(r.allHeaders().then((h) => posted.push({ method: r.method(), url: r.url(), headers: h, body: r.postData() }))); });
+  page.on("response", (r) => pending.push((async () => {
+    let body: string | null = null; let error: string | null = null;
+    try { body = (await r.body()).toString("utf8"); } catch (e) { error = String(e).split("\n")[0]; }
+    responses.push({ afterClick: clicked, method: r.request().method(), url: r.url(), status: r.status(), headers: await r.headersArray(), bodyLength: body?.length ?? null, body, error });
+  })()));
+  await goToSheet(page, "D-0112");
+  await page.getByRole("link", { name: "Remise", exact: true }).click();
+  await page.waitForLoadState("networkidle");
+  if (click) { clicked = true; await button(page, "Remettre").click(); await page.waitForLoadState("networkidle"); }
+  await Promise.all(pending);
+  const cookies = await context.cookies();
+  await context.close(); await browser.close();
+  return { responses, posted, cookies };
+}
+
+const lock = acquireBenchLockOrExit({ tool: "oracle" });
+try {
+  restart();
+  out.before = await status();
+  out.instructeur = await session("instructeur", "instructeur-mb", true);
+  out.afterInstructeur = await status();
+  restart();
+  out.afterRestart = await status();
+  out.agent = await session("agent", "agent-mb", false);
+  const post = out.instructeur.posted.find((p: any) => p.method === "POST");
+  const agentCookie = out.agent.cookies.map((c: any) => `${c.name}=${c.value}`).join("; ");
+  const headers = { ...post.headers, authorization: `Basic ${Buffer.from("agent:agent-mb").toString("base64")}`, cookie: agentCookie };
+  delete headers["content-length"]; delete headers.host; delete headers.connection;
+  out.replay = await new Promise((resolve, reject) => {
+    const req = httpRequest(post.url, { method: "POST", headers }, (res) => { let b = ""; res.on("data", (c) => (b += c)); res.on("end", () => resolve({ status: res.statusCode, headers: res.rawHeaders, body: b })); });
+    req.on("error", reject); req.end(post.body);
+  });
+  out.afterAgentReplay = await status();
+  restart();
+  out.final = await status();
+} finally {
+  lock.release();
+}
+writeFileSync(new URL("./probe2-output.json", import.meta.url), JSON.stringify(out, null, 2));
+const brief = (s: any) => s.responses.map((r: any) => `${r.afterClick ? "*" : " "} ${r.method} ${r.status} ${r.url} len=${r.bodyLength} err=${r.error}`);
+console.log(JSON.stringify({ before: out.before, afterInstructeur: out.afterInstructeur, afterRestart: out.afterRestart, afterAgentReplay: out.afterAgentReplay, final: out.final, replay: { status: out.replay.status, headers: out.replay.headers }, instructeur: brief(out.instructeur), agent: brief(out.agent), posted: out.instructeur.posted.map((p: any) => `${p.method} ${p.url} ${p.body}`) }, null, 2));
