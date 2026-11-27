@@ -53,6 +53,7 @@ l'oracle, les portes à navigateur et les tests.
 - **`oracle/browser.ts`** : `browserWsEndpoint(token)`, et
   `connectBenchBrowser(token)`, qui masque le jeton dans le message d'un
   échec. Appelants mis à jour : `gates/accessibility.ts`, `gates/xss.ts`,
+  `gates/role.ts` (arrivé de `main` pendant la PR),
   `oracle/browser-versions.ts` et les tests à navigateur (par
   `stackBrowserToken()`, dans `shared/browser-token.ts`).
 - **`oracle/support.ts`** : la fixture `connectOptions` des scénarios ajoute
@@ -136,6 +137,13 @@ l'oracle, les portes à navigateur et les tests.
   faux `compose up` recrée vraiment le seul service `browser` avec le jeton
   de la mesure, et `afterAll` lui rend le jeton de la pile.
 
+- **Typecheck rouge en CI à l'ouverture de la PR** :
+  `gates/role.ts(186,25): error TS2554: Expected 1 arguments, but got 0.`
+  Cause : la CI vérifie la fusion avec `main`, où la porte des rôles (#131)
+  venait d'arriver avec un `connectBenchBrowser()` sans jeton. Résolution :
+  fusion de `origin/main`, puis `withBrowser(context, …)` passe
+  `context.browserToken` (commit `c1c983b`).
+
 ## Vérifier soi-même
 
 Après `npm run stack:up` :
@@ -175,9 +183,23 @@ npm test
 Observé au commit `1bb8127`, sur un arbre propre :
 `Test Files  104 passed (104)`, `Tests  1168 passed (1168)`.
 
-> À vérifier après l'exécution de la CI de la PR : le lien des exécutions
-> « Tests du banc » et « Mesures », leur head SHA, et le constat
-> `reach-browser-playwright` de la sonde mesurée en CI.
+CI de la PR #165, toutes les exécutions sur le commit `c1c983b` (fusion avec
+`main` comprise) :
+
+- « Tests du banc », https://github.com/karAmmi12/migrabench/actions/runs/46027009911 :
+  `Test Files  105 passed (105)`.
+- « Mesures », https://github.com/karAmmi12/migrabench/actions/runs/46027009639 :
+  succès (de 15:40:35Z à 16:23:57Z). La sonde est la mesure attendue
+  (`isolation-probe: … is the expected measure (completed, ok, exit code 0)`),
+  et le `start.log` de son artefact porte
+  `"reach-browser-playwright","refused":true,"detail":"GET http://browser:3000/json 403, upgrade http://browser:3000/ 403"`.
+  Aucun fichier texte de l'artefact ne contient `8095/` suivi d'un jeton
+  (`grep -rlE "8095/[0-9a-f]{64}"` ne trouve rien ; les `trace.zip`
+  compressés ne sont pas lus par ce `grep`).
+- « Oracle » (oracle et preuve), https://github.com/karAmmi12/migrabench/actions/runs/46027009963 ;
+  « Vérification des types », https://github.com/karAmmi12/migrabench/actions/runs/46027009819 ;
+  « Étalonnage », https://github.com/karAmmi12/migrabench/actions/runs/46027009702 :
+  succès.
 
 ## Pour aller plus loin
 
