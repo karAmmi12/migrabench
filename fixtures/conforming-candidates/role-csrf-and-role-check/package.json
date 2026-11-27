@@ -1,0 +1,7 @@
+{
+  "name": "role-csrf-and-role-check",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Candidat conforme de la porte de rôle : jeton anti-CSRF et contrôle de rôle à la remise.",
+  "type": "module"
+}

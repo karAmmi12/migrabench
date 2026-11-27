@@ -1,0 +1,7 @@
+{
+  "name": "role-csrf-without-role-check",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Candidat défectueux de la porte de rôle : jeton anti-CSRF sans contrôle de rôle.",
+  "type": "module"
+}

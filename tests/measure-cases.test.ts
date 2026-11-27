@@ -8,13 +8,16 @@ import { ACCESSIBILITY_MEASURES, GATE_MEASURES, MEASURES, readJsonFixture, readM
 
 // Cas attendu, sans les résultats des portes nommées : pour les vraies
 // mesures copiées d'avant ces portes.
+// Toutes ces mesures sont d'avant la porte de rôle (#131) : ni ses résultats,
+// ni les témoins de ses redémarrages du legacy.
 function withoutGates(expected: MeasureCase, ...gates: string[]): MeasureCase {
-  return { ...expected, gates: (expected.gates ?? []).filter(({ gate }) => !gates.includes(gate)) };
+  const { startWitnesses: _startWitnesses, ...rest } = expected;
+  return { ...rest, gates: (expected.gates ?? []).filter(({ gate }) => !gates.includes(gate) && gate !== "role") };
 }
 // Mesures d'avant la porte d'accessibilité (#128), donc d'avant celles de la
-// valeur témoin (#130) et XSS (#129).
+// valeur témoin (#130), XSS (#129) et de rôle (#131).
 const beforeAccessibility = (expected: MeasureCase) => withoutGates(expected, "accessibility", "witness-value", "xss");
-// Mesures d'avant la porte de la valeur témoin (#130), donc d'avant la porte XSS (#129).
+// Mesures d'avant la porte de la valeur témoin (#130), donc d'avant les portes XSS (#129) et de rôle (#131).
 const beforeWitnessValue = (expected: MeasureCase) => withoutGates(expected, "witness-value", "xss");
 
 // Copie de la première mesure comptée du candidat de référence, produite par
@@ -64,7 +67,8 @@ function oracleJson(saltImposed: unknown) {
 
 // Le cas du candidat de référence sans son résultat de porte : la vraie
 // mesure copiée est de l'étape 3, avant les portes (#124).
-const REFERENCE_BEFORE_GATES = { ...MEASURE_CASES.reference, gates: [] };
+const { startWitnesses: _referenceStarts, ...REFERENCE_CASE } = MEASURE_CASES.reference;
+const REFERENCE_BEFORE_GATES: MeasureCase = { ...REFERENCE_CASE, gates: [] };
 
 function observed(record: object, more: Partial<Observed> = {}): Observed {
   return { exitCode: 0, record, oracle: oracleJson(false), ...more };
@@ -85,6 +89,15 @@ describe("caseProblems, reference candidate", () => {
     const record = { ...COMPLETE, accessLog: { witnesses: [{ name: "start-1", line: 2 }] } };
 
     expect(caseProblems(REFERENCE_BEFORE_GATES, observed(record))).toEqual(["accessLog.witnesses has no end witness"]);
+  });
+
+  // Porte de rôle (#131) : trois redémarrages du legacy, donc les témoins
+  // start-1 à start-4, dans l'ordre.
+  it("names start witnesses that are not those of the restarts of the legacy", () => {
+    const record = { ...COMPLETE, accessLog: { witnesses: [{ name: "start-1", line: 2 }, { name: "start-2", line: 40 }, { name: "end", line: 90 }] } };
+    const expected = { ...REFERENCE_BEFORE_GATES, startWitnesses: ["start-1", "start-2", "start-3", "start-4"] };
+
+    expect(caseProblems(expected, observed(record))).toEqual(["accessLog.witnesses starts with start-1, start-2, expected start-1, start-2, start-3, start-4"]);
   });
 
   // Avant 71d8c18 (#73), oracle.json disait saltImposed: true même sans
@@ -111,7 +124,7 @@ describe("caseProblems, counted measure of the reference candidate", () => {
     const { originMain: _originMain, ...diagnostic } = COMPLETE;
     const record = { ...diagnostic, saltImposed: true };
 
-    expect(caseProblems({ ...MEASURE_CASES["reference-counted"], gates: [] }, observed(record))).toEqual([
+    expect(caseProblems(withoutGates({ ...MEASURE_CASES["reference-counted"], gates: [] }), observed(record))).toEqual([
       "measure.json: saltImposed is true, expected false",
       "counted is false, expected true",
       "environment.worktree is dirty, expected clean",

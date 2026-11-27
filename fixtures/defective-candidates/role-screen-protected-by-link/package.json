@@ -1,0 +1,7 @@
+{
+  "name": "role-screen-protected-by-link",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Candidat défectueux de la porte de rôle : écran de remise protégé seulement par son lien.",
+  "type": "module"
+}

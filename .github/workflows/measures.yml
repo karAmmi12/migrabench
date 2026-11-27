@@ -222,6 +222,26 @@ jobs:
         if: ${{ !cancelled() }}
         run: exec node scripts/run-measure-case.ts xss-executes-then-erases
 
+      # Porte de rôle (#131) : le test négatif est le candidat de référence,
+      # dont le rejeu en agent remet le dossier. Chaque mesure redémarre trois
+      # fois le legacy (témoins start-2 à start-4). Ces relais ne changent que
+      # la fiche, la remise et la requête de remise.
+      - name: Porte de rôle, bouton masqué dans la vue
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts role-button-hidden-in-view
+
+      - name: Porte de rôle, écran protégé seulement par son lien
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts role-screen-protected-by-link
+
+      - name: Porte de rôle, jeton anti-CSRF sans contrôle de rôle
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts role-csrf-without-role-check
+
+      - name: Porte de rôle, candidat conforme avec jeton et contrôle de rôle
+        if: ${{ !cancelled() }}
+        run: exec node scripts/run-measure-case.ts role-csrf-and-role-check
+
       # La composition ajoutée par COMPOSE_FILE ne vaut que pour cette mesure :
       # la suivante recrée un legacy sain.
       - name: Candidat défectueux 7, pile volontairement cassée
