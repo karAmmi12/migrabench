@@ -36,6 +36,7 @@ import { stackContextDigests } from "../../oracle/stack-images.ts";
 import { CANDIDATE_PORT } from "../../runner/candidate-runtime.ts";
 import { DIAGNOSTIC_DIR_FROM_ROOT } from "../../runner/paths.ts";
 import { acquireBenchLock } from "../../shared/bench-lock.ts";
+import { BROWSER_TOKEN_ENV, stackBrowserToken } from "../../shared/browser-token.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, ROOT } from "../../shared/root.ts";
 import { absoluteFixturePath, MEASURES } from "../real-fixtures.ts";
 
@@ -130,7 +131,11 @@ case "$*" in
   "image inspect "*migrabench-archive) ${image("archive")}
   'inspect --format {"image":{{json .Image}}'*) ${image("legacy")}
   "compose up --detach --force-recreate --no-build --wait "*)
-    ln -sf "${join(ROOT, ".access-log", "access.log")}" "$MB_ACCESS_LOG_DIR/access.log"; exit 0 ;;
+    ln -sf "${join(ROOT, ".access-log", "access.log")}" "$MB_ACCESS_LOG_DIR/access.log"
+    # Seul le navigateur est vraiment recréé, avec le jeton de la mesure
+    # (MB_BROWSER_TOKEN) : sans lui, ses passerelles refusent le relevé des
+    # versions, avant Playwright (#160).
+    exec "${realTool("docker")}" compose up --detach --force-recreate --no-build --wait --no-deps browser ;;
 esac
 exec "${realTool("docker")}" "$@"
 `,
@@ -169,6 +174,13 @@ afterEach(async () => {
 });
 
 afterAll(() => {
+  // Le navigateur reprend le jeton de la pile, que lisent les tests suivants (#160).
+  const restored = spawnSync("docker", ["compose", "up", "--detach", "--force-recreate", "--no-build", "--wait", "--no-deps", "browser"], {
+    cwd: ROOT,
+    env: { ...process.env, [BROWSER_TOKEN_ENV]: stackBrowserToken() },
+    stdio: "ignore",
+  });
+  if (restored.status !== 0) throw new Error("Could not recreate the browser service with the token of the stack");
   for (const entry of entries()) if (!before.includes(entry)) rmSync(join(ROOT, entry), { recursive: true, force: true });
   rmSync(STATE_HOME, { recursive: true, force: true });
   for (const dir of Object.values(stubDirs)) rmSync(dir, { recursive: true, force: true });
