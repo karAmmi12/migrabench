@@ -265,8 +265,14 @@ export const MEASURE_CASES = {
   // part sans identifiants (mesure 20261127T162133Z-316e805-…, 35 réussis).
   "auth-read-and-write-unchecked": authCase(`${DEFECTIVE}/auth-read-and-write-unchecked`, auth({}, "failed"), { passed: 35, failed: 3, unreached: 0 }),
   // #132 : jeton anti-CSRF et écriture sans contrôle ; le jeton de la session
-  // anonyme est transplanté.
-  "auth-csrf-write-unchecked": authCase(`${DEFECTIVE}/auth-csrf-write-unchecked`, auth({ "auth-write": "failed" })),
+  // anonyme est transplanté. La lecture échoue aussi : l'écriture, partie avec
+  // les identifiants de l'instructeur, ouvre une session Tomcat authentifiée,
+  // et le `GET /remise.do` qui suit, sans identifiants, rend la remise de
+  // D-0120 (mesure 20261127T163152Z-4a22809-…).
+  "auth-csrf-write-unchecked": authCase(`${DEFECTIVE}/auth-csrf-write-unchecked`, [
+    ...auth({}, "failed").filter(({ name }) => name !== "auth-read"),
+    { gate: "auth-check", name: "auth-read", outcome: "failed", findingCites: "remise.do?number=D-0120" },
+  ]),
   // 7 : le legacy ne devient jamais sain.
   "broken-stack": {
     candidate: REFERENCE,
