@@ -1,12 +1,14 @@
 // Porte Lighthouse (#134) : lecture d'un rapport de Lighthouse (LHR) et
-// résultat relevé sur trois passes. Le LHR est la copie d'une vraie passe sur
-// le legacy (tests/fixtures/probe134-6151131/PROVENANCE.md) ; chaque variante
-// le réécrit.
+// résultat relevé sur trois passes. Les LHR sont des copies de vraies passes :
+// une passe aboutie sur le legacy (tests/fixtures/probe134-6151131/) et une
+// passe qui n'aboutit pas sur un candidat sans écran
+// (tests/fixtures/ci46002940746/) ; chaque variante réécrit la première.
 import { describe, expect, it } from "vitest";
 import { errorMessage, type Lhr, lighthouseGate, lighthouseResult, median, passOutcome, type PassOutcome } from "../../gates/lighthouse.ts";
 import { readFixture } from "../real-fixtures.ts";
 
 const LHR = JSON.parse(readFixture("probe134-6151131/lhr-pass.json")) as Lhr;
+const FAILED_LHR = JSON.parse(readFixture("ci46002940746/relay-untouched-lighthouse-pass-1.json")) as Lhr;
 const RAW = { "gates/lighthouse/pass-1.json": "sha256:1" };
 
 const completed = (score: number, lcp: number): PassOutcome => ({ completed: true, metrics: { score, lcp, tbt: 0, cls: 0, speedIndex: lcp } });
@@ -14,6 +16,13 @@ const completed = (score: number, lcp: number): PassOutcome => ({ completed: tru
 describe("passOutcome", () => {
   it("reads the score and the four metrics of a real pass", () => {
     expect(passOutcome(LHR)).toEqual({ completed: true, metrics: { score: 1, lcp: 386.43475, tbt: 0, cls: 0, speedIndex: 468.20647691648776 } });
+  });
+
+  it("does not complete a real pass on a candidate without a screen", () => {
+    expect(passOutcome(FAILED_LHR)).toEqual({
+      completed: false,
+      reason: "CHROME_INTERSTITIAL_ERROR: Chrome prevented page load with an interstitial. Make sure you are testing the correct URL and that the server is properly responding to all requests.",
+    });
   });
 
   it("does not complete a pass with a runtime error", () => {

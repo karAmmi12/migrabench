@@ -37,4 +37,5 @@ les identifiants, portés par l'en-tête, ne se perdent pas : le document est en
 
 Le LHR de la passe sans `Authorization` n'est pas versionné : ses piles
 d'erreur citent les chemins locaux de la machine. Le cas d'une passe qui
-n'aboutit pas est copié d'une mesure de CI.
+n'aboutit pas est copié d'une mesure de CI
+(`tests/fixtures/ci46002940746/`).
