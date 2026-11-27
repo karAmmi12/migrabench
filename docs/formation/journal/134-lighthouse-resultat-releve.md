@@ -238,7 +238,34 @@ Sur la même version, un candidat sans écran donne `not-evaluable`
 
 **En CI, sur la vraie pile** :
 
-> À vérifier après l'exécution de la CI de la PR : jobs `tests`, `typecheck` et des mesures (lien, head SHA) ; issue Lighthouse du candidat de référence (`measured`), de `relay-untouched` et de `relay-forged-healthcheck` (`not-evaluable`) ; sonde d'isolation `reach-browser-cdp` refusée ; durée ajoutée par Lighthouse à la mesure du candidat de référence (phase `gates` comparée à la dernière mesure de `main`), signalée à Karim au-delà de 5 minutes.
+Les jobs ont tourné sur le commit `08927c2` :
+
+- `tests` : [exécution 46002941574](https://github.com/karAmmi12/migrabench/actions/runs/46002941574),
+  `Test Files  102 passed (102)` ;
+- `typecheck` : [exécution 46002940761](https://github.com/karAmmi12/migrabench/actions/runs/46002940761) ;
+- `oracle` et `proof` : [exécution 46002940768](https://github.com/karAmmi12/migrabench/actions/runs/46002940768) ;
+- `measures` : [exécution 46002940746](https://github.com/karAmmi12/migrabench/actions/runs/46002940746).
+  Chaque cas y est conforme à l'attendu.
+
+| Mesure | Lighthouse | Phase `gates` |
+|---|---|---|
+| Candidat de référence | `measured`, `examined` 3, score 1 | 33 733 ms |
+| `relay-alters-label`, les quatre candidats XSS | `measured`, `examined` 3 | de 33 744 à 34 401 ms |
+| `relay-untouched`, `relay-forged-healthcheck`, sonde d'isolation | `not-evaluable`, `CHROME_INTERSTITIAL_ERROR` | de 23 988 à 24 222 ms |
+
+- La sonde d'isolation : `isolation-probe: … is the expected measure
+  (completed, ok, exit code 0)`. Son constat de démarrage, `reach-browser-cdp`
+  compris, est contrôlé par `run-measure-case.ts`.
+- **Durée ajoutée.** La phase `gates` du candidat de référence passe de
+  12 452 ms
+  ([exécution 45914452588](https://github.com/karAmmi12/migrabench/actions/runs/45914452588),
+  commit `622d332`, dernier job des mesures avant Lighthouse) à 33 733 ms,
+  soit **+21,3 s par mesure**, sous le seuil de 5 minutes.
+- Le job des mesures entier passe de 12 min 43 s à 17 min 46 s, soit
+  +5 min 3 s. Ce sont onze mesures qui atteignent la phase `gates` : cet
+  écart est signalé à Karim.
+- Le LHR d'une passe qui n'aboutit pas, celle de `relay-untouched`, est copié
+  dans `tests/fixtures/ci46002940746/`.
 
 ## Pour aller plus loin
 
