@@ -2,7 +2,8 @@
 // l'étape 4, « Rôle ») : fonctions pures, sans navigateur ni réseau.
 //
 // - L'identité passe par BASIC (ADR 0003) : `Authorization` est toujours
-//   remplacé par celui de l'utilisateur visé, même absent de la requête.
+//   remplacé par celui de l'utilisateur visé, même absent de la requête. Vers
+//   une session anonyme (porte d'authentification), il est retiré.
 // - Une valeur de la requête est liée à la session si elle apparaît dans ce
 //   que la session source a reçu : un cookie de son contexte, ou une réponse
 //   (en-tête ou corps). Elle est remplacée par la valeur trouvée au même
@@ -269,8 +270,9 @@ export interface TransplantOptions {
   // Ce qu'a reçu la session qui a émis la requête, et la session visée.
   source: Received;
   target: Received;
-  // `Authorization` de l'utilisateur visé.
-  authorization: string;
+  // `Authorization` de l'utilisateur visé, ou null vers une session anonyme :
+  // l'en-tête est alors retiré.
+  authorization: string | null;
 }
 
 // La requête rejouée dans la session cible, et chaque valeur liée à la session.
@@ -285,5 +287,6 @@ export function transplant(request: RecordedRequest, { source, target, authoriza
     return next;
   };
   const rewritten = rewriteRequest(request, rewrite);
-  return { request: { ...rewritten, headers: { ...rewritten.headers, authorization } }, values };
+  const { authorization: _recorded, ...headers } = rewritten.headers;
+  return { request: { ...rewritten, headers: authorization === null ? headers : { ...headers, authorization } }, values };
 }
