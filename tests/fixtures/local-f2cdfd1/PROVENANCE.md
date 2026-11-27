@@ -19,4 +19,5 @@ refusé par deux `403` (`GET http://browser:3000/json` et l'ouverture d'une
 connexion WebSocket sur `http://browser:3000/`). Il garde `reach-browser-cdp`
 (#134), refusé par deux `403`.
 
-Elle remplace la mesure `local-e353940` (#134), d'avant cette tentative.
+Elle prend, dans `tests/start-report.test.ts`, la place de la mesure
+`local-e353940` (#134), d'avant cette tentative, gardée pour la fiche de #134.

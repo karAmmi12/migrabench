@@ -32,8 +32,8 @@ function reportOf<R>(log: string): R {
 type Attempt = { attempt: string; refused?: boolean; detail?: string; environment?: Record<string, string> };
 
 // Sonde d'isolation : son journal et le marqueur de sa mesure, lu dans son measure.json.
-const PROBE_LOG = readFixture(`${MEASURES.probe.artifacts}/start.log`);
-const MARKER = readMeasure(MEASURES.probe).marker;
+const PROBE_LOG = readFixture(`${MEASURES.probeWithBrowserGateways.artifacts}/start.log`);
+const MARKER = readMeasure(MEASURES.probeWithBrowserGateways).marker;
 const ATTEMPTS = reportOf<{ attempts: Attempt[] }>(PROBE_LOG).attempts;
 const ENVIRONMENT = ATTEMPTS.find((entry) => entry.attempt === "read-measure-marker")!.environment!;
 

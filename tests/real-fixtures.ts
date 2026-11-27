@@ -66,7 +66,7 @@ export const MEASURES = {
   // Candidat défectueux « sonde d'isolation », avec les tentatives sur la
   // passerelle CDP (#134) et sur le serveur de Playwright (#160) du
   // navigateur : mesure locale (local-f2cdfd1/).
-  probe: {
+  probeWithBrowserGateways: {
     results: "local-f2cdfd1/results/diagnostic/20261127T152626Z-f2cdfd1-defective-candidates-isolation-probe",
     artifacts: "local-f2cdfd1/oracle-artifacts/20261127T152626Z-f2cdfd1-defective-candidates-isolation-probe",
   },
