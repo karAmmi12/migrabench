@@ -217,9 +217,10 @@ export const MEASURE_CASES = {
   ]),
   // #131 : bouton masqué dans la vue, sans contrôle de rôle.
   "role-button-hidden-in-view": roleCase(`${DEFECTIVE}/role-button-hidden-in-view`, role({ "role-replay": "failed" })),
-  // #131 : écran de remise protégé seulement par son lien. L'oracle attend le
-  // lien et « Remise réservée aux instructeurs » en agent.
-  "role-screen-protected-by-link": roleCase(`${DEFECTIVE}/role-screen-protected-by-link`, role({ "role-replay": "failed", "role-forced-browsing": "failed" }), { failed: "at-least-one" }),
+  // #131 : écran de remise protégé seulement par son lien. Sans le lien,
+  // l'agent n'atteint pas cinq scénarios de l'oracle (exécution 46001662192,
+  // commit f9510e8 : 33 réussis, 5 non atteints).
+  "role-screen-protected-by-link": roleCase(`${DEFECTIVE}/role-screen-protected-by-link`, role({ "role-replay": "failed", "role-forced-browsing": "failed" }), { passed: 33, failed: 0, unreached: 5 }),
   // #131 : jeton anti-CSRF sans contrôle de rôle.
   "role-csrf-without-role-check": roleCase(`${DEFECTIVE}/role-csrf-without-role-check`, role({ "role-replay": "failed" })),
   // #131 : candidat conforme, jeton anti-CSRF et contrôle de rôle.

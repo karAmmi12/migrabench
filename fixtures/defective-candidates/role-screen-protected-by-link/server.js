@@ -3,9 +3,8 @@
 // plus de lien « Remise », mais l'écran de remise, atteint par son URL,
 // affiche le bouton « Remettre » à tous. Rien ne contrôle le rôle à la remise.
 // Issue attendue : mesure complète, `role-check/role-replay` et
-// `role-check/role-forced-browsing` échoués, le contrôle réussi. L'oracle, qui
-// attend le lien et « Remise réservée aux instructeurs » en agent, y relève
-// des échecs.
+// `role-check/role-forced-browsing` échoués, le contrôle réussi. Sans le lien, l'agent
+// n'atteint pas certains scénarios de l'oracle.
 import { createRelay, userOf } from "./relay.js";
 
 const RESERVED = "<p>Remise réservée aux instructeurs</p>";
