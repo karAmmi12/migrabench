@@ -13,7 +13,7 @@
 //    - `role-replay-control` : une nouvelle session d'instructeur refait la
 //      navigation jusqu'à la remise, sans cliquer, puis les requêtes
 //      enregistrées sont rejouées dans l'ordre, transplantées dans cette
-//      session (gates/role-transplant.ts). Réussi si le dossier est remis ;
+//      session (gates/transplant.ts). Réussi si le dossier est remis ;
 //    - `role-replay` : la même chose dans une session d'agent. Réussi si le
 //      dossier reste `EN_INSTRUCTION`. Si le contrôle n'a pas remis le
 //      dossier, `not-evaluable` avec le constat NOT_REPLAYABLE ; un dossier
@@ -25,22 +25,19 @@
 // `examined` : le nombre de requêtes rejouées pour les deux rejeux, le nombre
 // de tentatives pour l'accès direct.
 //
-// Le rejeu part du banc, en HTTP, sans suivre les redirections : chaque
-// requête enregistrée, redirections comprises, est rejouée une fois. Il ne
-// demande aucune compression (`accept-encoding` retiré), pour que les
-// réponses rejouées soient lisibles comme ce que la session a reçu.
+// Le rejeu part du banc (gates/replay.ts) : chaque requête enregistrée,
+// redirections comprises, est rejouée une fois.
 import { readFileSync } from "node:fs";
-import { request as httpRequest } from "node:http";
-import type { Browser, BrowserContext, Page } from "@playwright/test";
-import { connectBenchBrowser } from "../oracle/browser.ts";
+import type { Browser, Page } from "@playwright/test";
 import { button, goToSheet, goToSubmissionFromSheet, remiseLink } from "../oracle/navigation.ts";
-import { parseUsersWithoutUnknown, type Role } from "../scripts/users.ts";
+import type { Role } from "../scripts/users.ts";
 import { ROOT } from "../shared/root.ts";
 import type { GateContext } from "./context.ts";
 import type { Gate } from "./registry.ts";
 import { saveGateRaw } from "./raw.ts";
+import { applySetCookies, basic, benchCredentials, type Credentials, firstLine, newSession, sameOrigin, send, type Watched, watch, withBrowser } from "./replay.ts";
 import { judged, type JudgedResult } from "./result.ts";
-import { type Received, type ReceivedResponse, type RecordedRequest, type TransplantedValue, transplant, withoutPathParams } from "./role-transplant.ts";
+import { type Received, type ReceivedResponse, type RecordedRequest, type TransplantedValue, transplant, withoutPathParams } from "./transplant.ts";
 import { settle, trackNetwork } from "./settle.ts";
 
 // Jamais `role` seul : vocabulaire Java EE que la copie expurgée garde
@@ -57,11 +54,6 @@ const ROLE_TIMEOUT_MS = 15 * 60_000;
 const CLICK_TIMEOUT_MS = 10_000;
 // Clic d'essai sur un bouton « Remettre » : au-delà, il n'est pas cliquable.
 const TRIAL_CLICK_TIMEOUT_MS = 2_000;
-// Délai d'une requête rejouée. Valeur de conception.
-const REPLAY_TIMEOUT_MS = 30_000;
-// En-têtes de la requête enregistrée que le rejeu ne renvoie pas : posés par
-// le transport, ou qui demanderaient une réponse compressée.
-const NOT_REPLAYED_HEADERS = new Set(["host", "content-length", "connection", "accept-encoding", "keep-alive", "transfer-encoding"]);
 
 // Une tentative de rejeu : requêtes rejouées, statut du dossier après, valeurs
 // transplantées, réponses du candidat, et l'étape où la navigation de la
@@ -131,15 +123,11 @@ export function roleDossierOf(datasetJson: string): { number: string; subject: s
   return { number, subject: dossier.subject };
 }
 
-type Credentials = Record<Role, { username: string; password: string }>;
-
 interface Prepared {
-  credentials: Credentials;
+  credentials: Record<Role, Credentials>;
   number: string;
   subject: string;
 }
-
-const basic = ({ username, password }: { username: string; password: string }) => `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`;
 
 // Lecture de l'API interne en échec : une erreur de la porte, jamais un enregistrement manqué.
 class InternalApiFailed extends Error {}
@@ -149,54 +137,6 @@ async function statusOf(context: GateContext, number: string): Promise<string> {
   if (response.status !== 200) throw new InternalApiFailed(`Internal API: dossier ${number} read with status ${response.status}`);
   return (JSON.parse(response.body) as { status: string }).status;
 }
-
-const firstLine = (error: unknown) => (error instanceof Error ? (error.message.split("\n")[0] ?? "") : String(error));
-
-// Ce qu'une page reçoit, réponse par réponse, dans l'ordre d'arrivée, avec
-// le rang de chaque événement (réponse ou requête) dans la session.
-interface Watched {
-  responses: (ReceivedResponse & { sequence: number })[];
-  next(): number;
-  // Attend la lecture de chaque corps reçu.
-  done(): Promise<void>;
-}
-
-function watch(page: Page): Watched {
-  const responses: Watched["responses"] = [];
-  const pending: Promise<void>[] = [];
-  let sequence = 0;
-  page.on("response", (response) => {
-    const entry: { method: string; url: string; headers: { name: string; value: string }[]; body: string | null; sequence: number } = { method: response.request().method(), url: response.url(), headers: [], body: null, sequence: sequence++ };
-    responses.push(entry);
-    pending.push(
-      (async () => {
-        try {
-          entry.headers = await response.headersArray();
-          entry.body = (await response.body()).toString("utf8");
-        } catch {
-          // Redirection, ou corps que le navigateur ne rend plus : non lu.
-        }
-      })(),
-    );
-  });
-  return { responses, next: () => sequence++, done: async () => void (await Promise.all(pending)) };
-}
-
-async function withBrowser<T>(context: GateContext, run: (browser: Browser) => Promise<T>): Promise<T> {
-  const browser = await connectBenchBrowser(context.browserToken);
-  try {
-    return await run(browser);
-  } finally {
-    await browser.close();
-  }
-}
-
-async function newSession(browser: Browser, context: GateContext, credentials: { username: string; password: string }): Promise<{ browserContext: BrowserContext; page: Page }> {
-  const browserContext = await browser.newContext({ baseURL: context.candidateUrl, httpCredentials: credentials });
-  return { browserContext, page: await browserContext.newPage() };
-}
-
-const sameOrigin = (url: string, base: string) => new URL(url).origin === new URL(base).origin;
 
 // Enregistrement : ce que l'instructeur a reçu avant chaque requête émise
 // après son clic sur « Remettre ».
@@ -264,34 +204,6 @@ async function record(context: GateContext, prepared: Prepared): Promise<{ recor
   });
 }
 
-interface Sent {
-  status: number;
-  headers: { name: string; value: string }[];
-  body: string;
-  error?: string;
-}
-
-function send(request: RecordedRequest, signal: AbortSignal): Promise<Sent> {
-  const headers = Object.fromEntries(Object.entries(request.headers).filter(([name]) => !NOT_REPLAYED_HEADERS.has(name) && !name.startsWith(":")));
-  const body = request.body === null ? undefined : Buffer.from(request.body, "utf8");
-  if (body !== undefined) headers["content-length"] = String(body.length);
-  return new Promise((resolve) => {
-    const outgoing = httpRequest(request.url, { method: request.method, headers, signal, timeout: REPLAY_TIMEOUT_MS }, (response) => {
-      const chunks: Buffer[] = [];
-      response.on("data", (chunk: Buffer) => chunks.push(chunk));
-      response.on("end", () => {
-        const pairs: { name: string; value: string }[] = [];
-        for (let index = 0; index < response.rawHeaders.length; index += 2) pairs.push({ name: response.rawHeaders[index] ?? "", value: response.rawHeaders[index + 1] ?? "" });
-        resolve({ status: response.statusCode ?? 0, headers: pairs, body: Buffer.concat(chunks).toString("utf8") });
-      });
-      response.on("error", (error) => resolve({ status: 0, headers: [], body: "", error: firstLine(error) }));
-    });
-    outgoing.on("timeout", () => outgoing.destroy(new Error(`No response within ${REPLAY_TIMEOUT_MS} ms`)));
-    outgoing.on("error", (error) => resolve({ status: 0, headers: [], body: "", error: firstLine(error) }));
-    outgoing.end(body);
-  });
-}
-
 // Navigation de la session cible jusqu'à la remise, sans cliquer : le
 // chemin de l'instructeur, ou l'URL de la remise si le lien manque. Ce
 // qu'elle a reçu sert à la transplantation, même si elle s'est arrêtée.
@@ -318,19 +230,6 @@ async function targetSession(browser: Browser, context: GateContext, prepared: P
     await browserContext.close();
   }
   return { received: { cookies, responses: watched.responses }, ...(navigation === undefined ? {} : { navigation }) };
-}
-
-function applySetCookies(jar: Map<string, string>, headers: readonly { name: string; value: string }[]): void {
-  for (const { name, value } of headers) {
-    if (name.toLowerCase() !== "set-cookie") continue;
-    const [pair = ""] = value.split(";");
-    const equal = pair.indexOf("=");
-    if (equal <= 0) continue;
-    const cookie = pair.slice(0, equal).trim();
-    // Cookie effacé par le candidat : retiré du jar.
-    if (/;\s*max-age=(0|-\d+)\s*(;|$)/i.test(value)) jar.delete(cookie);
-    else jar.set(cookie, pair.slice(equal + 1).trim());
-  }
 }
 
 async function replayAs(role: Role, context: GateContext, prepared: Prepared, recording: Recording): Promise<{ attempt: ReplayAttempt; raw: unknown }> {
@@ -416,14 +315,8 @@ export const roleGate: Gate<Prepared> = {
   timeoutMs: ROLE_TIMEOUT_MS,
   // Entrées du banc : ses identités et le dossier de `gate:role`.
   prepare: async () => {
-    const users = parseUsersWithoutUnknown(readFileSync(`${ROOT}/fixtures/users.json`, "utf8"));
-    const credential = (role: Role) => {
-      const user = users.find((entry) => entry.role === role);
-      if (user === undefined) throw new Error(`No user with role ${role} in fixtures/users.json`);
-      return { username: user.username, password: user.password };
-    };
     const dossier = roleDossierOf(readFileSync(`${ROOT}/fixtures/legacy-app/src/main/resources/dossiers.json`, "utf8"));
-    return { credentials: { agent: credential("agent"), instructeur: credential("instructeur") }, ...dossier };
+    return { credentials: benchCredentials(), ...dossier };
   },
   examine: async (context, prepared) => {
     const save = async (file: string, content: unknown) => saveGateRaw(context.rawDir, GATE, file, `${JSON.stringify(content, null, 2)}\n`);

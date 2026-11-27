@@ -121,6 +121,17 @@ describe("dataset", () => {
     expect(dataset.reservations["gate:xss"]).toEqual(["D-0101", "D-0118"]);
   });
 
+  // La porte d'authentification enregistre puis rejoue un enregistrement de
+  // l'agent sur un BROUILLON, et un enregistrement puis une remise de
+  // l'instructeur sur un EN_INSTRUCTION (spec de l'étape 4, « Authentification »).
+  it("reserves D-0119, BROUILLON, and D-0120, EN_INSTRUCTION, to gate:auth alone", () => {
+    const status = (number: string) => dataset.dossiers.find((entry) => entry.number === number)?.status;
+
+    expect(dataset.reservations["gate:auth"]).toEqual(["D-0119", "D-0120"]);
+    expect(status("D-0119")).toBe("BROUILLON");
+    expect(status("D-0120")).toBe("EN_INSTRUCTION");
+  });
+
   it("reserves only dossiers that exist in the reserved range", () => {
     const reserved = new Set(dataset.dossiers.map((dossier) => dossier.number).filter(isReservedNumber));
 

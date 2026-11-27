@@ -1,0 +1,170 @@
+// Sonde de #132 : forme réelle de ce que la porte d'authentification lira sur
+// le legacy (port 8080, comme le relais de référence).
+// 1. session anonyme : BASE_URL sans identifiants (réponses, cookies) ;
+// 2. parcours de l'agent sur D-0117 (BROUILLON) : recherche, fiche, objet
+//    modifié, « Enregistrer » ; puis de l'instructeur sur D-0112
+//    (EN_INSTRUCTION) : recherche, fiche, enregistrement, remise, « Remettre ».
+//    Chaque requête émise (allHeaders, corps) et chaque réponse (corps) ;
+// 3. legacy redémarré, puis rejeu en Node de chaque requête enregistrée :
+//    a. sans Authorization ni cookie ;
+//    b. sans Authorization, avec le cookie JSESSIONID de la session anonyme ;
+//    statut, en-têtes, corps, numéros de dossier trouvés, état des dossiers.
+// Les dossiers gate:auth n'existent pas encore : D-0117 et D-0112 servent ici,
+// legacy redémarré à la fin.
+import { execFileSync } from "node:child_process";
+import { readFileSync, writeFileSync } from "node:fs";
+import { request as httpRequest } from "node:http";
+import type { BrowserContext, Page } from "@playwright/test";
+import { acquireBenchLockOrExit } from "../../shared/bench-lock.ts";
+import { connectBenchBrowser } from "../../oracle/browser.ts";
+import { fetchFromInternal, INTERNAL_API_URL } from "../../shared/internal-api.ts";
+import { button, field, goToSheet, goToSubmissionFromSheet } from "../../oracle/navigation.ts";
+
+const BASE = "http://127.0.0.1:8080";
+const NUMBERS = (JSON.parse(readFileSync("fixtures/legacy-app/src/main/resources/dossiers.json", "utf8")) as { dossiers: { number: string }[] }).dossiers.map(({ number }) => number);
+const found = (text: string) => NUMBERS.filter((number) => new RegExp(`\\b${number}\\b`).test(text));
+const state = async (number: string) => JSON.parse((await fetchFromInternal(`${INTERNAL_API_URL}/api/dossiers/${number}`)).body);
+const restart = () => {
+  execFileSync("docker", ["restart", "migrabench-legacy-1"]);
+  for (let i = 0; i < 90; i++) {
+    try {
+      const code = execFileSync("curl", ["-s", "-o", "/dev/null", "-w", "%{http_code}", `${BASE}/`]).toString();
+      if (code === "401") return;
+      execFileSync("sleep", ["1"]);
+    } catch {
+      execFileSync("sleep", ["1"]);
+    }
+  }
+  throw new Error("legacy not back");
+};
+
+interface Rec { step: string; method: string; url: string; headers: Record<string, string>; body: string | null }
+
+function watch(page: Page, current: () => string) {
+  const requests: Rec[] = [];
+  const responses: any[] = [];
+  const pending: Promise<unknown>[] = [];
+  page.on("request", (r) => {
+    const entry: Rec = { step: current(), method: r.method(), url: r.url(), headers: {}, body: r.postData() };
+    requests.push(entry);
+    pending.push(r.allHeaders().then((h) => void (entry.headers = h)));
+  });
+  page.on("response", (r) =>
+    pending.push(
+      (async () => {
+        let body: string | null = null;
+        let error: string | null = null;
+        try {
+          body = (await r.body()).toString("utf8");
+        } catch (e) {
+          error = String(e).split("\n")[0];
+        }
+        responses.push({ step: current(), method: r.request().method(), url: r.url(), status: r.status(), headers: await r.headersArray(), body, error });
+      })(),
+    ),
+  );
+  return { requests, responses, done: () => Promise.all(pending) };
+}
+
+async function session(credentials: { username: string; password: string } | undefined, run: (page: Page, setStep: (s: string) => void) => Promise<void>) {
+  const browser = await connectBenchBrowser();
+  const context: BrowserContext = await browser.newContext({ baseURL: BASE, ...(credentials ? { httpCredentials: credentials } : {}) });
+  const page = await context.newPage();
+  let step = "start";
+  const w = watch(page, () => step);
+  await run(page, (s) => (step = s));
+  await page.waitForLoadState("networkidle");
+  await w.done();
+  const cookies = (await context.cookies()).map(({ name, value }) => ({ name, value }));
+  await context.close();
+  await browser.close();
+  return { requests: w.requests, responses: w.responses, cookies };
+}
+
+function send(rec: Rec, cookie: string | undefined): Promise<any> {
+  const headers: Record<string, string> = {};
+  for (const [name, value] of Object.entries(rec.headers)) {
+    if (["host", "content-length", "connection", "accept-encoding", "authorization", "cookie"].includes(name) || name.startsWith(":")) continue;
+    headers[name] = value;
+  }
+  if (cookie) headers.cookie = cookie;
+  const body = rec.body === null ? undefined : Buffer.from(rec.body, "utf8");
+  if (body) headers["content-length"] = String(body.length);
+  return new Promise((resolve) => {
+    const req = httpRequest(rec.url, { method: rec.method, headers }, (res) => {
+      const chunks: Buffer[] = [];
+      res.on("data", (c) => chunks.push(c));
+      res.on("end", () => {
+        const text = Buffer.concat(chunks).toString("utf8");
+        resolve({ method: rec.method, url: rec.url, sentHeaders: headers, sentBody: rec.body, status: res.statusCode, headers: res.rawHeaders, body: text, numbersInBody: found(text), numbersInHeaders: found(res.rawHeaders.join("\n")) });
+      });
+    });
+    req.on("error", (e) => resolve({ method: rec.method, url: rec.url, error: String(e) }));
+    req.end(body);
+  });
+}
+
+const out: Record<string, any> = {};
+const lock = acquireBenchLockOrExit({ tool: "oracle" });
+try {
+  restart();
+  out.stateBefore = { "D-0117": await state("D-0117"), "D-0112": await state("D-0112") };
+  out.anonymous = await session(undefined, async (page) => {
+    await page.goto("/");
+  });
+  out.agent = await session({ username: "agent", password: "agent-mb" }, async (page, setStep) => {
+    setStep("sheet");
+    await goToSheet(page, "D-0117");
+    setStep("save");
+    await field(page, "Objet").fill("Objet modifié par la sonde de #132 (agent)");
+    await button(page, "Enregistrer").click();
+    await page.waitForLoadState("networkidle");
+  });
+  out.instructeur = await session({ username: "instructeur", password: "instructeur-mb" }, async (page, setStep) => {
+    setStep("sheet");
+    await goToSheet(page, "D-0112");
+    setStep("save");
+    await field(page, "Objet").fill("Objet modifié par la sonde de #132 (instructeur)");
+    await button(page, "Enregistrer").click();
+    await page.waitForLoadState("networkidle");
+    setStep("remise");
+    await goToSubmissionFromSheet(page, "Objet modifié par la sonde de #132 (instructeur)");
+    setStep("submit");
+    await button(page, "Remettre").click();
+    await page.waitForLoadState("networkidle");
+  });
+  out.stateAfterRecording = { "D-0117": await state("D-0117"), "D-0112": await state("D-0112") };
+  const recorded = [...out.agent.requests, ...out.instructeur.requests];
+  restart();
+  out.stateAfterRestart = { "D-0117": await state("D-0117"), "D-0112": await state("D-0112") };
+  out.replayNoCookie = [];
+  for (const rec of recorded) out.replayNoCookie.push(await send(rec, undefined));
+  out.stateAfterReplayNoCookie = { "D-0117": await state("D-0117"), "D-0112": await state("D-0112") };
+  const anonCookie = out.anonymous.cookies.map(({ name, value }: any) => `${name}=${value}`).join("; ");
+  out.anonymousCookieSent = anonCookie;
+  out.replayAnonymousCookie = [];
+  for (const rec of recorded) out.replayAnonymousCookie.push(await send(rec, anonCookie || undefined));
+  out.stateAfterReplayAnonymousCookie = { "D-0117": await state("D-0117"), "D-0112": await state("D-0112") };
+  restart();
+} finally {
+  lock.release();
+}
+writeFileSync(new URL("./probe-output.json", import.meta.url), `${JSON.stringify(out, null, 2)}\n`);
+const brief = (rs: any[]) => rs.map((r) => `${r.step ?? ""} ${r.method} ${r.status ?? ""} ${r.url} ${r.body === undefined ? "" : (r.body ?? "").length}`);
+console.log(
+  JSON.stringify(
+    {
+      stateBefore: out.stateBefore,
+      stateAfterRecording: out.stateAfterRecording,
+      stateAfterReplayNoCookie: out.stateAfterReplayNoCookie,
+      stateAfterReplayAnonymousCookie: out.stateAfterReplayAnonymousCookie,
+      anonymous: { responses: brief(out.anonymous.responses), cookies: out.anonymous.cookies },
+      agentRequests: out.agent.requests.map((r: Rec) => `${r.step} ${r.method} ${r.url} ${r.body ?? ""} auth=${"authorization" in r.headers} cookie=${r.headers.cookie ?? ""}`),
+      instructeurRequests: out.instructeur.requests.map((r: Rec) => `${r.step} ${r.method} ${r.url} ${r.body ?? ""} auth=${"authorization" in r.headers}`),
+      replayNoCookie: out.replayNoCookie.map((r: any) => `${r.method} ${r.status} ${r.url} body=${r.body?.length} nb=${r.numbersInBody} nh=${r.numbersInHeaders} ${r.error ?? ""}`),
+      replayAnonymousCookie: out.replayAnonymousCookie.map((r: any) => `${r.method} ${r.status} ${r.url} body=${r.body?.length} nb=${r.numbersInBody} nh=${r.numbersInHeaders} ${r.error ?? ""}`),
+    },
+    null,
+    2,
+  ),
+);

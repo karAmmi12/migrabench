@@ -47,7 +47,9 @@
     { "number": "D-0115", "applicant": "Hugo Perrault", "subject": "Déclaration d'un puits domestique", "status": "REMIS", "filedOn": "2025-04-22", "submittedOn": "2025-06-09" },
     { "number": "D-0116", "applicant": "Sébastien Morin", "subject": "Déclaration d'un abri pour vélos", "status": "REMIS", "filedOn": "2025-05-12", "submittedOn": "2025-07-03" },
     { "number": "D-0117", "applicant": "Martin Leroy", "subject": "Demande de branchement d'eau potable", "status": "BROUILLON", "filedOn": "2025-08-04" },
-    { "number": "D-0118", "applicant": "<img src=x onerror=\"window.__mbXss=1\">", "subject": "Second dossier réservé à la porte XSS", "status": "EN_INSTRUCTION", "filedOn": "2025-09-10" }
+    { "number": "D-0118", "applicant": "<img src=x onerror=\"window.__mbXss=1\">", "subject": "Second dossier réservé à la porte XSS", "status": "EN_INSTRUCTION", "filedOn": "2025-09-10" },
+    { "number": "D-0119", "applicant": "Odile Charpentier", "subject": "Demande d'installation d'une enseigne lumineuse", "status": "BROUILLON", "filedOn": "2025-09-22" },
+    { "number": "D-0120", "applicant": "Gaspard Lemoine", "subject": "Déclaration d'une clôture en limite de propriété", "status": "EN_INSTRUCTION", "filedOn": "2025-06-30" }
   ],
   "reservations": {
     "gate:xss": ["D-0101", "D-0118"],
@@ -64,6 +66,7 @@
     "gate:role": ["D-0112"],
     "test:internal-api": ["D-0113", "D-0114", "D-0115"],
     "scenario:sheet-ctrl-s-remis": ["D-0116"],
-    "test:relay-fidelity": ["D-0117"]
+    "test:relay-fidelity": ["D-0117"],
+    "gate:auth": ["D-0119", "D-0120"]
   }
 }

@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { NOT_REPLAYABLE, type ReplayAttempt, type RoleObservation, roleDossierOf, roleGate, roleResults } from "../../gates/role.ts";
-import { type Received, type RecordedRequest, transplant } from "../../gates/role-transplant.ts";
+import { type Received, type RecordedRequest, transplant } from "../../gates/transplant.ts";
 import { readJsonFixture } from "../real-fixtures.ts";
 
 interface ProbeSession {

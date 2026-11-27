@@ -88,7 +88,9 @@ jobs:
   # - defective : candidats défectueux 1 à 8 de l'étape 3 et panne de #68
   #   (9 min 30 s) ;
   # - xss : porte XSS (13 min) ;
-  # - role : porte de rôle (14 min 30 s).
+  # - role : porte de rôle (14 min 30 s) ;
+  # - auth : porte d'authentification (#132), délai de conception, à
+  #   resserrer d'après sa première durée relevée.
   # Chaque étape de mesure ne tourne que dans son groupe.
   measure-group:
     needs: changes
@@ -108,6 +110,8 @@ jobs:
           - group: xss
             timeout: 30
           - group: role
+            timeout: 30
+          - group: auth
             timeout: 30
     env:
       # Mesure comptée seulement sur main, lancée à la main.
@@ -252,7 +256,7 @@ jobs:
 
       # Porte de rôle (#131) : le test négatif est le candidat de référence,
       # dont le rejeu en agent remet le dossier. Chaque mesure redémarre trois
-      # fois le legacy (témoins start-2 à start-4). Ces relais ne changent que
+      # fois le legacy pour cette porte (témoins start-2 à start-4). Ces relais ne changent que
       # la fiche, la remise et la requête de remise.
       - name: Porte de rôle, bouton masqué dans la vue
         if: ${{ !cancelled() && matrix.group == 'role' }}
@@ -269,6 +273,18 @@ jobs:
       - name: Porte de rôle, candidat conforme avec jeton et contrôle de rôle
         if: ${{ !cancelled() && matrix.group == 'role' }}
         run: exec node scripts/run-measure-case.ts role-csrf-and-role-check
+
+      # Porte d'authentification (#132) : le legacy, par le candidat de
+      # référence, passe. Chaque mesure redémarre encore deux fois le legacy
+      # (témoins start-5 et start-6). Ces relais ne changent que l'exigence
+      # d'identifiants.
+      - name: Porte d'authentification, lecture et écriture sans contrôle
+        if: ${{ !cancelled() && matrix.group == 'auth' }}
+        run: exec node scripts/run-measure-case.ts auth-read-and-write-unchecked
+
+      - name: Porte d'authentification, jeton anti-CSRF et écriture sans contrôle
+        if: ${{ !cancelled() && matrix.group == 'auth' }}
+        run: exec node scripts/run-measure-case.ts auth-csrf-write-unchecked
 
       # La composition ajoutée par COMPOSE_FILE ne vaut que pour cette mesure :
       # la suivante recrée un legacy sain.
