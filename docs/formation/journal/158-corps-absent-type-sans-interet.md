@@ -94,7 +94,16 @@ La règle du commit `07d4d51` appliquée aux HAR des exécutions 45861318349 et
 `relay-forged-healthcheck` et `isolation-probe` restent `passed`, et
 `responseBodiesUnread` vaut 0 partout.
 
-> À vérifier après l'exécution de la CI de la PR : issues des témoins dans le job des mesures lancé sur la branche, avec le lien et le commit.
+Sur la vraie pile, job des mesures lancé sur la branche
+([exécution 45914452588](https://github.com/karAmmi12/migrabench/actions/runs/45914452588),
+commit `622d332`, succès), relevé dans l'artefact `measures` :
+
+| Mesure | Issue | Entrées | Constats | `responseBodiesAbsent` | `responseBodiesUnread` |
+|---|---|---|---|---|---|
+| `20261127T000426Z-622d332-reference-candidate` | `failed` | 152 | 7 | 5 | 0 |
+| `20261127T000716Z-622d332-defective-candidates-relay-alters-label` | `failed` | 164 | 7 | 3 | 0 |
+| `20261127T000958Z-622d332-defective-candidates-relay-forged-healthcheck` | `passed` | 38 | 0 | 38 | 0 |
+| `20261127T001042Z-622d332-conforming-candidates-relay-untouched` | `passed` | 38 | 0 | 38 | 0 |
 
 ## Pour aller plus loin
 
