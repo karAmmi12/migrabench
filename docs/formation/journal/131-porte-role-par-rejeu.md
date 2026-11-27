@@ -207,7 +207,17 @@ Le job entier passe de 12 min 43 s à 33 min, sous son délai de 45 min.
 malsaine, images d'une autre copie, témoin absent, candidat arrêté ou jamais
 disponible. Chacune passe par le vrai registre en `StackIncident`.
 
-> À vérifier après l'exécution de la CI de la PR : le lien de l'exécution des mesures sur le dernier commit, son head SHA, le résultat des quatre mesures de rôle (dont « lien seul » à 33/0/5) et la durée du job ; le résultat des jobs `tests` et `typecheck`.
+**CI de la PR #162**, sur le commit `081fa1c` :
+
+- [tests](https://github.com/karAmmi12/migrabench/actions/runs/46007467336) :
+  `Test Files  100 passed (100)`, `Tests  1126 passed (1126)` ;
+- [typecheck](https://github.com/karAmmi12/migrabench/actions/runs/46007467469) :
+  succès ;
+- [mesures](https://github.com/karAmmi12/migrabench/actions/runs/46007467425) :
+  la référence et les quatre candidats de rôle sont contrôlés sans écart par
+  `scripts/run-measure-case.ts`. Ce contrôle couvre les issues de la porte,
+  `start-1` à `start-4` et la clôture `ok`, ainsi que 33/0/5 pour « lien
+  seul ». La référence dure 2 min 16 s, et le job entier 32 min 49 s.
 
 ## Pour aller plus loin
 
