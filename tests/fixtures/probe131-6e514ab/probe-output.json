@@ -1,0 +1,479 @@
+{
+  "before": "EN_INSTRUCTION",
+  "instructeur": {
+    "responses": [
+      {
+        "afterClick": false,
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "2604"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 12:36:19 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          },
+          {
+            "name": "Set-Cookie",
+            "value": "JSESSIONID=632F0457303128C496D363C4725B8A6C; Path=/; HttpOnly"
+          }
+        ],
+        "bodyLength": 2599,
+        "body": "\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Recherche de dossiers</title>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Recherche de dossiers</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            \n            <form name=\"searchForm\" method=\"get\" action=\"/rechercher.do;jsessionid=632F0457303128C496D363C4725B8A6C\">\n              <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n                <tr>\n                  <td><label for=\"number\">Numéro</label></td>\n                  <td><input type=\"text\" name=\"number\" size=\"10\" value=\"\" id=\"number\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"applicant\">Demandeur</label></td>\n                  <td><input type=\"text\" name=\"applicant\" size=\"30\" value=\"\" id=\"applicant\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"status\">Statut</label></td>\n                  <td>\n                    <select name=\"status\" id=\"status\"><option value=\"\">Tous</option>\n                      <option value=\"BROUILLON\">Brouillon</option>\n                      <option value=\"EN_INSTRUCTION\">En instruction</option>\n                      <option value=\"REMIS\">Remis</option></select>\n                  </td>\n                </tr>\n                <tr>\n                  <td><label for=\"filedFrom\">Déposé du</label></td>\n                  <td><input type=\"text\" name=\"filedFrom\" size=\"10\" value=\"\" id=\"filedFrom\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"filedTo\">Déposé au</label></td>\n                  <td><input type=\"text\" name=\"filedTo\" size=\"10\" value=\"\" id=\"filedTo\"></td>\n                </tr>\n                <tr>\n                  <td>&nbsp;</td>\n                  <td><input type=\"submit\" value=\"Rechercher\"></td>\n                </tr>\n              </table>\n            </form>\n<script type=\"text/javascript\" language=\"JavaScript\">\n  <!--\n  var focusControl = document.forms[\"searchForm\"].elements[\"number\"];\n\n  if (focusControl != null && focusControl.type != \"hidden\" && !focusControl.disabled && focusControl.style.display != \"none\") {\n     focusControl.focus();\n  }\n  // -->\n</script>\n\n          </td>\n        </tr>\n        \n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      },
+      {
+        "afterClick": false,
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/rechercher.do;jsessionid=632F0457303128C496D363C4725B8A6C?number=D-0112&applicant=&status=&filedFrom=&filedTo=",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "3369"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 12:36:19 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          },
+          {
+            "name": "Set-Cookie",
+            "value": "JSESSIONID=646774F69792907C229C76DF965D3AC9; Path=/; HttpOnly"
+          }
+        ],
+        "bodyLength": 3358,
+        "body": "\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Recherche de dossiers</title>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Recherche de dossiers</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            \n            <form name=\"searchForm\" method=\"get\" action=\"/rechercher.do\">\n              <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n                <tr>\n                  <td><label for=\"number\">Numéro</label></td>\n                  <td><input type=\"text\" name=\"number\" size=\"10\" value=\"D-0112\" id=\"number\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"applicant\">Demandeur</label></td>\n                  <td><input type=\"text\" name=\"applicant\" size=\"30\" value=\"\" id=\"applicant\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"status\">Statut</label></td>\n                  <td>\n                    <select name=\"status\" id=\"status\"><option value=\"\" selected=\"selected\">Tous</option>\n                      <option value=\"BROUILLON\">Brouillon</option>\n                      <option value=\"EN_INSTRUCTION\">En instruction</option>\n                      <option value=\"REMIS\">Remis</option></select>\n                  </td>\n                </tr>\n                <tr>\n                  <td><label for=\"filedFrom\">Déposé du</label></td>\n                  <td><input type=\"text\" name=\"filedFrom\" size=\"10\" value=\"\" id=\"filedFrom\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"filedTo\">Déposé au</label></td>\n                  <td><input type=\"text\" name=\"filedTo\" size=\"10\" value=\"\" id=\"filedTo\"></td>\n                </tr>\n                <tr>\n                  <td>&nbsp;</td>\n                  <td><input type=\"submit\" value=\"Rechercher\"></td>\n                </tr>\n              </table>\n            </form>\n<script type=\"text/javascript\" language=\"JavaScript\">\n  <!--\n  var focusControl = document.forms[\"searchForm\"].elements[\"number\"];\n\n  if (focusControl != null && focusControl.type != \"hidden\" && !focusControl.disabled && focusControl.style.display != \"none\") {\n     focusControl.focus();\n  }\n  // -->\n</script>\n\n          </td>\n        </tr>\n        \n        <tr>\n          <td>\n            \n            \n              <table border=\"1\" cellpadding=\"3\" cellspacing=\"0\">\n                <tr>\n                  <th>Numéro</th>\n                  <th>Demandeur</th>\n                  <th>Objet</th>\n                  <th>Statut</th>\n                  <th>Déposé le</th>\n                </tr>\n                \n                <tr>\n                  <td><a href=\"/fiche.do?number=D-0112\">D-0112</a></td>\n                  \n                  <td>Maïwenn O'Neill</td>\n                  <td>Demande d&#39;autorisation de « vide-grenier »</td>\n                  <td>En instruction</td>\n                  <td>18/08/2025</td>\n                </tr>\n                \n              </table>\n            \n          </td>\n        </tr>\n        \n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      },
+      {
+        "afterClick": false,
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "2708"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 12:36:19 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          }
+        ],
+        "bodyLength": 2702,
+        "body": "\n\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Fiche dossier</title>\n\n<script type=\"text/javascript\">\ndocument.onkeydown = function (event) {\n  event = event || window.event;\n  if (event.ctrlKey && event.keyCode == 83) {\n    if (event.preventDefault) {\n      event.preventDefault();\n    } else {\n      event.returnValue = false;\n    }\n\n    document.forms[\"dossierForm\"].submit();\n\n    return false;\n  }\n};\n</script>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Fiche dossier</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            \n            <form name=\"dossierForm\" method=\"post\" action=\"/enregistrer.do\">\n              <input type=\"hidden\" name=\"number\" value=\"D-0112\">\n              \n              <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n                <tr>\n                  <td>Numéro</td>\n                  <td>D-0112</td>\n                </tr>\n                <tr>\n                  <td>Statut</td>\n                  <td>En instruction</td>\n                </tr>\n                <tr>\n                  <td>Déposé le</td>\n                  <td>18/08/2025</td>\n                </tr>\n                <tr>\n                  <td><label for=\"applicant\">Demandeur</label></td>\n                  <td><input type=\"text\" name=\"applicant\" size=\"50\" tabindex=\"2\" value=\"Maïwenn O&#39;Neill\" readonly=\"readonly\" id=\"applicant\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"subject\">Objet</label></td>\n                  <td><input type=\"text\" name=\"subject\" size=\"80\" tabindex=\"1\" value=\"Demande d&#39;autorisation de « vide-grenier »\" id=\"subject\"></td>\n                </tr>\n                \n                <tr>\n                  <td>&nbsp;</td>\n                  <td><input type=\"submit\" tabindex=\"3\" value=\"Enregistrer\"></td>\n                </tr>\n                \n              </table>\n            </form>\n<script type=\"text/javascript\" language=\"JavaScript\">\n  <!--\n  var focusControl = document.forms[\"dossierForm\"].elements[\"subject\"];\n\n  if (focusControl != null && focusControl.type != \"hidden\" && !focusControl.disabled && focusControl.style.display != \"none\") {\n     focusControl.focus();\n  }\n  // -->\n</script>\n\n            \n            <p><a href=\"/remise.do?number=D-0112\">Remise</a></p>\n            \n          </td>\n        </tr>\n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      },
+      {
+        "afterClick": false,
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/remise.do?number=D-0112",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "1572"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 12:36:19 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          }
+        ],
+        "bodyLength": 1566,
+        "body": "\n\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Remise du dossier</title>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Remise du dossier</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n              <tr>\n                <td>Numéro</td>\n                <td>D-0112</td>\n              </tr>\n              <tr>\n                <td>Demandeur</td>\n                <td>Maïwenn O&#39;Neill</td>\n              </tr>\n              <tr>\n                <td>Objet</td>\n                <td>Demande d&#39;autorisation de « vide-grenier »</td>\n              </tr>\n              <tr>\n                <td>Statut</td>\n                <td>En instruction</td>\n              </tr>\n              <tr>\n                <td>Déposé le</td>\n                <td>18/08/2025</td>\n              </tr>\n            </table>\n          </td>\n        </tr>\n        <tr>\n          <td>\n\n\n\n            <form name=\"dossierForm\" method=\"post\" action=\"/remettre.do\">\n              <input type=\"hidden\" name=\"number\" value=\"D-0112\">\n              <input type=\"submit\" value=\"Remettre\">\n            </form>\n\n\n\n\n          </td>\n        </tr>\n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      },
+      {
+        "afterClick": true,
+        "method": "POST",
+        "url": "http://127.0.0.1:8080/remettre.do",
+        "status": 302,
+        "headers": [
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "0"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 12:36:20 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          },
+          {
+            "name": "Location",
+            "value": "/remise.do?number=D-0112"
+          }
+        ],
+        "bodyLength": null,
+        "body": null,
+        "error": "Error: response.body: Response body is unavailable for redirect responses"
+      },
+      {
+        "afterClick": true,
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/remise.do?number=D-0112",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "1536"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 12:36:20 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          }
+        ],
+        "bodyLength": 1529,
+        "body": "\n\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Remise du dossier</title>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Remise du dossier</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n              <tr>\n                <td>Numéro</td>\n                <td>D-0112</td>\n              </tr>\n              <tr>\n                <td>Demandeur</td>\n                <td>Maïwenn O&#39;Neill</td>\n              </tr>\n              <tr>\n                <td>Objet</td>\n                <td>Demande d&#39;autorisation de « vide-grenier »</td>\n              </tr>\n              <tr>\n                <td>Statut</td>\n                <td>Remis</td>\n              </tr>\n              <tr>\n                <td>Déposé le</td>\n                <td>18/08/2025</td>\n              </tr>\n            </table>\n          </td>\n        </tr>\n        <tr>\n          <td>\n\n\n            <p>Dossier remis le 15/11/2025</p>\n\n            <p><a href=\"http://localhost:8090/accuse-de-remise?jeton=mbtemoin-7c41e9a2b58d306f&amp;numero=D-0112\">Accusé de remise</a></p>\n\n\n          </td>\n        </tr>\n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      }
+    ],
+    "posted": [
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:8080/remettre.do",
+        "headers": {
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "authorization": "Basic aW5zdHJ1Y3RldXI6aW5zdHJ1Y3RldXItbWI=",
+          "cache-control": "no-cache",
+          "connection": "keep-alive",
+          "content-length": "13",
+          "content-type": "application/x-www-form-urlencoded",
+          "cookie": "JSESSIONID=646774F69792907C229C76DF965D3AC9",
+          "host": "127.0.0.1:8080",
+          "origin": "http://127.0.0.1:8080",
+          "pragma": "no-cache",
+          "referer": "http://127.0.0.1:8080/remise.do?number=D-0112",
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+          "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Linux\""
+        },
+        "body": "number=D-0112"
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/remise.do?number=D-0112",
+        "headers": {
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "authorization": "Basic aW5zdHJ1Y3RldXI6aW5zdHJ1Y3RldXItbWI=",
+          "cache-control": "no-cache",
+          "connection": "keep-alive",
+          "cookie": "JSESSIONID=646774F69792907C229C76DF965D3AC9",
+          "host": "127.0.0.1:8080",
+          "pragma": "no-cache",
+          "referer": "http://127.0.0.1:8080/remise.do?number=D-0112",
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-user": "?1",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/159.0.8154.6 Safari/537.36",
+          "sec-ch-ua": "\"HeadlessChrome\";v=\"159\", \"Not/A)Brand\";v=\"8\", \"Chromium\";v=\"159\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"Linux\""
+        },
+        "body": null
+      }
+    ],
+    "cookies": [
+      {
+        "name": "JSESSIONID",
+        "value": "646774F69792907C229C76DF965D3AC9",
+        "domain": "127.0.0.1",
+        "path": "/",
+        "expires": -1,
+        "httpOnly": true,
+        "secure": false,
+        "sameSite": "Lax"
+      }
+    ]
+  },
+  "afterInstructeur": "REMIS",
+  "afterRestart": "EN_INSTRUCTION",
+  "agent": {
+    "responses": [
+      {
+        "afterClick": false,
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "2604"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 12:37:23 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          },
+          {
+            "name": "Set-Cookie",
+            "value": "JSESSIONID=6E364F829B9E8D2C60A6FEEAE3CA7D60; Path=/; HttpOnly"
+          }
+        ],
+        "bodyLength": 2599,
+        "body": "\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Recherche de dossiers</title>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Recherche de dossiers</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            \n            <form name=\"searchForm\" method=\"get\" action=\"/rechercher.do;jsessionid=6E364F829B9E8D2C60A6FEEAE3CA7D60\">\n              <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n                <tr>\n                  <td><label for=\"number\">Numéro</label></td>\n                  <td><input type=\"text\" name=\"number\" size=\"10\" value=\"\" id=\"number\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"applicant\">Demandeur</label></td>\n                  <td><input type=\"text\" name=\"applicant\" size=\"30\" value=\"\" id=\"applicant\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"status\">Statut</label></td>\n                  <td>\n                    <select name=\"status\" id=\"status\"><option value=\"\">Tous</option>\n                      <option value=\"BROUILLON\">Brouillon</option>\n                      <option value=\"EN_INSTRUCTION\">En instruction</option>\n                      <option value=\"REMIS\">Remis</option></select>\n                  </td>\n                </tr>\n                <tr>\n                  <td><label for=\"filedFrom\">Déposé du</label></td>\n                  <td><input type=\"text\" name=\"filedFrom\" size=\"10\" value=\"\" id=\"filedFrom\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"filedTo\">Déposé au</label></td>\n                  <td><input type=\"text\" name=\"filedTo\" size=\"10\" value=\"\" id=\"filedTo\"></td>\n                </tr>\n                <tr>\n                  <td>&nbsp;</td>\n                  <td><input type=\"submit\" value=\"Rechercher\"></td>\n                </tr>\n              </table>\n            </form>\n<script type=\"text/javascript\" language=\"JavaScript\">\n  <!--\n  var focusControl = document.forms[\"searchForm\"].elements[\"number\"];\n\n  if (focusControl != null && focusControl.type != \"hidden\" && !focusControl.disabled && focusControl.style.display != \"none\") {\n     focusControl.focus();\n  }\n  // -->\n</script>\n\n          </td>\n        </tr>\n        \n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      },
+      {
+        "afterClick": false,
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/rechercher.do;jsessionid=6E364F829B9E8D2C60A6FEEAE3CA7D60?number=D-0112&applicant=&status=&filedFrom=&filedTo=",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "3369"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 12:37:23 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          },
+          {
+            "name": "Set-Cookie",
+            "value": "JSESSIONID=0B66B15A2203CE963E75E5C27FFD4102; Path=/; HttpOnly"
+          }
+        ],
+        "bodyLength": 3358,
+        "body": "\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Recherche de dossiers</title>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Recherche de dossiers</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            \n            <form name=\"searchForm\" method=\"get\" action=\"/rechercher.do\">\n              <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n                <tr>\n                  <td><label for=\"number\">Numéro</label></td>\n                  <td><input type=\"text\" name=\"number\" size=\"10\" value=\"D-0112\" id=\"number\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"applicant\">Demandeur</label></td>\n                  <td><input type=\"text\" name=\"applicant\" size=\"30\" value=\"\" id=\"applicant\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"status\">Statut</label></td>\n                  <td>\n                    <select name=\"status\" id=\"status\"><option value=\"\" selected=\"selected\">Tous</option>\n                      <option value=\"BROUILLON\">Brouillon</option>\n                      <option value=\"EN_INSTRUCTION\">En instruction</option>\n                      <option value=\"REMIS\">Remis</option></select>\n                  </td>\n                </tr>\n                <tr>\n                  <td><label for=\"filedFrom\">Déposé du</label></td>\n                  <td><input type=\"text\" name=\"filedFrom\" size=\"10\" value=\"\" id=\"filedFrom\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"filedTo\">Déposé au</label></td>\n                  <td><input type=\"text\" name=\"filedTo\" size=\"10\" value=\"\" id=\"filedTo\"></td>\n                </tr>\n                <tr>\n                  <td>&nbsp;</td>\n                  <td><input type=\"submit\" value=\"Rechercher\"></td>\n                </tr>\n              </table>\n            </form>\n<script type=\"text/javascript\" language=\"JavaScript\">\n  <!--\n  var focusControl = document.forms[\"searchForm\"].elements[\"number\"];\n\n  if (focusControl != null && focusControl.type != \"hidden\" && !focusControl.disabled && focusControl.style.display != \"none\") {\n     focusControl.focus();\n  }\n  // -->\n</script>\n\n          </td>\n        </tr>\n        \n        <tr>\n          <td>\n            \n            \n              <table border=\"1\" cellpadding=\"3\" cellspacing=\"0\">\n                <tr>\n                  <th>Numéro</th>\n                  <th>Demandeur</th>\n                  <th>Objet</th>\n                  <th>Statut</th>\n                  <th>Déposé le</th>\n                </tr>\n                \n                <tr>\n                  <td><a href=\"/fiche.do?number=D-0112\">D-0112</a></td>\n                  \n                  <td>Maïwenn O'Neill</td>\n                  <td>Demande d&#39;autorisation de « vide-grenier »</td>\n                  <td>En instruction</td>\n                  <td>18/08/2025</td>\n                </tr>\n                \n              </table>\n            \n          </td>\n        </tr>\n        \n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      },
+      {
+        "afterClick": false,
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/fiche.do?number=D-0112",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "2708"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 12:37:23 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          }
+        ],
+        "bodyLength": 2702,
+        "body": "\n\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Fiche dossier</title>\n\n<script type=\"text/javascript\">\ndocument.onkeydown = function (event) {\n  event = event || window.event;\n  if (event.ctrlKey && event.keyCode == 83) {\n    if (event.preventDefault) {\n      event.preventDefault();\n    } else {\n      event.returnValue = false;\n    }\n\n    document.forms[\"dossierForm\"].submit();\n\n    return false;\n  }\n};\n</script>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Fiche dossier</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            \n            <form name=\"dossierForm\" method=\"post\" action=\"/enregistrer.do\">\n              <input type=\"hidden\" name=\"number\" value=\"D-0112\">\n              \n              <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n                <tr>\n                  <td>Numéro</td>\n                  <td>D-0112</td>\n                </tr>\n                <tr>\n                  <td>Statut</td>\n                  <td>En instruction</td>\n                </tr>\n                <tr>\n                  <td>Déposé le</td>\n                  <td>18/08/2025</td>\n                </tr>\n                <tr>\n                  <td><label for=\"applicant\">Demandeur</label></td>\n                  <td><input type=\"text\" name=\"applicant\" size=\"50\" tabindex=\"2\" value=\"Maïwenn O&#39;Neill\" readonly=\"readonly\" id=\"applicant\"></td>\n                </tr>\n                <tr>\n                  <td><label for=\"subject\">Objet</label></td>\n                  <td><input type=\"text\" name=\"subject\" size=\"80\" tabindex=\"1\" value=\"Demande d&#39;autorisation de « vide-grenier »\" id=\"subject\"></td>\n                </tr>\n                \n                <tr>\n                  <td>&nbsp;</td>\n                  <td><input type=\"submit\" tabindex=\"3\" value=\"Enregistrer\"></td>\n                </tr>\n                \n              </table>\n            </form>\n<script type=\"text/javascript\" language=\"JavaScript\">\n  <!--\n  var focusControl = document.forms[\"dossierForm\"].elements[\"subject\"];\n\n  if (focusControl != null && focusControl.type != \"hidden\" && !focusControl.disabled && focusControl.style.display != \"none\") {\n     focusControl.focus();\n  }\n  // -->\n</script>\n\n            \n            <p><a href=\"/remise.do?number=D-0112\">Remise</a></p>\n            \n          </td>\n        </tr>\n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      },
+      {
+        "afterClick": false,
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/remise.do?number=D-0112",
+        "status": 200,
+        "headers": [
+          {
+            "name": "Cache-Control",
+            "value": "private"
+          },
+          {
+            "name": "Connection",
+            "value": "keep-alive"
+          },
+          {
+            "name": "Content-Length",
+            "value": "1414"
+          },
+          {
+            "name": "Content-Type",
+            "value": "text/html;charset=UTF-8"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Nov 2026 12:37:23 GMT"
+          },
+          {
+            "name": "Keep-Alive",
+            "value": "timeout=20"
+          }
+        ],
+        "bodyLength": 1406,
+        "body": "\n\n\n\n\n<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Remise du dossier</title>\n</head>\n<body>\n\n<table width=\"100%\" border=\"0\" cellpadding=\"4\" cellspacing=\"0\">\n  <tr>\n    <td bgcolor=\"#336699\"><font color=\"#ffffff\"><h1>Remise du dossier</h1></font></td>\n  </tr>\n  <tr>\n    <td>\n      <table width=\"100%\" border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n        <tr>\n          <td>\n            \n            <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\">\n              <tr>\n                <td>Numéro</td>\n                <td>D-0112</td>\n              </tr>\n              <tr>\n                <td>Demandeur</td>\n                <td>Maïwenn O&#39;Neill</td>\n              </tr>\n              <tr>\n                <td>Objet</td>\n                <td>Demande d&#39;autorisation de « vide-grenier »</td>\n              </tr>\n              <tr>\n                <td>Statut</td>\n                <td>En instruction</td>\n              </tr>\n              <tr>\n                <td>Déposé le</td>\n                <td>18/08/2025</td>\n              </tr>\n            </table>\n          </td>\n        </tr>\n        <tr>\n          <td>\n\n\n\n            <p>Remise réservée aux instructeurs</p>\n\n\n\n\n          </td>\n        </tr>\n      </table>\n    </td>\n  </tr>\n</table>\n</body>\n</html>\n",
+        "error": null
+      }
+    ],
+    "posted": [],
+    "cookies": [
+      {
+        "name": "JSESSIONID",
+        "value": "0B66B15A2203CE963E75E5C27FFD4102",
+        "domain": "127.0.0.1",
+        "path": "/",
+        "expires": -1,
+        "httpOnly": true,
+        "secure": false,
+        "sameSite": "Lax"
+      }
+    ]
+  },
+  "replay": {
+    "status": 302,
+    "headers": [
+      "Location",
+      "/remise.do?number=D-0112",
+      "Content-Type",
+      "text/html",
+      "Content-Length",
+      "0",
+      "Date",
+      "Fri, 27 Nov 2026 12:37:24 GMT",
+      "Keep-Alive",
+      "timeout=20",
+      "Connection",
+      "keep-alive"
+    ],
+    "body": ""
+  },
+  "afterAgentReplay": "REMIS",
+  "final": "EN_INSTRUCTION"
+}

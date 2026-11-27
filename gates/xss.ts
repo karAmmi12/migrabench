@@ -43,6 +43,7 @@ import { SCREENS, type Screen, type Unreached } from "./accessibility.ts";
 import type { GateContext } from "./context.ts";
 import type { Gate } from "./registry.ts";
 import { saveGateRaw } from "./raw.ts";
+import { settle, trackNetwork } from "./settle.ts";
 import { judged, type JudgedResult } from "./result.ts";
 
 const GATE = "xss";
@@ -54,14 +55,7 @@ const IDENTITY: Record<Screen, Role> = { search: "agent", sheet: "agent", submis
 
 // Longueur gardée d'une valeur écrite : le candidat la choisit.
 export const XSS_WRITE_LIMIT = 200;
-// Attente du réseau au repos avant de juger : aucune requête en cours pendant
-// IDLE_MS (la règle de `networkidle` de Playwright), au plus pendant
-// NETWORK_IDLE_TIMEOUT_MS. Puis SETTLE_MS, pour une injection lancée par un
-// minuteur après la dernière réponse. Valeurs de conception, étalonnées par
-// #100.
-const IDLE_MS = 500;
-const NETWORK_IDLE_TIMEOUT_MS = 15_000;
-const SETTLE_MS = 1_000;
+// Attente du réseau au repos avant de juger : gates/settle.ts.
 // Délai de conception de la porte : trois écrans, chacun avec ses attentes.
 const XSS_TIMEOUT_MS = 180_000;
 // Attente de la ligne du dossier sur la recherche, au-delà de laquelle elle est
@@ -170,28 +164,6 @@ async function arm(browserContext: BrowserContext): Promise<XssWrite[]> {
   return received;
 }
 
-// Attend que le réseau de la page soit au repos (voir IDLE_MS), puis SETTLE_MS.
-// Rend faux si le réseau n'a pas été au repos à temps.
-async function settle(page: Page, inFlight: () => number): Promise<boolean> {
-  const deadline = Date.now() + NETWORK_IDLE_TIMEOUT_MS;
-  let idleSince: number | undefined;
-  let idle = false;
-  while (Date.now() < deadline) {
-    if (inFlight() === 0) {
-      idleSince ??= Date.now();
-      if (Date.now() - idleSince >= IDLE_MS) {
-        idle = true;
-        break;
-      }
-    } else {
-      idleSince = undefined;
-    }
-    await page.waitForTimeout(50);
-  }
-  await page.waitForTimeout(SETTLE_MS);
-  return idle;
-}
-
 interface Prepared {
   browser: Browser;
   credentials: Record<Role, { username: string; password: string }>;
@@ -220,11 +192,7 @@ async function visit(screen: Screen, prepared: Prepared, context: GateContext): 
   try {
     const received = await arm(browserContext);
     const page = await browserContext.newPage();
-    let inFlight = 0;
-    page.on("request", () => (inFlight += 1));
-    page.on("requestfinished", () => (inFlight -= 1));
-    page.on("requestfailed", () => (inFlight -= 1));
-    const pending = () => inFlight;
+    const pending = trackNetwork(page);
     let step = "";
     // Index de la première écriture qui compte pour l'écran.
     let boundary = 0;

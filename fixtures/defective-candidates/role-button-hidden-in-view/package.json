@@ -1,0 +1,7 @@
+{
+  "name": "role-button-hidden-in-view",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Candidat défectueux de la porte de rôle : bouton de remise masqué dans la vue, sans contrôle de rôle.",
+  "type": "module"
+}

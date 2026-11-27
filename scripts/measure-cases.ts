@@ -32,6 +32,9 @@ export interface MeasureCase {
   summary?: { passed?: number; failed?: number | "at-least-one"; unreached?: number };
   // Requêtes témoins de début et de fin dans le journal d'accès.
   witnesses?: boolean;
+  // Requêtes témoins de début attendues, exactement et dans l'ordre : une par
+  // démarrage du candidat, redémarrages du legacy par une porte compris (#131).
+  startWitnesses?: string[];
   // Mesure prévue pour compter : `counted`, arbre propre, origin/main connu.
   counted?: boolean;
   // Résultats de portes attendus (#124) : leur issue, et un texte qu'un de
@@ -68,6 +71,16 @@ const LIGHTHOUSE_NOT_EVALUABLE = { ...LIGHTHOUSE, outcome: "not-evaluable" as co
 // Le legacy rend la charge en HTML sur la recherche : il échoue à ses deux
 // résultats (décision de Karim, #129), et passe la fiche et la remise.
 const XSS_LEGACY = xss({ "executed/search": "failed", "as-text/search": "failed" });
+// Porte de rôle (#131) : ses trois résultats nommés, réussis sauf ceux donnés.
+type RoleName = "role-replay-control" | "role-replay" | "role-forced-browsing";
+const role = (outcomes: Partial<Record<RoleName, GateOutcome>> = {}, others: GateOutcome = "passed") =>
+  (["role-replay-control", "role-replay", "role-forced-browsing"] as const).map((name) => ({ gate: "role-check", name, outcome: outcomes[name] ?? others }));
+// Le legacy : l'agent remet le dossier par le rejeu, mais ne voit aucun
+// bouton « Remettre ».
+const ROLE_LEGACY = role({ "role-replay": "failed" });
+// La remise enregistrée, puis trois redémarrages du legacy, chacun avec sa
+// requête témoin.
+const ROLE_RESTARTS = ["start-1", "start-2", "start-3", "start-4"];
 // Candidats XSS : des relais du legacy qui ne réécrivent que les pages
 // porteuses de la charge. L'oracle n'y regarde pas : 38 scénarios réussis.
 // Comme le legacy, ils laissent passer la valeur témoin.
@@ -80,7 +93,23 @@ const xssCase = (candidate: string, gates: MeasureCase["gates"]): MeasureCase =>
   oracleJson: "kept",
   summary: { passed: 38, failed: 0, unreached: 0 },
   witnesses: true,
-  gates: [{ ...WITNESS_VALUE, outcome: "failed" }, ...(gates ?? []), { ...RELAY, outcome: "failed" }],
+  gates: [{ ...WITNESS_VALUE, outcome: "failed" }, ...(gates ?? []), ...ROLE_LEGACY, { ...RELAY, outcome: "failed" }],
+});
+// Candidats de la porte de rôle : des relais du legacy qui ne changent que la
+// fiche, la remise et la requête de remise. Comme le legacy, ils échouent à la
+// valeur témoin, à XSS sur la recherche et au relais.
+const roleCase = (candidate: string, gates: MeasureCase["gates"], summary: MeasureCase["summary"] = { passed: 38, failed: 0, unreached: 0 }): MeasureCase => ({
+  candidate,
+  exitCode: 0,
+  category: "completed",
+  reason: "ok",
+  phases: { gates: "ok", closing: "ok" },
+  oracleExecuted: true,
+  oracleJson: "kept",
+  summary,
+  witnesses: true,
+  startWitnesses: ROLE_RESTARTS,
+  gates: [{ ...WITNESS_VALUE, outcome: "failed" }, ...XSS_LEGACY, ...(gates ?? []), { ...RELAY, outcome: "failed" }],
 });
 // Candidat qui n'affiche aucun écran : rien d'examiné.
 const ACCESSIBILITY_NOT_EVALUABLE = accessibility({ tables: "not-evaluable", axe: { critical: "not-evaluable", serious: "not-evaluable", moderate: "not-evaluable", minor: "not-evaluable" } });
@@ -98,6 +127,7 @@ const reference: MeasureCase = {
   oracleJson: "kept",
   summary: { passed: 38, failed: 0, unreached: 0 },
   witnesses: true,
+  startWitnesses: ROLE_RESTARTS,
   // Le relais appelle le port 8080 du legacy : le test négatif de la porte.
   // Le legacy échoue aux tableaux sur chaque écran, et axe y relève une
   // violation critique (`image-alt`) et une sérieuse (`html-has-lang`). Le
@@ -108,6 +138,7 @@ const reference: MeasureCase = {
     ...accessibility({ tables: "failed", axe: { critical: "failed", serious: "failed", moderate: "passed", minor: "passed" } }),
     ...XSS_LEGACY,
     { ...LIGHTHOUSE, outcome: "measured" },
+    ...ROLE_LEGACY,
     { ...RELAY, outcome: "failed" },
   ],
 };
@@ -171,7 +202,7 @@ export const MEASURE_CASES = {
     oracleExecuted: true,
     oracleJson: "kept",
     witnesses: true,
-    gates: [{ ...WITNESS_VALUE, outcome: "passed" }, ...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), LIGHTHOUSE_NOT_EVALUABLE, { ...RELAY, outcome: "failed", findingCites: '"curl/8.18.0"' }],
+    gates: [{ ...WITNESS_VALUE, outcome: "passed" }, ...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), LIGHTHOUSE_NOT_EVALUABLE, ...role({}, "not-evaluable"), { ...RELAY, outcome: "failed", findingCites: '"curl/8.18.0"' }],
   },
   // #124 : candidat conforme, qui ne touche jamais le port 8080.
   "relay-untouched": {
@@ -182,7 +213,7 @@ export const MEASURE_CASES = {
     oracleExecuted: true,
     oracleJson: "kept",
     witnesses: true,
-    gates: [{ ...WITNESS_VALUE, outcome: "passed" }, ...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), LIGHTHOUSE_NOT_EVALUABLE, { ...RELAY, outcome: "passed" }],
+    gates: [{ ...WITNESS_VALUE, outcome: "passed" }, ...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), LIGHTHOUSE_NOT_EVALUABLE, ...role({}, "not-evaluable"), { ...RELAY, outcome: "passed" }],
   },
   // #129 : candidat conforme, qui échappe partout.
   "xss-escapes": xssCase(`${CONFORMING}/xss-escapes`, xss()),
@@ -196,6 +227,16 @@ export const MEASURE_CASES = {
     ...xss({ "as-text/search": "failed" }).filter(({ name }) => name !== "executed/search"),
     { gate: "xss", name: "executed/search", outcome: "failed", findingCites: "undefined" },
   ]),
+  // #131 : bouton masqué dans la vue, sans contrôle de rôle.
+  "role-button-hidden-in-view": roleCase(`${DEFECTIVE}/role-button-hidden-in-view`, role({ "role-replay": "failed" })),
+  // #131 : écran de remise protégé seulement par son lien. Sans le lien,
+  // l'agent n'atteint pas cinq scénarios de l'oracle (exécution 46001662192,
+  // commit f9510e8 : 33 réussis, 5 non atteints).
+  "role-screen-protected-by-link": roleCase(`${DEFECTIVE}/role-screen-protected-by-link`, role({ "role-replay": "failed", "role-forced-browsing": "failed" }), { passed: 33, failed: 0, unreached: 5 }),
+  // #131 : jeton anti-CSRF sans contrôle de rôle.
+  "role-csrf-without-role-check": roleCase(`${DEFECTIVE}/role-csrf-without-role-check`, role({ "role-replay": "failed" })),
+  // #131 : candidat conforme, jeton anti-CSRF et contrôle de rôle.
+  "role-csrf-and-role-check": roleCase(`${CONFORMING}/role-csrf-and-role-check`, role()),
   // 7 : le legacy ne devient jamais sain.
   "broken-stack": {
     candidate: REFERENCE,
@@ -330,6 +371,11 @@ export function caseProblems(expected: MeasureCase, { exitCode, record, oracle }
     const names = (measure.accessLog?.witnesses ?? []).map(({ name }) => name);
     if (!names.some((name) => name.startsWith("start"))) problems.push("accessLog.witnesses has no start witness");
     if (!names.includes("end")) problems.push("accessLog.witnesses has no end witness");
+  }
+
+  if (expected.startWitnesses !== undefined) {
+    const starts = (measure.accessLog?.witnesses ?? []).map(({ name }) => name).filter((name) => name.startsWith("start"));
+    if (starts.join(", ") !== expected.startWitnesses.join(", ")) problems.push(`accessLog.witnesses starts with ${starts.join(", ")}, expected ${expected.startWitnesses.join(", ")}`);
   }
 
   for (const { gate, name, outcome, findingCites } of expected.gates ?? []) {

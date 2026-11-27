@@ -383,6 +383,46 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
     n'aboutit pas à un bouton « Remettre » cliquable est un refus.
 - La porte réussit si `role-replay` et `role-forced-browsing` réussissent,
   et si le contrôle a remis le dossier.
+- Précisions de #131, prises par l'implémentation (sonde :
+  `tests/fixtures/probe131-6e514ab/PROVENANCE.md`) :
+  - **La requête enregistrée** : chaque requête émise vers l'origine du
+    candidat après le clic sur « Remettre », jusqu'au repos du réseau
+    (attente de la porte XSS, `gates/settle.ts`). Sur le legacy : le `POST
+    /remettre.do` et le `GET` qui suit sa redirection. Le rejeu part du banc,
+    en HTTP, dans l'ordre, sans suivre les redirections ni demander de
+    compression.
+  - **Enregistrement manqué** : écran ou bouton non atteint, aucune requête,
+    dossier pas `EN_INSTRUCTION` avant le clic ou pas `REMIS` après. Les trois
+    résultats sont alors `not-evaluable`, sans redémarrage.
+  - **La session cible** refait la navigation de l'instructeur jusqu'à la
+    remise, sans cliquer ; si le lien « Remise » manque, elle ouvre l'URL de
+    la remise. Ce qu'elle a reçu, puis les réponses à chaque requête rejouée,
+    servent à la transplantation.
+  - **Les valeurs de la requête** : cookies, paramètres de chemin
+    (`;jsessionid=`), paramètres d'URL, champs d'un corps
+    `x-www-form-urlencoded`, chaînes d'un corps JSON, et en-têtes que le
+    navigateur ne pose pas lui-même. Un autre corps est rejoué tel quel.
+  - **Le même endroit** : le cookie du même nom ; sinon la première
+    occurrence dans les réponses, repérée par la réponse (méthode, chemin sans
+    paramètres de chemin, rang), la partie (corps ou en-tête) et les 32
+    caractères qui précèdent, où une suite d'au moins 16 caractères de jeton
+    vaut toute suite de tels caractères (un identifiant de session voisin).
+    La valeur cible est lue jusqu'au caractère qui suit la valeur source.
+    Une valeur introuvable dans la session cible est retirée, comme pour la
+    porte d'authentification.
+  - **Contrôle manqué** : `role-replay` est `not-evaluable` avec le constat,
+    sauf si l'agent a remis le dossier : un échec constaté reste `failed`
+    (#153).
+  - **Cliquable** : un bouton de rôle `button` et de nom « Remettre » qui
+    passe le clic d'essai de Playwright (`trial: true`) ; un bouton masqué
+    n'est pas cliquable.
+  - **`examined`** : les requêtes rejouées pour les deux rejeux, les
+    tentatives pour l'accès direct. `values` : `requests`, `transplanted`,
+    `removed` pour les rejeux ; `attempts`, `clickable` pour l'accès direct.
+  - **Nom** : `role-check`, jamais `role` seul, vocabulaire Java EE que la
+    copie expurgée garde (décision de Karim du 26/11 sur #125).
+  - **Bruts** : `gates/role-check/recording.json`, `control.json`, `replay.json`,
+    `forced-browsing.json`, cités par les trois résultats.
 
 ### Authentification
 
