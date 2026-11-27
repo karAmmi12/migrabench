@@ -145,10 +145,24 @@ performs the actionability checks and skips the action », `allHeaders`,
   d'essai tenait le verrou : ni mesure locale, ni `npm test` complet. Les
   mesures ont été lancées en CI par `workflow_dispatch` sur la branche. Cela
   donne une mesure de diagnostic, sans PR à ouvrir avant la fiche.
+- **Échec isolé de `interrupted-measure.test.ts`.** Le premier `npm test`
+  complet (commit `7de60da`, arbre propre, pile remontée par `npm run
+  stack:up`) a donné `Test Files  1 failed | 99 passed (100)`, avec 3 tests
+  sautés dans `tests/runner/interrupted-measure.test.ts`. Ce fichier ne
+  touche pas la porte. Relancé seul, il passe (`Tests  8 passed (8)`), et la
+  suite complète relancée passe aussi. Le message de l'échec n'a pas été
+  gardé : la cause reste inconnue.
 - **`erasableSyntaxOnly`.** `tsc` a refusé un paramètre de constructeur
   `readonly step`. Correction : champ déclaré, puis affecté.
 
 ## Vérifier soi-même
+
+```sh
+npm run stack:up && npm test
+```
+
+Observé sur le commit `7de60da`, arbre propre : `Test Files  100 passed (100)`,
+`Tests  1126 passed (1126)`, au second passage (voir « Difficultés »).
 
 ```sh
 npx vitest run tests/gates/role.test.ts tests/gates/registry.test.ts tests/measure-cases.test.ts
@@ -193,7 +207,7 @@ Le job entier passe de 12 min 43 s à 33 min, sous son délai de 45 min.
 malsaine, images d'une autre copie, témoin absent, candidat arrêté ou jamais
 disponible. Chacune passe par le vrai registre en `StackIncident`.
 
-> À vérifier après l'exécution de la CI de la PR : le lien de l'exécution des mesures sur le dernier commit, son head SHA, le résultat des quatre mesures de rôle (dont « lien seul » à 33/0/5) et la durée du job ; le résultat du job `tests` (`npm test` complet, non lancé localement à cause du verrou).
+> À vérifier après l'exécution de la CI de la PR : le lien de l'exécution des mesures sur le dernier commit, son head SHA, le résultat des quatre mesures de rôle (dont « lien seul » à 33/0/5) et la durée du job ; le résultat des jobs `tests` et `typecheck`.
 
 ## Pour aller plus loin
 
