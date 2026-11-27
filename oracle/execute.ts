@@ -6,6 +6,7 @@ import { randomBytes } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { JSONReport } from "@playwright/test/reporter";
+import { BROWSER_TOKEN_ENV } from "../shared/browser-token.ts";
 import { fileSha256 } from "../shared/digest.ts";
 import { spawnCommand, stdoutOf } from "../shared/process.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, readBenchEnv, ROOT } from "../shared/root.ts";
@@ -39,6 +40,9 @@ export interface ExecuteOracleOptions {
   // Dossier du journal d'accès du legacy, chemin absolu sur l'hôte : celui des
   // bruts de la mesure (#67). Défaut : celui de docker-compose.yml.
   accessLogDir?: string;
+  // Jeton du navigateur du banc (shared/browser-token.ts), passé au service
+  // `browser` recréé : celui de la mesure, que ses portes reçoivent (#134).
+  browserToken?: string;
   // Dossier des bruts, depuis la racine du dépôt ; défaut : un dossier propre
   // à l'exécution sous .oracle-artifacts/.
   artifactsDir?: string;
@@ -102,12 +106,12 @@ async function prepare(
   baseUrl: string,
   salt: string,
   saltImposed: boolean,
-  { onStackReady, accessLogDir, artifactsDir, resultFile }: Pick<ExecuteOracleOptions, "onStackReady" | "accessLogDir" | "artifactsDir" | "resultFile">,
+  { onStackReady, accessLogDir, browserToken, artifactsDir, resultFile }: Pick<ExecuteOracleOptions, "onStackReady" | "accessLogDir" | "browserToken" | "artifactsDir" | "resultFile">,
 ): Promise<PreparedExecution> {
   const startedAt = new Date();
   // Lu avant la pile : un rang invalide arrête l'exécution avant toute mesure.
   const ciRun = ciRunOf(process.env);
-  const imageContexts = await recreateStack(salt, accessLogDir);
+  const imageContexts = await recreateStack(salt, { accessLogDir, browserToken });
   await onStackReady?.();
   const benchCommit = await stdoutOf("git", ["rev-parse", "HEAD"]);
   // Sortie brute, sans trim : une entrée commence par un espace (` M chemin`).
@@ -213,14 +217,16 @@ export async function listOracle(artifactsDir: string): Promise<OracleSummary> {
 // par l'environnement du shell, jamais par .env (que lit aussi le
 // legacy). Partagé avec `migrabench calibrate`. Le journal d'accès du legacy va
 // dans `accessLogDir` s'il est donné (MB_ACCESS_LOG_DIR de docker-compose.yml).
+// Le jeton du navigateur, s'il est donné, va au service `browser`
+// (MB_BROWSER_TOKEN, #134) ; sinon, celui du shell, s'il en a un.
 // La pile qui ne devient pas saine lève StackFailed, avec l'état de ses
 // services pour preuve (#68).
-export async function recreateStack(salt: string, accessLogDir?: string): Promise<StackContextDigests> {
+export async function recreateStack(salt: string, { accessLogDir, browserToken }: { accessLogDir?: string | undefined; browserToken?: string | undefined } = {}): Promise<StackContextDigests> {
   const digests = await stackContextDigests();
   try {
     // Le navigateur du banc (#78) est recréé avec la pile : même état initial.
     await spawnCommand("docker", ["compose", "up", "--detach", "--force-recreate", "--no-build", "--wait", ...SERVICES, "browser"], {
-      env: { ARCHIVE_SALT: salt, ...(accessLogDir === undefined ? {} : { MB_ACCESS_LOG_DIR: accessLogDir }) },
+      env: { ARCHIVE_SALT: salt, ...(accessLogDir === undefined ? {} : { MB_ACCESS_LOG_DIR: accessLogDir }), ...(browserToken === undefined ? {} : { [BROWSER_TOKEN_ENV]: browserToken }) },
       inherit: true,
     });
   } catch (error) {
