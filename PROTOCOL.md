@@ -100,6 +100,16 @@ Le vocabulaire du domaine du legacy et les termes dérivés sont définis dans
   contre lui, même si elle vient du banc : il aurait pu la provoquer
   (règle 7). Elle est enregistrée comme une catégorie distincte, avec le
   service tombé et ses sorties, et le rapport compte sa fréquence.
+- Une connexion du banc à son navigateur qui n'aboutit pas (passerelle qui
+  refuse, jeton faux, service `browser` arrêté) rend la mesure invalide
+  (`bench-browser-unreachable`, #168) : depuis #160, le candidat ne joint
+  pas ce navigateur. Deux limites. Un navigateur qui se ferme pendant qu'il
+  affiche une page du candidat reste compté contre lui, puisque la page
+  tourne dans ce navigateur. Et le JavaScript d'une page du candidat peut
+  joindre `run-server` sur `127.0.0.1:3001`, dans le conteneur `browser`,
+  sans jeton : en y épuisant le navigateur, il pourrait rendre injoignable
+  la connexion suivante du banc, et transformer son échec en invalidité.
+  Ce trou est suivi par #169.
 - Seul Chromium est mesuré. Un candidat qui fonctionne mal dans Firefox ou
   Safari n'est pas pénalisé.
 - La recherche de secret porte sur la valeur témoin en clair et sur ses

@@ -40,9 +40,16 @@ Une porte en erreur porte l'étape où elle a planté (`stage`) :
   ralentir les portes précédentes, et l'échéance de la phase ne rend jamais
   la mesure invalide. Sa cause la sépare de `timeout`, pour que le rapport
   sache qu'elle n'a rien examiné (précision ajoutée après #124).
+- **`bench-browser-unreachable`** (cause ajoutée par #168) : la connexion de
+  la porte au navigateur du banc n'a pas abouti. Depuis #160, le candidat ne
+  joint pas ce navigateur. Cette erreur rend donc la mesure invalide à toute
+  étape, `before-candidate` comme `on-candidate`, avec la raison
+  `bench-browser-unreachable`. Seule la connexion est visée : un navigateur
+  qui se ferme pendant l'examen d'une page du candidat reste une erreur
+  `on-candidate` ordinaire.
 
 Le verdict de la mesure ne dépend pas des portes, sauf pour une erreur
-`before-candidate`. Un échec à une porte est un résultat du candidat,
+`before-candidate` ou de cause `bench-browser-unreachable`. Un échec à une porte est un résultat du candidat,
 agrégé par le score de l'étape 5, pas un incident de la mesure.
 
 ## Options écartées

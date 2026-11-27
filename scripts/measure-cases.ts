@@ -273,7 +273,8 @@ export const MEASURE_CASES = {
   },
   // #168 : service `browser` arrêté dès que Playwright tourne. Les workers
   // suivants ne joignent plus le navigateur du banc : panne du banc, mesure
-  // invalide ; le résultat de l'oracle est gardé, les portes ne tournent pas.
+  // invalide. L'oracle n'a pas de résultat, ses scénarios sont comptés non
+  // atteints, et les portes ne tournent pas.
   "browser-stopped-during-oracle": {
     candidate: REFERENCE,
     exitCode: 3,
@@ -281,8 +282,9 @@ export const MEASURE_CASES = {
     reason: "bench-browser-unreachable",
     phases: { oracle: "bench-browser-unreachable", gates: NOT_RUN },
     detailCites: { phase: "oracle", texts: ["Could not connect to the Playwright gateway of the bench browser"] },
-    oracleExecuted: true,
-    oracleJson: "kept",
+    oracleExecuted: false,
+    oracleJson: "absent",
+    summary: { passed: 0, unreached: 38 },
   },
   // #68 : configuration de Playwright cassée (préparé par le job).
   "oracle-config-broken": {

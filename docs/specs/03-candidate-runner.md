@@ -414,7 +414,9 @@ Règles des issues :
   `registry-network-error`, `stack-failed-before-candidate`,
   `stack-not-from-this-copy`, `access-log-inactive`, `oracle-error`, `marker-out-of-place`,
   `runner-error-before-candidate` et `interrupted`, celles du glossaire. Le
-  verdict refuse toute autre cause.
+  verdict refuse toute autre cause. L'étape 4 y ajoute `gate-error-before-candidate`
+  (#124), et `bench-browser-unreachable` (#168), issue possible de la phase
+  `oracle` (spec de l'étape 4, « Navigateur du banc injoignable »).
 
 ### Contenu de `measure.json`
 

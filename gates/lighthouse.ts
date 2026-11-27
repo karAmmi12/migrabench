@@ -25,6 +25,7 @@
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { parseUsersWithoutUnknown } from "../scripts/users.ts";
+import { BenchBrowserUnreachable } from "../shared/bench-browser.ts";
 import { ROOT } from "../shared/root.ts";
 import { launchCdpChromium, type CdpChromium } from "./cdp-browser.ts";
 import type { Gate } from "./registry.ts";
@@ -139,14 +140,15 @@ export const lighthouseGate: Gate<Prepared> = {
     ]);
     const config = { extends: "lighthouse:default", settings: { ...desktopConfig.settings, onlyCategories: ["performance"], throttlingMethod: "simulate" as const } };
     // Le Chromium du banc et la connexion CDP sont des entrées du banc :
-    // leur échec rend la mesure invalide, jamais un échec du candidat.
+    // leur échec rend la mesure invalide (`bench-browser-unreachable`,
+    // #168), jamais un échec du candidat.
     const chromium = await launchCdpChromium(context.browserToken);
     let browser;
     try {
       browser = await puppeteer.connect({ browserWSEndpoint: chromium.browserWSEndpoint, defaultViewport: null });
     } catch (error) {
       await chromium.close().catch(() => undefined);
-      throw new Error(`Could not connect to the CDP gateway: ${errorMessage(error, context.browserToken)}`);
+      throw new BenchBrowserUnreachable(`Could not connect to the CDP gateway: ${errorMessage(error, context.browserToken)}`);
     }
     return { chromium, browser, authorization: `Basic ${Buffer.from(`${agent.username}:${agent.password}`).toString("base64")}`, lighthouse, config };
   },

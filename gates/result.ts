@@ -14,7 +14,9 @@ export type GateErrorStage = "before-candidate" | "on-candidate";
 // porte a dépassé son délai, ou a été coupée en cours par l'échéance de la
 // phase. `gates-phase-timeout` : la porte n'a jamais été lancée, la phase
 // ayant dépassé son délai global ; elle n'a rien examiné.
-export const GATE_ERROR_CAUSES = ["timeout", "gates-phase-timeout", "exception", "tool-missing"] as const;
+// `bench-browser-unreachable` : la connexion de la porte au navigateur du
+// banc n'a pas abouti (#168), une panne du banc à toute étape.
+export const GATE_ERROR_CAUSES = ["timeout", "gates-phase-timeout", "exception", "tool-missing", "bench-browser-unreachable"] as const;
 export type GateErrorCause = (typeof GATE_ERROR_CAUSES)[number];
 
 export interface GateError {
@@ -88,6 +90,17 @@ export function gateResultPassed(result: JudgedResult): boolean {
 export function beforeCandidateEvidence(results: readonly GateResult[]): string | undefined {
   const lines = results.flatMap(({ gate, name, error }) =>
     error?.stage === "before-candidate" ? [`Gate ${gate}, result ${name}: errored before-candidate (${error.cause}): ${error.message}`] : [],
+  );
+  return lines.length === 0 ? undefined : lines.join("\n");
+}
+
+// Preuve d'une mesure invalide parce que le navigateur du banc était
+// injoignable (`bench-browser-unreachable`, #168) : chaque résultat
+// concerné, une ligne chacun, quelle que soit l'étape. Depuis #160, le
+// candidat ne joint pas ce navigateur. Rien si aucun.
+export function benchBrowserEvidence(results: readonly GateResult[]): string | undefined {
+  const lines = results.flatMap(({ gate, name, error }) =>
+    error?.cause === "bench-browser-unreachable" ? [`Gate ${gate}, result ${name}: bench browser unreachable ${error.stage}: ${error.message}`] : [],
   );
   return lines.length === 0 ? undefined : lines.join("\n");
 }
