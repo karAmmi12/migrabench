@@ -2,7 +2,7 @@
 // candidat de référence (mesure comptée sur `main`, de diagnostic sur une PR),
 // les huit candidats défectueux du tableau de la spec de l'étape 3
 // (« Candidats défectueux »), les pannes de la pile prouvées à la main par #68
-// et la mesure interrompue de #71. `caseProblems` est pur : il compare le code
+// la mesure interrompue de #71 et le navigateur du banc arrêté de #168. `caseProblems` est pur : il compare le code
 // de sortie, measure.json et oracle.json à l'issue attendue, et rend les
 // écarts, vides quand la mesure est celle attendue.
 
@@ -268,6 +268,19 @@ export const MEASURE_CASES = {
     category: "stack-down-while-candidate",
     reason: "stack-down-while-candidate",
     phases: { oracle: "stack-down-while-candidate" },
+    oracleExecuted: true,
+    oracleJson: "kept",
+  },
+  // #168 : service `browser` arrêté dès que Playwright tourne. Les workers
+  // suivants ne joignent plus le navigateur du banc : panne du banc, mesure
+  // invalide ; le résultat de l'oracle est gardé, les portes ne tournent pas.
+  "browser-stopped-during-oracle": {
+    candidate: REFERENCE,
+    exitCode: 3,
+    category: "invalid",
+    reason: "bench-browser-unreachable",
+    phases: { oracle: "bench-browser-unreachable", gates: NOT_RUN },
+    detailCites: { phase: "oracle", texts: ["Could not connect to the Playwright gateway of the bench browser"] },
     oracleExecuted: true,
     oracleJson: "kept",
   },

@@ -8,6 +8,7 @@
 # - une seconde mesure refusée par le verrou du banc, puis la mesure
 #   interrompue par SIGINT pendant l'oracle (#71) ;
 # - les huit candidats défectueux du tableau de la spec ;
+# - le navigateur du banc arrêté pendant l'oracle (#168) ;
 # - la panne de #68 « configuration de Playwright cassée ». L'autre, « legacy
 #   arrêté pendant l'oracle », reste prouvée à la main par #106 : sur le runner,
 #   avec un seul worker Playwright, ses 38 scénarios attendent chacun leur délai
@@ -274,6 +275,12 @@ jobs:
       - name: Candidat défectueux 7, pile volontairement cassée
         if: ${{ !cancelled() && matrix.group == 'defective' }}
         run: exec node scripts/run-measure-case.ts broken-stack
+
+      # Navigateur du banc arrêté dès que Playwright tourne (#168) : la mesure
+      # suivante recrée le service `browser` avec la pile.
+      - name: "Navigateur du banc arrêté pendant l'oracle (#168)"
+        if: ${{ !cancelled() && matrix.group == 'defective' }}
+        run: exec node scripts/run-measure-case.ts browser-stopped-during-oracle
 
       # Images de la pile construites avec une empreinte de contexte étrangère
       # à cette copie, puis reconstruites avec la sienne.
