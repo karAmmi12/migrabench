@@ -182,8 +182,8 @@ function watch(page: Page): Watched {
   return { responses, next: () => sequence++, done: async () => void (await Promise.all(pending)) };
 }
 
-async function withBrowser<T>(run: (browser: Browser) => Promise<T>): Promise<T> {
-  const browser = await connectBenchBrowser();
+async function withBrowser<T>(context: GateContext, run: (browser: Browser) => Promise<T>): Promise<T> {
+  const browser = await connectBenchBrowser(context.browserToken);
   try {
     return await run(browser);
   } finally {
@@ -220,7 +220,7 @@ class Unrecorded extends Error {
 }
 
 async function record(context: GateContext, prepared: Prepared): Promise<{ recording: Recording } | { step: string; message: string }> {
-  return withBrowser(async (browser) => {
+  return withBrowser(context, async (browser) => {
     const { browserContext, page } = await newSession(browser, context, prepared.credentials.instructeur);
     const watched = watch(page);
     const inFlight = trackNetwork(page);
@@ -334,7 +334,7 @@ function applySetCookies(jar: Map<string, string>, headers: readonly { name: str
 }
 
 async function replayAs(role: Role, context: GateContext, prepared: Prepared, recording: Recording): Promise<{ attempt: ReplayAttempt; raw: unknown }> {
-  const { received: target, navigation } = await withBrowser((browser) => targetSession(browser, context, prepared, recording, role));
+  const { received: target, navigation } = await withBrowser(context, (browser) => targetSession(browser, context, prepared, recording, role));
   const jar = new Map(target.cookies.map(({ name, value }) => [name, value]));
   const replayed: ReceivedResponse[] = [];
   const attempt: ReplayAttempt = { requests: 0, statusAfter: "", values: [], responses: [], ...(navigation === undefined ? {} : { navigation }) };
@@ -379,7 +379,7 @@ const comparable = (url: string) => {
 };
 
 async function forcedBrowsing(context: GateContext, prepared: Prepared, recording: Recording): Promise<ForcedAttempt[]> {
-  return withBrowser(async (browser) => {
+  return withBrowser(context, async (browser) => {
     const attempts: ForcedAttempt[] = [];
     const tryAs = async (attempt: ForcedAttempt["attempt"], reach: (page: Page) => Promise<void>) => {
       const { browserContext, page } = await newSession(browser, context, prepared.credentials.agent);
