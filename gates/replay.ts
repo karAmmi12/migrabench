@@ -12,7 +12,7 @@ import { connectBenchBrowser } from "../oracle/browser.ts";
 import { parseUsersWithoutUnknown, type Role } from "../scripts/users.ts";
 import { ROOT } from "../shared/root.ts";
 import type { GateContext } from "./context.ts";
-import type { ReceivedResponse, RecordedRequest } from "./role-transplant.ts";
+import type { ReceivedResponse, RecordedRequest } from "./transplant.ts";
 
 // Délai d'une requête rejouée. Valeur de conception.
 const REPLAY_TIMEOUT_MS = 30_000;

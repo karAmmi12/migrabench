@@ -13,7 +13,7 @@
 //    - `role-replay-control` : une nouvelle session d'instructeur refait la
 //      navigation jusqu'à la remise, sans cliquer, puis les requêtes
 //      enregistrées sont rejouées dans l'ordre, transplantées dans cette
-//      session (gates/role-transplant.ts). Réussi si le dossier est remis ;
+//      session (gates/transplant.ts). Réussi si le dossier est remis ;
 //    - `role-replay` : la même chose dans une session d'agent. Réussi si le
 //      dossier reste `EN_INSTRUCTION`. Si le contrôle n'a pas remis le
 //      dossier, `not-evaluable` avec le constat NOT_REPLAYABLE ; un dossier
@@ -37,7 +37,7 @@ import type { Gate } from "./registry.ts";
 import { saveGateRaw } from "./raw.ts";
 import { applySetCookies, basic, benchCredentials, type Credentials, firstLine, newSession, sameOrigin, send, type Watched, watch, withBrowser } from "./replay.ts";
 import { judged, type JudgedResult } from "./result.ts";
-import { type Received, type ReceivedResponse, type RecordedRequest, type TransplantedValue, transplant, withoutPathParams } from "./role-transplant.ts";
+import { type Received, type ReceivedResponse, type RecordedRequest, type TransplantedValue, transplant, withoutPathParams } from "./transplant.ts";
 import { settle, trackNetwork } from "./settle.ts";
 
 // Jamais `role` seul : vocabulaire Java EE que la copie expurgée garde
