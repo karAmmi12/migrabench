@@ -3,7 +3,7 @@
 // `default`, ne doit jamais joindre le Chromium qui le juge.
 import { Launcher } from "chrome-launcher";
 import { describe, expect, it } from "vitest";
-import { CHROMIUM_FLAGS, routeRequest } from "../fixtures/browser/cdp-gateway.mjs";
+import { CHROMIUM_FLAGS, removeProfile, routeRequest } from "../fixtures/browser/cdp-gateway.mjs";
 
 const TOKEN = "a".repeat(64);
 const head = (requestLine: string) => `${requestLine}\r\nHost: 127.0.0.1:8096\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n`;
@@ -59,5 +59,15 @@ describe("CHROMIUM_FLAGS", () => {
 
   it("runs the new headless mode", () => {
     expect(CHROMIUM_FLAGS).toContain("--headless=new");
+  });
+});
+
+// Le profil d'un Chromium arrêté peut ne pas s'effacer (ENOTEMPTY, des
+// processus fils écrivent encore) : l'échec ne doit jamais faire tomber le
+// service, serveur de Playwright compris (exécution 46006087156 de la CI).
+describe("removeProfile", () => {
+  it("never rejects when the removal fails", async () => {
+    const failing = () => Promise.reject(Object.assign(new Error("ENOTEMPTY: directory not empty, rmdir '/tmp/mb-cdp-x/Default'"), { code: "ENOTEMPTY" }));
+    await expect(removeProfile("/tmp/mb-cdp-x", failing)).resolves.toBeUndefined();
   });
 });

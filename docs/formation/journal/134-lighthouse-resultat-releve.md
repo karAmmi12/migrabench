@@ -162,6 +162,20 @@ Liens ouverts le 2026-11-27 (`curl -L`) : chacun répond `200`.
   échecs sur le vrai `start.log` d'avant. En revanche, `passOutcome`,
   `median` et `lighthouseResult` ont été écrits avant leurs tests, qui sont
   passés du premier coup.
+- **Le service `browser` tombé en CI.**
+  - Symptôme : sur le commit de fusion `63d6092`, le job `tests` de
+    l'[exécution 46006087156](https://github.com/karAmmi12/migrabench/actions/runs/46006087156)
+    échoue. Trois tests de `interrupted-measure.test.ts` voient leur mesure
+    sortir en `stack-down-while-candidate`, et `compose-ps.txt` montre
+    `migrabench-browser-1` en `Exited (1)`.
+  - Cause : le journal du service donne `ENOTEMPTY: directory not empty,
+    rmdir '/tmp/mb-cdp-…/Default'`. À l'arrêt d'un Chromium, l'effacement de
+    son profil échouait pendant que ses processus fils y écrivaient encore,
+    et la promesse rejetée, sans gestionnaire, arrêtait Node. C'est une
+    course : la CI du commit `08927c2` ne l'avait pas rencontrée.
+  - Résolution : `removeProfile` réessaie trois fois et ignore l'échec. Le
+    conteneur et son `/tmp` sont recréés avec la pile. Test rouge d'abord :
+    `removeProfile is not a function`.
 - **Relevé par les revues** :
   - « normes » :
     - « relais CDP » réutilisait le mot du glossaire réservé au candidat de

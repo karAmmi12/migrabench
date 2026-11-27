@@ -94,6 +94,20 @@ export function routeRequest(head, token) {
   return refused;
 }
 
+/**
+ * Efface le profil d'un Chromium arrêté. Ses processus fils peuvent y écrire
+ * encore (ENOTEMPTY) : l'échec est ignoré, jamais rejeté, car une promesse
+ * rejetée sans gestionnaire ferait tomber le service, serveur de Playwright
+ * compris (exécution 46006087156 de la CI). Le conteneur est recréé avec la
+ * pile, et son /tmp avec lui.
+ * @param {string} userDataDir
+ * @param {typeof rm} remove
+ * @returns {Promise<void>}
+ */
+export async function removeProfile(userDataDir, remove = rm) {
+  await remove(userDataDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 200 }).catch(() => undefined);
+}
+
 function respond(socket, status, body) {
   const text = body === undefined ? "" : JSON.stringify(body);
   socket.end(`HTTP/1.1 ${status}\r\nContent-Type: application/json\r\nContent-Length: ${Buffer.byteLength(text)}\r\nConnection: close\r\n\r\n${text}`);
@@ -130,12 +144,12 @@ export function startCdpGateway({ port, token, executablePath }) {
     // le service, serveur de Playwright compris.
     chromium.on("error", () => {
       exited = true;
-      void rm(userDataDir, { recursive: true, force: true });
+      void removeProfile(userDataDir);
     });
     chromium.on("exit", () => {
       exited = true;
       launched.delete(id);
-      void rm(userDataDir, { recursive: true, force: true });
+      void removeProfile(userDataDir);
     });
     try {
       const devTools = await devToolsActivePort(userDataDir, () => exited);
