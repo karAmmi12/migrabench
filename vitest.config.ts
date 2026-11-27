@@ -30,8 +30,9 @@ const LEGACY_COPY_BUILD = "tests/legacy-copy/legacy-copy-builds.test.ts";
 
 export default defineConfig({
   test: {
-    // Marqueur du Seam A, tiré une fois par exécution (#67).
-    globalSetup: ["tests/seam-a-marker.setup.ts"],
+    // Dans l'ordre : refus de tout Vitest lancé hors de `npm test` (#163),
+    // puis le marqueur du Seam A, tiré une fois par exécution (#67).
+    globalSetup: ["tests/bench-lock-held.setup.ts", "tests/seam-a-marker.setup.ts"],
     projects: [
       { extends: true, test: { name: "default", include: ["tests/**/*.test.ts"], exclude: [...configDefaults.exclude, BENCH_TOOLS, FOREIGN_STACK, RUNNER_ERRORS, INTERRUPTED, LEGACY_RESTART, LEGACY_COPY_BUILD], sequence: { groupOrder: 1 } } },
       { extends: true, test: { name: "bench-tools", include: [BENCH_TOOLS], sequence: { groupOrder: 2 } } },
