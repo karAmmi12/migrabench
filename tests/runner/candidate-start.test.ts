@@ -153,7 +153,7 @@ function keyCalls(): string[] {
 async function startedAfterOracle({ readyTimeoutMs = 2_000 } = {}) {
   candidate = createServer((_request, response) => response.end("ready"));
   const startWitnesses: string[] = [];
-  const starter = candidateStarter({ service: SERVICE, salt: "5a17", accessLogDir, marker: MARKER, readyTimeoutMs, startWitnesses, legacyUrl, candidateUrl: await listen(candidate) });
+  const starter = candidateStarter({ service: SERVICE, salt: "5a17", browserToken: "b70c", accessLogDir, marker: MARKER, readyTimeoutMs, startWitnesses, legacyUrl, candidateUrl: await listen(candidate) });
   await starter.readyCandidate();
   writeFileSync(stubLog, "");
   return { starter, startWitnesses };

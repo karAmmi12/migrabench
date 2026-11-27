@@ -144,6 +144,8 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
   - les HAR et le résultat de l'oracle de la mesure ;
   - le journal d'accès ;
   - un client de l'API interne en lecture ;
+  - le jeton du navigateur de la mesure (`browserToken`, ajouté par #134),
+    qui ouvre la passerelle CDP du service `browser` ;
   - `restartLegacy()`, qui redémarre le legacy, recrée le candidat, attend
     qu'ils soient sains et envoie la requête témoin `start-N` suivante. Une
     porte ne touche jamais Docker. Un redémarrage qui échoue est une panne de
@@ -487,6 +489,46 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
     `Network.clearBrowserCache`).
 - `examined` est le nombre de passes abouties. Aucun seuil avant #100, et
   aucune conclusion tirée des scores de l'étape 4.
+- Précisions de #134 :
+  - **Accès au Chromium figé** (décision de Karim du 27/11). Lighthouse ne
+    parle que le protocole DevTools (CDP), et le serveur de Playwright du
+    service `browser` ne le donne pas : il filtre les `args` de lancement.
+    Le service `browser` porte donc une passerelle CDP
+    (`fixtures/browser/cdp-gateway.mjs`, port publié `127.0.0.1:8096`). Cette
+    passerelle lance à la demande un Chromium complet de l'image, en nouveau mode
+    headless, avec les options de chrome-launcher.
+  - **Jeton de la pile.** La passerelle refuse toute requête qui ne porte pas
+    en tête de son chemin le jeton tiré à chaque démarrage de la pile
+    (`MB_BROWSER_TOKEN`) :
+    - une mesure tire le sien et le donne à ses portes par le contexte ;
+    - `npm run stack:up` écrit le sien dans `.dev-browser-token` ;
+    - le job `tests` de la CI le passe par l'environnement.
+
+    Sans jeton dans le service, la passerelle refuse tout. Le candidat, sur le
+    même réseau `default`, ne joint donc pas le Chromium qui le juge. La
+    sonde d'isolation le prouve (`reach-browser-cdp`, deux `403`). La même
+    protection pour le serveur de Playwright (port 3000) est reportée dans
+    #160 : `run-server` y donne son chemin à tout client par `GET /json`.
+  - **Résultat** relevé `performance`. Une passe aboutit quand Lighthouse
+    rend un rapport sans `runtimeError`, avec le score et les quatre mesures.
+    Les passes qui n'aboutissent pas sont dans `findings`, avec leur raison.
+    Aucune passe aboutie donne `not-evaluable`, ce que montre un candidat
+    sans écran (`relay-untouched`).
+  - **`values`** :
+    - par passe : `pass<N>.completed` (1 ou 0) et, si elle a abouti,
+      `pass<N>.score`, `.lcp`, `.tbt`, `.cls`, `.speedIndex` ;
+    - la médiane des passes abouties : `score` (de 0 à 1), `lcp`, `tbt` et
+      `speedIndex` (en ms), et `cls` (sans unité). Sur deux passes abouties,
+      c'est la moyenne des deux. La médiane est prise mesure par
+      mesure : le score et le LCP médians peuvent venir de passes
+      différentes.
+  - **Erreurs.** Le lancement du Chromium et la connexion CDP sont dans la
+    préparation : leur échec est `before-candidate`. Seule une erreur de
+    Lighthouse sur la page du candidat donne une passe qui n'aboutit pas ;
+    une autre erreur pendant l'examen rend la porte `errored`. Le jeton est
+    retiré de tout message.
+  - Chaque rapport de Lighthouse (LHR) est un brut,
+    `gates/lighthouse/pass-<N>.json`.
 
 ### `tsc --noEmit`
 

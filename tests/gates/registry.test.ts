@@ -29,10 +29,10 @@ describe("registry order", () => {
   });
 
   // Ordre de la spec : la valeur témoin ouvre les portes qui ne lisent que
-  // des fichiers, avant l'accessibilité puis XSS (navigateur), puis le rôle,
-  // première porte qui écrit.
-  it("runs the witness value first, then accessibility and XSS, then the role", () => {
-    expect(GATES.map(({ name }) => name)).toEqual(["witness-value", "accessibility", "xss", "role-check", "relay"]);
+  // des fichiers, avant l'accessibilité, XSS et Lighthouse (navigateur), puis
+  // le rôle, première porte qui écrit.
+  it("runs the witness value first, then accessibility, XSS and Lighthouse, then the role", () => {
+    expect(GATES.map(({ name }) => name)).toEqual(["witness-value", "accessibility", "xss", "lighthouse", "role-check", "relay"]);
   });
 
   // Témoin : un registre dans le désordre est refusé.

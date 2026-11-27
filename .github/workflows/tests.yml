@@ -88,6 +88,15 @@ jobs:
           echo "::add-mask::$salt"
           echo "ARCHIVE_SALT=$salt" >> "$GITHUB_ENV"
 
+      # Un jeton par job pour le navigateur du banc (#134) : la pile le passe au
+      # service `browser`, dont la passerelle CDP refuse toute requête sans lui ;
+      # les tests le lisent pour lancer un Chromium.
+      - name: Tirage du jeton du navigateur
+        run: |
+          token="$(openssl rand -hex 32)"
+          echo "::add-mask::$token"
+          echo "MB_BROWSER_TOKEN=$token" >> "$GITHUB_ENV"
+
       # Empreinte du contexte de construction de chaque image, posée en label
       # au build : une mesure, l'oracle et l'étalonnage refusent une pile dont
       # les images ne viennent pas de cette copie du dépôt (#102).

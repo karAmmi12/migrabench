@@ -148,11 +148,13 @@ describe("tableResults", () => {
 });
 
 // Version d'axe-core enregistrée dans l'environnement de la mesure (décision
-// de Karim, #128) : celle que le lock du dépôt installe sous @axe-core/playwright.
+// de Karim, #128) : celle que le lock du dépôt installe pour @axe-core/playwright,
+// sous lui ou, partagée avec Lighthouse (#134), à la racine de node_modules.
 describe("accessibility gate tools", () => {
   it("names the axe-core version installed for @axe-core/playwright", () => {
     const lock = readJsonFixture<{ packages: Record<string, { version: string }> }>("../../package-lock.json");
-    expect(accessibilityGate.tools?.()).toEqual({ "axe-core": lock.packages["node_modules/@axe-core/playwright/node_modules/axe-core"]?.version });
+    const installed = lock.packages["node_modules/@axe-core/playwright/node_modules/axe-core"] ?? lock.packages["node_modules/axe-core"];
+    expect(accessibilityGate.tools?.()).toEqual({ "axe-core": installed?.version });
     expect(accessibilityGate.tools?.()).toEqual({ "axe-core": "4.14.0" });
   });
 });

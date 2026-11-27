@@ -15,10 +15,11 @@ function withoutGates(expected: MeasureCase, ...gates: string[]): MeasureCase {
   return { ...rest, gates: (expected.gates ?? []).filter(({ gate }) => !gates.includes(gate) && gate !== "role-check") };
 }
 // Mesures d'avant la porte d'accessibilité (#128), donc d'avant celles de la
-// valeur témoin (#130), XSS (#129) et de rôle (#131).
-const beforeAccessibility = (expected: MeasureCase) => withoutGates(expected, "accessibility", "witness-value", "xss");
-// Mesures d'avant la porte de la valeur témoin (#130), donc d'avant les portes XSS (#129) et de rôle (#131).
-const beforeWitnessValue = (expected: MeasureCase) => withoutGates(expected, "witness-value", "xss");
+// valeur témoin (#130), XSS (#129), Lighthouse (#134) et de rôle (#131).
+const beforeAccessibility = (expected: MeasureCase) => withoutGates(expected, "accessibility", "witness-value", "xss", "lighthouse");
+// Mesures d'avant la porte de la valeur témoin (#130), donc d'avant les portes
+// XSS (#129), Lighthouse (#134) et de rôle (#131).
+const beforeWitnessValue = (expected: MeasureCase) => withoutGates(expected, "witness-value", "xss", "lighthouse");
 
 // Copie de la première mesure comptée du candidat de référence, produite par
 // le job des mesures sur main (exécution 45624689673, commit 52303ae) : son

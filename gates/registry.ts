@@ -7,6 +7,7 @@
 // l'erreur, jamais d'après le message (ADR 0008).
 import { type GateContext, StackIncident } from "./context.ts";
 import { accessibilityGate } from "./accessibility.ts";
+import { lighthouseGate } from "./lighthouse.ts";
 import { relayGate } from "./relay.ts";
 import { roleGate } from "./role.ts";
 import { witnessValueGate } from "./witness-value.ts";
@@ -41,7 +42,7 @@ export interface Gate<Prepared = unknown> {
 }
 
 // Portes de la mesure, dans l'ordre fixe.
-export const GATES: readonly Gate[] = [witnessValueGate as Gate, accessibilityGate as Gate, xssGate as Gate, roleGate as Gate, relayGate as Gate];
+export const GATES: readonly Gate[] = [witnessValueGate as Gate, accessibilityGate as Gate, xssGate as Gate, lighthouseGate as Gate, roleGate as Gate, relayGate as Gate];
 
 // Outil d'analyse absent : cause `tool-missing`, à l'étape où il manque.
 export class ToolMissing extends Error {

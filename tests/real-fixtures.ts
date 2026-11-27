@@ -63,6 +63,12 @@ export const MEASURES = {
     results: `${MEASURES_RUN}/results/diagnostic/20261125T133634Z-52303ae-defective-candidates-isolation-probe`,
     artifacts: `${MEASURES_RUN}/oracle-artifacts/20261125T133634Z-52303ae-defective-candidates-isolation-probe`,
   },
+  // Candidat défectueux « sonde d'isolation », avec la tentative sur le
+  // passerelle CDP du navigateur (#134) : mesure locale (local-e353940/).
+  probeWithCdp: {
+    results: "local-e353940/results/diagnostic/20261127T124602Z-e353940-defective-candidates-isolation-probe",
+    artifacts: "local-e353940/oracle-artifacts/20261127T124602Z-e353940-defective-candidates-isolation-probe",
+  },
   // Candidat défectueux « relais qui altère un libellé ».
   relay: {
     results: `${MEASURES_RUN}/results/diagnostic/20261125T133740Z-52303ae-defective-candidates-relay-alters-label`,

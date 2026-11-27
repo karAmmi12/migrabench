@@ -85,11 +85,19 @@ services:
     init: true
     shm_size: 1gb
     command: ["node", "/opt/bench/server.mjs"]
+    # Jeton de la pile (#134), tiré à chaque démarrage par le banc et passé
+    # par l'environnement du shell : la passerelle CDP refuse toute requête qui ne
+    # le porte pas. Absent du shell, la passerelle refuse tout.
+    environment:
+      - MB_BROWSER_TOKEN
     volumes:
       - ./node_modules/playwright-core:/opt/playwright-core:ro
       - ./fixtures/browser/server.mjs:/opt/bench/server.mjs:ro
+      - ./fixtures/browser/cdp-gateway.mjs:/opt/bench/cdp-gateway.mjs:ro
     ports:
       - "127.0.0.1:8095:3000"
+      # Passerelle CDP (fixtures/browser/cdp-gateway.mjs), pour Lighthouse.
+      - "127.0.0.1:8096:9222"
     networks:
       - default
     healthcheck:

@@ -109,6 +109,14 @@ voit dans le résultat : `saltImposed: true` dans ses métadonnées.
 
 Le sel vient toujours du shell, jamais de `.env`, que lit aussi le legacy.
 
+`npm run stack:up` tire aussi le **jeton du navigateur du banc** et l'écrit
+dans `.dev-browser-token`, fichier ignoré par Git (#134). La passerelle CDP du
+service `browser`, par lequel Lighthouse joint le Chromium figé, refuse
+toute requête qui ne porte pas ce jeton. Les tests le lisent dans
+`MB_BROWSER_TOKEN` (CI), sinon dans `.dev-browser-token`. Une mesure tire
+son propre jeton, et `npm run oracle` n'en passe aucun : après l'un ou
+l'autre, relancer `npm run stack:up` avant `npm test`.
+
 Sans `ARCHIVE_SALT`, `docker compose up` démarre quand même la pile : le
 service d'archivage tire son propre sel et ne le révèle pas. Un test le
 vérifie sur une seconde pile, sans port publié, à partir des images déjà
