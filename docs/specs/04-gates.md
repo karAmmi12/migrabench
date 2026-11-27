@@ -417,7 +417,9 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
   - **`examined`** : les requêtes rejouées pour les deux rejeux, les
     tentatives pour l'accès direct. `values` : `requests`, `transplanted`,
     `removed` pour les rejeux ; `attempts`, `clickable` pour l'accès direct.
-  - **Bruts** : `gates/role/recording.json`, `control.json`, `replay.json`,
+  - **Nom** : `role-check`, jamais `role` seul, vocabulaire Java EE que la
+    copie expurgée garde (décision de Karim du 26/11 sur #125).
+  - **Bruts** : `gates/role-check/recording.json`, `control.json`, `replay.json`,
     `forced-browsing.json`, cités par les trois résultats.
 
 ### Authentification

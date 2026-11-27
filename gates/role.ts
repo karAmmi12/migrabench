@@ -43,7 +43,9 @@ import { judged, type JudgedResult } from "./result.ts";
 import { type Received, type ReceivedResponse, type RecordedRequest, type TransplantedValue, transplant } from "./role-transplant.ts";
 import { settle, trackNetwork } from "./settle.ts";
 
-const GATE = "role";
+// Jamais `role` seul : vocabulaire Java EE que la copie expurgée garde
+// (décision de Karim du 26/11 sur #125, tests/legacy-copy/legacy-copy-real.test.ts).
+const GATE = "role-check";
 
 export const NOT_REPLAYABLE = "transformation de session non rejouable : jeton probablement dérivé côté client";
 

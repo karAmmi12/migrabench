@@ -93,7 +93,7 @@ const REFUSED = [
 // Le legacy : le contrôle et le rejeu en agent remettent le dossier (sonde de
 // #131, `afterAgentReplay`), l'agent ne voit aucun bouton « Remettre ».
 const LEGACY: RoleObservation = { recorded: true, control: attempt("REMIS"), replay: attempt("REMIS"), forced: REFUSED };
-const RAW = { "gates/role/recording.json": "sha256:recording" };
+const RAW = { "gates/role-check/recording.json": "sha256:recording" };
 const outcomes = (observation: RoleObservation) => roleResults(observation, RAW).map(({ name, outcome, examined }) => [name, outcome, examined]);
 
 describe("roleResults", () => {
@@ -142,7 +142,7 @@ describe("roleResults", () => {
 
 describe("role gate", () => {
   it("declares three judged results, in the group of the gates that write", () => {
-    expect(roleGate).toMatchObject({ name: "role", group: "writes" });
+    expect(roleGate).toMatchObject({ name: "role-check", group: "writes" });
     expect(Object.entries(roleGate.results)).toEqual([
       ["role-replay-control", "judged"],
       ["role-replay", "judged"],

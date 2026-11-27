@@ -70,7 +70,7 @@ const XSS_LEGACY = xss({ "executed/search": "failed", "as-text/search": "failed"
 // Porte de rôle (#131) : ses trois résultats nommés, réussis sauf ceux donnés.
 type RoleName = "role-replay-control" | "role-replay" | "role-forced-browsing";
 const role = (outcomes: Partial<Record<RoleName, GateOutcome>> = {}, others: GateOutcome = "passed") =>
-  (["role-replay-control", "role-replay", "role-forced-browsing"] as const).map((name) => ({ gate: "role", name, outcome: outcomes[name] ?? others }));
+  (["role-replay-control", "role-replay", "role-forced-browsing"] as const).map((name) => ({ gate: "role-check", name, outcome: outcomes[name] ?? others }));
 // Le legacy : l'agent remet le dossier par le rejeu, mais ne voit aucun
 // bouton « Remettre ».
 const ROLE_LEGACY = role({ "role-replay": "failed" });

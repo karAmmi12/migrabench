@@ -32,7 +32,7 @@ describe("registry order", () => {
   // des fichiers, avant l'accessibilité puis XSS (navigateur), puis le rôle,
   // première porte qui écrit.
   it("runs the witness value first, then accessibility and XSS, then the role", () => {
-    expect(GATES.map(({ name }) => name)).toEqual(["witness-value", "accessibility", "xss", "role", "relay"]);
+    expect(GATES.map(({ name }) => name)).toEqual(["witness-value", "accessibility", "xss", "role-check", "relay"]);
   });
 
   // Témoin : un registre dans le désordre est refusé.
