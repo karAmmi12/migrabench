@@ -7,12 +7,13 @@ import type { Browser, Page } from "@playwright/test";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { tableCensus } from "../../gates/accessibility.ts";
 import { connectBenchBrowser } from "../../oracle/browser.ts";
+import { stackBrowserToken } from "../../shared/browser-token.ts";
 
 let browser: Browser;
 let page: Page;
 
 beforeAll(async () => {
-  browser = await connectBenchBrowser();
+  browser = await connectBenchBrowser(stackBrowserToken());
   page = await browser.newPage();
 });
 

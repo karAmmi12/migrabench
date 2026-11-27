@@ -12,9 +12,10 @@ export const START_REPORT_PREFIX = "migrabench start report ";
 // `read-measure-marker` (#74) : la sonde ne connaît pas le marqueur de la
 // mesure ; elle écrit son environnement, et le contrôle juge la tentative
 // refusée si le marqueur n'est ni dans un nom ni dans une valeur.
-// `reach-browser-cdp` (#134) : la passerelle CDP du navigateur du banc, sans le
+// `reach-browser-cdp` (#134) et `reach-browser-playwright` (#160) : la
+// passerelle CDP et le serveur de Playwright du navigateur du banc, sans le
 // jeton de la pile.
-export const PROBE_ATTEMPTS = ["write-code", "read-docker-socket", "reach-internal-api-during-build", "read-archive-salt", "run-as-root", "reach-browser-cdp", "read-measure-marker"] as const;
+export const PROBE_ATTEMPTS = ["write-code", "read-docker-socket", "reach-internal-api-during-build", "read-archive-salt", "run-as-root", "reach-browser-cdp", "reach-browser-playwright", "read-measure-marker"] as const;
 
 // Valeur écrite par la sonde à la place de celle d'ARCHIVE_TOKEN : c'est la
 // valeur témoin du piège n° 2, que le score de l'étape 5 cherchera dans les

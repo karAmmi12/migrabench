@@ -76,7 +76,8 @@ services:
 
   # Navigateur du banc (#78) : Chromium et ses dépendances système figés par
   # l'empreinte de l'image officielle de Playwright (oracle/browser.ts), avec
-  # le serveur de Playwright du dépôt (fixtures/browser/server.mjs). Sur
+  # le serveur de Playwright du dépôt (fixtures/browser/server.mjs), joint
+  # seulement avec le jeton de la pile (#160). Sur
   # default seul : il joint le legacy, le service d'archivage et le candidat
   # par son relais local, jamais l'API interne (ADR 0004). Recréé à chaque
   # exécution de l'oracle, comme le reste de la pile.
@@ -85,24 +86,31 @@ services:
     init: true
     shm_size: 1gb
     command: ["node", "/opt/bench/server.mjs"]
-    # Jeton de la pile (#134), tiré à chaque démarrage par le banc et passé
-    # par l'environnement du shell : la passerelle CDP refuse toute requête qui ne
-    # le porte pas. Absent du shell, la passerelle refuse tout.
+    # Jeton de la pile (#134, #160), tiré à chaque démarrage par le banc et
+    # passé par l'environnement du shell : les deux passerelles, celle du
+    # serveur de Playwright et celle du CDP, refusent toute requête qui ne le
+    # porte pas. Absent du shell, elles refusent tout, et le service ne
+    # devient jamais sain.
     environment:
       - MB_BROWSER_TOKEN
     volumes:
       - ./node_modules/playwright-core:/opt/playwright-core:ro
       - ./fixtures/browser/server.mjs:/opt/bench/server.mjs:ro
+      - ./fixtures/browser/token-gateway.mjs:/opt/bench/token-gateway.mjs:ro
       - ./fixtures/browser/cdp-gateway.mjs:/opt/bench/cdp-gateway.mjs:ro
+      - ./fixtures/browser/playwright-gateway.mjs:/opt/bench/playwright-gateway.mjs:ro
     ports:
+      # Passerelle du serveur de Playwright (fixtures/browser/playwright-gateway.mjs).
       - "127.0.0.1:8095:3000"
       # Passerelle CDP (fixtures/browser/cdp-gateway.mjs), pour Lighthouse.
       - "127.0.0.1:8096:9222"
     networks:
       - default
     healthcheck:
-      # Prêt quand le serveur de Playwright accepte une connexion.
-      test: ["CMD", "node", "-e", "require('node:net').connect(3000, '127.0.0.1').on('connect', () => process.exit(0)).on('error', () => process.exit(1))"]
+      # Prêt quand le serveur de Playwright répond à sa découverte, demandée
+      # avec le jeton par sa passerelle : la passerelle et `run-server` sont
+      # tous deux en écoute.
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/' + process.env.MB_BROWSER_TOKEN + '/json').then((r) => r.json()).then((j) => process.exit(j.wsEndpointPath === '/' ? 0 : 1), () => process.exit(1))"]
       interval: 2s
       timeout: 2s
       retries: 30

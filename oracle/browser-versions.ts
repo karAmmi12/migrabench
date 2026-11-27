@@ -28,8 +28,9 @@ export interface BrowserVersions {
   browserImage: BrowserImage;
 }
 
-export async function browserVersions(): Promise<BrowserVersions> {
-  const browser = await connectBenchBrowser();
+// `browserToken` : le jeton de la pile en cours (#160).
+export async function browserVersions(browserToken: string): Promise<BrowserVersions> {
+  const browser = await connectBenchBrowser(browserToken);
   let chromium: string;
   try {
     chromium = browser.version();

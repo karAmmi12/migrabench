@@ -37,7 +37,8 @@ describe("shouldRun", () => {
     expect(decision.run).toBe(false);
   });
 
-  it.each(["oracle/cli.ts", "fixtures/legacy-app/pom.xml", "docker-compose.yml", "results/oracle/x.json"])(
+  // fixtures/browser/ : le navigateur du banc et ses passerelles (#160).
+  it.each(["oracle/cli.ts", "fixtures/legacy-app/pom.xml", "docker-compose.yml", "fixtures/browser/server.mjs", "results/oracle/x.json"])(
     "runs proof on a pull request touching %s",
     async (file) => {
       expect((await shouldRun("proof", pr("runner/cli.ts", file), history())).run).toBe(true);
@@ -82,6 +83,7 @@ describe("shouldRun", () => {
 
   it.each([
     ".github/workflows/measures.yml",
+    "fixtures/browser/playwright-gateway.mjs",
     "scripts/measure-cases.ts",
     "scripts/measure-process.ts",
     "scripts/run-measure-case.ts",
