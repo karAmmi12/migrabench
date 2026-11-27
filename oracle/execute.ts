@@ -10,7 +10,6 @@ import { BROWSER_TOKEN_ENV, maskBrowserToken, newBrowserToken } from "../shared/
 import { fileSha256 } from "../shared/digest.ts";
 import { spawnCommand, stdoutOf } from "../shared/process.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, readBenchEnv, ROOT } from "../shared/root.ts";
-import { browserWsEndpoint, PLAYWRIGHT_CONNECT_ENV } from "./browser.ts";
 import { type BrowserImage, browserVersions } from "./browser-versions.ts";
 import { type CiRun, ciRunOf, resultFileName, timestamp } from "./ci-run.ts";
 import { artifactPaths, collect, type OracleSummary, unreachedSummary } from "./collect.ts";
@@ -164,8 +163,8 @@ async function launch({ baseUrl, salt, browserToken, metadata, outputDir, report
       BASE_URL: baseUrl,
       // Le sel n'est transmis qu'au processus Playwright, pour les scénarios de l'accusé.
       ARCHIVE_SALT: salt,
-      // Point d'entrée du navigateur avec le jeton, hors de la configuration (#160).
-      [PLAYWRIGHT_CONNECT_ENV]: browserWsEndpoint(browserToken),
+      // Jeton du navigateur, lu par la fixture `connectOptions` des scénarios (#160).
+      [BROWSER_TOKEN_ENV]: browserToken,
       [ORACLE_ENV.outputDir]: outputDir,
       [ORACLE_ENV.report]: reportFile,
       [ORACLE_ENV.metadata]: JSON.stringify(metadata),

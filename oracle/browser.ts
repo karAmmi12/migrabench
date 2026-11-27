@@ -22,13 +22,6 @@ export function browserWsEndpoint(token: string): string {
   return `${BROWSER_WS_ENDPOINT}${token}/`;
 }
 
-// Variable lue par @playwright/test pour se connecter à un serveur de
-// Playwright : elle remplace `use.connectOptions` de la configuration
-// (connectOptionsFromEnv de playwright/lib/index.js, version 1.65.1).
-// L'oracle y passe le point d'entrée avec le jeton, que la configuration ne
-// porte pas : le reporter JSON la recopie dans le résultat.
-export const PLAYWRIGHT_CONNECT_ENV = "PW_TEST_CONNECT_WS_ENDPOINT";
-
 /** Connexion au navigateur du banc ; le jeton est retiré du message d'un échec. */
 export async function connectBenchBrowser(token: string): Promise<Browser> {
   try {

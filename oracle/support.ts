@@ -11,7 +11,9 @@
 import { readFileSync } from "node:fs";
 import { test as base, expect, type Page } from "@playwright/test";
 import { parseUsersWithoutUnknown, type Role, UNKNOWN_USER } from "../scripts/users.ts";
+import { BROWSER_TOKEN_ENV } from "../shared/browser-token.ts";
 import { archiveReference } from "./archive-reference.ts";
+import { browserWsEndpoint } from "./browser.ts";
 import { REACH_ANNOTATION, REREAD_ANNOTATION } from "./collect.ts";
 import { goToSearch, goToSheet, goToSubmission } from "./navigation.ts";
 import { skippedStepAnnotation, type VariantKey, type Variants, variantAnnotation } from "./variants.ts";
@@ -45,8 +47,25 @@ function credentialsOf(identity: Identity): { username: string; password: string
 // Chaque scénario a son propre contexte : identifiants par httpCredentials, et
 // un HAR dédié, corps compris, sans filtre d'URL (toutes origines). Le HAR est
 // joint au résultat sous le nom « har », que la collecte cite par empreinte.
+// Jeton du navigateur de l'exécution, passé par executeOracle (#160).
+function browserToken(): string {
+  const token = process.env[BROWSER_TOKEN_ENV];
+  if (!token) throw new Error(`No ${BROWSER_TOKEN_ENV}: the oracle runs through executeOracle (npm run oracle), which passes the token of the stack`);
+  return token;
+}
+
 export const test = base.extend<{ identity: Identity }>({
   identity: ["agent", { option: true }],
+  // Point d'entrée de la configuration, avec le jeton de la pile en tête du
+  // chemin (#160) : ajouté ici, il n'est jamais recopié dans le résultat, qui
+  // reprend la configuration.
+  connectOptions: [
+    async ({ connectOptions }, use) => {
+      if (connectOptions === undefined) throw new Error("The oracle configuration names no Playwright server");
+      await use({ ...connectOptions, wsEndpoint: browserWsEndpoint(browserToken()) });
+    },
+    { scope: "worker" },
+  ],
   context: async ({ browser, baseURL, identity }, use, testInfo) => {
     const harPath = testInfo.outputPath("scenario.har");
     const credentials = credentialsOf(identity);
