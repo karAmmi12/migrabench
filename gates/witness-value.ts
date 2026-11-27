@@ -46,7 +46,7 @@ interface HarHeader {
   value: string;
 }
 interface HarEntry {
-  request: { url: string; headers: HarHeader[]; postData?: { mimeType?: string; text?: string; params?: unknown[] } };
+  request: { method: string; url: string; headers: HarHeader[]; postData?: { mimeType?: string; text?: string; params?: unknown[] } };
   response: { status: number; headers: HarHeader[]; bodySize?: number; content: { text?: string; encoding?: string } };
 }
 export interface Har {

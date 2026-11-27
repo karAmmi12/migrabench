@@ -17,7 +17,9 @@
 // Ce que cette session a reçu, réponses rejouées et cookies posés, sert à la
 // transplantation (`replayUnit`).
 // 2. Le legacy est redémarré, puis le **contrôle** rejoue les unités dans une
-//    nouvelle session authentifiée : l'agent pour les
+//    nouvelle session authentifiée. Il transplante toute valeur vue dans ce
+//    que la session source a reçu (règle par défaut de gates/transplant.ts) :
+//    c'est ce qui lui permet de relever lesquelles changent. L'agent pour les
 //    unités des HAR, qui ne font que lire, et pour une unité du parcours,
 //    l'utilisateur qui l'a enregistrée, seul à avoir le droit d'y écrire. Il
 //    relève, requête par requête, les valeurs liées à la session : celles que
@@ -108,6 +110,9 @@ export interface Replay {
   after: Record<string, unknown>;
 }
 
+// Ce que rend le rejeu d'une unité, avant les états des dossiers.
+type ReplayCounts = Pick<Replay, "requests" | "pathRequests" | "responses" | "values">;
+
 export interface AuthObservation {
   skipped: number;
   // Étapes du parcours non atteintes.
@@ -165,8 +170,7 @@ export function harUnits(hars: readonly { scenario: string; har: Har }[], candid
     const responses: ReceivedResponse[] = [];
     const requests: UnitRequest[] = [];
     for (const entry of har.log.entries) {
-      const method = (entry.request as { method?: string }).method ?? "GET";
-      const { url } = entry.request;
+      const { method, url } = entry.request;
       if (sameOrigin(url, candidateUrl)) {
         if (method === "GET" || method === "HEAD") {
           const headers: Record<string, string> = {};
@@ -189,7 +193,7 @@ export function harUnits(hars: readonly { scenario: string; har: Har }[], candid
 const changed = (before: Record<string, unknown>, after: Record<string, unknown>) =>
   Object.keys(before).filter((number) => JSON.stringify(before[number]) !== JSON.stringify(after[number]));
 
-function transplantValues(values: readonly TransplantedValue[]): { transplanted: number; removed: number } {
+function countValues(values: readonly TransplantedValue[]): { transplanted: number; removed: number } {
   return { transplanted: values.filter(({ found, changed: differs }) => found && differs).length, removed: values.filter(({ found }) => !found).length };
 }
 
@@ -207,7 +211,7 @@ export function authResults(observation: AuthObservation, raw: Record<string, st
       passed: leaks.length === 0,
       evaluable: controlRead,
       findings: [...leaks, ...(controlRead ? [] : [{ message: NO_CONTROL_NUMBER }])],
-      values: { requests: anonymous.requests, skipped, ...transplantValues(anonymous.values) },
+      values: { requests: anonymous.requests, skipped, ...countValues(anonymous.values) },
       raw,
     }),
     judged({
@@ -311,8 +315,8 @@ async function recordPath(context: GateContext, prepared: Prepared): Promise<{ u
 export async function replayUnit(
   unit: ReplayUnit,
   options: { authorization: string | null; sessionBound?: readonly ReadonlySet<string>[]; numbers: readonly string[]; send: (request: RecordedRequest) => Promise<Sent>; aborted?: () => boolean },
-): Promise<{ replay: Pick<Replay, "requests" | "pathRequests" | "responses" | "values">; bound: Set<string>[]; sent: unknown[] }> {
-  const replay: Pick<Replay, "requests" | "pathRequests" | "responses" | "values"> = { requests: 0, pathRequests: 0, responses: [], values: [] };
+): Promise<{ replay: ReplayCounts; bound: Set<string>[]; sent: unknown[] }> {
+  const replay: ReplayCounts = { requests: 0, pathRequests: 0, responses: [], values: [] };
   const jar = new Map<string, string>();
   const replayed: ReceivedResponse[] = [];
   const bound: Set<string>[] = [];

@@ -99,26 +99,11 @@ const xssCase = (candidate: string, gates: MeasureCase["gates"]): MeasureCase =>
   witnesses: true,
   gates: [{ ...WITNESS_VALUE, outcome: "failed" }, ...(gates ?? []), ...ROLE_LEGACY, { ...RELAY, outcome: "failed" }],
 });
-// Candidats de la porte de rôle : des relais du legacy qui ne changent que la
-// fiche, la remise et la requête de remise. Comme le legacy, ils échouent à la
+// Candidats des portes de rôle (#131) et d'authentification (#132) : des
+// relais du legacy qui ne changent que la fiche, la remise et la requête de
+// remise, ou que l'exigence d'identifiants. Comme le legacy, ils échouent à la
 // valeur témoin, à XSS sur la recherche et au relais.
-const roleCase = (candidate: string, gates: MeasureCase["gates"], summary: MeasureCase["summary"] = { passed: 38, failed: 0, unreached: 0 }): MeasureCase => ({
-  candidate,
-  exitCode: 0,
-  category: "completed",
-  reason: "ok",
-  phases: { gates: "ok", closing: "ok" },
-  oracleExecuted: true,
-  oracleJson: "kept",
-  summary,
-  witnesses: true,
-  startWitnesses: RESTARTS,
-  gates: [{ ...WITNESS_VALUE, outcome: "failed" }, ...XSS_LEGACY, ...(gates ?? []), { ...RELAY, outcome: "failed" }],
-});
-// Candidats de la porte d'authentification : des relais du legacy qui ne
-// changent que l'exigence d'identifiants. Le legacy y est intact : ils
-// échouent comme lui à la valeur témoin, à XSS sur la recherche et au relais.
-const authCase = (candidate: string, gates: MeasureCase["gates"], summary: MeasureCase["summary"] = { passed: 38, failed: 0, unreached: 0 }): MeasureCase => ({
+const legacyRelayCase = (candidate: string, gates: MeasureCase["gates"], summary: MeasureCase["summary"] = { passed: 38, failed: 0, unreached: 0 }): MeasureCase => ({
   candidate,
   exitCode: 0,
   category: "completed",
@@ -250,26 +235,30 @@ export const MEASURE_CASES = {
     { gate: "xss", name: "executed/search", outcome: "failed", findingCites: "undefined" },
   ]),
   // #131 : bouton masqué dans la vue, sans contrôle de rôle.
-  "role-button-hidden-in-view": roleCase(`${DEFECTIVE}/role-button-hidden-in-view`, role({ "role-replay": "failed" })),
+  "role-button-hidden-in-view": legacyRelayCase(`${DEFECTIVE}/role-button-hidden-in-view`, role({ "role-replay": "failed" })),
   // #131 : écran de remise protégé seulement par son lien. Sans le lien,
   // l'agent n'atteint pas cinq scénarios de l'oracle (exécution 46001662192,
   // commit f9510e8 : 33 réussis, 5 non atteints).
-  "role-screen-protected-by-link": roleCase(`${DEFECTIVE}/role-screen-protected-by-link`, role({ "role-replay": "failed", "role-forced-browsing": "failed" }), { passed: 33, failed: 0, unreached: 5 }),
+  "role-screen-protected-by-link": legacyRelayCase(`${DEFECTIVE}/role-screen-protected-by-link`, role({ "role-replay": "failed", "role-forced-browsing": "failed" }), { passed: 33, failed: 0, unreached: 5 }),
   // #131 : jeton anti-CSRF sans contrôle de rôle.
-  "role-csrf-without-role-check": roleCase(`${DEFECTIVE}/role-csrf-without-role-check`, role({ "role-replay": "failed" })),
+  "role-csrf-without-role-check": legacyRelayCase(`${DEFECTIVE}/role-csrf-without-role-check`, role({ "role-replay": "failed" })),
   // #131 : candidat conforme, jeton anti-CSRF et contrôle de rôle.
-  "role-csrf-and-role-check": roleCase(`${CONFORMING}/role-csrf-and-role-check`, role()),
+  "role-csrf-and-role-check": legacyRelayCase(`${CONFORMING}/role-csrf-and-role-check`, role()),
   // #132 : lecture et écriture sans contrôle. Sans identifiants, le relais pose
   // ceux de l'instructeur : trois scénarios échouent, `auth-no-credentials`,
   // `auth-unknown-user` et `remise-agent-reserved`, dont la première requête
-  // part sans identifiants (mesure 20261127T162133Z-316e805-…, 35 réussis).
-  "auth-read-and-write-unchecked": authCase(`${DEFECTIVE}/auth-read-and-write-unchecked`, auth({}, "failed"), { passed: 35, failed: 3, unreached: 0 }),
+  // part sans identifiants (mesure
+  // 20261127T163006Z-4a22809-defective-candidates-auth-read-and-write-unchecked,
+  // 35 réussis).
+  "auth-read-and-write-unchecked": legacyRelayCase(`${DEFECTIVE}/auth-read-and-write-unchecked`, auth({}, "failed"), { passed: 35, failed: 3, unreached: 0 }),
   // #132 : jeton anti-CSRF et écriture sans contrôle ; le jeton de la session
   // anonyme est transplanté. La lecture échoue aussi : l'écriture, partie avec
   // les identifiants de l'instructeur, ouvre une session Tomcat authentifiée,
   // et le `GET /remise.do` qui suit, sans identifiants, rend la remise de
-  // D-0120 (mesure 20261127T163152Z-4a22809-…).
-  "auth-csrf-write-unchecked": authCase(`${DEFECTIVE}/auth-csrf-write-unchecked`, [
+  // D-0120 (mesure 20261127T163152Z-4a22809-defective-candidates-auth-csrf-write-unchecked).
+  // Ses écritures anonymes réussies renvoient aussi `Location:
+  // /fiche.do?number=…`, que la porte compte : limite de PROTOCOL.md.
+  "auth-csrf-write-unchecked": legacyRelayCase(`${DEFECTIVE}/auth-csrf-write-unchecked`, [
     ...auth({}, "failed").filter(({ name }) => name !== "auth-read"),
     { gate: "auth-check", name: "auth-read", outcome: "failed", findingCites: "remise.do?number=D-0120" },
   ]),

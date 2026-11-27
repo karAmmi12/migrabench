@@ -3,9 +3,11 @@
 // (csrf.js). Les lectures sont relayées telles quelles : le legacy exige ses
 // identifiants. Une écriture exige le jeton de sa session, mais pas
 // d'identifiants : sans `Authorization`, elle part avec ceux de l'instructeur
-// (fixtures/users.json). Issue attendue : `auth-check/auth-read` réussi,
-// `auth-check/auth-write` échoué (le jeton de la session anonyme est
-// transplanté).
+// (fixtures/users.json). Issue attendue : `auth-check/auth-write` échoué (le
+// jeton de la session anonyme est transplanté). `auth-check/auth-read` échoue
+// aussi : l'écriture partie avec les identifiants de l'instructeur ouvre une
+// session Tomcat authentifiée, dont le cookie rend la lecture suivante
+// (mesure 20261127T163152Z-4a22809-defective-candidates-auth-csrf-write-unchecked).
 import { hasValidToken, isWrite, sessionCookie, withToken } from "./csrf.js";
 import { createRelay, withAuthorization } from "./relay.js";
 

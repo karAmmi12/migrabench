@@ -475,7 +475,11 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
     contenant rien. La règle est écrite une seule fois, dans
     `gates/transplant.ts` (`sessionBoundValues`, option `sessionBound`) ; la
     porte de rôle s'y alignera (#166).
-  - **Le contrôle** : l'agent pour les unités des HAR, qui ne font que lire ;
+  - **Le contrôle** transplante toute valeur vue dans ce que la session
+    source a reçu (règle de la porte de rôle) : c'est ce qui lui permet de
+    relever celles qui changent. Il est la référence de la règle
+    différentielle, et n'en dépend pas.
+  - **Les sessions du contrôle** : l'agent pour les unités des HAR, qui ne font que lire ;
     pour une unité du parcours, l'utilisateur qui l'a enregistrée, seul à
     avoir le droit d'y écrire. Ses lectures sont donc faites par lui.
   - **L'ordre** : enregistrement du parcours, redémarrage du legacy,
