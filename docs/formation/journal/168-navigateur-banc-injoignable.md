@@ -188,7 +188,8 @@ browser-stopped-during-oracle: verdict is stack-down-while-candidate (stack-down
 `npm test` complet, au commit 06a4946, arbre propre : `Test Files  107 passed
 (107)`, `Tests  1215 passed (1215)`.
 
-> À vérifier : `npm test` complet au commit de cette fiche, arbre propre (en cours en session).
+Au commit 92d1da6 (fiche comprise), arbre propre : `Test Files  107 passed
+(107)`, `Tests  1216 passed (1216)`.
 
 > À vérifier après l'exécution de la CI de la PR : le cas `browser-stopped-during-oracle` dans le job des mesures (groupe `defective`), lien de l'exécution, head SHA, ligne du résumé.
 
