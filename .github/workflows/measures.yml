@@ -1,6 +1,7 @@
 # Mesures sur une vraie pile (#74, spec de l'étape 3, « Décisions de test »,
-# Seam 1, et « Notes », critère de fin). Un seul job, une seule construction
-# de la pile :
+# Seam 1, et « Notes », critère de fin). Plusieurs jobs parallèles, un par
+# groupe de mesures, chacun avec sa construction de la pile (#163, job
+# measure-group) ; le job measures les rassemble :
 # - le candidat de référence : mesure comptée (`--counted`) en workflow_dispatch
 #   sur main, mesure de diagnostic sinon (`--counted` refuse un commit qui
 #   n'est pas dans origin/main) ;
@@ -13,9 +14,10 @@
 #   de 30 s, que `--timeout-cap-ms` ne plafonne pas (exécution 45603633524,
 #   coupée à 10 min).
 # Chaque mesure est contrôlée par scripts/run-measure-case.ts contre son issue
-# attendue (scripts/measure-cases.ts) ; le résumé du job en donne le tableau.
-# Mesures et bruts gardés 7 jours en artefacts (ADR 0005) ; la mesure comptée
-# en est récupérée pour être versionnée sous results/counted/.
+# attendue (scripts/measure-cases.ts) ; le résumé de chaque groupe en donne le
+# tableau. Mesures et bruts gardés 7 jours en artefacts (ADR 0005), un par
+# groupe (`measures-<groupe>`) ; la mesure comptée est récupérée de l'artefact
+# `measures-reference` pour être versionnée sous results/counted/.
 #
 # Chaque étape de mesure lance son script par `exec` : à l'annulation du job,
 # GitHub envoie SIGINT au processus d'entrée de l'étape, que le shell d'une
@@ -75,13 +77,37 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/write-ci-scope.ts
 
-  measures:
+  # Un job par groupe de mesures (#163), en parallèle, chacun avec sa propre
+  # construction de la pile et son propre délai : un seul job séquentiel
+  # durait 39 min 47 s pour 45 min (exécution 46015618324), et chaque porte
+  # l'allongeait. Délai de chaque groupe : un peu plus du double de sa durée
+  # relevée sur cette exécution (construction de la pile comprise, 1 min 20 s).
+  # - reference : candidat de référence, verrou du banc et mesure
+  #   interrompue, porte du relais (6 min 30 s) ;
+  # - defective : candidats défectueux 1 à 8 de l'étape 3 et panne de #68
+  #   (9 min 30 s) ;
+  # - xss : porte XSS (13 min) ;
+  # - role : porte de rôle (14 min 30 s).
+  # Chaque étape de mesure ne tourne que dans son groupe.
+  measure-group:
     needs: changes
     if: needs.changes.outputs.measures == 'true'
+    name: measures / ${{ matrix.group }}
     runs-on: ubuntu-24.04
-    # Borne un blocage : une vingtaine de mesures, la sonde et le relais qui
-    # altère un libellé passent chacun par l'oracle complet.
-    timeout-minutes: 45
+    timeout-minutes: ${{ matrix.timeout }}
+    strategy:
+      # Un groupe en échec n'annule pas les autres : chacun rend ses mesures.
+      fail-fast: false
+      matrix:
+        include:
+          - group: reference
+            timeout: 15
+          - group: defective
+            timeout: 20
+          - group: xss
+            timeout: 30
+          - group: role
+            timeout: 30
     env:
       # Mesure comptée seulement sur main, lancée à la main.
       REFERENCE_CASE: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && 'reference-counted' || 'reference' }}
@@ -162,64 +188,65 @@ jobs:
       # `--counted`. Le premigrabench n'est pas lancé : le script appelle
       # runner/cli.ts, et setup-node a pris la version de .nvmrc.
       - name: Candidat de référence
+        if: matrix.group == 'reference'
         run: exec node scripts/run-measure-case.ts "$REFERENCE_CASE"
 
       - name: Verrou du banc et mesure interrompue
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'reference' }}
         run: exec node scripts/interrupt-measure.ts
 
       - name: Candidat défectueux 1, contrat invalide
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'defective' }}
         run: exec node scripts/run-measure-case.ts contract-invalid
 
       - name: Candidat défectueux 2, construction en échec
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'defective' }}
         run: exec node scripts/run-measure-case.ts build-fails
 
       - name: Candidat défectueux 3, construction trop longue
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'defective' }}
         run: exec node scripts/run-measure-case.ts build-never-ends
 
       - name: Candidat défectueux 4, jamais disponible
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'defective' }}
         run: exec node scripts/run-measure-case.ts never-ready
 
       - name: Candidat défectueux 5, sonde d'isolation
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'defective' }}
         run: exec node scripts/run-measure-case.ts isolation-probe
 
       - name: Candidat défectueux 6, relais qui altère un libellé
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'defective' }}
         run: exec node scripts/run-measure-case.ts relay-alters-label
 
       # Porte du relais (#124) : le test négatif est le candidat de référence ;
       # ces deux candidats coupent toute connexion après leur disponibilité,
       # pour que l'oracle échoue vite.
       - name: Porte du relais, candidat qui imite le healthcheck
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'reference' }}
         run: exec node scripts/run-measure-case.ts relay-forged-healthcheck
 
       - name: Porte du relais, candidat conforme
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'reference' }}
         run: exec node scripts/run-measure-case.ts relay-untouched
 
       # Porte XSS (#129) : le test négatif est le candidat de référence, qui
       # échoue sur la recherche. Ces quatre relais ne réécrivent que les pages
       # porteuses de la charge : l'oracle y réussit ses 38 scénarios.
       - name: Porte XSS, candidat conforme qui échappe
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'xss' }}
         run: exec node scripts/run-measure-case.ts xss-escapes
 
       - name: Porte XSS, candidat qui assainit
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'xss' }}
         run: exec node scripts/run-measure-case.ts xss-sanitizes
 
       - name: Porte XSS, candidat qui injecte sur la fiche
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'xss' }}
         run: exec node scripts/run-measure-case.ts xss-injects-on-sheet
 
       - name: Porte XSS, candidat qui exécute puis efface
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'xss' }}
         run: exec node scripts/run-measure-case.ts xss-executes-then-erases
 
       # Porte de rôle (#131) : le test négatif est le candidat de référence,
@@ -227,41 +254,41 @@ jobs:
       # fois le legacy (témoins start-2 à start-4). Ces relais ne changent que
       # la fiche, la remise et la requête de remise.
       - name: Porte de rôle, bouton masqué dans la vue
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'role' }}
         run: exec node scripts/run-measure-case.ts role-button-hidden-in-view
 
       - name: Porte de rôle, écran protégé seulement par son lien
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'role' }}
         run: exec node scripts/run-measure-case.ts role-screen-protected-by-link
 
       - name: Porte de rôle, jeton anti-CSRF sans contrôle de rôle
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'role' }}
         run: exec node scripts/run-measure-case.ts role-csrf-without-role-check
 
       - name: Porte de rôle, candidat conforme avec jeton et contrôle de rôle
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'role' }}
         run: exec node scripts/run-measure-case.ts role-csrf-and-role-check
 
       # La composition ajoutée par COMPOSE_FILE ne vaut que pour cette mesure :
       # la suivante recrée un legacy sain.
       - name: Candidat défectueux 7, pile volontairement cassée
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'defective' }}
         run: exec node scripts/run-measure-case.ts broken-stack
 
       # Images de la pile construites avec une empreinte de contexte étrangère
       # à cette copie, puis reconstruites avec la sienne.
       - name: Candidat défectueux 8, images d'une autre copie
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'defective' }}
         run: |
           foreign="sha256:$(printf '0%.0s' $(seq 64))"
           MB_LEGACY_CONTEXT_DIGEST="$foreign" MB_ARCHIVE_CONTEXT_DIGEST="$foreign" docker compose build
 
       - name: Candidat défectueux 8, mesure
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'defective' }}
         run: exec node scripts/run-measure-case.ts foreign-stack
 
       - name: Candidat défectueux 8, images de cette copie
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'defective' }}
         run: docker compose build
 
       # Le fichier modifié fait partie du contexte de la pile : les images
@@ -269,17 +296,17 @@ jobs:
       # mesure rendrait stack-not-from-this-copy avant l'oracle. En dernier :
       # l'arbre de travail n'est plus propre.
       - name: "Panne de #68, configuration de Playwright cassée"
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'defective' }}
         run: |
           echo 'throw new Error("oracle config broken on purpose (#74)");' >> oracle/playwright.config.ts
           env $(node scripts/stack-context-env.ts) docker compose build
 
       - name: "Panne de #68, mesure"
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && matrix.group == 'defective' }}
         run: exec node scripts/run-measure-case.ts oracle-config-broken
 
       - name: "Panne de #68, configuration rétablie"
-        if: always()
+        if: always() && matrix.group == 'defective'
         run: git checkout -- oracle/playwright.config.ts
 
       - name: Journaux de la pile
@@ -293,7 +320,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: measures
+          name: measures-${{ matrix.group }}
           path: |
             results/counted/
             results/diagnostic/
@@ -303,3 +330,32 @@ jobs:
           include-hidden-files: true
           retention-days: 7
           if-no-files-found: error
+
+  # Rassemble les groupes (#163). Son nom, `measures`, est celui que cherche
+  # scripts/ci-scope.ts pour savoir si les mesures ont réussi sur un commit :
+  # il réussit seulement si chaque job de groupe a réussi. Son résumé donne la durée
+  # de chaque groupe, leur somme et le plus long.
+  measures:
+    needs: [changes, measure-group]
+    if: ${{ always() && needs.changes.outputs.measures == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    # actions: read : lire les jobs de cette exécution.
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+
+      # Échoue si un groupe n'a pas réussi : la conclusion de chaque job est
+      # lue sur l'API, et non déduite du résultat global de la matrice.
+      - name: Durées et issue des jobs de mesures
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/write-measure-durations.ts

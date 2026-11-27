@@ -43,7 +43,8 @@ const JOB_PATHS: Partial<Record<HeavyJob, string[]>> = {
   // Ce que le job des mesures exécute (#74) : le workflow, ses scripts, les
   // candidats défectueux et conformes (#124), le navigateur du banc et ses
   // passerelles (#160), et la pile cassée. Pas runner/ :
-  // ses changements sont couverts par Vitest, et le job dure une vingtaine de minutes ; il se lance
+  // ses changements sont couverts par Vitest, et les mesures prennent une
+  // quarantaine de minutes de runner (#163) ; elles se lancent
   // à la main (workflow_dispatch) pour la mesure comptée sur main.
   measures: [
     ".github/workflows/measures.yml",
@@ -52,6 +53,8 @@ const JOB_PATHS: Partial<Record<HeavyJob, string[]>> = {
     "scripts/run-measure-case.ts",
     "scripts/interrupt-measure.ts",
     "scripts/start-report.ts",
+    "scripts/measure-durations.ts",
+    "scripts/write-measure-durations.ts",
     "fixtures/defective-candidates/",
     "fixtures/conforming-candidates/",
     "fixtures/browser/",
