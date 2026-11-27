@@ -2,6 +2,7 @@
 // page.route, dans le Chromium du service `browser` de la pile (#78).
 import type { Browser, Page } from "@playwright/test";
 import { connectBenchBrowser } from "../../oracle/browser.ts";
+import { stackBrowserToken } from "../../shared/browser-token.ts";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { refuseDialogs } from "../../oracle/dialogs.ts";
 
@@ -10,7 +11,7 @@ const ORIGIN = "http://mb.test";
 let browser: Browser;
 
 beforeAll(async () => {
-  browser = await connectBenchBrowser();
+  browser = await connectBenchBrowser(stackBrowserToken());
 });
 
 afterAll(async () => {

@@ -57,6 +57,11 @@ et `USERS_FILE`. Le legacy reçoit `ARCHIVE_TOKEN` et l'horloge figée.
   - Il ne joint pas l'API interne.
   - Son serveur de Playwright est publié sur `127.0.0.1:8095`, comme tout
     port publié.
+  - Le candidat, sur `default` lui aussi, joint ce service. Le serveur de
+    Playwright (port `3000`, #160) et la passerelle CDP (port `9222`, #134)
+    refusent donc toute requête qui ne porte pas le jeton de la pile,
+    tiré à chaque démarrage. `run-server` n'écoute que sur la boucle locale
+    du conteneur, derrière sa passerelle.
 - Tout port publié sur l'hôte, pour le legacy, le service d'archivage ou le
   candidat, est lié à `127.0.0.1`. Un service ajouté plus tard à la
   composition suit la même règle.

@@ -254,7 +254,7 @@ export const accessibilityGate: Gate<Prepared> = {
   timeoutMs: ACCESSIBILITY_TIMEOUT_MS,
   tools: () => ({ "axe-core": axeCoreVersion() }),
   // Entrées du banc : son navigateur, ses identités et son jeu de données.
-  prepare: async () => {
+  prepare: async (context) => {
     const users = parseUsersWithoutUnknown(readFileSync(`${ROOT}/fixtures/users.json`, "utf8"));
     const credential = (role: Role) => {
       const user = users.find((entry) => entry.role === role);
@@ -265,7 +265,7 @@ export const accessibilityGate: Gate<Prepared> = {
     const dataset = JSON.parse(readFileSync(datasetFile, "utf8")) as { dossiers: { number: string; subject: string }[] };
     const subject = dataset.dossiers.find(({ number }) => number === DOSSIER)?.subject;
     if (subject === undefined) throw new Error(`No dossier ${DOSSIER} in the dataset`);
-    return { browser: await connectBenchBrowser(), credentials: { agent: credential("agent"), instructeur: credential("instructeur") }, subject };
+    return { browser: await connectBenchBrowser(context.browserToken), credentials: { agent: credential("agent"), instructeur: credential("instructeur") }, subject };
   },
   examine: async (context, prepared) => {
     try {

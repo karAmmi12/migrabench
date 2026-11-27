@@ -3,9 +3,9 @@
 import puppeteer from "puppeteer-core";
 import { describe, expect, it } from "vitest";
 import { CDP_GATEWAY_URL, launchCdpChromium } from "../gates/cdp-browser.ts";
-import { readDevBrowserToken, resolveBrowserToken } from "../shared/browser-token.ts";
+import { stackBrowserToken } from "../shared/browser-token.ts";
 
-const token = resolveBrowserToken(process.env, readDevBrowserToken());
+const token = stackBrowserToken();
 
 describe("CDP gateway of the browser service", () => {
   // Témoins : sans le jeton, ni découverte, ni lancement.

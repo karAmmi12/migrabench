@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { BROWSER_IMAGE } from "../../oracle/browser.ts";
 import { browserVersions } from "../../oracle/browser-versions.ts";
+import { stackBrowserToken } from "../../shared/browser-token.ts";
 
 function readJson<T>(path: string): T {
   return JSON.parse(readFileSync(new URL(`../../${path}`, import.meta.url), "utf8")) as T;
@@ -18,7 +19,7 @@ describe("browserVersions", () => {
     );
     const lock = readJson<{ packages: Record<string, { version: string }> }>("package-lock.json");
 
-    const versions = await browserVersions();
+    const versions = await browserVersions(stackBrowserToken());
 
     expect(versions).toEqual({
       chromium: manifest.browsers.find((browser) => browser.name === "chromium-headless-shell")?.browserVersion,

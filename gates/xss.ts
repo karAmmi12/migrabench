@@ -243,7 +243,7 @@ export const xssGate: Gate<Prepared> = {
   results: Object.fromEntries(SCREENS.flatMap((screen) => [`executed/${screen}`, `as-text/${screen}`]).map((name) => [name, "judged" as const])),
   timeoutMs: XSS_TIMEOUT_MS,
   // Entrées du banc : son navigateur, ses identités et la charge de son jeu de données.
-  prepare: async () => {
+  prepare: async (context) => {
     const users = parseUsersWithoutUnknown(readFileSync(`${ROOT}/fixtures/users.json`, "utf8"));
     const credential = (role: Role) => {
       const user = users.find((entry) => entry.role === role);
@@ -251,7 +251,7 @@ export const xssGate: Gate<Prepared> = {
       return { username: user.username, password: user.password };
     };
     const { payload, subjects } = payloadOf(readFileSync(`${ROOT}/fixtures/legacy-app/src/main/resources/dossiers.json`, "utf8"));
-    return { browser: await connectBenchBrowser(), credentials: { agent: credential("agent"), instructeur: credential("instructeur") }, payload, subjects };
+    return { browser: await connectBenchBrowser(context.browserToken), credentials: { agent: credential("agent"), instructeur: credential("instructeur") }, payload, subjects };
   },
   examine: async (context, prepared) => {
     try {

@@ -1,10 +1,12 @@
-// Jeton du navigateur du banc (#134, décision de Karim du 27/11) : tiré à
-// chaque démarrage de la pile et passé au service `browser` par
-// l'environnement du shell (MB_BROWSER_TOKEN de docker-compose.yml). Sa
-// passerelle CDP refuse toute requête qui ne le porte pas : le candidat, sur le
-// même réseau, ne joint pas le Chromium qui le juge.
+// Jeton du navigateur du banc (#134, #160, décisions de Karim du 27/11) :
+// tiré à chaque démarrage de la pile et passé au service `browser` par
+// l'environnement du shell (MB_BROWSER_TOKEN de docker-compose.yml). Ses deux
+// passerelles, celle du serveur de Playwright et celle du CDP, refusent toute
+// requête qui ne le porte pas : le candidat, sur le même réseau, ne joint pas
+// le Chromium qui le juge.
 //
-// Une mesure tire le sien et le donne à ses portes. `npm run stack:up` écrit
+// Une mesure tire le sien et le donne à son oracle et à ses portes ;
+// `npm run oracle` et l'étalonnage tirent aussi le leur. `npm run stack:up` écrit
 // le sien dans .dev-browser-token, que relisent les tests ; la CI le passe par
 // l'environnement.
 import { randomBytes } from "node:crypto";
@@ -26,6 +28,16 @@ export function resolveBrowserToken(env: NodeJS.Dict<string>, devToken: string |
   const token = env[BROWSER_TOKEN_ENV] || devToken?.trim();
   if (!token) throw new Error(`No browser token: run \`npm run stack:up\`, or start the stack and the tests with the same ${BROWSER_TOKEN_ENV}`);
   return token;
+}
+
+/** Jeton de la pile en cours, pour les tests : voir resolveBrowserToken. */
+export function stackBrowserToken(): string {
+  return resolveBrowserToken(process.env, readDevBrowserToken());
+}
+
+/** Le texte, sans le jeton. */
+export function maskBrowserToken(text: string, token: string): string {
+  return text.replaceAll(token, "<token>");
 }
 
 /** Contenu de .dev-browser-token, ou undefined s'il n'existe pas. */

@@ -72,8 +72,9 @@ export function watch(page: Page): Watched {
   return { responses, next: () => sequence++, done: async () => void (await Promise.all(pending)) };
 }
 
-export async function withBrowser<T>(run: (browser: Browser) => Promise<T>): Promise<T> {
-  const browser = await connectBenchBrowser();
+// Le navigateur du banc, joint avec le jeton de la mesure (#160).
+export async function withBrowser<T>(context: GateContext, run: (browser: Browser) => Promise<T>): Promise<T> {
+  const browser = await connectBenchBrowser(context.browserToken);
   try {
     return await run(browser);
   } finally {

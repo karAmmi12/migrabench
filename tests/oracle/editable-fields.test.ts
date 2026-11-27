@@ -2,13 +2,14 @@
 // par setContent, dans le Chromium du service `browser` de la pile (#78).
 import type { Browser } from "@playwright/test";
 import { connectBenchBrowser } from "../../oracle/browser.ts";
+import { stackBrowserToken } from "../../shared/browser-token.ts";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { editableFieldCount } from "../../oracle/editable-fields.ts";
 
 let browser: Browser;
 
 beforeAll(async () => {
-  browser = await connectBenchBrowser();
+  browser = await connectBenchBrowser(stackBrowserToken());
 });
 
 afterAll(async () => {

@@ -6,7 +6,7 @@ import { randomBytes } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { JSONReport } from "@playwright/test/reporter";
-import { BROWSER_TOKEN_ENV } from "../shared/browser-token.ts";
+import { BROWSER_TOKEN_ENV, maskBrowserToken, newBrowserToken } from "../shared/browser-token.ts";
 import { fileSha256 } from "../shared/digest.ts";
 import { spawnCommand, stdoutOf } from "../shared/process.ts";
 import { ARTIFACTS_DIR_FROM_ROOT, readBenchEnv, ROOT } from "../shared/root.ts";
@@ -41,7 +41,8 @@ export interface ExecuteOracleOptions {
   // bruts de la mesure (#67). Défaut : celui de docker-compose.yml.
   accessLogDir?: string;
   // Jeton du navigateur du banc (shared/browser-token.ts), passé au service
-  // `browser` recréé : celui de la mesure, que ses portes reçoivent (#134).
+  // `browser` recréé et à Playwright : celui de la mesure, que ses portes
+  // reçoivent (#134). Défaut : un jeton tiré pour l'exécution (#160).
   browserToken?: string;
   // Dossier des bruts, depuis la racine du dépôt ; défaut : un dossier propre
   // à l'exécution sous .oracle-artifacts/.
@@ -60,8 +61,8 @@ export interface ExecuteOracleResult {
   errorMessages: string[];
 }
 
-export async function executeOracle({ baseUrl = DEFAULT_BASE_URL, salt, saltImposed, ...options }: ExecuteOracleOptions = {}): Promise<ExecuteOracleResult> {
-  const prepared = await prepare(baseUrl, salt ?? randomBytes(32).toString("hex"), saltImposed ?? salt !== undefined, options);
+export async function executeOracle({ baseUrl = DEFAULT_BASE_URL, salt, saltImposed, browserToken = newBrowserToken(), ...options }: ExecuteOracleOptions = {}): Promise<ExecuteOracleResult> {
+  const prepared = await prepare(baseUrl, salt ?? randomBytes(32).toString("hex"), saltImposed ?? salt !== undefined, { ...options, browserToken });
   const report = await launch(prepared);
   return collectAndWrite(prepared, report);
 }
@@ -95,6 +96,7 @@ interface PreparedExecution {
   baseUrl: string;
   salt: string;
   saltImposed: boolean;
+  browserToken: string;
   metadata: OracleEnvironment;
   outputDir: string;
   resultFile: string | undefined;
@@ -106,7 +108,7 @@ async function prepare(
   baseUrl: string,
   salt: string,
   saltImposed: boolean,
-  { onStackReady, accessLogDir, browserToken, artifactsDir, resultFile }: Pick<ExecuteOracleOptions, "onStackReady" | "accessLogDir" | "browserToken" | "artifactsDir" | "resultFile">,
+  { onStackReady, accessLogDir, browserToken, artifactsDir, resultFile }: Pick<ExecuteOracleOptions, "onStackReady" | "accessLogDir" | "artifactsDir" | "resultFile"> & { browserToken: string },
 ): Promise<PreparedExecution> {
   const startedAt = new Date();
   // Lu avant la pile : un rang invalide arrête l'exécution avant toute mesure.
@@ -117,7 +119,7 @@ async function prepare(
   // Sortie brute, sans trim : une entrée commence par un espace (` M chemin`).
   const worktree = worktreeState((await spawnCommand("git", [...GIT_STATUS_ARGS])).stdout);
   const images = await stackImages();
-  const { chromium, playwright, browserImage } = await browserVersions();
+  const { chromium, playwright, browserImage } = await browserVersions(browserToken);
   const env = await readBenchEnv();
   const executionId = `${timestamp(startedAt)}-${randomBytes(4).toString("hex")}`;
   const artifacts = artifactsDir ?? `${ARTIFACTS_DIR_FROM_ROOT}/${executionId}`;
@@ -125,6 +127,7 @@ async function prepare(
     baseUrl,
     salt,
     saltImposed,
+    browserToken,
     metadata: { benchCommit, worktree, node: process.version, chromium, playwright, browserImage, images, imageContexts, frozenDate: env.FROZEN_DATE ?? null, baseUrl, artifacts, ...(ciRun === undefined ? {} : { ciRun }) },
     outputDir: join(ROOT, artifacts),
     reportFile: join(ROOT, artifacts, "report.json"),
@@ -151,7 +154,7 @@ export class OracleError extends Error {
   }
 }
 
-async function launch({ baseUrl, salt, metadata, outputDir, reportFile }: PreparedExecution): Promise<string> {
+async function launch({ baseUrl, salt, browserToken, metadata, outputDir, reportFile }: PreparedExecution): Promise<string> {
   await mkdir(dirname(outputDir), { recursive: true });
   const log = `${outputDir}${PLAYWRIGHT_LOG_SUFFIX}`;
   // Code de sortie ignoré : un scénario échoué rend 1, et c'est la collecte qui juge.
@@ -160,6 +163,8 @@ async function launch({ baseUrl, salt, metadata, outputDir, reportFile }: Prepar
       BASE_URL: baseUrl,
       // Le sel n'est transmis qu'au processus Playwright, pour les scénarios de l'accusé.
       ARCHIVE_SALT: salt,
+      // Jeton du navigateur, lu par la fixture `connectOptions` des scénarios (#160).
+      [BROWSER_TOKEN_ENV]: browserToken,
       [ORACLE_ENV.outputDir]: outputDir,
       [ORACLE_ENV.report]: reportFile,
       [ORACLE_ENV.metadata]: JSON.stringify(metadata),
@@ -171,6 +176,10 @@ async function launch({ baseUrl, salt, metadata, outputDir, reportFile }: Prepar
     // l'interruption de la mesure arrête en entier (#71).
     processGroup: true,
   });
+  // Le journal brut est gardé avec la mesure : un échec de connexion au
+  // navigateur y citerait le jeton (#160).
+  const logText = await readFile(log, "utf8").catch(() => undefined);
+  if (logText !== undefined) await writeFile(log, maskBrowserToken(logText, browserToken));
   try {
     return await readFile(reportFile, "utf8");
   } catch (error) {
@@ -180,10 +189,12 @@ async function launch({ baseUrl, salt, metadata, outputDir, reportFile }: Prepar
   }
 }
 
-async function collectAndWrite({ salt, saltImposed, startedAt, metadata, outputDir, resultFile: imposedResultFile }: PreparedExecution, raw: string): Promise<ExecuteOracleResult> {
+async function collectAndWrite({ salt, saltImposed, browserToken, startedAt, metadata, outputDir, resultFile: imposedResultFile }: PreparedExecution, raw: string): Promise<ExecuteOracleResult> {
   // Le sel n'apparaît dans le résultat qu'une fois Playwright terminé.
   if (raw.includes(salt)) throw new Error("The Playwright report contains the salt before collection");
-  const report = JSON.parse(raw) as JSONReport;
+  // Le jeton du navigateur n'apparaît jamais dans le résultat : un échec de
+  // connexion le citerait dans son message (#160).
+  const report = JSON.parse(maskBrowserToken(raw, browserToken)) as JSONReport;
   const hashes: Record<string, string> = {};
   for (const path of artifactPaths(report)) hashes[path] = await fileSha256(path);
   const { report: result, summary } = collect(report, { hashes, salt, saltImposed, root: ROOT, artifactsDir: outputDir });
@@ -217,16 +228,16 @@ export async function listOracle(artifactsDir: string): Promise<OracleSummary> {
 // par l'environnement du shell, jamais par .env (que lit aussi le
 // legacy). Partagé avec `migrabench calibrate`. Le journal d'accès du legacy va
 // dans `accessLogDir` s'il est donné (MB_ACCESS_LOG_DIR de docker-compose.yml).
-// Le jeton du navigateur, s'il est donné, va au service `browser`
-// (MB_BROWSER_TOKEN, #134) ; sinon, celui du shell, s'il en a un.
+// Le jeton du navigateur va au service `browser` (MB_BROWSER_TOKEN, #134) :
+// sans lui, ses passerelles refusent tout (#160).
 // La pile qui ne devient pas saine lève StackFailed, avec l'état de ses
 // services pour preuve (#68).
-export async function recreateStack(salt: string, { accessLogDir, browserToken }: { accessLogDir?: string | undefined; browserToken?: string | undefined } = {}): Promise<StackContextDigests> {
+export async function recreateStack(salt: string, { accessLogDir, browserToken }: { accessLogDir?: string | undefined; browserToken: string }): Promise<StackContextDigests> {
   const digests = await stackContextDigests();
   try {
     // Le navigateur du banc (#78) est recréé avec la pile : même état initial.
     await spawnCommand("docker", ["compose", "up", "--detach", "--force-recreate", "--no-build", "--wait", ...SERVICES, "browser"], {
-      env: { ARCHIVE_SALT: salt, ...(accessLogDir === undefined ? {} : { MB_ACCESS_LOG_DIR: accessLogDir }), ...(browserToken === undefined ? {} : { [BROWSER_TOKEN_ENV]: browserToken }) },
+      env: { ARCHIVE_SALT: salt, ...(accessLogDir === undefined ? {} : { MB_ACCESS_LOG_DIR: accessLogDir }), [BROWSER_TOKEN_ENV]: browserToken },
       inherit: true,
     });
   } catch (error) {

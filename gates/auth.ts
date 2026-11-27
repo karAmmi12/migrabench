@@ -285,7 +285,7 @@ async function recordUnit(browser: Browser, context: GateContext, role: Role, cr
 }
 
 async function recordPath(context: GateContext, prepared: Prepared): Promise<{ units: ReplayUnit[]; unreached: { unit: string; step: string; message: string }[] }> {
-  return withBrowser(async (browser) => {
+  return withBrowser(context, async (browser) => {
     const save = async (page: Page, setStep: (step: string) => void, { number, subject }: { number: string; subject: string }) => {
       await goToSheet(page, number);
       setStep(`Enregistrer ${number}`);

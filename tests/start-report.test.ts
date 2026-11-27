@@ -8,7 +8,7 @@
 // Les journaux sont des copies de vrais `start.log` : celui du candidat de
 // référence vient de l'exécution 45624689673 (tests/fixtures/ci45624689673/),
 // celui de la sonde d'une mesure locale, la première avec la tentative sur le
-// passerelle CDP (tests/fixtures/local-e353940/, #134). Chaque variante réécrit la
+// serveur de Playwright (tests/fixtures/local-f2cdfd1/, #160). Chaque variante réécrit la
 // ligne de constat du vrai journal, en gardant son préfixe (service, horodatage).
 import { describe, expect, it } from "vitest";
 import { MASKED, probeReportProblems, referenceReportProblems, START_REPORT_PREFIX } from "../scripts/start-report.ts";
@@ -32,8 +32,8 @@ function reportOf<R>(log: string): R {
 type Attempt = { attempt: string; refused?: boolean; detail?: string; environment?: Record<string, string> };
 
 // Sonde d'isolation : son journal et le marqueur de sa mesure, lu dans son measure.json.
-const PROBE_LOG = readFixture(`${MEASURES.probeWithCdp.artifacts}/start.log`);
-const MARKER = readMeasure(MEASURES.probeWithCdp).marker;
+const PROBE_LOG = readFixture(`${MEASURES.probeWithBrowserGateways.artifacts}/start.log`);
+const MARKER = readMeasure(MEASURES.probeWithBrowserGateways).marker;
 const ATTEMPTS = reportOf<{ attempts: Attempt[] }>(PROBE_LOG).attempts;
 const ENVIRONMENT = ATTEMPTS.find((entry) => entry.attempt === "read-measure-marker")!.environment!;
 
@@ -68,6 +68,14 @@ describe("probeReportProblems", () => {
     const attempts = ATTEMPTS.map((entry) => (entry.attempt === "reach-browser-cdp" ? { attempt: "reach-browser-cdp", refused: false, detail } : entry));
 
     expect(probeReportProblems(MARKER, probeLog({ attempts }))).toEqual([`Start report 1: reach-browser-cdp was not refused: ${detail}`]);
+  });
+
+  // Témoin du serveur de Playwright (#160) : un serveur joint qui ne refuse pas est vu.
+  it("names a Playwright server that answered the probe", () => {
+    const detail = "GET http://browser:3000/json 200, upgrade http://browser:3000/ 428";
+    const attempts = ATTEMPTS.map((entry) => (entry.attempt === "reach-browser-playwright" ? { attempt: "reach-browser-playwright", refused: false, detail } : entry));
+
+    expect(probeReportProblems(MARKER, probeLog({ attempts }))).toEqual([`Start report 1: reach-browser-playwright was not refused: ${detail}`]);
   });
 
   it("names an attempt missing from the report", () => {

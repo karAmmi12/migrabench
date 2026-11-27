@@ -2,16 +2,17 @@
 // défectueux ») : il n'est pas défectueux en lui-même, il prouve que chaque
 // protection du démarrage tient sur une vraie pile (ADR 0007). Il tente
 // d'écrire dans son code, de lire le socket Docker, de lire ARCHIVE_SALT, et
-// regarde s'il tourne en root, et tente de joindre la passerelle CDP du navigateur
-// du banc (#134) ; il reprend le constat de la construction
+// regarde s'il tourne en root, et tente de joindre la passerelle CDP (#134) et
+// le serveur de Playwright (#160) du navigateur du banc ; il reprend le constat de la construction
 // (build.js), et écrit son environnement pour le contrôle du marqueur (#74).
 // Il écrit le constat sur sa sortie, que le runner garde dans le brut
 // `start.log` (lu par `npm run start-report:check -- probe`). Sur PORT, il
 // sert le constat à la vérification de disponibilité du runner et coupe la
 // connexion de toute autre requête (#74). Issue attendue : mesure complète,
 // code 0.
+import { randomBytes } from "node:crypto";
 import { readFileSync, statSync, writeFileSync } from "node:fs";
-import { createServer } from "node:http";
+import { createServer, request as httpRequest } from "node:http";
 
 // Une tentative n'est comptée refusée que par l'erreur qui prouve le refus
 // (`refusedBy`) : toute autre erreur laisse le doute, donc pas de refus.
@@ -31,22 +32,42 @@ function buildReport() {
   }
 }
 
-// Passerelle CDP du navigateur du banc (#134), joint depuis le réseau `default` :
-// sans le jeton de la pile, la découverte DevTools et le lancement d'un
-// Chromium sont refusés. Seuls deux `403` prouvent le refus ; une erreur de
-// connexion laisse le doute (passerelle non jointe, donc rien d'examiné).
-async function attemptCdpGateway() {
-  const tries = [
-    ["GET", "http://browser:9222/json/version"],
-    ["POST", "http://browser:9222/launch"],
-  ];
+// Navigateur du banc, joint depuis le réseau `default` : sans le jeton de la
+// pile, chaque requête est refusée. Seuls des `403` prouvent le refus ; une
+// erreur de connexion laisse le doute (service non joint, donc rien
+// d'examiné). `tries` : des requêtes nommées, qui rendent leur statut HTTP.
+async function attemptBrowser(name, tries) {
   const statuses = [];
   try {
-    for (const [method, url] of tries) statuses.push(`${method} ${url} ${(await fetch(url, { method })).status}`);
+    for (const [label, status] of tries) statuses.push(`${label} ${await status()}`);
   } catch (error) {
-    return { attempt: "reach-browser-cdp", refused: false, detail: `${statuses.join(", ")} ${error.message}: ${error.cause?.code ?? ""}`.trim() };
+    return { attempt: name, refused: false, detail: `${statuses.join(", ")} ${error.message}: ${error.cause?.code ?? error.code ?? ""}`.trim() };
   }
-  return { attempt: "reach-browser-cdp", refused: statuses.every((status) => status.endsWith(" 403")), detail: statuses.join(", ") };
+  return { attempt: name, refused: statuses.every((status) => status.endsWith(" 403")), detail: statuses.join(", ") };
+}
+
+const fetchStatus = (method, url) => [`${method} ${url}`, async () => (await fetch(url, { method })).status];
+
+// Ouverture d'une connexion WebSocket, comme celle d'un client de Playwright :
+// le statut de la réponse, `101` si le serveur l'accepte.
+function upgradeStatus(url) {
+  return [
+    `upgrade ${url}`,
+    () =>
+      new Promise((resolve, reject) => {
+        const request = httpRequest(url, { headers: { Connection: "Upgrade", Upgrade: "websocket", "Sec-WebSocket-Version": "13", "Sec-WebSocket-Key": randomBytes(16).toString("base64") } });
+        request.on("response", (response) => {
+          response.resume();
+          resolve(response.statusCode);
+        });
+        request.on("upgrade", (response, socket) => {
+          socket.destroy();
+          resolve(response.statusCode);
+        });
+        request.on("error", reject);
+        request.end();
+      }),
+  ];
 }
 
 const attempts = [
@@ -75,7 +96,10 @@ const attempts = [
     if (uid !== 0) throw new Error(`uid ${uid}`);
     return "uid 0";
   }),
-  await attemptCdpGateway(),
+  // Passerelle CDP (#134) : découverte DevTools et lancement d'un Chromium.
+  await attemptBrowser("reach-browser-cdp", [fetchStatus("GET", "http://browser:9222/json/version"), fetchStatus("POST", "http://browser:9222/launch")]),
+  // Serveur de Playwright (#160) : découverte de son chemin, et connexion.
+  await attemptBrowser("reach-browser-playwright", [fetchStatus("GET", "http://browser:3000/json"), upgradeStatus("http://browser:3000/")]),
   // Le marqueur de la mesure ne doit jamais arriver jusqu'au candidat (#74).
   // La sonde ne le connaît pas : elle écrit tout son environnement, et le
   // contrôle (`start-report:check -- probe … --marker`) l'y cherche. La valeur

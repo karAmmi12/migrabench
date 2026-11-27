@@ -562,8 +562,34 @@ sans avoir rien examiné, ou être contournée par le candidat qu'elle juge.
     Sans jeton dans le service, la passerelle refuse tout. Le candidat, sur le
     même réseau `default`, ne joint donc pas le Chromium qui le juge. La
     sonde d'isolation le prouve (`reach-browser-cdp`, deux `403`). La même
-    protection pour le serveur de Playwright (port 3000) est reportée dans
-    #160 : `run-server` y donne son chemin à tout client par `GET /json`.
+    protection pour le serveur de Playwright (port 3000) est faite par
+    #160 (ci-dessous).
+- Précisions de #160 (décision de Karim du 27/11) : **serveur de Playwright
+  derrière le jeton de la pile.**
+  - Un chemin secret de `run-server` (`--path`) ne suffit pas : il répond à
+    `GET /json` par `{"wsEndpointPath": "<chemin>"}`, sans contrôle.
+  - `run-server` n'écoute que sur la boucle locale du conteneur (port
+    3001). Le port 3000 est une passerelle
+    (`fixtures/browser/playwright-gateway.mjs`) : elle relaie `GET
+    /<jeton>/…` à `run-server`, chemin réécrit sans le jeton, et refuse
+    tout le reste par un `403`, `GET /json` compris. Le contrôle du jeton
+    est commun aux deux passerelles (`fixtures/browser/token-gateway.mjs`).
+  - Clients : `connectBenchBrowser(token)` (portes, tests,
+    `browserVersions`), la fixture `connectOptions` des scénarios de
+    l'oracle, qui lit le jeton dans `MB_BROWSER_TOKEN`, et le healthcheck
+    du service, qui demande `GET /<jeton>/json`.
+  - Le jeton n'est jamais écrit dans un résultat. La configuration de
+    Playwright, que le reporter recopie dans `oracle.json`, garde le point
+    d'entrée sans jeton ; la fixture l'y ajoute. Une valeur de
+    `use.connectOptions` dans la configuration remplace la fixture qui lit
+    `PW_TEST_CONNECT_WS_ENDPOINT` (`playwright/lib/index.js`, 1.65.1) :
+    cette variable ne sert donc pas. Le rapport de Playwright est masqué
+    avant la collecte, et un échec de `connectBenchBrowser` aussi.
+  - `npm run oracle` et l'étalonnage tirent chacun leur jeton ;
+    `recreateStack` l'exige.
+  - La sonde d'isolation le prouve (`reach-browser-playwright`) : `GET
+    http://browser:3000/json` et l'ouverture d'une connexion WebSocket sur
+    `http://browser:3000/` rendent deux `403`.
   - **Résultat** relevé `performance`. Une passe aboutit quand Lighthouse
     rend un rapport sans `runtimeError`, avec le score et les quatre mesures.
     Les passes qui n'aboutissent pas sont dans `findings`, avec leur raison.
