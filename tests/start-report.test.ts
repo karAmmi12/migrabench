@@ -8,7 +8,7 @@
 // Les journaux sont des copies de vrais `start.log` : celui du candidat de
 // référence vient de l'exécution 45624689673 (tests/fixtures/ci45624689673/),
 // celui de la sonde d'une mesure locale, la première avec la tentative sur le
-// passerelle CDP (tests/fixtures/local-e353940/, #134). Chaque variante réécrit la
+// serveur de Playwright (tests/fixtures/local-f2cdfd1/, #160). Chaque variante réécrit la
 // ligne de constat du vrai journal, en gardant son préfixe (service, horodatage).
 import { describe, expect, it } from "vitest";
 import { MASKED, probeReportProblems, referenceReportProblems, START_REPORT_PREFIX } from "../scripts/start-report.ts";
@@ -32,8 +32,8 @@ function reportOf<R>(log: string): R {
 type Attempt = { attempt: string; refused?: boolean; detail?: string; environment?: Record<string, string> };
 
 // Sonde d'isolation : son journal et le marqueur de sa mesure, lu dans son measure.json.
-const PROBE_LOG = readFixture(`${MEASURES.probeWithCdp.artifacts}/start.log`);
-const MARKER = readMeasure(MEASURES.probeWithCdp).marker;
+const PROBE_LOG = readFixture(`${MEASURES.probe.artifacts}/start.log`);
+const MARKER = readMeasure(MEASURES.probe).marker;
 const ATTEMPTS = reportOf<{ attempts: Attempt[] }>(PROBE_LOG).attempts;
 const ENVIRONMENT = ATTEMPTS.find((entry) => entry.attempt === "read-measure-marker")!.environment!;
 

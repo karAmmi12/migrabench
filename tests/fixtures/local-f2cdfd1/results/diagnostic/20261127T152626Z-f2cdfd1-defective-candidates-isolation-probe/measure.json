@@ -1,16 +1,16 @@
 {
   "format": 1,
-  "measureId": "20261127T124602Z-e353940-defective-candidates-isolation-probe",
+  "measureId": "20261127T152626Z-f2cdfd1-defective-candidates-isolation-probe",
   "counted": false,
   "candidate": {
     "path": "fixtures/defective-candidates/isolation-probe",
-    "contentDigest": "sha256:b445bf3218fda00bc91e734cdca30d86aef8309940249534d7c971c9971a9cf4",
+    "contentDigest": "sha256:60b464fa314e33c1fa2fa70f964aa45c8fea73eecd700656f65d0b3fc42cb8fa",
     "contract": 1,
     "build": "node build.js",
     "start": "node server.js"
   },
   "environment": {
-    "benchCommit": "e353940238fa981b6c2b885447bce93ed4e3dc5f",
+    "benchCommit": "f2cdfd1d516de9e0643674cfabf61dbe8b1ba615",
     "worktree": "clean",
     "node": "v22.23.5",
     "chromium": "159.0.8154.6",
@@ -21,26 +21,26 @@
       "platform": "linux/arm64"
     },
     "images": {
-      "legacy": "sha256:dafcbda6ee87fb6b97222e6dc346c7c870e7506bb3d7e582817bb4cfd3ba67fb",
-      "archive": "sha256:daf81605fcd3739ab0e5b4d5ae9da56e33d9fd45f0abd2da7ee3b41792e5d6ef"
+      "legacy": "sha256:b9fc7a28742e3d1231cb385746d72c0f04b4858ae26a4726d0975a23b936dd3b",
+      "archive": "sha256:0afedb2886703dcc28c299c4fe0ba23ca8b91745865aef47c1b9814ec9baf46e"
     },
     "imageContexts": {
-      "legacy": "sha256:d93b1db7299135880c9627fb555611f6add4643f3f6b5a86eea75088cb9498d4",
-      "archive": "sha256:d93b1db7299135880c9627fb555611f6add4643f3f6b5a86eea75088cb9498d4"
+      "legacy": "sha256:5f525e58bf36a24d7031045859fa049072be2c6caaf97361467de7a27177e963",
+      "archive": "sha256:5f525e58bf36a24d7031045859fa049072be2c6caaf97361467de7a27177e963"
     },
     "frozenDate": "2025-11-15",
     "baseUrl": "http://127.0.0.1:8100",
-    "artifacts": ".oracle-artifacts/20261127T124602Z-e353940-defective-candidates-isolation-probe/oracle",
+    "artifacts": ".oracle-artifacts/20261127T152626Z-f2cdfd1-defective-candidates-isolation-probe/oracle",
     "gateTools": {
       "axe-core": "4.14.0",
       "lighthouse": "13.6.0"
     },
-    "runtimeImage": "sha256:c12b2ff7205346f4f9138adf01097ca4bbf17e8d6908d9530f4715ccd56ee536",
+    "runtimeImage": "sha256:2eb22dd6df6365779b7d21466ed33dc0217d0042a917329779d88e2d08c795ec",
     "containerUser": {
       "uid": 501,
       "gid": 20
     },
-    "composeOverride": "sha256:1ee7adc04b04a1420ca0fb7c23fbeaf925f9bf01df5b557079e4fb3a33fa863c",
+    "composeOverride": "sha256:d0122f3521d8e9417e2091faf5f1911b857b47976c0b5532ae8c469d98bbfc7f",
     "port": 8100,
     "limits": {
       "provisional": false,
@@ -66,76 +66,76 @@
       }
     },
     "lock": {
-      "takenAt": "2026-11-27T12:46:02.638Z"
+      "takenAt": "2026-11-27T15:26:26.703Z"
     }
   },
-  "salt": "0b2f052aca9fc63ea0bb85f93bccff92f7eb996585b1b6f154d93c4862521396",
+  "salt": "fe1a9c65ea858fa6817067abde5c9ed2486eb4045569ee2f0a8b6a92412497e8",
   "saltImposed": false,
-  "marker": "0cf370edbe48c013732063adf8f8e216415ffdb4c7bc5fc5722352af4130b92f",
+  "marker": "cb63c5e52c4d13bfd64094dd2e8aa3616cf8743ce00e217b0486ab1585bae8ef",
   "phases": [
     {
       "name": "preparation",
       "outcome": "ok",
-      "startedAt": "2026-11-27T12:46:02.639Z",
-      "durationMs": 1119,
+      "startedAt": "2026-11-27T15:26:26.704Z",
+      "durationMs": 982,
       "raw": {}
     },
     {
       "name": "contract",
       "outcome": "ok",
-      "startedAt": "2026-11-27T12:46:03.758Z",
-      "durationMs": 1,
+      "startedAt": "2026-11-27T15:26:27.686Z",
+      "durationMs": 0,
       "raw": {}
     },
     {
       "name": "build",
       "outcome": "ok",
-      "startedAt": "2026-11-27T12:46:03.759Z",
-      "durationMs": 6391,
+      "startedAt": "2026-11-27T15:26:27.686Z",
+      "durationMs": 6417,
       "raw": {
-        "fetch.log": "sha256:bfe01d8d3eb038c217ce8f8fbc2686e5e1354d9e8e663f8f61b8a5225e3b5317",
-        "npm-logs/fetch/2026-11-27T12_46_03_947Z-debug-0.log": "sha256:2479655e788cd6fb0c04d32fc938f64d4ade31cfe2806ec605f6a426131b2db5",
-        "install.log": "sha256:bde5484bc7c9b7fcb6dabccb2368a9ef27d4db35d67a82272207d8ad056779be",
-        "npm-logs/install/2026-11-27T12_46_04_502Z-debug-0.log": "sha256:e9aa169ff0e571363166b49d7cf9162fab7075d8a87c24f8c732c623ed7835cc",
+        "fetch.log": "sha256:ab4fe29212ee3b5a2b8bb9fc53f429650c58843f263f97832bf432d2b366ed60",
+        "npm-logs/fetch/2026-11-27T15_26_27_889Z-debug-0.log": "sha256:ff1e8c3fb0f74d0bcaa2e8847b7de82ee410a50309a4781fccb27ca8e28b3e05",
+        "install.log": "sha256:918a46a0145cb66f14ea4a7e8723b7af3be17b6b960866762e1f5b61a7bfd009",
+        "npm-logs/install/2026-11-27T15_26_28_408Z-debug-0.log": "sha256:1acf1d20b10af4861da5a00f97a5cfc0528d887a7c5d050b694ec52ffd37c247",
         "build.log": "sha256:b49c8f504bcf2208976b92765dca9f9e5418e2763bafe81eec5644e856400d37"
       }
     },
     {
       "name": "start",
       "outcome": "ok",
-      "startedAt": "2026-11-27T12:46:10.150Z",
-      "durationMs": 5945,
+      "startedAt": "2026-11-27T15:26:34.103Z",
+      "durationMs": 6022,
       "raw": {
-        "start.log": "sha256:3d1d38119a5e2b1b67920bfcd7030ff7d37a44be5e91ed6a79b12693647083f0"
+        "start.log": "sha256:4147e3a537ff5caac1fa698e75b3a85fe04cd8991b728ea7cc7ec0dafeb36940"
       }
     },
     {
       "name": "oracle",
       "outcome": "ok",
-      "startedAt": "2026-11-27T12:46:16.095Z",
-      "durationMs": 4441,
+      "startedAt": "2026-11-27T15:26:40.125Z",
+      "durationMs": 6879,
       "raw": {}
     },
     {
       "name": "gates",
       "outcome": "ok",
-      "startedAt": "2026-11-27T12:46:20.536Z",
-      "durationMs": 16743,
+      "startedAt": "2026-11-27T15:26:47.004Z",
+      "durationMs": 16229,
       "raw": {}
     },
     {
       "name": "closing",
       "outcome": "ok",
-      "startedAt": "2026-11-27T12:46:37.279Z",
-      "durationMs": 1507,
+      "startedAt": "2026-11-27T15:27:03.233Z",
+      "durationMs": 1546,
       "raw": {
-        "access.log": "sha256:91ac9246bb4c8ca1c76c2f1f57bfb983809b24218ae717772e84a575d03b850a"
+        "access.log": "sha256:22b8514c796cea1701906b37f79b3cb9786bc69c78edd8cbc89c51a59c6202da"
       }
     }
   ],
   "oracle": {
     "executed": true,
-    "result": "sha256:03a18132f5c7e2116e3811cb62d9b89ad54a0f4e11df275d9c93d1c28ccdc692",
+    "result": "sha256:5f6e3911b72c05bcd8f7613f2ac4b9990bfced4cc0fbd0c3042fcfabc75fb103",
     "summary": {
       "scenarios": 38,
       "passed": 0,
@@ -150,8 +150,8 @@
     }
   },
   "accessLog": {
-    "log": "sha256:91ac9246bb4c8ca1c76c2f1f57bfb983809b24218ae717772e84a575d03b850a",
-    "lines": 15,
+    "log": "sha256:22b8514c796cea1701906b37f79b3cb9786bc69c78edd8cbc89c51a59c6202da",
+    "lines": 16,
     "witnesses": [
       {
         "name": "start-1",
@@ -159,7 +159,7 @@
       },
       {
         "name": "end",
-        "line": 15
+        "line": 16
       }
     ]
   },
@@ -179,44 +179,44 @@
         "responseBodiesUnread": 0
       },
       "raw": {
-        "oracle/remise-receipt-agent-chromium/scenario.har": "sha256:eb0ee10d0bfb091fab9a54d7f00b09ab93f2beb844fdc0eab44c3cf90a5cd731",
-        "oracle/remise-receipt-instructeur-chromium/scenario.har": "sha256:91e2ae1478c94c3c0ecd43d3fd69fc21f5294d9a1a0492b48eec2a39324c892b",
-        "oracle/remise-remise-agent-reserved-chromium/scenario.har": "sha256:80ccb7ec60c99547595c8a683b423a467c7d957e06a664fcd24d7a6195ff4e70",
-        "oracle/remise-remise-instructeur-chromium/scenario.har": "sha256:526b9c797f737cdbb0d0987085c10a8ed04e3b5cf02ba8fec120d57ca68bf506",
-        "oracle/remise-remise-remis-chromium/scenario.har": "sha256:b4199246b2b9137f30752bb82b51b1cf93491ef526428c38f9e9169097396b85",
-        "oracle/remise-remise-summary-chromium/scenario.har": "sha256:48e17804f4baa8c751e90cec7e362e5879e0d13597d56cb80f3998ba09fd6745",
-        "oracle/search-auth-no-credentials-chromium/scenario.har": "sha256:02a851cd1aa938396df23ba02bbf7b346aff199acc08a56394a38c60ba4dcef4",
-        "oracle/search-auth-unknown-user-chromium/scenario.har": "sha256:5af2800b7bfb9ffc1fcb1b7511e23c0c0686920480a4f3c4e855cc5eea7c9b73",
-        "oracle/search-search-applicant-accents-chromium/scenario.har": "sha256:38b4a809f081b3d536ca46efc7a93ed911b2007ca42246389c73bc9b45d54da0",
-        "oracle/search-search-applicant-contains-case-chromium/scenario.har": "sha256:acf1c2aa81164fec01d94a6ea25632f92869b20c4ece02bb29fbdc67e5c4fc6d",
-        "oracle/search-search-criteria-and-chromium/scenario.har": "sha256:dda2c891e81854086c7e463e18d9efdc4fd50bc4cf84ca597e63d0c92f1a58e1",
-        "oracle/search-search-empty-form-chromium/scenario.har": "sha256:13e5fac90d50ed863a4517137c7c7ecb8049f827e973aa88591413379c5e92d2",
-        "oracle/search-search-filed-from-format-chromium/scenario.har": "sha256:cd901fd627e4e3027c92f2322b761d773a5fb734c04eaad54c74c5bd88a59660",
-        "oracle/search-search-filed-from-only-chromium/scenario.har": "sha256:4b073d0f5e315efdf650eb58033c5c22d3b1f704d6cb371690227d3ab3a11bda",
-        "oracle/search-search-filed-range-order-chromium/scenario.har": "sha256:5ae53d2c2ca063ede9a97bed34ddcde349c9d8c126032e86b7ed2bbc8278e897",
-        "oracle/search-search-filed-same-day-chromium/scenario.har": "sha256:07e0456fc118917559cdb89f37a35c28671914bd9c22251368d0d3da0a90ed3b",
-        "oracle/search-search-filed-to-format-chromium/scenario.har": "sha256:23c50f94c0c6c70306c2bbc13040542a6e56f85f1bae90c4b44fbaf1a440e8b4",
-        "oracle/search-search-filed-to-only-chromium/scenario.har": "sha256:7ca2833ee32f1c4921fcd39fda96f5623550759631869c5005a170e41bd92f05",
-        "oracle/search-search-initial-focus-chromium/scenario.har": "sha256:9d6ddcc0aa6cde8554a6c418f18318063016e52a14c0a9416ca6f55c6ba43f5d",
-        "oracle/search-search-no-result-chromium/scenario.har": "sha256:2b3a1cc67dca5939929b0190c77ad5e37ef38c15649fe1e97df0eca665c651d0",
-        "oracle/search-search-number-exact-chromium/scenario.har": "sha256:b5ed39c0dc0aff570008734414d34982667e8faee518fec266efc3c3e73bd3f3",
-        "oracle/search-search-number-mask-chromium/scenario.har": "sha256:a2f24438ea69a8c1b3ef46e548c88d38dd6eb15276b115e1dcf0061b6e1ee9cf",
-        "oracle/search-search-number-spaces-chromium/scenario.har": "sha256:9cdf882caf9783cec24ae126a54bf60491af78fb1108892a909f694e46ca09bb",
-        "oracle/search-search-status-chromium/scenario.har": "sha256:4e9dc50b6529c83463b89f7a7bec46fa21a2e771f78d220916e24a5bf821be98",
-        "oracle/sheet-sheet-applicant-maxlength-chromium/scenario.har": "sha256:9463d8c995c4821f90e243430a3e7758d90797df9078d6bbf565bd122f409b83",
-        "oracle/sheet-sheet-applicant-required-chromium/scenario.har": "sha256:c789ebaaa86aa77683834e37d8328aa2982e49f7a8104032ae72c3629cd658ab",
-        "oracle/sheet-sheet-content-chromium/scenario.har": "sha256:008671e6c3eccfad2e3fdef2b91c269f54eceb58c3debc277c51384dbc0d7fc0",
-        "oracle/sheet-sheet-ctrl-s-chromium/scenario.har": "sha256:568f04095255f7c4a0d24e98c21ba0d646b457d3c5b0df693a5fa17a9c8fc991",
-        "oracle/sheet-sheet-ctrl-s-remis-chromium/scenario.har": "sha256:a530a78425c07cdeb0f4613249aa185237cdd8dc5c98fe3d572d5ed0bd6b5044",
-        "oracle/sheet-sheet-initial-focus-chromium/scenario.har": "sha256:ab8f325462d942ac0168e6400289f66b4cbe957b5803b862c8e95d785b9ebf16",
-        "oracle/sheet-sheet-lock-en-instruction-chromium/scenario.har": "sha256:5bc75e9b442697687e5b0ad684fa08d2aa0411e437953cadeed8f14c9c407b52",
-        "oracle/sheet-sheet-lock-remis-chromium/scenario.har": "sha256:035b22740a9a84bcd919341c521687b14ab293ec57c044143718f0d730dd6a15",
-        "oracle/sheet-sheet-remise-link-chromium/scenario.har": "sha256:fcb517dcff2861dc54bcbac0e2d602bdded683a92c05fa1c6f9995facc82d35f",
-        "oracle/sheet-sheet-save-brouillon-chromium/scenario.har": "sha256:343a21aab4cd558df02e7596bcbffd672cfd0a60dea01466c795635e680ee708",
-        "oracle/sheet-sheet-save-en-instruction-chromium/scenario.har": "sha256:bc06c53d3bf5bf59f2cd840ee02c65cb808f00d23eea1e7575f099b27a99de2c",
-        "oracle/sheet-sheet-subject-maxlength-chromium/scenario.har": "sha256:ea4896881cb5a1b6378456e28680d3c10b8dad7c06304e7dd909bf57507c19b1",
-        "oracle/sheet-sheet-subject-required-chromium/scenario.har": "sha256:7f74701f8258e17af4ae0748378e944a6f9335b68c4bce1766fb3672104d72a6",
-        "oracle/sheet-sheet-tab-order-chromium/scenario.har": "sha256:6d08a32044fdd3bd8e57ee79b357605b795be66e9bb8d4dfc89ee97afe88b1b4"
+        "oracle/remise-receipt-agent-chromium/scenario.har": "sha256:9d43a9d2f7a34f5bf08a1a18c857e6fc28ef94e7e8aa3879c89d8d3b51b5934a",
+        "oracle/remise-receipt-instructeur-chromium/scenario.har": "sha256:02bcff8ed85af88f5e92852cc88513bdc48e896f7f4c117bff6acd0eed387dde",
+        "oracle/remise-remise-agent-reserved-chromium/scenario.har": "sha256:654ca4afbf740b4b4972098daa93dbdc78dd941d95216b15233574505f2a7c59",
+        "oracle/remise-remise-instructeur-chromium/scenario.har": "sha256:5fa625509a1e8949132d388916a593693c54d60abe60082aaa921cfca5f69f29",
+        "oracle/remise-remise-remis-chromium/scenario.har": "sha256:313b0c37de6a1f3dda8d52ddb26d280e2b8277606e992968e20a6399d8b1aa9e",
+        "oracle/remise-remise-summary-chromium/scenario.har": "sha256:2d0df36da85d4c5cc4a806f4ea8f51f44fd7a8559ff23746fd28dc57942bede6",
+        "oracle/search-auth-no-credentials-chromium/scenario.har": "sha256:945323f16fc68e72a7555f81e88ac4ad9e9f396081a85835b6a8dacafbcc0f5a",
+        "oracle/search-auth-unknown-user-chromium/scenario.har": "sha256:7cea2a128385a46f6048d526bea10eb1507e67cd37823c28ede9c001ddc5f17c",
+        "oracle/search-search-applicant-accents-chromium/scenario.har": "sha256:f1d3d77919846a66c50fba3aaae514919e0134f62b2be491e0842527a8056818",
+        "oracle/search-search-applicant-contains-case-chromium/scenario.har": "sha256:db6b05400f473df79332d427ec6b7467d7851664e326208dd3a7b843b942be73",
+        "oracle/search-search-criteria-and-chromium/scenario.har": "sha256:daa2d38c65b87d2fc6538e256d3fce7e5aba3d35ebbaaa286a2917244f4d232d",
+        "oracle/search-search-empty-form-chromium/scenario.har": "sha256:b646a4a9e8827bbd5875664a289a08068e9003dff7cbc798a76225350ff43c75",
+        "oracle/search-search-filed-from-format-chromium/scenario.har": "sha256:8a2e2fc5f469ba99dec03b35c6650045c831b34aafb6976986a01fdac49f991d",
+        "oracle/search-search-filed-from-only-chromium/scenario.har": "sha256:3f183da6f32680351dd7ade69439fa44e5abd5027f382c5dafbbef9a2202ff6c",
+        "oracle/search-search-filed-range-order-chromium/scenario.har": "sha256:1faf55c208ec15dc8e12bdf87cc06a9e7c6e017579b02fb39ac33bd3ecd40bca",
+        "oracle/search-search-filed-same-day-chromium/scenario.har": "sha256:5fa11decdb334b3452325428228c766e824fc2d8850c9e96b8b1de61b18febd1",
+        "oracle/search-search-filed-to-format-chromium/scenario.har": "sha256:30e25bf204692f30dff9008d7a6f2cf16c32271380297540fd19494dbd766abe",
+        "oracle/search-search-filed-to-only-chromium/scenario.har": "sha256:78a762d7d0f37313b0f1dd7cdd9511e969e3875f5b55d38f17cd9b48e2067402",
+        "oracle/search-search-initial-focus-chromium/scenario.har": "sha256:3dcc920453ca87570a405c610d37ea54d7491501cbe7450e02ab9b5c87af53cc",
+        "oracle/search-search-no-result-chromium/scenario.har": "sha256:bfce2268129fb7de0a3bb3803be8cc5ae584cd5cbc57171ab02cc9b1f7707f64",
+        "oracle/search-search-number-exact-chromium/scenario.har": "sha256:87ee1f5a110670544b198e30ab35bd8bd4fe0cb9153be0b7c4f8940b224ee9f9",
+        "oracle/search-search-number-mask-chromium/scenario.har": "sha256:e39c0999b00016957d0f780f9c48e0f559b8112eef6e1c542ad3d3a4bde403e7",
+        "oracle/search-search-number-spaces-chromium/scenario.har": "sha256:eb63d193605137969d61c3b1d7f85561e2224d9e048fa0792ce111293e96aaea",
+        "oracle/search-search-status-chromium/scenario.har": "sha256:143464192506b541037d9a073cee1978ea724f8924cbd7e7226388753d47fd55",
+        "oracle/sheet-sheet-applicant-maxlength-chromium/scenario.har": "sha256:28c4e278aa40053d775c04ba31db94b3031f5bfd6a58590179c8dd11cda8a78c",
+        "oracle/sheet-sheet-applicant-required-chromium/scenario.har": "sha256:4d70c59135c978e7d1b34216937a0f4dbf5c19ce9e395af43badc55224213564",
+        "oracle/sheet-sheet-content-chromium/scenario.har": "sha256:63d0ee9f0501d85d7cc5095d7999f94c8098cc6518c37a77d2d487703a93e003",
+        "oracle/sheet-sheet-ctrl-s-chromium/scenario.har": "sha256:cb69da92318c216facee803b1629ac919a06708389c9d7fedf9628c1e90666d7",
+        "oracle/sheet-sheet-ctrl-s-remis-chromium/scenario.har": "sha256:ec0173eb93866224529787087f77d70c10201334a8c50260b322a6b2eda4f9d3",
+        "oracle/sheet-sheet-initial-focus-chromium/scenario.har": "sha256:1c30cbee8c57707c2120b3c03e90aebc985d11e76313038981f2ff3a69711db7",
+        "oracle/sheet-sheet-lock-en-instruction-chromium/scenario.har": "sha256:f42a7e289320f9a051ee7b93c92090c1e47c6074eaa1844cbaac5c4de570562b",
+        "oracle/sheet-sheet-lock-remis-chromium/scenario.har": "sha256:e66c08b2439b8480026cf8c06f457e16252288d6eddfe3097c1467c7de7960fe",
+        "oracle/sheet-sheet-remise-link-chromium/scenario.har": "sha256:784becc5ebac8144d9aa0ba6d14585f66a8f870f358e2e18f90ff35b4e23561a",
+        "oracle/sheet-sheet-save-brouillon-chromium/scenario.har": "sha256:17630ef4c772b28486edb139f3b66f5a762a76284778c3d8bfe0417eb33c7056",
+        "oracle/sheet-sheet-save-en-instruction-chromium/scenario.har": "sha256:f4ccdf578166de40a5e7a8220b8cbe2ad342d2cc38c56a6620e7fd9b436f499e",
+        "oracle/sheet-sheet-subject-maxlength-chromium/scenario.har": "sha256:b797a10a0c01620e817d947d6e5cf3944fb9669bc9b1ae23f86a8916dfc2a93a",
+        "oracle/sheet-sheet-subject-required-chromium/scenario.har": "sha256:8e1d56f52fe2f3e0ae59a56ae8bae3b8a7d451104ecb2cf600cd48a1b7745116",
+        "oracle/sheet-sheet-tab-order-chromium/scenario.har": "sha256:a2b0a6b42aba003b606c70a7ba79b35fbca6c8613c26280228a87784ae94a994"
       }
     },
     {
@@ -615,9 +615,9 @@
         "pass3.completed": 0
       },
       "raw": {
-        "gates/lighthouse/pass-1.json": "sha256:6f4aae984bffdfb5c8e5814e3dd60816d780a7497acc79c34629fd1f48028e18",
-        "gates/lighthouse/pass-2.json": "sha256:0d14d3a355255013b77598ea5207773f17aa4456ea444ecc0cceb5299346e1c1",
-        "gates/lighthouse/pass-3.json": "sha256:64a8251003d43b73f8d3194539ec46d54eddcc7f5be0cad73e6b8c5721b9a332"
+        "gates/lighthouse/pass-1.json": "sha256:33417f7c495f6d169d535549b90e0512052e3f63f9aaf0b759e1b27db9db84ae",
+        "gates/lighthouse/pass-2.json": "sha256:68022bc9d076616edacdbcdf3e2868c50e0cb87b10449f2c6c122da9e378b211",
+        "gates/lighthouse/pass-3.json": "sha256:169892b715afc682980741e189c8a0a34896c6570383aa68ba34946c4756bf27"
       }
     },
     {
@@ -625,13 +625,13 @@
       "name": "legacy-port-untouched",
       "kind": "judged",
       "outcome": "passed",
-      "examined": 14,
+      "examined": 15,
       "findings": [],
       "findingsTotal": 0,
       "findingsKept": 0,
       "values": {},
       "raw": {
-        "access.log": "sha256:91ac9246bb4c8ca1c76c2f1f57bfb983809b24218ae717772e84a575d03b850a"
+        "access.log": "sha256:22b8514c796cea1701906b37f79b3cb9786bc69c78edd8cbc89c51a59c6202da"
       }
     }
   ],
