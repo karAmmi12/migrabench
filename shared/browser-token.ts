@@ -1,7 +1,7 @@
 // Jeton du navigateur du banc (#134, décision de Karim du 27/11) : tiré à
 // chaque démarrage de la pile et passé au service `browser` par
-// l'environnement du shell (MB_BROWSER_TOKEN de docker-compose.yml). Son
-// relais CDP refuse toute requête qui ne le porte pas : le candidat, sur le
+// l'environnement du shell (MB_BROWSER_TOKEN de docker-compose.yml). Sa
+// passerelle CDP refuse toute requête qui ne le porte pas : le candidat, sur le
 // même réseau, ne joint pas le Chromium qui le juge.
 //
 // Une mesure tire le sien et le donne à ses portes. `npm run stack:up` écrit

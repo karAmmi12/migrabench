@@ -110,7 +110,7 @@ voit dans le résultat : `saltImposed: true` dans ses métadonnées.
 Le sel vient toujours du shell, jamais de `.env`, que lit aussi le legacy.
 
 `npm run stack:up` tire aussi le **jeton du navigateur du banc** et l'écrit
-dans `.dev-browser-token`, fichier ignoré par Git (#134). Le relais CDP du
+dans `.dev-browser-token`, fichier ignoré par Git (#134). La passerelle CDP du
 service `browser`, par lequel Lighthouse joint le Chromium figé, refuse
 toute requête qui ne porte pas ce jeton. Les tests le lisent dans
 `MB_BROWSER_TOKEN` (CI), sinon dans `.dev-browser-token`. Une mesure tire

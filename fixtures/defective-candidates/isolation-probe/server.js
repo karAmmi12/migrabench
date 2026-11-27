@@ -2,7 +2,7 @@
 // défectueux ») : il n'est pas défectueux en lui-même, il prouve que chaque
 // protection du démarrage tient sur une vraie pile (ADR 0007). Il tente
 // d'écrire dans son code, de lire le socket Docker, de lire ARCHIVE_SALT, et
-// regarde s'il tourne en root, et tente de joindre le relais CDP du navigateur
+// regarde s'il tourne en root, et tente de joindre la passerelle CDP du navigateur
 // du banc (#134) ; il reprend le constat de la construction
 // (build.js), et écrit son environnement pour le contrôle du marqueur (#74).
 // Il écrit le constat sur sa sortie, que le runner garde dans le brut
@@ -31,11 +31,11 @@ function buildReport() {
   }
 }
 
-// Relais CDP du navigateur du banc (#134), joint depuis le réseau `default` :
+// Passerelle CDP du navigateur du banc (#134), joint depuis le réseau `default` :
 // sans le jeton de la pile, la découverte DevTools et le lancement d'un
 // Chromium sont refusés. Seuls deux `403` prouvent le refus ; une erreur de
-// connexion laisse le doute (relais non joint, donc rien d'examiné).
-async function attemptCdpRelay() {
+// connexion laisse le doute (passerelle non jointe, donc rien d'examiné).
+async function attemptCdpGateway() {
   const tries = [
     ["GET", "http://browser:9222/json/version"],
     ["POST", "http://browser:9222/launch"],
@@ -75,7 +75,7 @@ const attempts = [
     if (uid !== 0) throw new Error(`uid ${uid}`);
     return "uid 0";
   }),
-  await attemptCdpRelay(),
+  await attemptCdpGateway(),
   // Le marqueur de la mesure ne doit jamais arriver jusqu'au candidat (#74).
   // La sonde ne le connaît pas : elle écrit tout son environnement, et le
   // contrôle (`start-report:check -- probe … --marker`) l'y cherche. La valeur

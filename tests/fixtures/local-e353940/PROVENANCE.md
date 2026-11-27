@@ -13,5 +13,5 @@ sur un arbre propre (`environment.worktree: "clean"`) au commit `e353940` de
 la branche `feat/134-lighthouse`, après `npm run stack:up` depuis ce commit.
 Verdict : `completed`, `ok`.
 
-C'est la première sonde qui tente de joindre le relais CDP du navigateur du
+C'est la première sonde qui tente de joindre la passerelle CDP du navigateur du
 banc (#134) : son constat porte `reach-browser-cdp`, refusé par deux `403`.

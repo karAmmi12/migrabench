@@ -2,7 +2,7 @@
 // performance de l'écran d'arrivée du candidat, relevée sans seuil.
 //
 // Lighthouse, en mode « navigation », sur BASE_URL, dans un Chromium de
-// l'image figée (#78), lancé par le relais CDP du service `browser`
+// l'image figée (#78), lancé par la passerelle CDP du service `browser`
 // (gates/cdp-browser.ts) : profil desktop, ralentissement simulé, catégorie
 // performance seule. La session est celle de l'agent, par l'en-tête
 // `Authorization` (BASIC) que Lighthouse envoie avec chaque requête
@@ -93,10 +93,24 @@ export function lighthouseResult(passes: readonly PassOutcome[], raw: Record<str
 
 interface Prepared {
   chromium: CdpChromium;
+  browser: import("puppeteer-core").Browser;
   authorization: string;
   lighthouse: typeof import("lighthouse").default;
-  puppeteer: typeof import("puppeteer-core").default;
   config: import("lighthouse").Config;
+}
+
+// Message d'une erreur, sur sa première ligne, sans le jeton du navigateur :
+// l'adresse DevTools le porte, et le message finit dans measure.json.
+export function errorMessage(error: unknown, token: string): string {
+  const message = error instanceof Error ? (error.message.split("\n")[0] ?? "") : String(error);
+  return message.replaceAll(token, "<token>");
+}
+
+// Arrête le Chromium sans masquer ce qui a été relevé : un échec de l'arrêt
+// est une panne du banc, et la pile recréée à la mesure suivante l'arrête.
+async function release({ chromium, browser }: Pick<Prepared, "chromium" | "browser">): Promise<void> {
+  await browser.disconnect().catch(() => undefined);
+  await chromium.close().catch(() => undefined);
 }
 
 // Version de Lighthouse installée, celle qui relève.
@@ -124,44 +138,51 @@ export const lighthouseGate: Gate<Prepared> = {
       import("puppeteer-core"),
     ]);
     const config = { extends: "lighthouse:default", settings: { ...desktopConfig.settings, onlyCategories: ["performance"], throttlingMethod: "simulate" as const } };
-    return {
-      chromium: await launchCdpChromium(context.browserToken),
-      authorization: `Basic ${Buffer.from(`${agent.username}:${agent.password}`).toString("base64")}`,
-      lighthouse,
-      puppeteer,
-      config,
-    };
-  },
-  examine: async (context, { chromium, authorization, lighthouse, puppeteer, config }) => {
+    // Le Chromium du banc et la connexion CDP sont des entrées du banc :
+    // leur échec rend la mesure invalide, jamais un échec du candidat.
+    const chromium = await launchCdpChromium(context.browserToken);
+    let browser;
     try {
-      const browser = await puppeteer.connect({ browserWSEndpoint: chromium.browserWSEndpoint, defaultViewport: null });
-      try {
-        const passes: PassOutcome[] = [];
-        const raw: Record<string, string> = {};
-        for (let pass = 1; pass <= PASSES; pass++) {
-          const page = await browser.newPage();
-          try {
-            const result = await lighthouse(context.candidateUrl, { output: "json", logLevel: "error", extraHeaders: { Authorization: authorization } }, config, page);
-            if (result === undefined) {
-              passes.push({ completed: false, reason: "Lighthouse returned no result" });
-              continue;
-            }
-            const [path, digest] = await saveGateRaw(context.rawDir, GATE, `pass-${pass}.json`, `${JSON.stringify(result.lhr, null, 2)}\n`);
-            raw[path] = digest;
-            passes.push(passOutcome(result.lhr as unknown as Lhr));
-          } catch (error) {
-            if (context.signal.aborted) throw error;
-            passes.push({ completed: false, reason: error instanceof Error ? error.message.split("\n")[0]! : String(error) });
-          } finally {
-            await page.close().catch(() => undefined);
-          }
+      browser = await puppeteer.connect({ browserWSEndpoint: chromium.browserWSEndpoint, defaultViewport: null });
+    } catch (error) {
+      await chromium.close().catch(() => undefined);
+      throw new Error(`Could not connect to the CDP gateway: ${errorMessage(error, context.browserToken)}`);
+    }
+    return { chromium, browser, authorization: `Basic ${Buffer.from(`${agent.username}:${agent.password}`).toString("base64")}`, lighthouse, config };
+  },
+  examine: async (context, prepared) => {
+    const { browser, authorization, lighthouse, config } = prepared;
+    try {
+      const passes: PassOutcome[] = [];
+      const raw: Record<string, string> = {};
+      for (let pass = 1; pass <= PASSES; pass++) {
+        const page = await browser.newPage();
+        let result: Awaited<ReturnType<typeof lighthouse>>;
+        try {
+          // Seul Lighthouse sur la page du candidat peut échouer du fait du
+          // candidat : son erreur est une passe qui n'aboutit pas. Une erreur
+          // du banc (page, brut) remonte et rend la porte `errored`.
+          result = await lighthouse(context.candidateUrl, { output: "json", logLevel: "error", extraHeaders: { Authorization: authorization } }, config, page);
+        } catch (error) {
+          if (context.signal.aborted) throw error;
+          passes.push({ completed: false, reason: errorMessage(error, context.browserToken) });
+          continue;
+        } finally {
+          await page.close().catch(() => undefined);
         }
-        return [lighthouseResult(passes, raw)];
-      } finally {
-        await browser.disconnect();
+        if (result === undefined) {
+          passes.push({ completed: false, reason: "Lighthouse returned no result" });
+          continue;
+        }
+        const [path, digest] = await saveGateRaw(context.rawDir, GATE, `pass-${pass}.json`, `${JSON.stringify(result.lhr, null, 2)}\n`);
+        raw[path] = digest;
+        passes.push(passOutcome(result.lhr as unknown as Lhr));
       }
+      return [lighthouseResult(passes, raw)];
+    } catch (error) {
+      throw new Error(errorMessage(error, context.browserToken));
     } finally {
-      await chromium.close();
+      await release(prepared);
     }
   },
 };

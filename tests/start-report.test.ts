@@ -8,7 +8,7 @@
 // Les journaux sont des copies de vrais `start.log` : celui du candidat de
 // référence vient de l'exécution 45624689673 (tests/fixtures/ci45624689673/),
 // celui de la sonde d'une mesure locale, la première avec la tentative sur le
-// relais CDP (tests/fixtures/local-e353940/, #134). Chaque variante réécrit la
+// passerelle CDP (tests/fixtures/local-e353940/, #134). Chaque variante réécrit la
 // ligne de constat du vrai journal, en gardant son préfixe (service, horodatage).
 import { describe, expect, it } from "vitest";
 import { MASKED, probeReportProblems, referenceReportProblems, START_REPORT_PREFIX } from "../scripts/start-report.ts";
@@ -62,8 +62,8 @@ describe("probeReportProblems", () => {
     expect(probeReportProblems(MARKER, probeLog({ attempts }))).toEqual(["Start report 1: run-as-root was not refused: uid 0"]);
   });
 
-  // Témoin du relais CDP (#134) : un relais joint qui ne refuse pas est vu.
-  it("names a CDP relay that answered the probe", () => {
+  // Témoin de la passerelle CDP (#134) : une passerelle jointe qui ne refuse pas est vu.
+  it("names a CDP gateway that answered the probe", () => {
     const detail = "GET http://browser:9222/json/version 200, POST http://browser:9222/launch 403";
     const attempts = ATTEMPTS.map((entry) => (entry.attempt === "reach-browser-cdp" ? { attempt: "reach-browser-cdp", refused: false, detail } : entry));
 

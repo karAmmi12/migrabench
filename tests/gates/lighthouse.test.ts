@@ -3,7 +3,7 @@
 // le legacy (tests/fixtures/probe134-6151131/PROVENANCE.md) ; chaque variante
 // le réécrit.
 import { describe, expect, it } from "vitest";
-import { type Lhr, lighthouseGate, lighthouseResult, median, passOutcome, type PassOutcome } from "../../gates/lighthouse.ts";
+import { errorMessage, type Lhr, lighthouseGate, lighthouseResult, median, passOutcome, type PassOutcome } from "../../gates/lighthouse.ts";
 import { readFixture } from "../real-fixtures.ts";
 
 const LHR = JSON.parse(readFixture("probe134-6151131/lhr-pass.json")) as Lhr;
@@ -63,6 +63,15 @@ describe("lighthouseResult", () => {
     const result = lighthouseResult([failed, failed, failed], {});
     expect(result).toMatchObject({ outcome: "not-evaluable", examined: 0, findingsTotal: 3 });
     expect(result.values).toEqual({ "pass1.completed": 0, "pass2.completed": 0, "pass3.completed": 0 });
+  });
+});
+
+// Le message d'une erreur finit dans measure.json : jamais le jeton du navigateur.
+describe("errorMessage", () => {
+  it("keeps the first line, without the token of the browser", () => {
+    const token = "c".repeat(64);
+    const error = new Error(`connect ECONNREFUSED ws://127.0.0.1:8096/${token}/cdp/1/devtools/browser/x\n    at connect`);
+    expect(errorMessage(error, token)).toBe("connect ECONNREFUSED ws://127.0.0.1:8096/<token>/cdp/1/devtools/browser/x");
   });
 });
 

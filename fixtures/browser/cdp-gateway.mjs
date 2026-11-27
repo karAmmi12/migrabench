@@ -1,6 +1,6 @@
-// Relais CDP du navigateur du banc (#134, décision de Karim du 27/11) :
+// Passerelle CDP du navigateur du banc (#134, décision de Karim du 27/11) :
 // Lighthouse parle au Chromium par le protocole DevTools (CDP), que le
-// serveur de Playwright ne donne pas. Le relais lance, à la demande du banc, un
+// serveur de Playwright ne donne pas. La passerelle lance, à la demande du banc, un
 // Chromium de l'image figée qui écoute en CDP sur la boucle locale du
 // conteneur, et relaie ce CDP vers le port publié.
 //
@@ -34,7 +34,7 @@ const LAUNCH_TIMEOUT_MS = 30_000;
 
 // Options du Chromium lancé : celles de chrome-launcher, avec lequel
 // Lighthouse lance Chrome (Launcher.defaultFlags() de chrome-launcher 1.2.3,
-// tests/browser-cdp-relay.test.ts), le nouveau mode headless, et
+// tests/browser-cdp-gateway.test.ts), le nouveau mode headless, et
 // `--no-sandbox` : le conteneur tourne en root, comme le lance Playwright.
 export const CHROMIUM_FLAGS = [
   "--disable-features=Translate,OptimizationHints,MediaRouter,DialMediaRouteProvider,CalculateNativeWinOcclusion,InterestFeedContentSuggestions,CertificateTransparencyComponentUpdater,AutofillServerCommunication,PrivacySandboxSettings4",
@@ -80,7 +80,8 @@ export function routeRequest(head, token) {
   const refused = { kind: "refused" };
   if (token === undefined || token.length < MIN_TOKEN_LENGTH) return refused;
   const lineEnd = head.indexOf("\r\n");
-  const requestLine = lineEnd === -1 ? head : head.slice(0, lineEnd);
+  if (lineEnd === -1) return refused;
+  const requestLine = head.slice(0, lineEnd);
   const match = /^(GET|POST) \/([^/ ]+)(\/[^ ]*) HTTP\/1\.1$/.exec(requestLine);
   if (match === null) return refused;
   const [, method, given, rest] = match;
@@ -113,10 +114,10 @@ async function devToolsActivePort(userDataDir, exited) {
 }
 
 /**
- * Démarre le relais CDP.
+ * Démarre la passerelle CDP.
  * @param {{ port: number, token: string | undefined, executablePath: string }} options
  */
-export function startCdpRelay({ port, token, executablePath }) {
+export function startCdpGateway({ port, token, executablePath }) {
   const launched = new Map();
   let nextId = 1;
 
@@ -125,6 +126,12 @@ export function startCdpRelay({ port, token, executablePath }) {
     const userDataDir = await mkdtemp(join(tmpdir(), "mb-cdp-"));
     const chromium = spawn(executablePath, [...CHROMIUM_FLAGS, "--remote-debugging-port=0", `--user-data-dir=${userDataDir}`, "about:blank"], { stdio: "ignore" });
     let exited = false;
+    // Exécutable introuvable ou non lancé : l'erreur ne doit pas faire tomber
+    // le service, serveur de Playwright compris.
+    chromium.on("error", () => {
+      exited = true;
+      void rm(userDataDir, { recursive: true, force: true });
+    });
     chromium.on("exit", () => {
       exited = true;
       launched.delete(id);
@@ -155,7 +162,10 @@ export function startCdpRelay({ port, token, executablePath }) {
       buffered = Buffer.concat([buffered, chunk]);
       const end = buffered.indexOf("\r\n\r\n");
       if (end === -1) {
-        if (buffered.length > MAX_HEAD_BYTES) respond(socket, "431 Request Header Fields Too Large");
+        if (buffered.length > MAX_HEAD_BYTES) {
+          socket.off("data", onData);
+          respond(socket, "431 Request Header Fields Too Large");
+        }
         return;
       }
       socket.off("data", onData);
@@ -174,12 +184,12 @@ export function startCdpRelay({ port, token, executablePath }) {
       const entry = launched.get(route.id);
       if (entry === undefined) return respond(socket, "404 Not Found");
       const upstream = createConnection({ host: "127.0.0.1", port: entry.port });
-      const end2 = () => {
+      const teardown = () => {
         socket.destroy();
         upstream.destroy();
       };
-      upstream.on("error", end2);
-      socket.on("close", end2);
+      upstream.on("error", teardown);
+      socket.on("close", teardown);
       upstream.write(Buffer.concat([Buffer.from(route.head, "latin1"), body]));
       socket.pipe(upstream).pipe(socket);
       socket.resume();

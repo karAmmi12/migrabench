@@ -8,7 +8,8 @@ du rapport de Lighthouse (LHR) de la première passe écrite par la sonde
 commit.
 
 - Lighthouse 13.6.0, `puppeteer-core` 25.19.0.
-- Chromium du relais CDP du service `browser` (`fixtures/browser/cdp-relay.mjs`) :
+- Chromium de la passerelle CDP du service `browser` (`fixtures/browser/cdp-gateway.mjs`,
+  nommée `cdp-relay.mjs` à ce commit) :
   `Chrome/159.0.8154.6`, image `mcr.microsoft.com/playwright:v1.65.1-noble`,
   `linux/arm64`.
 - Configuration : `desktop-config.js` de Lighthouse, `onlyCategories:

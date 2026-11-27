@@ -1,9 +1,9 @@
-// Relais CDP du navigateur du banc (#134) : seul le porteur du jeton de la
+// Passerelle CDP du navigateur du banc (#134) : seul le porteur du jeton de la
 // pile lance un Chromium et lui parle. Le candidat, sur le même réseau
 // `default`, ne doit jamais joindre le Chromium qui le juge.
 import { Launcher } from "chrome-launcher";
 import { describe, expect, it } from "vitest";
-import { CHROMIUM_FLAGS, routeRequest } from "../fixtures/browser/cdp-relay.mjs";
+import { CHROMIUM_FLAGS, routeRequest } from "../fixtures/browser/cdp-gateway.mjs";
 
 const TOKEN = "a".repeat(64);
 const head = (requestLine: string) => `${requestLine}\r\nHost: 127.0.0.1:8096\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n`;
@@ -37,6 +37,10 @@ describe("routeRequest", () => {
     expect(routeRequest(head(requestLine), TOKEN)).toEqual({ kind: "refused" });
   });
 
+  it("refuses a head without the end of its request line", () => {
+    expect(routeRequest(`GET /${TOKEN}/cdp/3/devtools/browser/0b1c-42 HTTP/1.1`, TOKEN)).toEqual({ kind: "refused" });
+  });
+
   it.each([
     ["no token in the service", undefined],
     ["an empty token", ""],
@@ -47,7 +51,7 @@ describe("routeRequest", () => {
 });
 
 describe("CHROMIUM_FLAGS", () => {
-  // Lighthouse lance Chrome par chrome-launcher : le Chromium du relais garde
+  // Lighthouse lance Chrome par chrome-launcher : le Chromium de la passerelle garde
   // les mêmes réglages (documentation de Lighthouse, « Using programmatically »).
   it("keeps the default flags of chrome-launcher", () => {
     expect(CHROMIUM_FLAGS).toEqual(expect.arrayContaining(Launcher.defaultFlags()));
