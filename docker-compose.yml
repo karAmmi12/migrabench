@@ -76,7 +76,8 @@ services:
 
   # Navigateur du banc (#78) : Chromium et ses dépendances système figés par
   # l'empreinte de l'image officielle de Playwright (oracle/browser.ts), avec
-  # le serveur de Playwright du dépôt (fixtures/browser/server.mjs). Sur
+  # le serveur de Playwright du dépôt (fixtures/browser/server.mjs), joint
+  # seulement avec le jeton de la pile (#160). Sur
   # default seul : il joint le legacy, le service d'archivage et le candidat
   # par son relais local, jamais l'API interne (ADR 0004). Recréé à chaque
   # exécution de l'oracle, comme le reste de la pile.
