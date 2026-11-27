@@ -78,9 +78,13 @@ const role = (outcomes: Partial<Record<RoleName, GateOutcome>> = {}, others: Gat
 // Le legacy : l'agent remet le dossier par le rejeu, mais ne voit aucun
 // bouton « Remettre ».
 const ROLE_LEGACY = role({ "role-replay": "failed" });
-// La remise enregistrée, puis trois redémarrages du legacy, chacun avec sa
-// requête témoin.
-const ROLE_RESTARTS = ["start-1", "start-2", "start-3", "start-4"];
+// Porte d'authentification (#132) : ses deux résultats nommés, réussis sauf ceux donnés.
+type AuthName = "auth-read" | "auth-write";
+const auth = (outcomes: Partial<Record<AuthName, GateOutcome>> = {}, others: GateOutcome = "passed") =>
+  (["auth-read", "auth-write"] as const).map((name) => ({ gate: "auth-check", name, outcome: outcomes[name] ?? others }));
+// Le premier démarrage, puis trois redémarrages du legacy par la porte de
+// rôle et deux par la porte d'authentification, chacun avec sa requête témoin.
+const RESTARTS = ["start-1", "start-2", "start-3", "start-4", "start-5", "start-6"];
 // Candidats XSS : des relais du legacy qui ne réécrivent que les pages
 // porteuses de la charge. L'oracle n'y regarde pas : 38 scénarios réussis.
 // Comme le legacy, ils laissent passer la valeur témoin.
@@ -108,7 +112,23 @@ const roleCase = (candidate: string, gates: MeasureCase["gates"], summary: Measu
   oracleJson: "kept",
   summary,
   witnesses: true,
-  startWitnesses: ROLE_RESTARTS,
+  startWitnesses: RESTARTS,
+  gates: [{ ...WITNESS_VALUE, outcome: "failed" }, ...XSS_LEGACY, ...(gates ?? []), { ...RELAY, outcome: "failed" }],
+});
+// Candidats de la porte d'authentification : des relais du legacy qui ne
+// changent que l'exigence d'identifiants. Le legacy y est intact : ils
+// échouent comme lui à la valeur témoin, à XSS sur la recherche et au relais.
+const authCase = (candidate: string, gates: MeasureCase["gates"], summary: MeasureCase["summary"] = { passed: 38, failed: 0, unreached: 0 }): MeasureCase => ({
+  candidate,
+  exitCode: 0,
+  category: "completed",
+  reason: "ok",
+  phases: { gates: "ok", closing: "ok" },
+  oracleExecuted: true,
+  oracleJson: "kept",
+  summary,
+  witnesses: true,
+  startWitnesses: RESTARTS,
   gates: [{ ...WITNESS_VALUE, outcome: "failed" }, ...XSS_LEGACY, ...(gates ?? []), { ...RELAY, outcome: "failed" }],
 });
 // Candidat qui n'affiche aucun écran : rien d'examiné.
@@ -127,18 +147,20 @@ const reference: MeasureCase = {
   oracleJson: "kept",
   summary: { passed: 38, failed: 0, unreached: 0 },
   witnesses: true,
-  startWitnesses: ROLE_RESTARTS,
+  startWitnesses: RESTARTS,
   // Le relais appelle le port 8080 du legacy : le test négatif de la porte.
   // Le legacy échoue aux tableaux sur chaque écran, et axe y relève une
   // violation critique (`image-alt`) et une sérieuse (`html-has-lang`). Le
   // lien « Accusé de remise » porte la valeur témoin. Lighthouse relève
-  // l'écran d'arrivée du legacy.
+  // l'écran d'arrivée du legacy. Le legacy exige ses identifiants : il passe
+  // la porte d'authentification.
   gates: [
     { ...WITNESS_VALUE, outcome: "failed", findingCites: "accuse-de-remise" },
     ...accessibility({ tables: "failed", axe: { critical: "failed", serious: "failed", moderate: "passed", minor: "passed" } }),
     ...XSS_LEGACY,
     { ...LIGHTHOUSE, outcome: "measured" },
     ...ROLE_LEGACY,
+    ...auth(),
     { ...RELAY, outcome: "failed" },
   ],
 };
@@ -202,7 +224,7 @@ export const MEASURE_CASES = {
     oracleExecuted: true,
     oracleJson: "kept",
     witnesses: true,
-    gates: [{ ...WITNESS_VALUE, outcome: "passed" }, ...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), LIGHTHOUSE_NOT_EVALUABLE, ...role({}, "not-evaluable"), { ...RELAY, outcome: "failed", findingCites: '"curl/8.18.0"' }],
+    gates: [{ ...WITNESS_VALUE, outcome: "passed" }, ...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), LIGHTHOUSE_NOT_EVALUABLE, ...role({}, "not-evaluable"), ...auth({}, "not-evaluable"), { ...RELAY, outcome: "failed", findingCites: '"curl/8.18.0"' }],
   },
   // #124 : candidat conforme, qui ne touche jamais le port 8080.
   "relay-untouched": {
@@ -213,7 +235,7 @@ export const MEASURE_CASES = {
     oracleExecuted: true,
     oracleJson: "kept",
     witnesses: true,
-    gates: [{ ...WITNESS_VALUE, outcome: "passed" }, ...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), LIGHTHOUSE_NOT_EVALUABLE, ...role({}, "not-evaluable"), { ...RELAY, outcome: "passed" }],
+    gates: [{ ...WITNESS_VALUE, outcome: "passed" }, ...ACCESSIBILITY_NOT_EVALUABLE, ...xss({}, "not-evaluable"), LIGHTHOUSE_NOT_EVALUABLE, ...role({}, "not-evaluable"), ...auth({}, "not-evaluable"), { ...RELAY, outcome: "passed" }],
   },
   // #129 : candidat conforme, qui échappe partout.
   "xss-escapes": xssCase(`${CONFORMING}/xss-escapes`, xss()),
@@ -237,6 +259,14 @@ export const MEASURE_CASES = {
   "role-csrf-without-role-check": roleCase(`${DEFECTIVE}/role-csrf-without-role-check`, role({ "role-replay": "failed" })),
   // #131 : candidat conforme, jeton anti-CSRF et contrôle de rôle.
   "role-csrf-and-role-check": roleCase(`${CONFORMING}/role-csrf-and-role-check`, role()),
+  // #132 : lecture et écriture sans contrôle. Sans identifiants, le relais pose
+  // ceux de l'instructeur : trois scénarios échouent, `auth-no-credentials`,
+  // `auth-unknown-user` et `remise-agent-reserved`, dont la première requête
+  // part sans identifiants (mesure 20261127T162133Z-316e805-…, 35 réussis).
+  "auth-read-and-write-unchecked": authCase(`${DEFECTIVE}/auth-read-and-write-unchecked`, auth({}, "failed"), { passed: 35, failed: 3, unreached: 0 }),
+  // #132 : jeton anti-CSRF et écriture sans contrôle ; le jeton de la session
+  // anonyme est transplanté.
+  "auth-csrf-write-unchecked": authCase(`${DEFECTIVE}/auth-csrf-write-unchecked`, auth({ "auth-write": "failed" })),
   // 7 : le legacy ne devient jamais sain.
   "broken-stack": {
     candidate: REFERENCE,

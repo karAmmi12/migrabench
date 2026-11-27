@@ -8,11 +8,12 @@ import { ACCESSIBILITY_MEASURES, GATE_MEASURES, MEASURES, readJsonFixture, readM
 
 // Cas attendu, sans les résultats des portes nommées : pour les vraies
 // mesures copiées d'avant ces portes.
-// Toutes ces mesures sont d'avant la porte de rôle (#131) : ni ses résultats,
-// ni les témoins de ses redémarrages du legacy.
+// Toutes ces mesures sont d'avant les portes de rôle (#131) et
+// d'authentification (#132) : ni leurs résultats, ni les témoins de leurs
+// redémarrages du legacy.
 function withoutGates(expected: MeasureCase, ...gates: string[]): MeasureCase {
   const { startWitnesses: _startWitnesses, ...rest } = expected;
-  return { ...rest, gates: (expected.gates ?? []).filter(({ gate }) => !gates.includes(gate) && gate !== "role-check") };
+  return { ...rest, gates: (expected.gates ?? []).filter(({ gate }) => !gates.includes(gate) && gate !== "role-check" && gate !== "auth-check") };
 }
 // Mesures d'avant la porte d'accessibilité (#128), donc d'avant celles de la
 // valeur témoin (#130), XSS (#129), Lighthouse (#134) et de rôle (#131).
