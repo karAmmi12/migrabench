@@ -23,7 +23,10 @@ export default defineConfig({
   use: {
     baseURL: process.env.BASE_URL ?? DEFAULT_BASE_URL,
     trace: "on",
-    // Chromium du service `browser` (#78), jamais un navigateur local.
+    // Chromium du service `browser` (#78), jamais un navigateur local. Sans
+    // jeton, la passerelle refuse : executeOracle passe le point d'entrée avec
+    // le jeton par PLAYWRIGHT_CONNECT_ENV (#160), hors de cette
+    // configuration, que le résultat recopie.
     connectOptions: { wsEndpoint: BROWSER_WS_ENDPOINT },
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],

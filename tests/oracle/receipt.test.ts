@@ -2,6 +2,7 @@
 // par context.route, dans le Chromium du service `browser` de la pile (#78).
 import type { Browser, BrowserContext, Page } from "@playwright/test";
 import { connectBenchBrowser } from "../../oracle/browser.ts";
+import { stackBrowserToken } from "../../shared/browser-token.ts";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { openReceipt, receiptLink } from "../../oracle/receipt.ts";
 
@@ -12,7 +13,7 @@ let browser: Browser;
 let context: BrowserContext;
 
 beforeAll(async () => {
-  browser = await connectBenchBrowser();
+  browser = await connectBenchBrowser(stackBrowserToken());
 });
 
 afterAll(async () => {

@@ -42,6 +42,7 @@ import { contractPhase } from "./contract-phase.ts";
 import { measureLimits, SAFETY_CAP } from "./limits.ts";
 import { CALIBRATION_DIR_FROM_ROOT, LOCAL_CALIBRATION_DIR_FROM_ROOT } from "./paths.ts";
 import { cgroupUsage, type ResourceUsage } from "./resource-usage.ts";
+import { newBrowserToken } from "../shared/browser-token.ts";
 
 export const CALIBRATION_CANDIDATE = "fixtures/calibration-candidate";
 export const CALIBRATION_FORMAT = 1;
@@ -77,6 +78,9 @@ export async function calibrateCandidate({ readings = CALIBRATION_READINGS }: Ca
   const recorded = [];
   // Empreintes des contextes de la pile, vérifiées à chaque recréation (#102).
   let imageContexts: StackContextDigests | undefined;
+  // Jeton du navigateur de l'étalonnage, passé à chaque recréation de la pile :
+  // les versions du navigateur sont relevées avec lui (#160).
+  const browserToken = newBrowserToken();
   for (let reading = 1; reading <= readings; reading++) {
     console.log(`Calibration reading ${reading}/${readings}`);
     const rawDir = join(ROOT, artifacts, `reading-${reading}`);
@@ -90,7 +94,7 @@ export async function calibrateCandidate({ readings = CALIBRATION_READINGS }: Ca
 
     // Pile recréée comme pour une mesure, puis le candidat démarré seul.
     const service = await candidateService({ rawDir, copyDir, user, start: startCommand, limits });
-    imageContexts = await recreateStack(randomBytes(32).toString("hex"));
+    imageContexts = await recreateStack(randomBytes(32).toString("hex"), { browserToken });
     let start: CalibrationReading["start"];
     try {
       await startCandidate(service);
@@ -133,7 +137,7 @@ export async function calibrateCandidate({ readings = CALIBRATION_READINGS }: Ca
       benchCommit,
       worktree,
       node: process.version,
-      ...(await browserVersions()),
+      ...(await browserVersions(browserToken)),
       images: await stackImages(),
       imageContexts,
       frozenDate: env.FROZEN_DATE ?? null,

@@ -3,13 +3,14 @@
 // du service `browser` de la pile (#78), sur un contenu posé par setContent.
 import type { Browser, Page } from "@playwright/test";
 import { connectBenchBrowser } from "../../oracle/browser.ts";
+import { stackBrowserToken } from "../../shared/browser-token.ts";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { atLeastOne } from "../../oracle/occurrences.ts";
 
 let browser: Browser;
 
 beforeAll(async () => {
-  browser = await connectBenchBrowser();
+  browser = await connectBenchBrowser(stackBrowserToken());
 });
 
 afterAll(async () => {
