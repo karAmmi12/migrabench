@@ -5,9 +5,8 @@
 // conteneur, et relaie ce CDP vers le port publié.
 //
 // Le candidat est sur le réseau `default`, comme ce service : il joint ce
-// port. Toute requête doit donc porter le jeton de la pile (MB_BROWSER_TOKEN,
-// tiré à chaque démarrage par le banc) en tête de son chemin. Sans jeton dans
-// le service, tout est refusé. Le jeton n'est jamais relayé au Chromium.
+// port. Toute requête doit donc porter le jeton de la pile en tête de son
+// chemin (token-gateway.mjs). Le jeton n'est jamais relayé au Chromium.
 //
 // Routes, toutes sous `/<jeton>/` :
 // - `POST launch` : lance un Chromium, rend `{ id, path }`, où `path` est le
@@ -19,16 +18,11 @@
 // Sans dépendance hors de Node : le fichier est monté tel quel dans le
 // conteneur, et importé par les tests du banc.
 import { spawn } from "node:child_process";
-import { timingSafeEqual } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
-import { createConnection, createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { headServer, relayTo, respond, tokenRequest } from "./token-gateway.mjs";
 
-// Longueur minimale du jeton : 32 caractères, `openssl rand -hex 16` au moins.
-const MIN_TOKEN_LENGTH = 32;
-// Taille maximale de l'en-tête d'une requête, au-delà de laquelle elle est refusée.
-const MAX_HEAD_BYTES = 16 * 1024;
 // Attente du port CDP d'un Chromium lancé.
 const LAUNCH_TIMEOUT_MS = 30_000;
 
@@ -64,12 +58,6 @@ export const CHROMIUM_FLAGS = [
   "--no-sandbox",
 ];
 
-function sameToken(given, token) {
-  const a = Buffer.from(given);
-  const b = Buffer.from(token);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
 /**
  * Route d'une requête, d'après son en-tête complet (jusqu'à la ligne vide).
  * @param {string} head
@@ -78,19 +66,14 @@ function sameToken(given, token) {
  */
 export function routeRequest(head, token) {
   const refused = { kind: "refused" };
-  if (token === undefined || token.length < MIN_TOKEN_LENGTH) return refused;
-  const lineEnd = head.indexOf("\r\n");
-  if (lineEnd === -1) return refused;
-  const requestLine = head.slice(0, lineEnd);
-  const match = /^(GET|POST) \/([^/ ]+)(\/[^ ]*) HTTP\/1\.1$/.exec(requestLine);
-  if (match === null) return refused;
-  const [, method, given, rest] = match;
-  if (!sameToken(given, token)) return refused;
-  if (method === "POST" && rest === "/launch") return { kind: "launch" };
-  const close = /^\/close\/(\d+)$/.exec(rest);
+  const request = tokenRequest(head, token);
+  if (request === undefined) return refused;
+  const { method, path, rest } = request;
+  if (method === "POST" && path === "/launch") return { kind: "launch" };
+  const close = /^\/close\/(\d+)$/.exec(path);
   if (method === "POST" && close !== null) return { kind: "close", id: close[1] };
-  const cdp = /^\/cdp\/(\d+)(\/devtools\/[^ ]*)$/.exec(rest);
-  if (method === "GET" && cdp !== null) return { kind: "cdp", id: cdp[1], head: `GET ${cdp[2]} HTTP/1.1${head.slice(lineEnd)}` };
+  const cdp = /^\/cdp\/(\d+)(\/devtools\/[^ ]*)$/.exec(path);
+  if (method === "GET" && cdp !== null) return { kind: "cdp", id: cdp[1], head: `GET ${cdp[2]} HTTP/1.1${rest}` };
   return refused;
 }
 
@@ -106,11 +89,6 @@ export function routeRequest(head, token) {
  */
 export async function removeProfile(userDataDir, remove = rm) {
   await remove(userDataDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 200 }).catch(() => undefined);
-}
-
-function respond(socket, status, body) {
-  const text = body === undefined ? "" : JSON.stringify(body);
-  socket.end(`HTTP/1.1 ${status}\r\nContent-Type: application/json\r\nContent-Length: ${Buffer.byteLength(text)}\r\nConnection: close\r\n\r\n${text}`);
 }
 
 // Port et chemin DevTools d'un Chromium lancé, écrits par lui dans
@@ -169,46 +147,19 @@ export function startCdpGateway({ port, token, executablePath }) {
     return true;
   }
 
-  const server = createServer((socket) => {
-    let buffered = Buffer.alloc(0);
-    socket.on("error", () => socket.destroy());
-    const onData = (chunk) => {
-      buffered = Buffer.concat([buffered, chunk]);
-      const end = buffered.indexOf("\r\n\r\n");
-      if (end === -1) {
-        if (buffered.length > MAX_HEAD_BYTES) {
-          socket.off("data", onData);
-          respond(socket, "431 Request Header Fields Too Large");
-        }
-        return;
-      }
-      socket.off("data", onData);
-      socket.pause();
-      const head = buffered.subarray(0, end + 4).toString("latin1");
-      const body = buffered.subarray(end + 4);
-      const route = routeRequest(head, token);
-      if (route.kind === "refused") return respond(socket, "403 Forbidden");
-      if (route.kind === "launch") {
-        return void launch().then(
-          (result) => respond(socket, "200 OK", result),
-          (error) => respond(socket, "500 Internal Server Error", { error: error.message }),
-        );
-      }
-      if (route.kind === "close") return close(route.id) ? respond(socket, "200 OK", {}) : respond(socket, "404 Not Found");
-      const entry = launched.get(route.id);
-      if (entry === undefined) return respond(socket, "404 Not Found");
-      const upstream = createConnection({ host: "127.0.0.1", port: entry.port });
-      const teardown = () => {
-        socket.destroy();
-        upstream.destroy();
-      };
-      upstream.on("error", teardown);
-      socket.on("close", teardown);
-      upstream.write(Buffer.concat([Buffer.from(route.head, "latin1"), body]));
-      socket.pipe(upstream).pipe(socket);
-      socket.resume();
-    };
-    socket.on("data", onData);
+  const server = headServer((socket, head, body) => {
+    const route = routeRequest(head, token);
+    if (route.kind === "refused") return respond(socket, "403 Forbidden");
+    if (route.kind === "launch") {
+      return void launch().then(
+        (result) => respond(socket, "200 OK", result),
+        (error) => respond(socket, "500 Internal Server Error", { error: error.message }),
+      );
+    }
+    if (route.kind === "close") return close(route.id) ? respond(socket, "200 OK", {}) : respond(socket, "404 Not Found");
+    const entry = launched.get(route.id);
+    if (entry === undefined) return respond(socket, "404 Not Found");
+    relayTo(socket, entry.port, route.head, body);
   });
   server.listen(port, "0.0.0.0");
   const closeAll = () => {
